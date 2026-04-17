@@ -1,0 +1,46 @@
+name: "Build and Cache Nix Packages"
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # - name: Free Disk Space (Ubuntu)
+    #   uses: jlumbroso/free-disk-space@main
+    #   with:
+    #     tool-cache: true
+    #     android: true
+    #     dotnet: true
+    #     haskell: true
+    #     large-packages: true
+    #     swap-storage: true
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v25
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    # - name: Magic Nix Cache
+    #   # Alternatif gratis yang menggunakan storage GitHub Actions
+    #   uses: DeterminateSystems/magic-nix-cache-action@v2
+
+    - name: Setup SSH agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v14
+      with:
+        name: cachixix
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Build Caelestia Shell
+      run: nix build ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.caelestia.package"

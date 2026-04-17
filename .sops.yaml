@@ -1,0 +1,11 @@
+# .sops.yaml
+keys:
+  - &host_key "age1gktsu9vrr3avnt4pnu0zhjsy6ld6d02r3jqk8cs0333zsch7jpds5uas6h"
+  - &user_key "age1yrd6y870g6g87r8xf3svhtxctmsv2kt4fnxzkmxkcf4as7vzgqyslq7j0d"
+creation_rules:
+  # Ubah regex agar mencakup semua file di dalam folder secrets
+  - path_regex: secrets/.*$
+    key_groups:
+      - age:
+          - *host_key
+          - *user_key

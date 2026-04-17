@@ -1,0 +1,8 @@
+{
+  selfLib,
+  ...
+}:
+
+{
+  imports = (selfLib.scanPaths ./.);
+}
