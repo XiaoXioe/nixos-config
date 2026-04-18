@@ -15,6 +15,26 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # --- FZF: Fuzzy Finder ---
+    programs.fzf = {
+      enable = true;
+      enableFishIntegration = true;
+
+      # Warna highlight akan otomatis disuntikkan ke terminal
+      colors = {
+        "bg+" = "#3b4252";
+        "fg+" = "#e5e9f0";
+        "hl+" = "#81a1c1";
+        "pointer" = "#b48ead";
+        "marker" = "#a3be8c";
+      };
+
+      # Mengaktifkan preview box
+      defaultOptions = [
+        "--preview 'echo {}'"
+        "--preview-window down:3:wrap"
+      ];
+    };
     programs.direnv = {
       enable = true;
       nix-direnv.enable = true;
@@ -69,16 +89,21 @@ in
       enable = true;
       interactiveShellInit = ''
         set -g fish_history_filter '^[ ]'
-        # Tambahkan folder fungsi custom agar terdeteksi otomatis dan mutable
         set -p fish_function_path $HOME/.config/fish/functions/custom
         set -lx GEMINI_API_KEY (cat /run/secrets/gemini-api-key)
+
+        # --- Fish Syntax Highlighting Colors (Pastel Theme) ---
+        set -g fish_color_command cdd6f4       # Perintah (Putih Pastel)
+        set -g fish_color_param 89b4fa         # Parameter (Biru Pastel)
+        set -g fish_color_quote f9e2af         # Tanda Kutip (Kuning Pastel)
+        set -g fish_color_error f38ba8         # Error (Merah Pastel)
+
+        # Tambahan agar warna argumen lain ikut senada:
+        set -g fish_color_escape f5c2e7        # Karakter escape (Pink Pastel)
+        set -g fish_color_operator 94e2d5      # Operator seperti &, |, * (Cyan Pastel)
       '';
       # Memuat plugin-plugin terbaik untuk Fish
       plugins = with pkgs.fishPlugins; [
-        {
-          name = "fzf-fish";
-          src = fzf-fish;
-        }
         {
           name = "pure";
           src = pure;

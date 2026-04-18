@@ -18,7 +18,6 @@ in
 
       ripgrep
       jq
-      fzf
       # fish
       fastfetch
       aria2

@@ -53,6 +53,7 @@ in
       unrar # Mesin untuk file .rar
       p7zip # Mesin untuk file .7z
       nodejs
+      php
     ];
   };
 }

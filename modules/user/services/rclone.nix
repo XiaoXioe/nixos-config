@@ -30,6 +30,8 @@ in
         Type = "notify";
         # Ubah ExecStartPre menjadi bentuk List
         ExecStartPre = [
+          # Coba unmount dulu kalau-kalau ada mount yang nyangkut dari sesi sebelumnya (abaikan error jika gagal)
+          "-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
           # 1. Buat direktori config untuk rclone jika belum ada
           "${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.config/rclone"
@@ -40,17 +42,20 @@ in
         ];
         ExecStart = ''
           ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
-            --vfs-cache-mode full \
             --config "${config.home.homeDirectory}/.config/rclone/rclone.conf" \
+            --vfs-cache-mode full \
             --vfs-cache-max-age 24h \
+            --vfs-cache-max-size 5G \
+            --vfs-write-back 5s \
+            --dir-cache-time 1000h \
+            --attr-timeout 1000h \
+            --poll-interval 15s \
             --vfs-read-chunk-size 32M \
             --vfs-read-chunk-size-limit 1G \
             --buffer-size 64M \
             --no-modtime \
             --drive-use-trash \
-            --stats=15m \
-            --checkers=16 \
-            --transfers=8 \
+            --transfers=4 \
             --log-file="${config.home.homeDirectory}/.config/rclone/rclone.log" \
             --log-level INFO
         '';

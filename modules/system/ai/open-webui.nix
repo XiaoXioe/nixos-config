@@ -16,7 +16,7 @@ in
   config = lib.mkIf cfg.enable {
     services.open-webui = {
       enable = true;
-      package = pkgs.open-webui; # Menggunakan versi dari cabang nixpkgs-unstable
+      package = pkgs.open-webui;
       port = 8081;
       host = "127.0.0.1";
       environment = {
