@@ -240,6 +240,14 @@ in
               url = "https://subtilecat.com/";
             }
             {
+              name = "Convert curl commands to Python, JavaScript and more";
+              url = "https://curlconverter.com/";
+            }
+            {
+              name = "The Cyber Swiss Army Knife - a web app for encryption, encoding, compression and data analysis";
+              url = "https://gchq.github.io/CyberChef/";
+            }
+            {
               # Membuat folder di dalam bookmark
               name = "Pekerjaan";
               bookmarks = [

@@ -26,6 +26,7 @@ in
       keepassxc
       mubeng
       pkgsUnstable.sherlock
+      exiftool
     ];
   };
 }

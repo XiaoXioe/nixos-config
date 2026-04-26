@@ -28,16 +28,11 @@ in
 
       Service = {
         Type = "notify";
-        # Ubah ExecStartPre menjadi bentuk List
         ExecStartPre = [
-          # Coba unmount dulu kalau-kalau ada mount yang nyangkut dari sesi sebelumnya (abaikan error jika gagal)
           "-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
-          # 1. Buat direktori config untuk rclone jika belum ada
           "${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.config/rclone"
-          # 2. Salin config dari sops ke direktori user agar rclone bisa menulis ulang tokennya
           "${pkgs.coreutils}/bin/cp /run/secrets/rclone.conf ${config.home.homeDirectory}/.config/rclone/rclone.conf"
-          # 3. Pastikan user memiliki hak akses baca dan tulis (Read/Write)
           "${pkgs.coreutils}/bin/chmod 600 ${config.home.homeDirectory}/.config/rclone/rclone.conf"
         ];
         ExecStart = ''
@@ -56,10 +51,17 @@ in
             --no-modtime \
             --drive-use-trash \
             --transfers=4 \
+            --vfs-fast-fingerprint \
+            --no-checksum \
+            --drive-pacer-min-sleep=10ms \
             --log-file="${config.home.homeDirectory}/.config/rclone/rclone.log" \
             --log-level INFO
         '';
-        ExecStop = "${pkgs.fuse}/bin/fusermount -uz ${mountPoint}";
+        # Opsi Cache Warming (Pemanasan Cache) agar akses pertama instan
+        ExecStartPost = "-${pkgs.bash}/bin/bash -c 'sleep 5 && ${pkgs.findutils}/bin/find ${mountPoint} -maxdepth 2 > /dev/null 2>&1'";
+
+        # Konsistensi fuse3 (sebelumnya Anda menggunakan fuse biasa di sini)
+        ExecStop = "-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
         Restart = "on-failure";
         RestartSec = "10s";
         Environment = [ "PATH=/run/wrappers/bin:$PATH" ];

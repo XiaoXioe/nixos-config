@@ -173,8 +173,6 @@ in
         # 6. Alias "Sapu Jagat" (Update dan Switch Sistem & Home Manager Sekaligus)
         upall = "nh os switch -u ${config.my.user.flakePath} && nh home switch -u ${config.my.user.flakePath}";
 
-        kali = "docker run --rm -it --network host -v (pwd):/work -w /work kalilinux/kali-rolling";
-
         squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
         warp-on = "sudo bash ~/warp-configs/warp-bond.sh";
         warp-off = "sudo bash ~/warp-configs/wg-down.sh";

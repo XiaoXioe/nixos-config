@@ -102,7 +102,7 @@ in
           # karena rclone butuh nulis ulang token, kita akan copy dari sana di rclone.nix
           owner = config.my.user.name;
           group = "users";
-          mode = "0440"; # group "users" (termasuk "coba") perlu bisa membaca
+          mode = "0400";
         };
 
         # NextDNS Secrets

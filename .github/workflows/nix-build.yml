@@ -44,3 +44,6 @@ jobs:
 
     - name: Build Caelestia Shell
       run: nix build ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.caelestia.package"
+
+    - name: Build Dank Material Shell
+      run: nix build ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.dank-material-shell.package"

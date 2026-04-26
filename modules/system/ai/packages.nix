@@ -15,8 +15,10 @@ in
 
   config = lib.mkIf cfg.enable {
 
-    environment.systemPackages = [
-      pkgs.claude-code
+    environment.systemPackages = with pkgs; [
+      claude-code
+      aider-chat
+      chatbox
     ];
   };
 }
