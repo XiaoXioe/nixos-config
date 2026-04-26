@@ -47,3 +47,6 @@ jobs:
 
     - name: Build Dank Material Shell
       run: nix build ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.dank-material-shell.package"
+
+    - name: Build Quickshell (DMS)
+      run: nix build ".#dms.inputs.quickshell.packages.x86_64-linux.default"
