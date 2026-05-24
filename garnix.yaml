@@ -1,0 +1,10 @@
+builds:
+  include:
+    - "packages.*.caelestia"
+    - "packages.*.dank-shell"
+    - "packages.*.ayugram"
+    - "packages.*.llama"
+
+  exclude:
+    - "nixosConfigurations.*"
+    - "homeConfigurations.*"
