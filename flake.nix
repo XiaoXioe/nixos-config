@@ -150,7 +150,6 @@
             ) (builtins.attrNames allUsers)
           );
 
-          # 1. Pindahkan pembuatan NixOS System ke dalam blok 'let'
           myNixosConfigurations = {
             ${hostName} = inputs.nixpkgs.lib.nixosSystem {
               inherit pkgs;
@@ -163,16 +162,14 @@
 
         in
         {
-          # 2. Daftarkan kembali ke outputs Flake
           nixosConfigurations = myNixosConfigurations;
           homeConfigurations = mkHomeConfigurations;
 
-          # 3. Panggil file paket yang baru kamu buat!
-          packages.${system} = import ./packages-export.nix {
-            nixosConfigs = myNixosConfigurations;
-            homeConfigs = mkHomeConfigurations;
-            inherit hostName adminUser;
-          };
+          #   packages.${system} = import ./packages-export.nix {
+          #     nixosConfigs = myNixosConfigurations;
+          #     homeConfigs = mkHomeConfigurations;
+          #     inherit hostName adminUser;
+          #   };
         };
     };
 }
