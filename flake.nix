@@ -165,11 +165,11 @@
           nixosConfigurations = myNixosConfigurations;
           homeConfigurations = mkHomeConfigurations;
 
-          # packages.${system} = import ./packages-export.nix {
-          #   nixosConfigs = myNixosConfigurations;
-          #   homeConfigs = mkHomeConfigurations;
-          #   inherit hostName adminUser;
-          # };
+          packages.${system} = import ./packages-export.nix {
+            nixosConfigs = myNixosConfigurations;
+            homeConfigs = mkHomeConfigurations;
+            inherit hostName adminUser;
+          };
         };
     };
 }
