@@ -1,9 +1,7 @@
 {
   config,
-  # pkgs,
-  pkgsUnstable,
+  pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -11,13 +9,13 @@ let
 in
 {
   options.my.system.ollama = {
-    enable = selfLib.mkBoolOpt false "Ollama system side";
+    enable = lib.mkEnableOption "Ollama system side";
   };
 
   config = lib.mkIf cfg.enable {
     services.ollama = {
       enable = true;
-      package = pkgsUnstable.ollama;
+      package = pkgs.ollama;
       models = "/mnt/data_btrfs/ollama_storage/models";
     };
 

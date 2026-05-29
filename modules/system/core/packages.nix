@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.packages = {
-    enable = selfLib.mkBoolOpt false "Enable common system packages";
+    enable = lib.mkEnableOption "Enable common system packages";
   };
 
   config = lib.mkIf cfg.enable {
@@ -24,7 +23,7 @@ in
       };
 
       nano = {
-        # Mengaktifkan syntax highlighting
+        # Enable syntax highlighting
         syntaxHighlight = true;
 
         nanorc = ''
@@ -47,11 +46,11 @@ in
       fd
       python3
       nethogs
-      bleachbit
       nh
       unzip
       intel-gpu-tools
       compsize
+      comma
 
       ddcutil
       jdk
@@ -62,10 +61,10 @@ in
       usbutils
       pciutils
 
-      unzip # Mesin untuk file .zip
+      unzip # Archive handler for .zip
       zip
-      unrar # Mesin untuk file .rar
-      p7zip # Mesin untuk file .7z
+      unrar # Archive handler for .rar
+      p7zip # Archive handler for .7z
       nodejs
       php
     ];

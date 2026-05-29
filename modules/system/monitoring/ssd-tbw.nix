@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.services.ssd-tbw = {
-    enable = selfLib.mkBoolOpt false "SSD TBW logger service";
+    enable = lib.mkEnableOption "SSD TBW logger service";
   };
 
   config = lib.mkIf cfg.enable {
@@ -48,7 +47,7 @@ in
         LOG_FILE="/var/log/ssd_history.log"
         DATE=$(date '+%Y-%m-%d %H:%M')
 
-        # Deteksi otomatis SSD
+        # Auto-detect SSD
         TARGET_DISK=$(lsblk -d -n -o NAME,TYPE,ROTA | awk '$2=="disk" && $3=="0" && $1 !~ /^zram/ {print "/dev/"$1}' | head -n 1)
 
         if [ -z "$TARGET_DISK" ]; then
@@ -56,29 +55,48 @@ in
             exit 1
         fi
 
-        RAW=$(smartctl -A "$TARGET_DISK" | grep "Total_LBAs_Written" | awk '{print $NF}')
+        # Menarik raw data Write dan Read
+        RAW_W=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Written" | awk '{print $NF}')
+        RAW_R=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Read" | awk '{print $NF}')
 
-        if ! [[ "$RAW" =~ ^[0-9]+$ ]]; then
-            echo "Error: Gagal mengambil data smartctl dari $TARGET_DISK."
+        if ! [[ "$RAW_W" =~ ^[0-9]+$ ]] || ! [[ "$RAW_R" =~ ^[0-9]+$ ]]; then
+            echo "Error: Gagal mengambil data smartctl dari $TARGET_DISK. Pastikan SSD mendukung atribut tersebut."
             exit 1
         fi
 
-        GB=$(printf "%.2f" $(echo "scale=2; ($RAW * 32) / 1024" | bc))
+        # Konversi ke GB
+        GB_W=$(printf "%.2f" $(echo "scale=2; ($RAW_W * 32) / 1024" | bc))
+        GB_R=$(printf "%.2f" $(echo "scale=2; ($RAW_R * 32) / 1024" | bc))
 
         if [ -s "$LOG_FILE" ]; then
-            LAST_GB=$(tail -n 1 "$LOG_FILE" | awk '{print $5}')
+            # Ambil baris terakhir
+            LAST_LINE=$(tail -n 1 "$LOG_FILE")
 
-            if [[ "$LAST_GB" =~ ^[0-9.]+$ ]]; then
-                DIFF=$(echo "scale=2; $GB - $LAST_GB" | bc)
-                echo "$DATE | Total: $GB GB | Penulisan Baru: $DIFF GB" >> "$LOG_FILE"
+            # Posisi $5 adalah angka Total Written (dari format lama dan baru)
+            # Posisi $14 adalah angka Total Read (hanya ada di format baru)
+            LAST_GB_W=$(echo "$LAST_LINE" | awk '{print $5}')
+            LAST_GB_R=$(echo "$LAST_LINE" | awk '{print $14}')
+
+            # Kalkulasi selisih Penulisan (Write)
+            if [[ "$LAST_GB_W" =~ ^[0-9.]+$ ]]; then
+                DIFF_W=$(echo "scale=2; $GB_W - $LAST_GB_W" | bc)
             else
-                echo "$DATE | Total: $GB GB | Penulisan Baru: 0.00 GB (Fixing)" >> "$LOG_FILE"
+                DIFF_W="0.00"
             fi
+
+            # Kalkulasi selisih Pembacaan (Read)
+            if [[ "$LAST_GB_R" =~ ^[0-9.]+$ ]]; then
+                DIFF_R=$(echo "scale=2; $GB_R - $LAST_GB_R" | bc)
+            else
+                DIFF_R="0.00"
+            fi
+
+            echo "$DATE | Total: $GB_W GB | Penulisan Baru: $DIFF_W GB | Read: $GB_R GB | Baca Baru: $DIFF_R GB" >> "$LOG_FILE"
         else
-            echo "$DATE | Total: $GB GB | Penulisan Baru: 0.00 GB" >> "$LOG_FILE"
+            echo "$DATE | Total: $GB_W GB | Penulisan Baru: 0.00 GB | Read: $GB_R GB | Baca Baru: 0.00 GB" >> "$LOG_FILE"
         fi
 
-        echo "--- Riwayat Penulisan SSD ($TARGET_DISK) ---"
+        echo "--- Riwayat Penggunaan SSD ($TARGET_DISK) ---"
         tail -n 5 "$LOG_FILE"
       '';
     };

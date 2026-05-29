@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.graphics = {
-    enable = selfLib.mkBoolOpt false "system graphics configuration";
+    enable = lib.mkEnableOption "system graphics configuration";
   };
 
   config = lib.mkIf cfg.enable {

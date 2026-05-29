@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 
@@ -11,7 +10,7 @@ let
 in
 {
   options.my.services.ananicy = {
-    enable = selfLib.mkBoolOpt false "ananicy-cpp service with cachyos rules";
+    enable = lib.mkEnableOption "ananicy-cpp service with cachyos rules";
   };
 
   config = lib.mkIf cfg.enable {

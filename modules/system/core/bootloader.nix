@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  selfLib,
   ...
 }:
 let
@@ -33,7 +32,7 @@ let
 in
 {
   options.my.system.bootloader = {
-    enable = selfLib.mkBoolOpt false "system bootloader configuration";
+    enable = lib.mkEnableOption "system bootloader configuration";
   };
 
   config = lib.mkIf cfg.enable {

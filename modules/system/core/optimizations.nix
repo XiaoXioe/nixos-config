@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,7 +8,7 @@ let
 in
 {
   options.my.system.optimizations = {
-    enable = selfLib.mkBoolOpt false "system optimizations";
+    enable = lib.mkEnableOption "system optimizations";
   };
 
   config = lib.mkIf cfg.enable {
@@ -37,6 +36,9 @@ in
       };
 
       kernelParams = [
+        "nmi_watchdog=0"
+        "split_lock_mitigate=0"
+        "transparent_hugepage=madvise"
         "i915.enable_guc=0"
         # "mitigations=off"
         "i915.enable_fbc=0"
@@ -45,9 +47,9 @@ in
         "i915.modeset=1"
         "psi=1"
 
-        # Mematikan Render Standby (RC6)
+        # Disable Render Standby (RC6)
         "i915.enable_rc6=0"
-        # Mematikan USB autosuspend di level kernel
+        # Disable USB autosuspend at kernel level
         # "usbcore.autosuspend=-1"
       ];
 
@@ -58,7 +60,7 @@ in
 
           "vm.swappiness" = 100;
           "vm.page-cluster" = 0;
-          "vm.vfs_cache_pressure" = 50; # Menjaga cache inode Btrfs lebih lama di memori agar pencarian file lebih instan
+          "vm.vfs_cache_pressure" = 50; # Keep Btrfs inode cache in memory longer for faster file lookups
           "vm.dirty_ratio" = 10;
           "vm.dirty_background_ratio" = 5;
           "vm.watermark_scale_factor" = 125;
@@ -71,11 +73,15 @@ in
           # Meningkatkan resolusi maksimal timer yang bisa diminta oleh aplikasi di userspace (dari 64 ke 3072)
           "dev.hpet.max-user-freq" = 3072;
 
-          # Memperbesar buffer software untuk menampung paket saat ring buffer hardware (256) penuh
+          # Increase software buffer to handle packets when hardware ring buffer (256) is full
           "net.core.netdev_max_backlog" = 16384;
 
-          # Menyiapkan tabel untuk Receive Flow Steering (RFS) agar kernel melacak arus koneksi
+          # Set up Receive Flow Steering (RFS) table for kernel connection tracking
           "net.core.rps_sock_flow_entries" = 32768;
+
+          "net.ipv4.tcp_fastopen" = 3;
+          "fs.inotify.max_user_watches" = 524288;
+          "fs.inotify.max_user_instances" = 8192;
         };
       };
     };

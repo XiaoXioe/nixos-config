@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.niri = {
-    enable = selfLib.mkBoolOpt false "niri Wayland compositor";
+    enable = lib.mkEnableOption "niri Wayland compositor";
   };
 
   config = lib.mkIf cfg.enable {

@@ -1,3 +1,4 @@
+# Sops-nix secrets management: SSH keys, API tokens, VPN configs, passwords.
 {
   config,
   lib,
@@ -16,7 +17,7 @@ let
 in
 {
   options.my.system.secrets = {
-    enable = selfLib.mkBoolOpt false "Sops-nix secrets management";
+    enable = lib.mkEnableOption "sops-nix secrets management";
   };
 
   config = lib.mkIf cfg.enable {
@@ -24,27 +25,22 @@ in
       sops
     ];
     sops = {
-      defaultSopsFile = ../../../secrets/secrets.yaml; # Sesuaikan path-nya dari file .nix ini
+      defaultSopsFile = ../../../secrets/secrets.yaml;
       defaultSopsFormat = "yaml";
 
-      # Gunakan SSH key langsung sebagai age key:
+      # Use the SSH host key as the age decryption key
       age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
-      # age.keyFile = null;
-      # age.generateKey = false;
     };
 
     sops.secrets = lib.mkMerge [
-      # --- Konfigurasi Statis ---
+      # --- Static secrets ---
       {
-
-        # Ssh user keys
         "ssh-user-klein" = {
           owner = "klein-moretti";
           path = "/home/klein-moretti/.ssh/id_ed25519";
           mode = "0600";
         };
 
-        # Fastfetch logo
         "fastfetch-logo" = {
           format = "binary";
           sopsFile = ../../../secrets/fastfetch-logo.enc;
@@ -52,17 +48,15 @@ in
           mode = "0444";
         };
 
-        # Photo profile user
         "foto-profile" = {
           format = "binary";
           owner = "klein-moretti";
           sopsFile = ../../../secrets/foto-profile.enc;
         };
 
-        # Github acces token
         "github-token" = {
           owner = "klein-moretti";
-          # Restart nix-daemon agar memuat ulang token setiap kali ada perubahan
+          # Restart nix-daemon to reload the token on change
           restartUnits = [ "nix-daemon.service" ];
           mode = "0400";
         };
@@ -79,17 +73,12 @@ in
           mode = "0600";
         };
 
-        # Ollama Keys
-        "ollama-env" = {
-          # owner = "ollama";
-          # group = "ollama";
-        };
+        "ollama-env" = { };
 
         "gemini-api-key" = {
           owner = "klein-moretti";
         };
 
-        # Wg-lan config
         "wg-lan.conf" = {
           sopsFile = ../../../secrets/wg-lan.enc.conf;
           format = "binary";
@@ -98,7 +87,7 @@ in
           group = "root";
           mode = "600";
         };
-        # Wg-wifi config
+
         "wg-wifi.conf" = {
           sopsFile = ../../../secrets/wg-wifi.enc.conf;
           format = "binary";
@@ -108,32 +97,28 @@ in
           mode = "600";
         };
 
-        # Rclone config
+        # Rclone config — placed at /run/secrets/rclone.conf,
+        # then copied to ~/.config/rclone/ by rclone.nix at activation.
         "rclone.conf" = {
-          # Beritahu sops-nix bahwa ini file binary (hasil enkripsi mentah)
           format = "binary";
           sopsFile = ../../../secrets/rclone.enc.conf;
-
-          # Biarkan sops-nix menempatkannya di default path (/run/secrets/rclone.conf)
-          # karena rclone butuh nulis ulang token, kita akan copy dari sana di rclone.nix
           owner = config.my.user.name;
           group = "users";
           mode = "0400";
         };
 
-        # NextDNS Secrets
         "nextdns_stamp" = { };
         "nextdns_name" = { };
       }
 
-      # --- Konfigurasi Hash Password Dinamis (Root + AllUsers) ---
+      # --- Dynamic password hashes (root + all users) ---
       (lib.genAttrs (map (name: "${name}_password_hash") ([ "root" ] ++ builtins.attrNames allUsers))
         (_: {
           neededForUsers = true;
         })
       )
 
-      # --- Konfigurasi VPN Dinamis ---
+      # --- Dynamic VPN configs ---
       (lib.genAttrs vpnFiles (fileName: {
         sopsFile = ../../../secrets/vpn-files/${fileName};
         format = "binary";
@@ -141,11 +126,10 @@ in
         mode = "600";
       }))
 
-      # --- Konfigurasi Dinamis (AllUsers) ---
+      # --- Per-user dynamic secrets ---
       (selfLib.forAllUsers allUsers (
         userName: _: {
-
-          # Otomatisasi ADB Key
+          # ADB key pair (auto-provisioned per user)
           "adbkey_${userName}" = {
             key = "adbkey";
             owner = userName;
@@ -159,12 +143,11 @@ in
             path = "/home/${userName}/.android/adbkey.pub";
             mode = "0444";
           };
-
         }
       ))
-    ]; # Tutup lib.mkMerge
+    ];
 
-    # Gunakan password dari sops untuk root dan semua allUsers langsung ke opsi native users.users
+    # Bind sops password hashes to users.users declaratively
     users.users = lib.genAttrs ([ "root" ] ++ builtins.attrNames allUsers) (userName: {
       hashedPasswordFile = lib.mkForce config.sops.secrets."${userName}_password_hash".path;
     });

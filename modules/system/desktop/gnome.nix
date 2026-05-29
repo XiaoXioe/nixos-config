@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.gnome = {
-    enable = selfLib.mkBoolOpt false "GNOME desktop environment";
+    enable = lib.mkEnableOption "GNOME desktop environment";
   };
 
   config = lib.mkIf cfg.enable {
@@ -73,7 +72,7 @@ in
       variant = "";
     };
 
-    # Wajib agar udev rule-nya jalan (penting!)
+    # Required for udev rules to work
     services.udev.packages = with pkgs; [
       gnome-settings-daemon
     ];

@@ -1,9 +1,7 @@
 {
   config,
   pkgs,
-  pkgsUnstable,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -11,7 +9,7 @@ let
 in
 {
   options.my.system.security-wrappers = {
-    enable = selfLib.mkBoolOpt false "system security wrappers and capabilities";
+    enable = lib.mkEnableOption "system security wrappers and capabilities";
   };
 
   config = lib.mkIf cfg.enable {
@@ -22,10 +20,10 @@ in
       group = "root";
     };
 
-    # Mengaktifkan modul Wireshark beserta pembungkus keamanannya (capabilities)
+    # Enable Wireshark with security wrappers (capabilities)
     programs.wireshark = {
       enable = true;
-      # Baris di bawah ini memaksa NixOS untuk menginstal versi GUI (Qt).
+      # Force install the Qt GUI version.
       package = pkgs.wireshark;
     };
 
@@ -38,7 +36,7 @@ in
     security.wrappers.btop = {
       owner = "root";
       group = "root";
-      source = "${pkgsUnstable.btop}/bin/btop";
+      source = "${pkgs.btop}/bin/btop";
       capabilities = "cap_sys_admin,cap_sys_rawio+ep";
     };
   };

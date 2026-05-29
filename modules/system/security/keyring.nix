@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  selfLib,
   ...
 }:
 let
@@ -10,21 +9,21 @@ let
 in
 {
   options.my.system.keyring = {
-    enable = selfLib.mkBoolOpt false "Keyring configuration";
+    enable = lib.mkEnableOption "Keyring configuration";
   };
 
   config = lib.mkIf cfg.enable {
-    # Mengaktifkan Polkit
+    # Enable Polkit
     security.polkit.enable = true;
 
-    # Mengaktifkan GNOME Keyring
+    # Enable GNOME Keyring
     services.gnome.gnome-keyring.enable = true;
 
-    # Jika menggunakan SDDM:
+    # For SDDM:
     security.pam.services.sddm.enableGnomeKeyring = true;
 
     environment.systemPackages = with pkgs; [
-      # GUI untuk melihat dan mengelola isi keyring
+      # GUI for viewing and managing keyring contents
       seahorse
 
       # Polkit authentication agent (munculin pop-up password)

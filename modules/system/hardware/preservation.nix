@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   allUsers,
   ...
 }:
@@ -9,14 +8,14 @@ let
   cfg = config.my.system.preservation;
   persistBase = "/persist";
 
-  # UUID device BTRFS utama
+  # Primary BTRFS device UUID
   btrfsDevice = "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8";
 
-  # Nama subvolume root yang akan di-wipe
+  # Root subvolume name (will be wiped on boot)
   rootSubvol = "@nixos-root";
   homeSubvol = "@nixos-home";
 
-  # Script wipe dieksekusi oleh systemd di dalam initrd
+  # Wipe script executed by systemd in initrd
   wipeRootScript = ''
     echo "==> [preservation] Wiping ephemeral root and home subvolumes..."
     mkdir -p /btrfs_tmp
@@ -46,7 +45,7 @@ let
         /btrfs_tmp/${homeSubvol} \
         "/btrfs_tmp/@nixos-persist/home-snapshots/$timestamp"
 
-      # Hapus home-snapshots lama (simpan 10 terakhir)
+      # Delete old home snapshots (keep last 10)
       old_snaps=$(ls -1dt /btrfs_tmp/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +11)
       for snap in $old_snaps; do
         echo "==> [preservation] Deleting old home snapshot: $snap"
@@ -61,7 +60,7 @@ let
     fi
     btrfs subvolume create /btrfs_tmp/${homeSubvol}
 
-    # Hapus old roots/homes yang sudah terlalu banyak (simpan 20 terakhir)
+    # Delete excess old root/home backups (keep last 20)
     delete_subvolume_recursively() {
       IFS=$'\n'
       for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
@@ -88,17 +87,25 @@ let
 in
 {
   options.my.system.preservation = {
-    enable = selfLib.mkBoolOpt false "Aktifkan modul state management (Preservation)";
-    ephemeralRoot = selfLib.mkBoolOpt true ''
-      Aktifkan wipe subvolume root (${rootSubvol}) di setiap boot.
-      Menggunakan systemd initrd service.
-    '';
-    extraDirectories =
-      selfLib.mkOpt (lib.types.listOf lib.types.anything) [ ]
-        "Direktori sistem tambahan ke /persist";
-    extraFiles =
-      selfLib.mkOpt (lib.types.listOf lib.types.anything) [ ]
-        "File sistem tambahan ke /persist";
+    enable = lib.mkEnableOption "preservation-based state management";
+    ephemeralRoot = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to wipe the root subvolume (${rootSubvol}) on every boot.
+        Uses a systemd initrd service.
+      '';
+    };
+    extraDirectories = lib.mkOption {
+      type = lib.types.listOf lib.types.anything;
+      default = [ ];
+      description = "Additional system directories to persist under /persist.";
+    };
+    extraFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.anything;
+      default = [ ];
+      description = "Additional system files to persist under /persist.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -107,7 +114,7 @@ in
     # EPHEMERAL ROOT — Systemd Initrd Implementation
     # ===========================================================
 
-    # 1. Aktifkan Systemd di Initrd
+    # 1. Enable systemd in initrd
     boot.initrd.systemd.enable = true;
 
     boot.initrd.systemd.services.wipe-btrfs-root = lib.mkIf cfg.ephemeralRoot {
@@ -126,14 +133,14 @@ in
     boot.initrd.supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
 
     # ===========================================================
-    # PRESERVATION — Wajib aktifkan modul secara global
+    # PRESERVATION — Enable the module globally
     # ===========================================================
     preservation.enable = true;
 
     preservation.preserveAt."${persistBase}" = {
 
       # ----------------------------------------------------------
-      # Direktori Sistem
+      # System directories
       # ----------------------------------------------------------
       directories = [
         "/var/lib/nixos"
@@ -161,21 +168,21 @@ in
       ++ cfg.extraDirectories;
 
       # ----------------------------------------------------------
-      # File Sistem
-      # Catatan:
-      #   - /etc/machine-id: inInitrd = true karena dibaca sangat awal
-      #   - SSH host keys: how = "symlink" agar permission kunci tetap terjaga
-      #     (bind-mount bisa mengubah mode, symlink membiarkan file asli tidak tersentuh)
+      # System files
+      # Notes:
+      #   - /etc/machine-id: inInitrd = true (needed very early)
+      #   - SSH host keys: how = "symlink" to preserve permissions
+      #     (bind-mount can alter mode; symlink leaves the original untouched)
       # ----------------------------------------------------------
       files = [
         {
           file = "/etc/machine-id";
-          # machine-id harus tersedia sangat awal di initrd
+          # machine-id must be available very early in initrd
           inInitrd = true;
         }
         {
           file = "/etc/ssh/ssh_host_ed25519_key";
-          # Gunakan symlink agar permission kunci SSH tetap terjaga (0600)
+          # Use symlink to preserve SSH key permissions (0600)
           how = "symlink";
           configureParent = true;
         }
@@ -198,24 +205,26 @@ in
       ++ cfg.extraFiles;
 
       # ----------------------------------------------------------
-      # Mapping per-user persistence
-      # Catatan: paths di sini relatif terhadap home directory user
+      # Per-user persistence mapping
+      # Note: paths are relative to the user home directory
       # ----------------------------------------------------------
       users = lib.mapAttrs (_name: _userCfg: {
         directories = [
-          # Direktori yang di-persist ke @nixos-persist agar
-          # ikut di-snapshot snapper dan survive reboot.
+          # Directories persisted to @nixos-persist so they
+          # survive reboots and are included in snapper snapshots.
           #
-          # Catatan: Documents, Downloads, Music, Videos, Pictures
-          # TIDAK di-persist di sini karena Home Manager sudah
-          # mengelolanya sebagai symlink ke /mnt/data/... (disk lain).
-          # File di root ~/ (misal test.txt) ter-backup via pre-wipe
-          # snapshot yang disimpan di /persist/home-snapshots/.
+          # Note: Documents, Downloads, Music, Videos, Pictures
+          # are NOT persisted here because Home Manager already
+          # manages them as symlinks to /mnt/data/... (separate disk).
+          # Files in ~/ root (e.g. test.txt) are backed up via pre-wipe
+          # snapshot stored at /persist/home-snapshots/.
           "Desktop"
+          ".BurpSuite"
           ".config"
+          ".java"
           ".local/share"
           ".local/state"
-          ".mozilla"
+          # ".mozilla"
           ".librewolf"
           ".steam"
           ".cache/nix"
@@ -248,8 +257,8 @@ in
     };
 
     # ----------------------------------------------------------
-    # Pastikan systemd-machine-id-commit tidak gagal
-    # karena machine-id kita kelola sendiri via preservation
+    # Prevent systemd-machine-id-commit from failing
+    # since machine-id is managed by preservation
     # ----------------------------------------------------------
     systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
   };

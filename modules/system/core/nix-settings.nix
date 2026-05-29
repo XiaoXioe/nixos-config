@@ -2,7 +2,6 @@
   config,
   lib,
   inputs,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.nix-settings = {
-    enable = selfLib.mkBoolOpt false "Nix settings";
+    enable = lib.mkEnableOption "Nix settings";
   };
 
   config = lib.mkIf cfg.enable {
@@ -46,7 +45,7 @@ in
       netrc-file = config.sops.secrets."garnix-netrc".path;
       narinfo-cache-positive-ttl = 3600;
 
-      # Penting untuk cegah redownload
+      # Ensure substitution is active
       substitute = true; # pastikan substitusi aktif
 
       # ── Build behavior ───────────────────────────────────────────
@@ -64,7 +63,7 @@ in
       keep-outputs = true;
       keep-derivations = true;
       eval-cache = true;
-      log-lines = 50; # lebih banyak log saat error
+      log-lines = 50; # More log lines on error
 
       experimental-features = [
         "nix-command"
@@ -75,7 +74,7 @@ in
 
     nix.gc = {
       automatic = true;
-      # Berjalan setiap hari Senin jam 10 pagi
+      # Runs every Monday at 10:00 AM
       dates = "Mon 10:00";
       options = "--delete-older-than 7d";
     };
@@ -84,10 +83,10 @@ in
       !include ${config.sops.secrets."github-token".path}
     '';
 
-    # Memetakan semua input flake ke registry secara otomatis
+    # Map all flake inputs to the registry
     nix.registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
-    # Menyelaraskan NIX_PATH dengan flake registry
+    # Sync NIX_PATH with flake registry
     nix.nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
     nix.channel.enable = false;
   };

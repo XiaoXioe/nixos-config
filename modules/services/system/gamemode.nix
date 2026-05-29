@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 
@@ -24,7 +23,7 @@ let
 in
 {
   options.my.services.gamemode = {
-    enable = selfLib.mkBoolOpt false "GameMode dengan manajemen CPU frequency otomatis";
+    enable = lib.mkEnableOption "GameMode with automatic CPU frequency management";
 
     maxFreqKHz = lib.mkOption {
       type = lib.types.int;

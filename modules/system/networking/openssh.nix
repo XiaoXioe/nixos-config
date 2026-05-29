@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.services.openssh = {
-    enable = selfLib.mkBoolOpt false "openssh service";
+    enable = lib.mkEnableOption "openssh service";
   };
 
   config = lib.mkIf cfg.enable {
@@ -21,7 +20,7 @@ in
       enable = true;
       allowSFTP = true;
       openFirewall = true; # buka port 22 di firewall
-      # listenAddresses default = semua interface (LAN bisa akses)
+      # listenAddresses default = all interfaces (LAN accessible)
       settings = {
         PermitRootLogin = "no";
         PasswordAuthentication = true;

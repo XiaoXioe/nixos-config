@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.compatibility = {
-    enable = selfLib.mkBoolOpt false "system binary compatibility (nix-ld)";
+    enable = lib.mkEnableOption "system binary compatibility (nix-ld)";
   };
 
   config = lib.mkIf cfg.enable {

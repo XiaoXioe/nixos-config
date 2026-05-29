@@ -1,6 +1,6 @@
-# lib/users.nix — Definisi semua user, fitur per-user, dan fitur sistem.
+# lib/users.nix — User definitions, per-user feature flags, and system features.
 {
-  # Daftar user yang akan diinstal di sistem
+  # Users to provision on the system
   users = {
     klein-moretti = {
       fullName = "Klein Moretti (admin)";
@@ -56,31 +56,33 @@
       };
     };
 
-    #   Tamu = {
-    #     fullName = "User Guests";
-    #     uid = 1001;
-    #     extraGroups = [
-    #       "wheel"
-    #       "networkmanager"
-    #       "video"
-    #       "audio"
-    #       # "wireshark"
-    #       "render"
-    #       "i2c"
-    #       "adbusers"
-    #       "kvm"
-    #     ];
-    #     openssh.authorizedKeys.keys = [
-    #       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ9JzZzktDyRcOpqMyit78cS0xx7NRj7Mak89HjsRLR u0_a185@localhost"
-    #     ];
-    #     userFeatures = {
-    #       dms = true;
-    #       nvim = true;
-    #       git = true;
-    #       ssh = true;
-    #       shell = true;
-    #       packages = true;
-    #     };
+    # To add a new user:
+    # 1. Uncomment and customize the block below
+    # 2. Create a matching module directory: modules/user/<username>/
+    #    (copy modules/user/klein-moretti/ as a starting point)
+    # 3. Adjust userFeatures to control which modules are enabled
+    #
+    # guest = {
+    #   fullName = "Guest User";
+    #   uid = 1001;
+    #   extraGroups = [
+    #     "wheel"
+    #     "networkmanager"
+    #     "video"
+    #     "audio"
+    #     "render"
+    #     "i2c"
+    #     "adbusers"
+    #     "kvm"
+    #   ];
+    #   openssh.authorizedKeys.keys = [ ];
+    #   userFeatures = {
+    #     nvim = true;
+    #     git = true;
+    #     ssh = true;
+    #     fish = true;
+    #     packages = true;
     #   };
+    # };
   };
 }

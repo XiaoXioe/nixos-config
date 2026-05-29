@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,11 +9,11 @@ let
 in
 {
   options.my.system.hyprland = {
-    enable = selfLib.mkBoolOpt false "Hyprland Wayland compositor";
+    enable = lib.mkEnableOption "Hyprland Wayland compositor";
   };
 
   config = lib.mkIf cfg.enable {
-    # Aktifkan Hyprland di level sistem (sudah include XDG portal wayland)
+    # Enable Hyprland at the system level (includes XDG Wayland portal)
     programs.hyprland = {
       enable = true;
       withUWSM = true; # Universal Wayland Session Manager (lebih stabil)
@@ -23,7 +22,7 @@ in
 
     # Package pendukung level sistem
     environment.systemPackages = with pkgs; [
-      hyprpicker # Color picker untuk Hyprland
+      hyprpicker # Color picker for Hyprland
       hyprshot # Screenshot tool
       wl-clipboard # Clipboard Wayland
       brightnessctl # Kontrol brightness

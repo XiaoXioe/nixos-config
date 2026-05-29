@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.services.tmpfiles = {
-    enable = selfLib.mkBoolOpt false "Rules no CoW on BTRFS";
+    enable = lib.mkEnableOption "Rules no CoW on BTRFS";
   };
 
   config = lib.mkIf cfg.enable {

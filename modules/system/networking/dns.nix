@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 
@@ -10,13 +9,13 @@ let
 in
 {
   options.my.services.dnscrypt = {
-    enable = selfLib.mkBoolOpt false "dnscrypt-proxy service";
+    enable = lib.mkEnableOption "dnscrypt-proxy service";
   };
 
   config = lib.mkIf cfg.enable {
-    # 1. Template konfigurasi
+    # 1. Configuration template
     sops.templates."dnscrypt-proxy.toml" = {
-      # Gunakan root sebagai owner untuk menghindari error evaluasi user missing
+      # Use root as owner to avoid missing-user evaluation errors
       owner = "root";
       mode = "0444";
       content = ''

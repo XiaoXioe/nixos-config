@@ -1,56 +1,70 @@
+# Per-user home-manager configuration.
+# Maps userFeatures flags from lib/users.nix to module enable toggles.
 {
-  selfLib,
   userName,
   userFeatures,
   ...
 }:
+let
+  # Helper: convert a userFeatures flag to { enable = bool; }
+  feat = key: { enable = userFeatures.${key} or false; };
+
+  # Some module names differ from the feature flag name.
+  # This table maps: moduleOptionName → featureFlagName
+  featureMap = {
+    # Terminal & Development
+    git = "git";
+    ssh = "ssh";
+    nvim = "nvim";
+    fish = "fish";
+    tmux = "tmux";
+    wezterm = "wezterm";
+    settings = "settings";
+    startship = "startship";
+    fastfetch = "fastfetch";
+
+    # Packages
+    packages = "packages";
+    custompkgs = "custompkgs";
+    zeditor = "zeditor";
+
+    # Media & Apps
+    brave = "brave";
+    media = "media";
+    music = "media";        # music follows the media flag
+    sosmed = "sosmed";
+    office = "office";
+    browser = "browser";
+    firefox = "firefox";
+    librewolf = "librewolf";
+
+    # Desktop
+    dms = "dms";
+    caelestia = "caelestia";
+    themes = "themes";
+  };
+
+  # Generate the standard toggles from the feature map
+  standardToggles = builtins.mapAttrs (_name: flagKey: feat flagKey) featureMap;
+
+  # Toggles that need special mapping (feature name ≠ option name)
+  specialToggles = {
+    editor-file = feat "editor_file";
+    security-tools = feat "securityTools";
+    game = feat "gaming";
+    wine = feat "gaming";
+  };
+
+in
 {
   home.username = userName;
   home.homeDirectory = "/home/${userName}";
 
-  imports = [
-    ../../modules/user
-  ];
 
-  # --- USER MODULES TOGGLE ---
-  my.user = {
-    git = if (userFeatures.git or false) then selfLib.enabled else selfLib.disabled;
-    ssh = if (userFeatures.ssh or false) then selfLib.enabled else selfLib.disabled;
-    nvim = if (userFeatures.nvim or false) then selfLib.enabled else selfLib.disabled;
-    fish = if (userFeatures.fish or false) then selfLib.enabled else selfLib.disabled;
-    tmux = if (userFeatures.tmux or false) then selfLib.enabled else selfLib.disabled;
-    wezterm = if (userFeatures.wezterm or false) then selfLib.enabled else selfLib.disabled;
-    settings = if (userFeatures.settings or false) then selfLib.enabled else selfLib.disabled;
-    startship = if (userFeatures.startship or false) then selfLib.enabled else selfLib.disabled;
-    fastfetch = if (userFeatures.fastfetch or false) then selfLib.enabled else selfLib.disabled;
-
-    packages = if (userFeatures.packages or false) then selfLib.enabled else selfLib.disabled;
-    custompkgs = if (userFeatures.custompkgs or false) then selfLib.enabled else selfLib.disabled;
-    zeditor = if (userFeatures.zeditor or false) then selfLib.enabled else selfLib.disabled;
-    editor-file = if (userFeatures.editor_file or false) then selfLib.enabled else selfLib.disabled;
-    security-tools =
-      if (userFeatures.securityTools or false) then selfLib.enabled else selfLib.disabled;
-
-    game = if (userFeatures.gaming or false) then selfLib.enabled else selfLib.disabled;
-    wine = if (userFeatures.gaming or false) then selfLib.enabled else selfLib.disabled;
-
-    brave = if (userFeatures.brave or false) then selfLib.enabled else selfLib.disabled;
-    media = if (userFeatures.media or false) then selfLib.enabled else selfLib.disabled;
-    music = if (userFeatures.media or false) then selfLib.enabled else selfLib.disabled;
-    sosmed = if (userFeatures.sosmed or false) then selfLib.enabled else selfLib.disabled;
-    office = if (userFeatures.office or false) then selfLib.enabled else selfLib.disabled;
-    browser = if (userFeatures.browser or false) then selfLib.enabled else selfLib.disabled;
-    firefox = if (userFeatures.firefox or false) then selfLib.enabled else selfLib.disabled;
-    librewolf = if (userFeatures.librewolf or false) then selfLib.enabled else selfLib.disabled;
-
-    dms = if (userFeatures.dms or false) then selfLib.enabled else selfLib.disabled;
-    caelestia = if (userFeatures.caelestia or false) then selfLib.enabled else selfLib.disabled;
-    themes = if (userFeatures.themes or false) then selfLib.enabled else selfLib.disabled;
+  # --- User Module Toggles ---
+  my.user = standardToggles // specialToggles // {
+    services.rclone.enable = userFeatures.services.rclone or false;
   };
-
-  # Toggle Modular untuk Service User
-  my.user.services.rclone =
-    if (userFeatures.services.rclone or false) then selfLib.enabled else selfLib.disabled;
 
   programs.man.generateCaches = false;
   manual = {

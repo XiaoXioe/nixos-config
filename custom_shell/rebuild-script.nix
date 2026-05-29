@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   allUsers,
   hostName,
   ...
@@ -101,7 +100,7 @@ let
           done
         fi
 
-        # ── Journal systemd: error saat aktivasi ──
+        # ── Systemd journal: activation errors ──
         echo ""
         echo "📋 Systemd journal errors (saat booting/aktivasi ini):"
         echo "──────────────────────────────────────────────────"
@@ -130,7 +129,7 @@ let
     # 2. Rebuild Home Manager
     if [ "$DO_HOME" = true ]; then
 
-      # Menentukan target user: satu user spesifik atau semuanya
+      # Determine target user: specific user or all users
       if [ -n "$SPECIFIC_USER" ]; then
         TARGET_USERS="$SPECIFIC_USER"
       else
@@ -163,12 +162,12 @@ let
 
 in
 {
-  # Membuat opsi deklaratif untuk modul ini
+  # Declarative option for this module
   options.my.system.rebuild-wrapper = {
-    enable = selfLib.mkBoolOpt false "Script otomatis untuk rebuild sistem dan user";
+    enable = lib.mkEnableOption "automated system and user rebuild script";
   };
 
-  # Menerapkan konfigurasi hanya jika opsi enable diatur ke true
+  # Apply configuration only when enabled
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       rebuild-all-pkg

@@ -1,8 +1,8 @@
+# System-wide user and host identity declarations.
 {
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -13,42 +13,80 @@ in
     type = lib.types.attrsOf (
       lib.types.submodule {
         options = {
-          uid = selfLib.mkOpt lib.types.int 1000 "The UID for the user";
-          fullName = selfLib.mkOpt lib.types.str "" "The full name of the user";
-          userFeatures = selfLib.mkOpt (lib.types.attrsOf lib.types.anything) { } "Optional user features mapping";
-          extraGroups = selfLib.mkOpt (lib.types.listOf lib.types.str) [
-            "networkmanager"
-            "wheel"
-            "video"
-            "audio"
-            "render"
-            "i2c"
-            "adbusers"
-            "kvm"
-          ] "Extra groups for the user";
-          hashedPasswordFile =
-            selfLib.mkOpt (lib.types.nullOr lib.types.path) null
-              "Path to the hashed password file";
+          uid = lib.mkOption {
+            type = lib.types.int;
+            default = 1000;
+            description = "The UID for the user.";
+          };
+          fullName = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            description = "The full display name of the user.";
+          };
+          userFeatures = lib.mkOption {
+            type = lib.types.attrsOf lib.types.anything;
+            default = { };
+            description = "Per-user feature flags consumed by home-manager modules.";
+          };
+          extraGroups = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [
+              "networkmanager"
+              "wheel"
+              "video"
+              "audio"
+              "render"
+              "i2c"
+              "adbusers"
+              "kvm"
+            ];
+            description = "Supplementary groups for the user.";
+          };
+          hashedPasswordFile = lib.mkOption {
+            type = lib.types.nullOr lib.types.path;
+            default = null;
+            description = "Path to a file containing the hashed password.";
+          };
           openssh = {
             authorizedKeys = {
-              keys = selfLib.mkOpt (lib.types.listOf lib.types.str) [ ] "The SSH authorized keys for the user";
+              keys = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [ ];
+                description = "SSH public keys authorized to log in as this user.";
+              };
             };
           };
         };
       }
     );
     default = { };
-    description = "Attribute set of users to create";
+    description = "Attribute set of users to create.";
   };
 
   options.my.user = {
-    name = selfLib.mkOpt lib.types.str "" "The main user account name";
-    fullName = selfLib.mkOpt lib.types.str "" "The full name of the user";
-    flakePath = selfLib.mkOpt lib.types.str "" "The path to the nixos configuration flake";
+    name = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "The primary admin user account name.";
+    };
+    fullName = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "The full display name of the primary user.";
+    };
+    flakePath = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Absolute path to the NixOS configuration flake.";
+    };
   };
 
   options.my.system = {
-    hostname = selfLib.mkOpt lib.types.str "" "The hostname of the system";
+    hostname = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "The hostname of the system.";
+    };
   };
 
   config = {

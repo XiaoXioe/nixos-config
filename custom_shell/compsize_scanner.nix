@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -11,7 +10,7 @@ let
   compsize-scanner-pkg = pkgs.writeShellApplication {
     name = "compsize-scanner";
 
-    # HAPUS 'sudo' dari sini. Kita akan mengeksekusi script-nya yang menggunakan sudo.
+    # Do not use 'sudo' here — the script itself handles elevated permissions.
     runtimeInputs = with pkgs; [
       compsize
       gawk
@@ -48,11 +47,11 @@ let
         for dir in "$TARGET_DIR"/*; do
           if [ -d "$dir" ] && [ ! -L "$dir" ]; then
 
-            # 1. Tambahkan opsi -x agar aman dari folder FUSE/Virtual
+            # 1. Add -x flag to stay safe from FUSE/virtual mounts
             stats=$(compsize -x "$dir" 2>/dev/null | awk '/^TOTAL/ {print $2 "\t" $3 "\t" $4}' || true)
 
             if [ -n "$stats" ]; then
-              # 2. Merapikan garis miring ganda (misal //nix menjadi /nix)
+              # 2. Normalize double slashes (e.g. //nix → /nix)
               clean_dir=$(echo "$dir" | tr -s '/')
 
               echo -e "$stats\t$clean_dir"
@@ -65,7 +64,7 @@ let
 in
 {
   options.my.system.compsize-wrapper = {
-    enable = selfLib.mkBoolOpt false "Compsize wrapper bin";
+    enable = lib.mkEnableOption "Compsize wrapper bin";
   };
 
   config = lib.mkIf cfg.enable {

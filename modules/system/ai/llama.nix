@@ -1,8 +1,7 @@
 {
   config,
-  pkgsUnstable,
+  pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,13 +9,13 @@ let
 in
 {
   options.my.system.llama = {
-    enable = selfLib.mkBoolOpt false "Llama system side";
+    enable = lib.mkEnableOption "Llama system side";
 
     # Deklarasikan paket kustom sebagai opsi modul
     package = lib.mkOption {
       type = lib.types.package;
       description = "Llama.cpp yang dioptimalkan untuk arsitektur Ivy Bridge";
-      default = pkgsUnstable.llama-cpp.overrideAttrs (
+      default = pkgs.llama-cpp.overrideAttrs (
         finalAttrs: previousAttrs: {
           cmakeFlags = (previousAttrs.cmakeFlags or [ ]) ++ [
             "-DGGML_AVX2=OFF"
@@ -31,7 +30,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Panggil opsi paket tersebut untuk diinstal ke sistem
+    # Install the package to the system
     environment.systemPackages = [
       cfg.package
     ];

@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.packages-vm = {
-    enable = selfLib.mkBoolOpt false "Enable Packages for VM";
+    enable = lib.mkEnableOption "Enable Packages for VM";
   };
 
   config = lib.mkIf cfg.enable {

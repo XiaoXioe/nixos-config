@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.gt610 = {
-    enable = selfLib.mkBoolOpt false "Nvidia GT 610 proprietary driver specialization";
+    enable = lib.mkEnableOption "Nvidia GT 610 proprietary driver specialization";
   };
 
   config = lib.mkIf cfg.enable {
@@ -20,9 +19,9 @@ in
         {
           system.nixos.tags = [ "gt610-proprietary" ];
 
-          # Gunakan LTS Kernel default (biasanya 6.6/6.12+), karena nixpkgs sudah
-          # me-maintain patch agar legacy_390 bisa di-compile di kernel modern.
-          # Catatan: Downgrade ke 5.15 justru akan gagal build karena backport vm_flags_set
+          # Use default LTS kernel (typically 6.6/6.12+), nixpkgs already
+          # maintains patches for legacy_390 compilation on modern kernels.
+          # Note: Downgrading to 5.15 would fail due to missing vm_flags_set backport
           # yang konflik dengan patch dari nixpkgs.
           boot.kernelPackages = lib.mkForce pkgs.linuxPackages;
 
@@ -33,23 +32,23 @@ in
           services.xserver.videoDrivers = [ "nvidia" ];
 
           # NVIDIA 390.xx tidak mendukung Wayland dengan baik (terutama pada Fermi/GT 610).
-          # Paksa SDDM dan Plasma untuk menggunakan X11.
+          # Force SDDM and Plasma to use X11.
           services.displayManager.sddm.wayland.enable = lib.mkForce false;
-          services.desktopManager.plasma6.enableQt5Integration = true; # Untuk kompatibilitas app lama jika perlu
+          services.desktopManager.plasma6.enableQt5Integration = true; # For legacy app compatibility if needed
 
-          # Pastikan kernel parameter untuk modesetting NVIDIA aktif
+          # Ensure NVIDIA modesetting kernel parameters are active
           # boot.kernelParams = [ "nvidia-drm.modeset=1" ];
 
           hardware.nvidia = {
             open = false;
             modesetting.enable = true;
 
-            # Sinkronisasi package eksplisit ke tree 5.15 menggunakan internal config
+            # Sync packages to 5.15 tree using internal config
             package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
           };
 
           services.xserver = {
-            # Paksa Xorg untuk mengabaikan deteksi EDID yang gagal
+            # Force Xorg to ignore failed EDID detection
             deviceSection = ''
               Option "AllowEmptyInitialConfiguration" "true"
               Option "UseDisplayDevice" "DFP"

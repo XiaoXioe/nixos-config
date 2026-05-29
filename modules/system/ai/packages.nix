@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.packages-ai = {
-    enable = selfLib.mkBoolOpt false "Packages for ai";
+    enable = lib.mkEnableOption "Packages for ai";
   };
 
   config = lib.mkIf cfg.enable {

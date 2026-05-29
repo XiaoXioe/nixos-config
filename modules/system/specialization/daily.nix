@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,7 +8,7 @@ let
 in
 {
   options.my.system.daily = {
-    enable = selfLib.mkBoolOpt false "Daily drive specialisation";
+    enable = lib.mkEnableOption "Daily drive specialisation";
   };
 
   config = lib.mkIf cfg.enable {

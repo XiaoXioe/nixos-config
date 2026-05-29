@@ -1,9 +1,7 @@
 {
   config,
   pkgs,
-  pkgsUnstable,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -11,7 +9,7 @@ let
 in
 {
   options.my.system.security-tools-system = {
-    enable = selfLib.mkBoolOpt false "cybersecurity and penetration testing tools for system";
+    enable = lib.mkEnableOption "cybersecurity and penetration testing tools for system";
   };
 
   config = lib.mkIf cfg.enable {
@@ -29,9 +27,9 @@ in
       # hcxdumptool
       mdk4
       metasploit
-      # pkgsUnstable.mtkclient
-      pkgsUnstable.nuclei
-      pkgsUnstable.nuclei-templates
+      # pkgs.mtkclient
+      nuclei
+      nuclei-templates
       steghide
       stegsolve
       jq

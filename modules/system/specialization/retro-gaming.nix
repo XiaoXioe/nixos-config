@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.retro-gaming = {
-    enable = selfLib.mkBoolOpt false "retro-gaming specialisation";
+    enable = lib.mkEnableOption "retro-gaming specialisation";
   };
 
   config = lib.mkIf cfg.enable {

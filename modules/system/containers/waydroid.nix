@@ -11,7 +11,7 @@ let
 in
 {
   options.my.system.waydroid = {
-    enable = selfLib.mkBoolOpt false "Waydroid settings";
+    enable = lib.mkEnableOption "Waydroid settings";
   };
   config = lib.mkIf cfg.enable {
     virtualisation.waydroid.package = pkgs.waydroid-nftables;
@@ -21,7 +21,7 @@ in
     ];
     boot.supportedFilesystems = [ "fuse" ];
 
-    # Membuat direktori share secara otomatis
+    # Auto-create shared directories
     systemd.tmpfiles.rules = selfLib.forAllUsers waydroidUsers (
       userName: _: [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
@@ -33,10 +33,10 @@ in
 
     boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
-    # MENCEGAH WAYDROID JALAN OTOMATIS SAAT BOOT
+    # Prevent Waydroid from starting automatically on boot
     systemd.services.waydroid-container.wantedBy = lib.mkForce [ ];
 
-    # Dinamis: iterasi semua user yang berhak mendapat map Waydroid menggunakan helper forAllUsers
+    # Per-user Waydroid filesystem mounts
     fileSystems = lib.mkMerge [
       (selfLib.forAllUsers waydroidUsers (
         userName: _: {
@@ -56,6 +56,7 @@ in
           };
           "/home/${userName}/.local/share/waydroid" = {
             device = "/mnt/data_btrfs/waydroid_data/${userName}";
+            fsType = "none";
             options = [
               "bind"
               "nofail"
@@ -66,6 +67,7 @@ in
       {
         "/var/lib/waydroid/images" = {
           device = "/mnt/data_btrfs/waydroid_images/images11";
+          fsType = "none";
           options = [ "bind" ];
         };
       }

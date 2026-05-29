@@ -1,7 +1,7 @@
+# Automatic filesystem mounting for NTFS data and BTRFS partitions.
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,18 +9,22 @@ let
 in
 {
   options.my.system.auto-mount = {
-    enable = selfLib.mkBoolOpt false "system automatic partition mounting";
-    dataDevice =
-      selfLib.mkOpt lib.types.str "/dev/disk/by-uuid/365EE7F85EE7AEB5"
-        "The UUID for the data partition";
-
-    btrfsDevice =
-      selfLib.mkOpt lib.types.str "/dev/disk/by-uuid/7cecb23a-1617-4376-8fe0-f459a44c832b"
-        "The UUID for the btrfs data partition";
-
-    btrfsRoot =
-      selfLib.mkOpt lib.types.str "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8"
-        "The UUID for the btrfs root partition";
+    enable = lib.mkEnableOption "automatic partition mounting";
+    dataDevice = lib.mkOption {
+      type = lib.types.str;
+      default = "/dev/disk/by-uuid/365EE7F85EE7AEB5";
+      description = "Device path for the NTFS data partition.";
+    };
+    btrfsDevice = lib.mkOption {
+      type = lib.types.str;
+      default = "/dev/disk/by-uuid/7cecb23a-1617-4376-8fe0-f459a44c832b";
+      description = "Device path for the BTRFS data partition.";
+    };
+    btrfsRoot = lib.mkOption {
+      type = lib.types.str;
+      default = "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8";
+      description = "Device path for the BTRFS root partition.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -31,16 +35,13 @@ in
         "rw"
         "uid=1000"
         "gid=100"
-        # Mengubah mask menjadi 0000 agar tidak ada hak akses yang dikurangi
         "dmask=0000"
         "fmask=0000"
-        "exec" # Mengizinkan eksekusi di level filesystem
+        "exec"
         "nofail"
-        # "noauto"                       # Mencegah mount paksa saat awal booting
         "noatime"
-        "x-systemd.automount" # Melakukan mount seketika saat folder diakses
-        "x-systemd.mount-timeout=30s" # Timeout jika mount gagal (tidak blocking)
-        # "force"
+        "x-systemd.automount"
+        "x-systemd.mount-timeout=30s"
       ];
     };
 
@@ -71,6 +72,7 @@ in
 
     fileSystems."/var/lib/flatpak" = {
       device = "/mnt/data_btrfs/flatpak-system";
+      fsType = "none";
       options = [ "bind" ];
     };
   };

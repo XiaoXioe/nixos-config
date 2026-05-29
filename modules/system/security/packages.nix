@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.packages-security = {
-    enable = selfLib.mkBoolOpt false "Enable packages for security";
+    enable = lib.mkEnableOption "Enable packages for security";
   };
 
   config = lib.mkIf cfg.enable {

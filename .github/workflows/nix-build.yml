@@ -17,11 +17,6 @@ jobs:
       with:
         install_url: https://nixos.org/nix/install
 
-    - name: Setup SSH agent
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
     - name: Setup Cachix
       uses: cachix/cachix-action@v14
       with:
@@ -33,5 +28,4 @@ jobs:
         nix build \
           ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.caelestia.package" \
           ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.dank-material-shell.package" \
-          ".#nixosConfigurations.KleinMoretti.config.my.system.llama.package" \
           -L

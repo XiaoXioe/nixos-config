@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,7 +8,7 @@ let
 in
 {
   options.my.system.security = {
-    enable = selfLib.mkBoolOpt false "system security configuration";
+    enable = lib.mkEnableOption "system security configuration";
   };
 
   config = lib.mkIf cfg.enable {
@@ -31,10 +30,10 @@ in
         enable = true;
         execWheelOnly = true;
         extraConfig = ''
-          # Memunculkan bintang saat mengetik password
+          # Show asterisks when typing password
           Defaults env_reset,pwfeedback
 
-          # Memperpanjang batas waktu sesi sudo menjadi 30 menit (default biasanya 15)
+          # Extend sudo session timeout to 30 minutes (default is 15)
           Defaults timestamp_timeout=30
         '';
 
@@ -58,6 +57,10 @@ in
               }
               {
                 command = "/run/current-system/sw/bin/systemctl";
+                options = [ "NOPASSWD" ];
+              }
+              {
+                command = "/run/current-system/sw/bin/nixos-rebuild";
                 options = [ "NOPASSWD" ];
               }
             ];

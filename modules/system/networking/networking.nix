@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,7 +8,7 @@ let
 in
 {
   options.my.system.networking = {
-    enable = selfLib.mkBoolOpt false "Firewall and Network configuration";
+    enable = lib.mkEnableOption "Firewall and Network configuration";
   };
 
   config = lib.mkIf cfg.enable {
@@ -34,7 +33,7 @@ in
         wifi.macAddress = "stable";
         ethernet.macAddress = "stable";
 
-        # Mematikan power saving khusus untuk Wi-Fi di NetworkManager
+        # Disable Wi-Fi power saving in NetworkManager
         wifi = {
           powersave = false;
         };

@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 
@@ -13,7 +12,7 @@ let
 in
 {
   options.my.services.snapper = {
-    enable = selfLib.mkBoolOpt false "Snapper backup home data";
+    enable = lib.mkEnableOption "Snapper backup home data";
   };
 
   config = lib.mkIf cfg.enable {
@@ -33,17 +32,17 @@ in
     #
     # Mengapa file terhapus bisa di-restore:
     #   Jika file di /persist/home/<user>/Desktop dihapus, snapshot
-    #   lama masih menyimpan file tersebut. Restore via:
+    #   older snapshots still contain the file. Restore via:
     #     snapper -c persist rollback <nomor>
     #   atau copy manual dari /persist/.snapshots/<N>/snapshot/
     #
     # PERHATIAN: File yang hanya ada di /home/<user>/ (ephemeral,
-    #   bukan di-persist) TIDAK akan di-backup karena di-wipe
-    #   setiap boot. Tambahkan ke preservation.nix agar persisten.
+    #   not persisted) will NOT be backed up since they are wiped
+    #   on every boot. Add to preservation.nix for persistence.
     # ===========================================================
     services.snapper = {
       snapshotInterval = "hourly"; # Jadwal timeline snapshot
-      persistentTimer = true; # Eksekusi jadwal yang terlewat saat boot
+      persistentTimer = true; # Execute missed schedules on boot
 
       configs = {
         # Config utama: snapshot seluruh subvolume @nixos-persist
@@ -51,15 +50,15 @@ in
         persist = {
           SUBVOLUME = "/persist";
           ALLOW_USERS = userNames;
-          # SYNC_ACL: sinkronkan ACL agar ALLOW_USERS bisa read snapshot
-          # tanpa sudo (diperlukan untuk list & restore manual)
+          # SYNC_ACL: sync ACL so ALLOW_USERS can read snapshots
+          # without sudo (needed for manual list & restore)
           SYNC_ACL = "yes";
 
           TIMELINE_CREATE = true;
           TIMELINE_CLEANUP = true;
 
           # Simpan 3 snapshot per jam (setiap ~20 menit)
-          # agar bisa mengembalikan file yang baru dihapus
+          # so recently deleted files can be restored
           TIMELINE_LIMIT_HOURLY = "3";
           TIMELINE_LIMIT_DAILY = "3"; # 1 minggu harian
           TIMELINE_LIMIT_WEEKLY = "2";
@@ -88,7 +87,7 @@ in
       };
     };
 
-    # Jadwal cleanup lebih sering agar tidak menumpuk
+    # More frequent cleanup schedule to prevent accumulation
     systemd.timers."snapper-cleanup" = {
       timerConfig = {
         OnCalendar = lib.mkForce "*-*-* *:30:00";
@@ -96,21 +95,22 @@ in
     };
 
     # ===========================================================
-    # BTRFS subvolume untuk .snapshots
+    # BTRFS subvolume for .snapshots
     #
-    # WAJIB menggunakan "Q" (bukan "v") karena snapper memerlukan
+    # MUST use "Q" (not "v") because snapper requires
     # .snapshots sebagai BTRFS subvolume, bukan direktori biasa.
     # "Q" = buat subvolume BTRFS jika belum ada
-    # "v" = hanya buat direktori biasa (SALAH untuk snapper)
+    # "v" = creates a regular directory (WRONG for snapper)
     # ===========================================================
     systemd.tmpfiles.rules = [
       "Q /persist/.snapshots 0750 root root - -"
       "Q /persist/.home-snapshots 0750 root root - -"
     ];
 
-    # Bind-mount agar snapshot dari ephemeral home tersimpan di persist
+    # Bind-mount so ephemeral home snapshots are stored in persist
     fileSystems."/home/.snapshots" = {
       device = "/persist/.home-snapshots";
+      fsType = "none";
       options = [ "bind" ];
       depends = [ "/persist" ];
     };

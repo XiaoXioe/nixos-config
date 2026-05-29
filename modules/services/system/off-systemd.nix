@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.services.nm-speedup = {
-    enable = selfLib.mkBoolOpt false "Speedup booting with disable some services";
+    enable = lib.mkEnableOption "Speedup booting with disable some services";
   };
 
   config = lib.mkIf cfg.enable {

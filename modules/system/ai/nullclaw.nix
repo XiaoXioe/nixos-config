@@ -2,13 +2,12 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
   cfg = config.my.system.nullclaw;
 
-  # Derivation sederhana untuk mengambil static binary NullClaw
+  # Simple derivation to fetch the NullClaw static binary
   nullclaw-pkg = pkgs.stdenv.mkDerivation rec {
     pname = "nullclaw";
     version = "2026.4.17";
@@ -31,11 +30,11 @@ let
 in
 {
   options.my.system.nullclaw = {
-    enable = selfLib.mkBoolOpt false "Nullclaw AI Agent";
+    enable = lib.mkEnableOption "Nullclaw AI Agent";
   };
 
   config = lib.mkIf cfg.enable {
-    # Memasukkan nullclaw ke dalam environment sistem agar bisa dipanggil via CLI
+    # Add nullclaw to system environment
     environment.systemPackages = [ nullclaw-pkg ];
 
     # systemd.services.nullclaw = {
@@ -45,11 +44,11 @@ in
     #   after = [ "ollama.service" ];
 
     #   serviceConfig = {
-    #     # Menggunakan perintah gateway untuk stand-by di background (dibutuhkan nanti untuk Telegram/Discord)
+    #     # Use gateway command for background standby (needed for Telegram/Discord)
     #     ExecStart = "${nullclaw-pkg}/bin/nullclaw gateway";
     #     Restart = "on-failure";
     #     User = "klein-moretti";
-    #     # Set variabel environment agar NullClaw tahu lokasi home directory
+    #     # Set environment variable for NullClaw home directory
     #     Environment = "HOME=/home/klein-moretti";
     #   };
     # };

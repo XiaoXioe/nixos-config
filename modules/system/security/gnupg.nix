@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  selfLib,
   ...
 }:
 let
@@ -10,11 +9,11 @@ let
 in
 {
   options.my.system.gnupg = {
-    enable = selfLib.mkBoolOpt false "Gnupg Tools";
+    enable = lib.mkEnableOption "Gnupg Tools";
   };
 
   config = lib.mkIf cfg.enable {
-    # Mengaktifkan GPG Agent
+    # Enable GPG Agent
     programs.gnupg.agent = {
       enable = true;
       enableSSHSupport = true;

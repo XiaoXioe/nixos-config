@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,14 +9,14 @@ let
 in
 {
   options.my.system.kernel = {
-    enable = selfLib.mkBoolOpt false "Kernel managment";
+    enable = lib.mkEnableOption "Kernel managment";
   };
 
   config = lib.mkIf cfg.enable {
     specialisation = {
       zen-kernel.configuration = {
         system.nixos.tags = [ "kernel-zen" ];
-        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen; # Menggunakan kernel standar/LTS
+        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen; # Use Zen kernel
       };
     };
   };

@@ -1,9 +1,7 @@
 {
   config,
   pkgs,
-  pkgsUnstable,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -12,9 +10,9 @@ in
 {
 
   options.my.system.greeter = {
-    enable = selfLib.mkBoolOpt false "Aktifkan sistem Greeter kustom";
+    enable = lib.mkEnableOption "custom display manager greeter";
 
-    # Tambahkan opsi 'backend' untuk memilih display manager
+    # Display manager backend selection
     backend = lib.mkOption {
       type = lib.types.enum [
         "dms"
@@ -39,13 +37,13 @@ in
       })
     ];
 
-    # Aktifkan dms-greeter HANYA jika backend == "dms"
-    # services.displayManager.dms-greeter = lib.mkIf (cfg.backend == "dms") {
-    #   enable = true;
-    #   compositor.name = "niri";
-    # };
+    # Enable dms-greeter only when backend == "dms"
+    services.displayManager.dms-greeter = lib.mkIf (cfg.backend == "dms") {
+      enable = true;
+      compositor.name = "niri";
+    };
 
-    # Aktifkan SDDM HANYA jika backend == "sddm"
+    # Enable SDDM only when backend == "sddm"
     services.displayManager.sddm = lib.mkIf (cfg.backend == "sddm") {
       enable = true;
       theme = "catppuccin-mocha-mauve";
@@ -55,10 +53,10 @@ in
       # ];
     };
 
-    # Aktifkan GDM HANYA jika backend == "gdm"
+    # Enable GDM only when backend == "gdm"
     services.displayManager.gdm.enable = (cfg.backend == "gdm");
 
-    # Cegah layar hitam saat rebuild dengan menonaktifkan restart otomatis pada display manager
+    # Prevent black screen during rebuild by disabling automatic DM restart
     systemd.services.display-manager.restartIfChanged = false;
 
     hardware.i2c.enable = true;

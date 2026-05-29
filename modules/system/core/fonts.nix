@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.fonts = {
-    enable = selfLib.mkBoolOpt false "system font configuration";
+    enable = lib.mkEnableOption "system font configuration";
   };
 
   config = lib.mkIf cfg.enable {

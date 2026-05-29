@@ -3,15 +3,13 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     custompkgs-priv = {
-      # url = "git+ssh://git@github.com/XiaoXioe/nix-custompkg-priv.git";
       url = "github:XiaoXioe/nix-custompkg-priv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -19,8 +17,7 @@
     preservation.url = "github:nix-community/preservation";
 
     home-manager = {
-      #url = "github:nix-community/home-manager";
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -63,14 +60,12 @@
           system = "x86_64-linux";
           adminUser = "klein-moretti";
 
-          # Tarik data & library
+          # User data & custom library
           allUsers = (import ./lib/users.nix).users;
           selfLib = import ./lib { inherit (inputs.nixpkgs) lib; };
 
           nixpkgsConfig = {
             allowUnfree = true;
-            # allowBroken = true;
-            # nvidia.acceptLicense = true;
           };
 
           pkgs = import inputs.nixpkgs {
@@ -78,24 +73,18 @@
             config = nixpkgsConfig;
           };
 
-          pkgsUnstable = import inputs.nixpkgs-unstable {
-            inherit system;
-            config = nixpkgsConfig;
-          };
-
-          # Variabel-variabel ini dibutuhkan oleh NixOS dan Home Manager
+          # Shared arguments for both NixOS and Home Manager
           baseArgs = {
             inherit
               inputs
               selfLib
               hostName
               flakePath
-              pkgsUnstable
               allUsers
               ;
           };
 
-          # Menggunakan operator // untuk menggabungkan baseArgs dengan argumen spesifik
+          # Merge baseArgs with host-specific arguments
           commonSpecialArgs = baseArgs // {
             userName = adminUser;
             fullName = allUsers.${adminUser}.fullName;
@@ -112,11 +101,12 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = baseArgs;
-              # Jika HM menemukan file yang sudah ada (tidak dikelola Nix),
-              # beri ekstensi backup daripada langsung gagal.
               home-manager.backupFileExtension = "hm-bak";
               home-manager.users = inputs.nixpkgs.lib.genAttrs (builtins.attrNames allUsers) (name: {
-                imports = [ ./hosts/nixos/home.nix ];
+                imports = [
+                  ./hosts/nixos/home.nix
+                  ./modules/user/${name}
+                ];
                 _module.args = {
                   userName = name;
                   fullName = allUsers.${name}.fullName;
@@ -126,7 +116,7 @@
             }
           ];
 
-          # Generator Home Manager Standalone
+          # Standalone Home Manager configurations (one per user)
           mkHomeConfigurations = inputs.nixpkgs.lib.listToAttrs (
             map (
               name:
@@ -144,7 +134,10 @@
                     userFeatures = user.userFeatures or { };
                   };
 
-                  modules = [ ./hosts/nixos/home.nix ];
+                  modules = [
+                    ./hosts/nixos/home.nix
+                    ./modules/user/${name}
+                  ];
                 };
               }
             ) (builtins.attrNames allUsers)

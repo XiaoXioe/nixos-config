@@ -1,5 +1,5 @@
+# Host-level NixOS configuration for KleinMoretti.
 {
-  selfLib,
   userName,
   hostName,
   fullName,
@@ -12,7 +12,7 @@
     ./hardware-configuration.nix
   ];
 
-  # --- MODULAR USERS (SISTEM) ---
+  # --- User Management ---
   my.users = allUsers;
 
   my.user = {
@@ -21,95 +21,84 @@
     flakePath = flakePath;
   };
 
-  # --- MODULAR SYSTEM (GLOBAL) ---
+  # --- System Modules ---
   my.system = {
     hostname = hostName;
-    packages = selfLib.enabled;
+    packages.enable = true;
 
     # Disk
-    auto-mount = selfLib.enabled;
+    auto-mount.enable = true;
 
-    # Sistem settings
-    fonts = selfLib.enabled;
-    locale = selfLib.enabled;
-    graphics = selfLib.enabled;
-    bootloader = selfLib.enabled;
-    environment = selfLib.enabled;
-    nix-settings = selfLib.enabled;
-    optimizations = selfLib.enabled;
+    # Core
+    fonts.enable = true;
+    locale.enable = true;
+    graphics.enable = true;
+    bootloader.enable = true;
+    environment.enable = true;
+    nix-settings.enable = true;
+    optimizations.enable = true;
 
-    # Impermanence — bind-mount file & direktori penting ke /persist
-    preservation = selfLib.enabled;
+    # Ephemeral root — bind-mount critical files to /persist
+    preservation.enable = true;
 
-    # Security and Pentesting
-    gnupg = selfLib.enabled;
-    secrets = selfLib.enabled;
-    keyring = selfLib.enabled;
-    security = selfLib.enabled;
-    networking = selfLib.enabled;
-    compatibility = selfLib.enabled;
-    packages-security = selfLib.enabled;
-    security-wrappers = selfLib.enabled;
-    security-tools-system = selfLib.enabled;
+    # Security
+    gnupg.enable = true;
+    secrets.enable = true;
+    keyring.enable = true;
+    security.enable = true;
+    networking.enable = true;
+    compatibility.enable = true;
+    packages-security.enable = true;
+    security-wrappers.enable = true;
+    security-tools-system.enable = true;
 
     # Virtualization & AI
-    llama = selfLib.enabled;
-    ollama = selfLib.enabled;
-    nullclaw = selfLib.disabled;
-    waydroid = selfLib.enabled;
-    open-webui = selfLib.disabled;
-    packages-vm = selfLib.enabled;
-    packages-ai = selfLib.enabled;
+    llama.enable = true;
+    ollama.enable = true;
+    nullclaw.enable = false;
+    waydroid.enable = true;
+    open-webui.enable = false;
+    packages-vm.enable = true;
+    packages-ai.enable = true;
     virtualization = {
       enable = true;
       mt5.enable = false;
     };
 
-    # Desktop settings
-    niri = selfLib.enabled;
+    # Desktop
+    niri.enable = true;
     kde = {
       enable = true;
       unstable = false;
     };
-    gnome = selfLib.disabled;
-    greeter = selfLib.enabled;
-    hyprland = selfLib.enabled;
+    gnome.enable = false;
+    greeter.enable = true;
+    hyprland.enable = true;
 
-    # Spesialisasi
-    gt610 = selfLib.disabled;
-    daily = selfLib.disabled;
-    kernel = selfLib.disabled;
-    retro-gaming = selfLib.disabled;
+    # Specializations
+    gt610.enable = false;
+    daily.enable = false;
+    kernel.enable = false;
+    retro-gaming.enable = false;
 
-    # Custom shell
-    rebuild-wrapper = selfLib.enabled;
-    compsize-wrapper = selfLib.enabled;
-    show-zombie-parents = selfLib.enabled;
+    # Custom shell wrappers
+    rebuild-wrapper.enable = true;
+    compsize-wrapper.enable = true;
+    show-zombie-parents.enable = true;
   };
 
   my.services = {
-    psd = selfLib.disabled;
-    openssh = selfLib.enabled;
-    ananicy = selfLib.enabled;
-    dnscrypt = selfLib.enabled;
-    vpn-auto = selfLib.enabled;
-    btrfs-config = selfLib.disabled;
+    openssh.enable = true;
+    ananicy.enable = true;
+    dnscrypt.enable = true;
+    vpn-auto.enable = true;
 
-    ssd-tbw = selfLib.enabled;
-    snapper = selfLib.enabled;
-    gamemode = selfLib.disabled;
-    tmpfiles = selfLib.enabled;
-    nm-speedup = selfLib.enabled;
-    system-service = selfLib.enabled;
-  };
-
-  # Mematikan pembuatan dokumentasi sistem untuk mempercepat rebuild
-  documentation = {
-    enable = false;
-    man.enable = false;
-    info.enable = false;
-    doc.enable = false;
-    nixos.enable = false;
+    ssd-tbw.enable = true;
+    snapper.enable = true;
+    gamemode.enable = false;
+    tmpfiles.enable = true;
+    nm-speedup.enable = false;
+    system-service.enable = true;
   };
 
   system.stateVersion = "25.11";

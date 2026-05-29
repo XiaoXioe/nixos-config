@@ -1,14 +1,10 @@
+# Custom library functions used across the configuration.
+# Only helpers that provide genuine value beyond stdlib are kept here.
 { lib, ... }:
 
-let
-  # Cache types to avoid redundant function calls
-  boolType = lib.types.bool;
-  # strType = lib.types.str;
-in
 {
-  # 1. Otomatisasi Import (Smart Scan)
-  # scanPaths kini tidak lagi digunakan secara masif untuk meningkatkan performa evaluasi,
-  # namun tetap dipertahankan untuk kebutuhan spesifik.
+  # Auto-import all .nix files (except default.nix) and directories
+  # containing a default.nix from the given path.
   scanPaths =
     path:
     builtins.map (f: (path + "/${f}")) (
@@ -24,50 +20,9 @@ in
       )
     );
 
-  # 2. Pembuat Opsi (The Game Changer)
-  mkOpt =
-    type: default: description:
-    lib.mkOption { inherit type default description; };
-
-  mkBoolOpt =
-    default: description:
-    lib.mkOption {
-      type = boolType;
-      default = default;
-      description = description;
-    };
-
-  # 3. Shorthands (Jalan Pintas)
-  enabled = {
-    enable = true;
-  };
-  disabled = {
-    enable = false;
-  };
-
-  # 4. LOGIC HELPERS
-  ifElse =
-    condition: yes: no:
-    if condition then yes else no;
-
-  # 5. Fungsi ajaib untuk memaku versi paket
-  pinPkg =
-    system: rev: pkgName:
-    let
-      repoPath = (builtins.getFlake "github:nixos/nixpkgs/${rev}").outPath;
-      pinnedPkgs = import repoPath {
-        inherit system;
-        config.allowUnfree = true;
-      };
-    in
-    pinnedPkgs.${pkgName};
-
-  # 6. Generic Helper: Looping konfigurasi untuk SEMUA user secara global
+  # Apply a function to every user and merge the results.
+  # Useful for generating per-user systemd units, secrets, etc.
   forAllUsers =
     users: func:
     lib.mkMerge (lib.mapAttrsToList (userName: userConfig: func userName userConfig) users);
-
-  mapUsers =
-    users: func:
-    lib.mapAttrs (userName: userConfig: func userName userConfig) users;
 }

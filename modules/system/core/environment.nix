@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,7 +8,7 @@ let
 in
 {
   options.my.system.environment = {
-    enable = selfLib.mkBoolOpt false "Environments configuration";
+    enable = lib.mkEnableOption "Environments configuration";
   };
 
   config = lib.mkIf cfg.enable {
@@ -21,7 +20,7 @@ in
       PLASMA_USE_QT_SCALING = "1";
       GSK_RENDERER = "gl";
 
-      # Opsional: Memaksa aplikasi KDE untuk langsung mati saat crash,
+      # Force KDE apps to terminate immediately on crash,
       # tanpa mencoba memanggil GUI pelapor crash
       KCRASH_CORE_PATTERN_RAISE = "1";
 
@@ -33,7 +32,7 @@ in
       LIBVA_DRIVER_NAME = "i965";
       VAAPI_MPEG4_ENABLED = "true";
 
-      # Pastikan Firefox berjalan di mode Wayland murni
+      # Force Firefox to run in native Wayland mode
       MOZ_ENABLE_WAYLAND = "1";
     };
   };

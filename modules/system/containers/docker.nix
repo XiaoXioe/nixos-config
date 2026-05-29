@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -9,9 +8,9 @@ let
 in
 {
   options.my.system.virtualization = {
-    enable = selfLib.mkBoolOpt false "system virtualization and container support";
-    # Menambahkan opsi khusus untuk trading bot agar tetap modular
-    mt5.enable = selfLib.mkBoolOpt false "MetaTrader 5 headless container via Docker";
+    enable = lib.mkEnableOption "system virtualization and container support";
+    # Optional MetaTrader 5 container
+    mt5.enable = lib.mkEnableOption "MetaTrader 5 headless container via Docker";
   };
 
   config = lib.mkIf cfg.enable {
@@ -23,7 +22,7 @@ in
       };
     };
 
-    # Menambahkan grup docker hanya kepada user yang memiliki fitur docker = true
+    # Add docker group only to users with docker feature enabled
     users.users = lib.mapAttrs (name: _: { extraGroups = [ "docker" ]; }) (
       lib.filterAttrs (name: userCfg: userCfg.userFeatures.docker or false) config.my.users
     );
@@ -43,13 +42,13 @@ in
       containers.mt5-headless = {
         image = "gmag11/metatrader5_vnc:latest";
 
-        # Mapping port untuk antarmuka web noVNC
+        # Port mapping for noVNC web interface
         ports = [
           "8443:6901" # Akses Web GUI KasmVNC
-          "8001:8001" # Akses mt5linux (Python API Bridge) untuk bot eksternal
+          "8001:8001" # mt5linux Python API bridge for external bots
         ];
 
-        # Menyimpan data profil, EA, dan sinyal secara persisten di partisi Btrfs Anda
+        # Persist profile data, EAs, and signals on the Btrfs partition
         volumes = [
           "/mnt/data_btrfs/mt5-data:/config"
         ];

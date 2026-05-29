@@ -2,8 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
-  pkgsUnstable,
   ...
 }:
 let
@@ -11,17 +9,17 @@ let
 in
 {
   options.my.system.kde = {
-    enable = selfLib.mkBoolOpt false "Kde Plasma configuration";
-    unstable = selfLib.mkBoolOpt false "Use unstable packages for KDE";
+    enable = lib.mkEnableOption "Kde Plasma configuration";
+    unstable = lib.mkEnableOption "Use unstable packages for KDE";
   };
 
   config = lib.mkIf cfg.enable {
 
     nixpkgs.overlays = lib.mkIf cfg.unstable [
       (final: prev: {
-        kdePackages = pkgsUnstable.kdePackages;
-        qt6 = pkgsUnstable.qt6;
-        # sddm = pkgsUnstable.sddm;
+        kdePackages = pkgs.kdePackages;
+        qt6 = pkgs.qt6;
+        # sddm = pkgs.sddm;
       })
     ];
 

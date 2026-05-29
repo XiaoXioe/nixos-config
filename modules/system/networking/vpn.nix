@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 
@@ -16,7 +15,7 @@ let
 in
 {
   options.my.services.vpn-auto = {
-    enable = selfLib.mkBoolOpt false "automatic VPN import service";
+    enable = lib.mkEnableOption "automatic VPN import service";
   };
 
   config = lib.mkIf cfg.enable {

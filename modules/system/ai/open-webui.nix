@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  selfLib,
   ...
 }:
 let
@@ -10,7 +9,7 @@ let
 in
 {
   options.my.system.open-webui = {
-    enable = selfLib.mkBoolOpt false "Open-WebUI settings";
+    enable = lib.mkEnableOption "Open-WebUI settings";
   };
 
   config = lib.mkIf cfg.enable {
