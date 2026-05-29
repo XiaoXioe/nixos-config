@@ -31,7 +31,7 @@ let
     # Media & Apps
     brave = "brave";
     media = "media";
-    music = "media";        # music follows the media flag
+    music = "music";
     sosmed = "sosmed";
     office = "office";
     browser = "browser";
@@ -60,11 +60,13 @@ in
   home.username = userName;
   home.homeDirectory = "/home/${userName}";
 
-
   # --- User Module Toggles ---
-  my.user = standardToggles // specialToggles // {
-    services.rclone.enable = userFeatures.services.rclone or false;
-  };
+  my.user =
+    standardToggles
+    // specialToggles
+    // {
+      services.rclone.enable = userFeatures.services.rclone or false;
+    };
 
   programs.man.generateCaches = false;
   manual = {

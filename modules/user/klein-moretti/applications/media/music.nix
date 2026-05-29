@@ -86,14 +86,9 @@ in
     # --- rmpc: TUI client for MPD ---
     programs.rmpc = {
       enable = true;
+      config = builtins.readFile ../../conf/rmpc/config.ron;
     };
 
-    # Konfigurasi rmpc (Symlink)
-    xdg.configFile."rmpc/config.ron".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/modules/user/conf/rmpc/config.ron";
-
-    # Tema rmpc (Symlink)
-    xdg.configFile."rmpc/themes/custom.ron".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/modules/user/conf/rmpc/theme.ron";
+    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../conf/rmpc/theme.ron;
   };
 }
