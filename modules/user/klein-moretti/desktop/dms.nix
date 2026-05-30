@@ -19,8 +19,8 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.dank-material-shell = {
-      dgop.package = inputs.dgop.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      # dgop.package = pkgs.dgop;
+      # dgop.package = inputs.dgop.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      dgop.package = pkgs.dgop;
       enable = true;
     };
 

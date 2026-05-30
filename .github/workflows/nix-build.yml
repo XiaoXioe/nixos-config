@@ -26,6 +26,8 @@ jobs:
     - name: Build All Nix Packages
       run: |
         nix build \
-          ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.caelestia.package" \
-          ".#homeConfigurations.\"klein-moretti@KleinMoretti\".config.programs.dank-material-shell.package" \
+          ".#caelestia" \
+          ".#dank-shell" \
+          # ".#ayugram" \
+          # ".#llama" \
           -L

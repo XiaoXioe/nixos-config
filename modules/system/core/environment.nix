@@ -35,5 +35,10 @@ in
       # Force Firefox to run in native Wayland mode
       MOZ_ENABLE_WAYLAND = "1";
     };
+
+    environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
+      PasswordManagerEnabled = false;
+      BrowserSignin = 0;
+    };
   };
 }

@@ -40,6 +40,11 @@ in
           path = "/home/klein-moretti/.ssh/id_ed25519";
           mode = "0600";
         };
+        "ssh-rsa-user-klein" = {
+          owner = "klein-moretti";
+          path = "/home/klein-moretti/.ssh/id_rsa_compat";
+          mode = "0600";
+        };
 
         "fastfetch-logo" = {
           format = "binary";
@@ -59,12 +64,6 @@ in
           # Restart nix-daemon to reload the token on change
           restartUnits = [ "nix-daemon.service" ];
           mode = "0400";
-        };
-
-        "garnix-netrc" = {
-          owner = "root";
-          group = "nixbld";
-          mode = "0440";
         };
 
         "gh_hosts_yml" = {

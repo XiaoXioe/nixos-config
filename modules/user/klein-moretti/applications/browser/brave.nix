@@ -14,27 +14,34 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # === Cara Paling Reliable untuk Brave di NixOS ===
-    home.packages = [
-      (pkgs.brave.override {
-        commandLineArgs = [
-          # Performa & Hardware Acceleration (Intel HD 4000)
-          "--enable-features=WaylandWindowDecorations,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,VaapiVideoDecoder,VaapiVideoEncoder,VaapiIgnoreDriverChecks"
-          "--enable-gpu-rasterization"
-          "--enable-zero-copy"
-          "--ignore-gpu-blocklist"
-          "--ozone-platform-hint=auto"
-          "--enable-hardware-overlays"
+    programs.brave = {
+      enable = true;
+      extensions = [
+        { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
+        { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
+        { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
+        { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
+        { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
+        { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
+        { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
+        { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
+        { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
+      ];
+      commandLineArgs = [
+        "--force-dark-mode" # Memaksa UI Brave menjadi gelap
+        "--enable-features=WebUIDarkMode" # Memaksa halaman internal (seperti Pengaturan) menjadi gelap
+        # --- Performa & Kompatibilitas Wayland ---
+        "--enable-features=UseOzonePlatform"
+        "--ozone-platform=wayland" # Aktifkan jika Anda memakai Wayland (Hyprland, Sway, GNOME Wayland)
+        "--enable-gpu-rasterization" # Memaksa akselerasi GPU untuk rendering
+        "--enable-zero-copy" # Mengurangi penggunaan RAM saat rendering
+        "--ignore-gpu-blocklist" # Memaksa fitur GPU meskipun driver tidak dikenali secara resmi
+        "--disable-features=BraveRewards,BraveWallet,BraveVPN,BraveLeo,BraveAI,WebDiscoveryProject"
 
-          # Security & Hilangkan Bloat
-          "--disable-domain-reliability"
-          "--no-first-run"
-          "--disable-breakpad"
-          "--disable-features=BraveRewards,BraveWallet,BraveLeoAI,BraveSearchDefault,BraveNews,BraveReferrals"
-
-          "--disable-background-networking"
-        ];
-      })
-    ];
+        # --- Privasi Tambahan ---
+        "--disable-reading-from-canvas" # Mencegah canvas fingerprinting
+        "--no-pings" # Mencegah pengiriman hyperlink auditing pings
+      ];
+    };
   };
 }

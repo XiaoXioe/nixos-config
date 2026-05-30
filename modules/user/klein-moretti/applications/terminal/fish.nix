@@ -179,6 +179,6 @@ in
       };
     };
     xdg.configFile."fish/functions/custom".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/modules/user/conf/fish/functions";
+      config.lib.file.mkOutOfStoreSymlink ../../conf/fish/functions;
   };
 }

@@ -3,7 +3,8 @@
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    # nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,6 +19,11 @@
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -36,16 +42,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dgop = {
-      url = "github:AvengeMedia/dgop";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nvf = {
       url = "github:notashelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
   };
 
   outputs =
@@ -97,6 +97,7 @@
             inputs.preservation.nixosModules.preservation
             inputs.sops-nix.nixosModules.sops
             inputs.home-manager.nixosModules.home-manager
+            inputs.nix-index-database.nixosModules.nix-index
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

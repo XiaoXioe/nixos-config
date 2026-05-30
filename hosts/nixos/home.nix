@@ -68,12 +68,12 @@ in
       services.rclone.enable = userFeatures.services.rclone or false;
     };
 
-  programs.man.generateCaches = false;
-  manual = {
-    manpages.enable = false;
-    html.enable = false;
-    json.enable = false;
-  };
+  # programs.man.generateCaches = false;
+  # manual = {
+  #   manpages.enable = false;
+  #   html.enable = false;
+  #   json.enable = false;
+  # };
   home.stateVersion = "25.11";
   programs.home-manager.enable = true;
 }

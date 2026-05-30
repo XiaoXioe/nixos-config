@@ -38,6 +38,7 @@ in
 
       fish.enable = true;
       fuse.userAllowOther = true;
+      nix-index-database.comma.enable = true;
     };
 
     environment.systemPackages = with pkgs; [
@@ -50,7 +51,6 @@ in
       unzip
       intel-gpu-tools
       compsize
-      comma
 
       ddcutil
       jdk

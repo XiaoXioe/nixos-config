@@ -1,0 +1,17 @@
+image: nixos/nix:latest
+
+variables:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
+
+before_script:
+  - nix-env -iA nixpkgs.cachix
+  - cachix use cachixix
+
+build_packages:
+  script:
+    - cachix watch-exec cachixix -- nix build \
+        ".#caelestia" \
+        ".#dank-shell" \
+        ".#ayugram" \
+        ".#llama" \
+        -L

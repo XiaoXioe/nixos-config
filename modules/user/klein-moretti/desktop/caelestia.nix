@@ -32,6 +32,7 @@ in
     };
 
     # Link konfigurasi Caelestia
-    xdg.configFile."caelestia/shell.json".source = ../conf/caelestia/shell.json;
+    xdg.configFile."caelestia/shell.json".source =
+      config.lib.file.mkOutOfStoreSymlink ../../conf/caelestia/shell.json;
   };
 }

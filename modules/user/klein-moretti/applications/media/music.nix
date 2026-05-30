@@ -80,8 +80,11 @@ in
       '';
     };
 
-    # --- mpdris2: MPRIS D-Bus bridge for media keys ---
-    services.mpdris2.enable = true;
+    systemd.user.services.mpd = {
+      Unit = {
+        RequiresMountsFor = [ "/mnt/data" ];
+      };
+    };
 
     # --- rmpc: TUI client for MPD ---
     programs.rmpc = {
