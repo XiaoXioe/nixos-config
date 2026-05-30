@@ -91,9 +91,9 @@ in
                 DIFF_R="0.00"
             fi
 
-            echo "$DATE | Total: $GB_W GB | Penulisan Baru: $DIFF_W GB | Read: $GB_R GB | Baca Baru: $DIFF_R GB" >> "$LOG_FILE"
+            echo "$DATE | Write: $GB_W GB | Penulisan Baru: $DIFF_W GB | Read: $GB_R GB | Baca Baru: $DIFF_R GB" >> "$LOG_FILE"
         else
-            echo "$DATE | Total: $GB_W GB | Penulisan Baru: 0.00 GB | Read: $GB_R GB | Baca Baru: 0.00 GB" >> "$LOG_FILE"
+            echo "$DATE | Write: $GB_W GB | Penulisan Baru: 0.00 GB | Read: $GB_R GB | Baca Baru: 0.00 GB" >> "$LOG_FILE"
         fi
 
         echo "--- Riwayat Penggunaan SSD ($TARGET_DISK) ---"

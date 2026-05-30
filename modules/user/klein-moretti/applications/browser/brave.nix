@@ -26,6 +26,8 @@ in
         { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
         { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
         { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
+        { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
+        { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
       ];
       commandLineArgs = [
         "--force-dark-mode" # Memaksa UI Brave menjadi gelap

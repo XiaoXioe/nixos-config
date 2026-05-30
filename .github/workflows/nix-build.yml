@@ -28,6 +28,4 @@ jobs:
         nix build \
           ".#caelestia" \
           ".#dank-shell" \
-          # ".#ayugram" \
-          # ".#llama" \
           -L
