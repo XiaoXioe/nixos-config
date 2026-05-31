@@ -39,6 +39,10 @@ in
     environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
       PasswordManagerEnabled = false;
       BrowserSignin = 0;
+      BraveAIChatEnabled = false;
+      BraveWalletDisabled = true;
+      BraveRewardsDisabled = true;
+      BraveVPNDisabled = true;
     };
   };
 }

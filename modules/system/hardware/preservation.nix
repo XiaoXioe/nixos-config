@@ -248,6 +248,7 @@ in
           "nixos-config"
           "nix-custompkgs"
           "nix-custompkg-priv"
+          "freqtrade-dev"
         ];
         files = [
           ".bash_history"

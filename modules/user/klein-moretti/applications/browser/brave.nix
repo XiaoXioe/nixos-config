@@ -27,18 +27,22 @@ in
         { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
         { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
         { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
+        { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
         { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
       ];
       commandLineArgs = [
         "--force-dark-mode" # Memaksa UI Brave menjadi gelap
-        "--enable-features=WebUIDarkMode" # Memaksa halaman internal (seperti Pengaturan) menjadi gelap
         # --- Performa & Kompatibilitas Wayland ---
-        "--enable-features=UseOzonePlatform"
-        "--ozone-platform=wayland" # Aktifkan jika Anda memakai Wayland (Hyprland, Sway, GNOME Wayland)
+        "--ozone-platform=wayland"
+        "--enable-wayland-ime"
         "--enable-gpu-rasterization" # Memaksa akselerasi GPU untuk rendering
-        "--enable-zero-copy" # Mengurangi penggunaan RAM saat rendering
         "--ignore-gpu-blocklist" # Memaksa fitur GPU meskipun driver tidak dikenali secara resmi
-        "--disable-features=BraveRewards,BraveWallet,BraveVPN,BraveLeo,BraveAI,WebDiscoveryProject"
+
+        # --- PAKSA HARDWARE DECODING (VA-API) ---
+        "--enable-features=WebUIDarkMode,Containers,VaapiVideoDecoder,VaapiIgnoreDriverChecks"
+        # "--enable-features=UseOzonePlatform,WebUIDarkMode,Containers,VaapiVideoDecoder,VaapiIgnoreDriverChecks,VaapiVideoEncoder"
+        "--disable-features=Vulkan,UseChromeOSDirectVideoDecoder,BraveRewards,BraveWallet,BraveVPN,BraveLeo,BraveAI,WebDiscoveryProject"
+        "--disable-gpu-driver-bug-workarounds" # Mengabaikan aturan pembatasan dari Chromium untuk GPU lama
 
         # --- Privasi Tambahan ---
         "--disable-reading-from-canvas" # Mencegah canvas fingerprinting

@@ -13,6 +13,9 @@ let
   priv = inputs.custompkgs-priv.packages.${system};
 in
 {
+  imports = [
+    inputs.custompkgs.homeModules.freqtrade-setup
+  ];
   options.my.user.custompkgs = {
     enable = lib.mkEnableOption "Custom packages";
 
@@ -24,6 +27,31 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    programs.freqtrade-setup = {
+      enable = true;
+      configDir = "${config.home.homeDirectory}/freqtrade-test";
+      branch = "stable";
+      extraPip = [
+        "scipy"
+        "optuna"
+        "plotly"
+        "pykalman"
+        "PyWavelets"
+        "statsmodels"
+        "scikit-learn"
+      ];
+      service = {
+        enable = true;
+        bots = {
+          bot-utama = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/alesta";
+            strategyRun = "AlexBandSniperV65513";
+            configFile = "config.json";
+          };
+        };
+      };
+    };
     home.packages = [
       # --- Custompkgs Publik ---
       custom.vimmdl
