@@ -6,6 +6,100 @@
 }:
 let
   cfg = config.my.user.themes;
+
+  defaultApps = {
+    text = [ "codium.desktop" ];
+    image = [ "org.kde.gwenview.desktop" ];
+    audio = [ "mpv.desktop" ];
+    video = [ "mpv.desktop" ];
+    directory = [ "nemo.desktop" ];
+    office = [ "onlyoffice-desktopeditors.desktop" ];
+    pdf = [ "org.pwmt.zathura.desktop" ];
+    terminal = [ "org.wezfurlong.wezterm.desktop" ];
+    archive = [ "org.gnome.FileRoller.desktop" ];
+    discord = [ "discord.desktop" ];
+    link = [ "firefox.desktop" ];
+  };
+
+  mimeMap = {
+    link = [
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+      "x-scheme-handler/about"
+      "x-scheme-handler/unknown"
+    ];
+    text = [
+      "text/html"
+      "text/plain"
+      "text/x-log"
+      "text/x-csrc"
+      "text/x-chdr"
+      "text/x-markdown"
+      "application/json"
+      "text/x-shellscript"
+      "application/javascript"
+    ];
+    image = [
+      "image/bmp"
+      "image/gif"
+      "image/jpeg"
+      "image/jpg"
+      "image/png"
+      "image/svg+xml"
+      "image/tiff"
+      "image/vnd.microsoft.icon"
+      "image/webp"
+    ];
+    audio = [
+      "audio/aac"
+      "audio/mpeg"
+      "audio/ogg"
+      "audio/opus"
+      "audio/wav"
+      "audio/webm"
+      "audio/x-matroska"
+    ];
+    video = [
+      "video/mp2t"
+      "video/mp4"
+      "video/mpeg"
+      "video/ogg"
+      "video/webm"
+      "video/x-flv"
+      "video/x-matroska"
+      "video/x-msvideo"
+    ];
+    directory = [ "inode/directory" ];
+    office = [
+      "application/vnd.oasis.opendocument.text"
+      "application/vnd.oasis.opendocument.spreadsheet"
+      "application/vnd.oasis.opendocument.presentation"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      "application/msword"
+      "application/vnd.ms-excel"
+      "application/vnd.ms-powerpoint"
+      "application/rtf"
+    ];
+    pdf = [ "application/pdf" ];
+    terminal = [ "terminal" ];
+    archive = [
+      "application/zip"
+      "application/rar"
+      "application/7z"
+      "application/*tar"
+    ];
+    discord = [ "x-scheme-handler/discord" ];
+  };
+
+  associations = lib.listToAttrs (
+    lib.flatten (
+      lib.mapAttrsToList (
+        key: mimeTypes: map (type: lib.nameValuePair type defaultApps."${key}") mimeTypes
+      ) mimeMap
+    )
+  );
 in
 {
   options.my.user.themes = {
@@ -48,40 +142,17 @@ in
       };
     };
 
-    xdg.mimeApps = {
-      enable = true;
-      defaultApplications = {
-        # Browser Default
-        "text/html" = "firefox.desktop";
-        "x-scheme-handler/http" = "firefox.desktop";
-        "x-scheme-handler/https" = "firefox.desktop";
-        "x-scheme-handler/about" = "firefox.desktop";
-        "x-scheme-handler/unknown" = "firefox.desktop";
-
-        # PDF Viewer
-        "application/pdf" = "org.pwmt.zathura.desktop";
-        # "application/pdf" = "org.pwmt.zathura-pdf-mupdf.desktop";
-
-        # Text & Code
-        "text/plain" = "dev.zed.Zed.desktop";
-        "application/javascript" = "dev.zed.Zed.desktop";
-        "application/json" = "dev.zed.Zed.desktop";
-        "text/x-script.python" = "dev.zed.Zed.desktop";
-
-        "text/x-markdown" = "dev.zed.Zed.desktop";
-        "text/x-csrc" = "dev.zed.Zed.desktop";
-        "text/x-chdr" = "dev.zed.Zed.desktop";
-        "text/x-shellscript" = "dev.zed.Zed.desktop";
-
-        # Image & Video
-        "image/png" = "org.kde.gwenview.desktop";
-        "image/jpeg" = "org.kde.gwenview.desktop";
-        "video/mp4" = "mpv.desktop";
+    xdg = {
+      configFile."mimeapps.list".force = true;
+      mimeApps = {
+        enable = true;
+        associations.added = associations;
+        defaultApplications = associations;
       };
     };
 
     home.sessionVariables = {
-      EDITOR = "zeditor -w";
+      EDITOR = "codium -w";
       BROWSER = "firefox";
 
       # Force Qt apps to run natively on Wayland

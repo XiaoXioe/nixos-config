@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.system.compsize-wrapper;
+  cfg = config.my.custompkgs.compsize-wrapper;
 
   compsize-scanner-pkg = pkgs.writeShellApplication {
     name = "compsize-scanner";
@@ -63,7 +63,7 @@ let
   };
 in
 {
-  options.my.system.compsize-wrapper = {
+  options.my.custompkgs.compsize-wrapper = {
     enable = lib.mkEnableOption "Compsize wrapper bin";
   };
 

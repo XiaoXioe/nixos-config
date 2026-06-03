@@ -29,14 +29,14 @@ in
     fonts.fontDir.enable = true;
 
     # Disable documentation generation to speed up rebuilds.
-    # documentation = {
-    #   enable = false;
-    #   man.cache.enable = false;
-    #   dev.enable = false;
-    #   man.enable = false;
-    #   info.enable = false;
-    #   doc.enable = false;
-    #   nixos.enable = false;
-    # };
+    documentation = {
+      enable = false;
+      man.cache.enable = false;
+      dev.enable = false;
+      man.enable = false;
+      info.enable = false;
+      doc.enable = false;
+      nixos.enable = false;
+    };
   };
 }

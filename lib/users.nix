@@ -33,7 +33,10 @@
         packages = true;
         custompkgs = true;
         editor_file = true;
-        zeditor = true;
+        zeditor = false;
+        nemo = true;
+        vscodium = true;
+        devpkgs = true;
         securityTools = true;
         gaming = true;
         brave = true;

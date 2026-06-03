@@ -107,7 +107,7 @@ in
 
         user-agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-        ytdl-raw-options = "write-auto-subs=,ignore-config=,impersonate=chrome-110:windows-10,retries=infinite,fragment-retries=infinite";
+        ytdl-raw-options = "write-auto-subs=,ignore-config=,impersonate=chrome-110:windows-10,retries=infinite,fragment-retries=infinite,cookies-from-browser=firefox";
       };
 
       # Ini adalah padanan dari script-opts
@@ -133,7 +133,7 @@ in
 
         # --- Performance & Anti-Bot ---
         extractor-args = "'generic:impersonate'";
-        impersonate = "'chrome-110:windows-10'";
+        impersonate = "'Chrome-131:Macos-14'";
         downloader = "aria2c";
         downloader-args = "aria2c:'-c -x8 -s8 -k1M'";
 

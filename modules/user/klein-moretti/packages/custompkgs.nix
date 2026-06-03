@@ -29,7 +29,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.freqtrade-setup = {
       enable = true;
-      configDir = "${config.home.homeDirectory}/freqtrade-test";
+      configDir = "${config.home.homeDirectory}/freqtrade-dev";
       branch = "stable";
       extraPip = [
         "scipy"
@@ -41,7 +41,7 @@ in
         "scikit-learn"
       ];
       service = {
-        enable = true;
+        enable = false;
         bots = {
           bot-utama = {
             enable = true;

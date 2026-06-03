@@ -18,6 +18,8 @@ let
     nvim = "nvim";
     fish = "fish";
     tmux = "tmux";
+    nemo = "nemo";
+    devpkgs = "devpkgs";
     wezterm = "wezterm";
     settings = "settings";
     startship = "startship";
@@ -27,6 +29,7 @@ let
     packages = "packages";
     custompkgs = "custompkgs";
     zeditor = "zeditor";
+    vscodium = "vscodium";
 
     # Media & Apps
     brave = "brave";
@@ -68,12 +71,12 @@ in
       services.rclone.enable = userFeatures.services.rclone or false;
     };
 
-  # programs.man.generateCaches = false;
-  # manual = {
-  #   manpages.enable = false;
-  #   html.enable = false;
-  #   json.enable = false;
-  # };
+  programs.man.generateCaches = false;
+  manual = {
+    manpages.enable = false;
+    html.enable = false;
+    json.enable = false;
+  };
   home.stateVersion = "25.11";
   programs.home-manager.enable = true;
 }

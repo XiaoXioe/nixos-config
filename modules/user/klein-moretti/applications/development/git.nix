@@ -28,7 +28,7 @@ in
       settings = {
         git_protocol = "ssh";
         prompt = "enabled";
-        editor = "zeditor -w";
+        editor = "codium -w";
       };
     };
 

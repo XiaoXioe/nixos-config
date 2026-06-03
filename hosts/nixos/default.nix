@@ -55,7 +55,6 @@
     # Virtualization & AI
     llama.enable = true;
     ollama.enable = true;
-    nullclaw.enable = false;
     waydroid.enable = true;
     open-webui.enable = false;
     packages-vm.enable = true;
@@ -76,15 +75,19 @@
     hyprland.enable = true;
 
     # Specializations
-    gt610.enable = false;
     daily.enable = false;
-    kernel.enable = false;
     retro-gaming.enable = false;
+  };
 
+  my.custompkgs = {
     # Custom shell wrappers
     rebuild-wrapper.enable = true;
     compsize-wrapper.enable = true;
+    git-commits.enable = true;
     show-zombie-parents.enable = true;
+    cek-cache.enable = true;
+    dl-lagu.enable = true;
+    ollama-to-llama.enable = true;
   };
 
   my.services = {

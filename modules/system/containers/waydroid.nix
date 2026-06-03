@@ -26,6 +26,7 @@ in
       userName: _: [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
         "d /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
+        "Z /mnt/data_btrfs/waydroid_data/${userName} - ${userName} users -"
       ]
     );
 
@@ -41,7 +42,7 @@ in
       (selfLib.forAllUsers waydroidUsers (
         userName: _: {
           "/home/${userName}/WaydroidShare" = {
-            device = "/home/${userName}/.local/share/waydroid/data/media/0/Download";
+            device = "/persist/home/${userName}/.local/share/waydroid/data/media/0/Download";
             fsType = "fuse.bindfs";
             options = [
               "nofail"
@@ -54,7 +55,7 @@ in
               "allow_other"
             ];
           };
-          "/home/${userName}/.local/share/waydroid" = {
+          "/persist/home/${userName}/.local/share/waydroid" = {
             device = "/mnt/data_btrfs/waydroid_data/${userName}";
             fsType = "none";
             options = [
@@ -66,7 +67,7 @@ in
       ))
       {
         "/var/lib/waydroid/images" = {
-          device = "/mnt/data_btrfs/waydroid_images/images11";
+          device = "/mnt/data_btrfs/waydroid_images/images13";
           fsType = "none";
           options = [ "bind" ];
         };

@@ -12,13 +12,6 @@ function wayres --description "Ganti resolusi Waydroid (Portrait/Landscape/Auto)
             waydroid prop set persist.waydroid.height 1010
             waydroid prop set persist.waydroid.density 240
 
-        # case l landscape
-        #     echo "🖥️  Mengubah ke Mode LANDSCAPE (Hardcoded 1680x1050)..."
-        #     # Opsi ini memaksa ukuran penuh monitor Anda
-        #     waydroid prop set persist.waydroid.width 1680
-        #     waydroid prop set persist.waydroid.height 1050
-        #     waydroid prop set persist.waydroid.density 240
-
         case a auto reset
             echo "🔄 Mengembalikan ke Mode DEFAULT (Auto-Detect)..."
             # Menghapus nilai custom agar kembali ke pengaturan bawaan

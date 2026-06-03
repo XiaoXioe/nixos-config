@@ -101,7 +101,7 @@ in
         "rclone.conf" = {
           format = "binary";
           sopsFile = ../../../secrets/rclone.enc.conf;
-          owner = config.my.user.name;
+          owner = "klein-moretti";
           group = "users";
           mode = "0400";
         };

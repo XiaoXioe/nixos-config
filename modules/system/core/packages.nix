@@ -37,6 +37,7 @@ in
       };
 
       fish.enable = true;
+      dconf.enable = true;
       fuse.userAllowOther = true;
       nix-index-database.comma.enable = true;
     };
@@ -53,9 +54,7 @@ in
       compsize
 
       ddcutil
-      jdk
       scrcpy
-      nixfmt
       rsync
       go
       usbutils
@@ -65,8 +64,6 @@ in
       zip
       unrar # Archive handler for .rar
       p7zip # Archive handler for .7z
-      nodejs
-      php
     ];
   };
 }

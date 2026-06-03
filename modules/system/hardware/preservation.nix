@@ -227,6 +227,7 @@ in
           # ".mozilla"
           ".librewolf"
           ".steam"
+          ".vscode-oss"
           ".cache/nix"
           ".cache/mozilla"
           ".cache/rclone"

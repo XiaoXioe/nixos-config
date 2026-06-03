@@ -10,7 +10,7 @@ let
 in
 {
   options.my.user.game = {
-    enable = lib.mkEnableOption "user media configuration (mpv, yt-dlp)";
+    enable = lib.mkEnableOption "User game settings";
   };
 
   config = lib.mkIf cfg.enable {

@@ -17,10 +17,6 @@ in
     home.packages = with pkgs; [
       antigravity-fhs
       gemini-cli
-      nix-tree
-      nix-init
-      black # python formatter
-
     ];
   };
 }

@@ -13,7 +13,7 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.variables = {
-      EDITOR = "zeditor -w";
+      EDITOR = "codium -w";
 
       # QT_QPA_PLATFORMTHEME diset per-DE di modul masing-masing
       # (niri.nix pakai "kde", KDE Plasma sudah handle sendiri)

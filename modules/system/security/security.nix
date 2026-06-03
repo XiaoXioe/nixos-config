@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -72,12 +73,11 @@ in
         enable = true;
       };
 
-      # apparmor = {
-      #   enable = true;
-      #   enableCache = true;
-      #   # killUnconfinedConfinables = true;
-      #   packages = [ pkgs.apparmor-profiles ];
-      # };
+      apparmor = {
+        enable = true;
+        enableCache = true;
+        packages = [ pkgs.apparmor-profiles ];
+      };
 
     };
   };

@@ -23,5 +23,8 @@ in
     systemd.user.services."drkonqi-coredump-processor@".enable = false;
 
     hardware.bluetooth.enable = lib.mkForce false;
+
+    # To prevent getting stuck at shutdown
+    systemd.settings.Manager.DefaultTimeoutStopSec = "10s";
   };
 }

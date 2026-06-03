@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.system.show-zombie-parents;
+  cfg = config.my.custompkgs.show-zombie-parents;
 
   # Uses writeShellScriptBin to produce a binary in /bin
   show-zombie-parents-pkg = pkgs.writeShellScriptBin "show-zombie-parents" ''
@@ -21,7 +21,7 @@ let
   '';
 in
 {
-  options.my.system.show-zombie-parents = {
+  options.my.custompkgs.show-zombie-parents = {
     enable = lib.mkEnableOption "Identify zombie/defunct processes";
   };
 

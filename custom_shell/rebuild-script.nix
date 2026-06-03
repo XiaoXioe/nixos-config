@@ -7,7 +7,7 @@
   ...
 }:
 let
-  cfg = config.my.system.rebuild-wrapper;
+  cfg = config.my.custompkgs.rebuild-wrapper;
 
   userList = lib.mapAttrsToList (name: _: name) allUsers;
 
@@ -163,7 +163,7 @@ let
 in
 {
   # Declarative option for this module
-  options.my.system.rebuild-wrapper = {
+  options.my.custompkgs.rebuild-wrapper = {
     enable = lib.mkEnableOption "automated system and user rebuild script";
   };
 

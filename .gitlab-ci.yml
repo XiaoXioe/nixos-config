@@ -10,8 +10,8 @@ before_script:
 build_packages:
   script:
     - cachix watch-exec cachixix -- nix build \
-        ".#caelestia" \
-        ".#dank-shell" \
-        ".#ayugram" \
-        ".#llama" \
-        -L
+      ".#caelestia" \
+      ".#dank-shell" \
+      ".#ayugram" \
+      ".#llama" \
+      -L

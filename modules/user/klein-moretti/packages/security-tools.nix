@@ -20,10 +20,12 @@ in
       file
       tor-browser
       proton-vpn
-      dalfox      keepassxc
+      dalfox
+      keepassxc
       mubeng
       sherlock
       exiftool
+      maigret
     ];
   };
 }

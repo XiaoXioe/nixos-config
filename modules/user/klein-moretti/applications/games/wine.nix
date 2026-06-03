@@ -21,6 +21,7 @@ in
       # bottles
     ];
     home.sessionVariables = {
+      WINEDLLOVERRIDES = "winemenubuilder.exe=d";
       WINEPREFIX = "/mnt/data_btrfs/wine-data";
       WINEARCH = "win64";
     };

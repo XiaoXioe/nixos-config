@@ -19,7 +19,8 @@ in
         # Substituters + priority
         substituters = [
           "https://cache.nixos.org?priority=0"
-          "https://nix-community.cachix.org?priority=5"
+          "https://nixos-cache-proxy.cofob.dev?priority=10"
+          "https://nix-community.cachix.org"
           "https://cachixix.cachix.org"
           "https://niri.cachix.org"
           "https://hyprland.cachix.org"
@@ -49,8 +50,8 @@ in
         always-allow-substitutes = true;
 
         # ── Performance & stability ──────────────────────────────────
-        http-connections = 3;
-        download-attempts = 3;
+        http-connections = 128;
+        download-attempts = 128;
         connect-timeout = 60;
         download-buffer-size = "256M";
         keep-outputs = true;

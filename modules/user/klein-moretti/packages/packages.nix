@@ -14,9 +14,6 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
-      boxbuddy
-      distrobox
-
       ripgrep
       jq
       aria2
@@ -26,7 +23,6 @@ in
       bat
       ookla-speedtest
       bmon
-      qbittorrent-enhanced
       tdl
 
     ];
