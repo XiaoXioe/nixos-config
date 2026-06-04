@@ -113,7 +113,7 @@ in
         nfu = "nix flake update --flake ${config.my.user.flakePath}";
 
         # --- ALIAS NIXOS SYSTEM ---
-        rbs = "nh os switch ${config.my.user.flakePath}";
+        osbuild = "nh os switch ${config.my.user.flakePath}";
         ostest = "nh os test ${config.my.user.flakePath}";
         osboot = "nh os boot ${config.my.user.flakePath}";
 

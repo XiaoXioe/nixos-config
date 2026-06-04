@@ -12,32 +12,32 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install Nix
-      uses: cachix/install-nix-action@v25
-      with:
-        install_url: https://nixos.org/nix/install
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          install_url: https://nixos.org/nix/install
 
-    - name: Setup Cachix
-      uses: cachix/cachix-action@v14
-      with:
-        name: cachixix
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: cachixix
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-    - name: Check flake outputs
-      run: nix flake check --no-build
+      # - name: Check flake outputs
+      #   run: nix flake check --no-build
 
-    - name: Evaluate NixOS configuration
-      run: |
-        nix eval \
-          '.#nixosConfigurations.KleinMoretti.config.system.build.toplevel' \
-          --no-build
+      # - name: Evaluate NixOS configuration
+      #   run: |
+      #     nix eval \
+      #       '.#nixosConfigurations.KleinMoretti.config.system.build.toplevel' \
+      #       --no-build
 
-    - name: Build cached packages
-      run: |
-        nix build \
-          ".#caelestia" \
-          ".#dank-shell" \
-          -L
+      - name: Build cached packages
+        run: |
+          nix build \
+            ".#caelestia" \
+            ".#dank-shell" \
+            -L

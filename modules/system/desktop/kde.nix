@@ -29,6 +29,8 @@ in
 
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
       discover
+      baloo
+      baloo-widgets
       plasma-browser-integration
       kinfocenter
       drkonqi
