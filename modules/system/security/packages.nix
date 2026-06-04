@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.packages-security;
+  cfg = config.my.system.security.packages;
 in
 {
-  options.my.system.packages-security = {
+  options.my.system.security.packages = {
     enable = lib.mkEnableOption "Enable packages for security";
   };
 

@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.fonts;
+  cfg = config.my.system.core.fonts;
 in
 {
-  options.my.system.fonts = {
+  options.my.system.core.fonts = {
     enable = lib.mkEnableOption "system font configuration";
   };
 

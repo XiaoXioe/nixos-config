@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.security-tools-system;
+  cfg = config.my.system.security.tools;
 in
 {
-  options.my.system.security-tools-system = {
+  options.my.system.security.tools = {
     enable = lib.mkEnableOption "cybersecurity and penetration testing tools for system";
   };
 

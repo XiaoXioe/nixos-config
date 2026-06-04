@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.packages-ai;
+  cfg = config.my.system.ai.packages;
 in
 {
-  options.my.system.packages-ai = {
+  options.my.system.ai.packages = {
     enable = lib.mkEnableOption "Packages for ai";
   };
 

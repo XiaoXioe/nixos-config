@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.security;
+  cfg = config.my.system.security.hardening;
 in
 {
-  options.my.system.security = {
+  options.my.system.security.hardening = {
     enable = lib.mkEnableOption "system security configuration";
   };
 
@@ -41,7 +41,7 @@ in
         extraRules = [
           {
             users = [
-              "klein-moretti"
+              config.my.user.name
             ];
             commands = [
               {
@@ -73,11 +73,11 @@ in
         enable = true;
       };
 
-      apparmor = {
-        enable = true;
-        enableCache = true;
-        packages = [ pkgs.apparmor-profiles ];
-      };
+      # apparmor = {
+      #   enable = true;
+      #   enableCache = true;
+      #   packages = [ pkgs.apparmor-profiles ];
+      # };
 
     };
   };

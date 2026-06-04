@@ -1,61 +1,38 @@
 # Per-user home-manager configuration.
 # Maps userFeatures flags from lib/users.nix to module enable toggles.
 {
+  lib,
   userName,
   userFeatures,
   ...
 }:
 let
-  # Helper: convert a userFeatures flag to { enable = bool; }
-  feat = key: { enable = userFeatures.${key} or false; };
+  # Keys handled separately (name differs from option, or no matching option).
+  excludedKeys = [
+    "gaming"        # → mapped to my.user.game + my.user.wine
+    "securityTools" # → mapped to my.user.security-tools
+  ];
 
-  # Some module names differ from the feature flag name.
-  # This table maps: moduleOptionName → featureFlagName
-  featureMap = {
-    # Terminal & Development
-    git = "git";
-    ssh = "ssh";
-    nvim = "nvim";
-    fish = "fish";
-    tmux = "tmux";
-    nemo = "nemo";
-    devpkgs = "devpkgs";
-    wezterm = "wezterm";
-    settings = "settings";
-    startship = "startship";
-    fastfetch = "fastfetch";
+  # Standard toggles: feature flag name matches module option name exactly.
+  # Filter to only boolean flags (excludes nested attrs like `services`),
+  # then remove keys that are handled by renamedToggles below.
+  standardToggles = lib.mapAttrs (_name: value: { enable = value; }) (
+    lib.filterAttrs
+      (name: v: builtins.isBool v && !(builtins.elem name excludedKeys))
+      userFeatures
+  );
 
-    # Packages
-    packages = "packages";
-    custompkgs = "custompkgs";
-    zeditor = "zeditor";
-    vscodium = "vscodium";
-
-    # Media & Apps
-    brave = "brave";
-    media = "media";
-    music = "music";
-    sosmed = "sosmed";
-    office = "office";
-    browser = "browser";
-    firefox = "firefox";
-    librewolf = "librewolf";
-
-    # Desktop
-    dms = "dms";
-    caelestia = "caelestia";
-    themes = "themes";
-  };
-
-  # Generate the standard toggles from the feature map
-  standardToggles = builtins.mapAttrs (_name: flagKey: feat flagKey) featureMap;
-
-  # Toggles that need special mapping (feature name ≠ option name)
-  specialToggles = {
-    editor-file = feat "editor_file";
-    security-tools = feat "securityTools";
-    game = feat "gaming";
-    wine = feat "gaming";
+  # Features where the flag name differs from the module option name.
+  renamedToggles = {
+    security-tools = {
+      enable = userFeatures.securityTools or false;
+    };
+    game = {
+      enable = userFeatures.gaming or false;
+    };
+    wine = {
+      enable = userFeatures.gaming or false;
+    };
   };
 
 in
@@ -66,7 +43,7 @@ in
   # --- User Module Toggles ---
   my.user =
     standardToggles
-    // specialToggles
+    // renamedToggles
     // {
       services.rclone.enable = userFeatures.services.rclone or false;
     };

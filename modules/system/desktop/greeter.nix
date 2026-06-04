@@ -5,11 +5,11 @@
   ...
 }:
 let
-  cfg = config.my.system.greeter;
+  cfg = config.my.system.desktop.greeter;
 in
 {
 
-  options.my.system.greeter = {
+  options.my.system.desktop.greeter = {
     enable = lib.mkEnableOption "custom display manager greeter";
 
     # Display manager backend selection

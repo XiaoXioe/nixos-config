@@ -29,10 +29,10 @@
         tmux = true;
         fastfetch = true;
         wezterm = true;
-        startship = true;
+        starship = true;
         packages = true;
         custompkgs = true;
-        editor_file = true;
+        editor-file = true;
         zeditor = false;
         nemo = true;
         vscodium = true;
@@ -47,8 +47,8 @@
         browser = true;
         firefox = true;
         librewolf = true;
-        distrobox = true;
-        docker = true;
+        # distrobox = true;
+        # docker = true;
         settings = true;
         themes = true;
 
@@ -61,8 +61,7 @@
 
     # To add a new user:
     # 1. Uncomment and customize the block below
-    # 2. Create a matching module directory: modules/user/<username>/
-    #    (copy modules/user/klein-moretti/ as a starting point)
+    # 2. Shared home modules are at: modules/home/
     # 3. Adjust userFeatures to control which modules are enabled
     #
     # guest = {

@@ -5,11 +5,11 @@
 }:
 
 let
-  cfg = config.my.user.startship;
+  cfg = config.my.user.starship;
 in
 {
-  options.my.user.startship = {
-    enable = lib.mkEnableOption "Startship configuration for fishshell";
+  options.my.user.starship = {
+    enable = lib.mkEnableOption "Starship prompt configuration";
   };
 
   config = lib.mkIf cfg.enable {

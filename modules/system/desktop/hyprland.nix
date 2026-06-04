@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.hyprland;
+  cfg = config.my.system.desktop.hyprland;
 in
 {
-  options.my.system.hyprland = {
+  options.my.system.desktop.hyprland = {
     enable = lib.mkEnableOption "Hyprland Wayland compositor";
   };
 

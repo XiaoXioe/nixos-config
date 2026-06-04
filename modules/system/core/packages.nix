@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.packages;
+  cfg = config.my.system.core.packages;
 in
 {
-  options.my.system.packages = {
+  options.my.system.core.packages = {
     enable = lib.mkEnableOption "Enable common system packages";
   };
 

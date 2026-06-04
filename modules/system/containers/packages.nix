@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.packages-vm;
+  cfg = config.my.system.virtualisation.packages;
 in
 {
-  options.my.system.packages-vm = {
+  options.my.system.virtualisation.packages = {
     enable = lib.mkEnableOption "Enable Packages for VM";
   };
 

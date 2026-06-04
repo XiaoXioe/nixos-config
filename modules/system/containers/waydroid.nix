@@ -6,11 +6,11 @@
   ...
 }:
 let
-  cfg = config.my.system.waydroid;
+  cfg = config.my.system.virtualisation.waydroid;
   waydroidUsers = config.my.users;
 in
 {
-  options.my.system.waydroid = {
+  options.my.system.virtualisation.waydroid = {
     enable = lib.mkEnableOption "Waydroid settings";
   };
   config = lib.mkIf cfg.enable {
@@ -18,6 +18,7 @@ in
 
     environment.systemPackages = with pkgs; [
       bindfs
+      wl-clipboard
     ];
     boot.supportedFilesystems = [ "fuse" ];
 
@@ -25,8 +26,15 @@ in
     systemd.tmpfiles.rules = selfLib.forAllUsers waydroidUsers (
       userName: _: [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
+
+        # 1. Deklarasikan folder induk secara eksplisit agar TIDAK default ke root
+        "d /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
+        "z /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
+
+        # 2. Deklarasikan folder anak, dan gunakan 'z' (huruf kecil)
+        # untuk memaksa chown HANYA pada direktori ini (non-rekursif) saat rebuild
         "d /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
-        "Z /mnt/data_btrfs/waydroid_data/${userName} - ${userName} users -"
+        "z /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
       ]
     );
 

@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.locale;
+  cfg = config.my.system.core.locale;
 in
 {
-  options.my.system.locale = {
+  options.my.system.core.locale = {
     enable = lib.mkEnableOption "locale, timezone, and base system settings";
     timezone = lib.mkOption {
       type = lib.types.str;

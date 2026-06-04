@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.system.daily;
+  cfg = config.my.system.specialisation.daily;
 in
 {
-  options.my.system.daily = {
+  options.my.system.specialisation.daily = {
     enable = lib.mkEnableOption "Daily drive specialisation";
   };
 
@@ -15,7 +15,7 @@ in
     specialisation."daily-mode".configuration = {
       networking.hostName = lib.mkForce "nixos-daily";
 
-      my.system.security-tools-system.enable = lib.mkForce false;
+      my.system.security.tools.enable = lib.mkForce false;
     };
   };
 }

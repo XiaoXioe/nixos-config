@@ -34,6 +34,6 @@ in
 
     # Link konfigurasi Caelestia
     xdg.configFile."caelestia/shell.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/user/klein-moretti/conf/caelestia/shell.json";
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/home/conf/caelestia/shell.json";
   };
 }

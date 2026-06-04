@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.security-wrappers;
+  cfg = config.my.system.security.wrappers;
 in
 {
-  options.my.system.security-wrappers = {
+  options.my.system.security.wrappers = {
     enable = lib.mkEnableOption "system security wrappers and capabilities";
   };
 

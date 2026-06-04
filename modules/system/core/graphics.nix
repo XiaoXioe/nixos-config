@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.graphics;
+  cfg = config.my.system.core.graphics;
 in
 {
-  options.my.system.graphics = {
+  options.my.system.core.graphics = {
     enable = lib.mkEnableOption "system graphics configuration";
   };
 

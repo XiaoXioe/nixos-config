@@ -6,5 +6,4 @@
 {
   imports = (selfLib.scanPaths ./.) ++ [
   ];
-
 }

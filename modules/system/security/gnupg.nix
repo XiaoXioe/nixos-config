@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.gnupg;
+  cfg = config.my.system.security.gnupg;
 in
 {
-  options.my.system.gnupg = {
+  options.my.system.security.gnupg = {
     enable = lib.mkEnableOption "Gnupg Tools";
   };
 

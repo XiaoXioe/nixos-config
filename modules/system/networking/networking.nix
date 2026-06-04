@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.system.networking;
+  cfg = config.my.system.security.networking;
 in
 {
-  options.my.system.networking = {
+  options.my.system.security.networking = {
     enable = lib.mkEnableOption "Firewall and Network configuration";
   };
 

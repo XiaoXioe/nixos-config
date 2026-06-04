@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.system.bootloader;
+  cfg = config.my.system.core.bootloader;
 
   grubfm-efi = pkgs.stdenv.mkDerivation rec {
     pname = "grubfm";
@@ -31,7 +31,7 @@ let
 
 in
 {
-  options.my.system.bootloader = {
+  options.my.system.core.bootloader = {
     enable = lib.mkEnableOption "system bootloader configuration";
   };
 

@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.system.optimizations;
+  cfg = config.my.system.core.optimizations;
 in
 {
-  options.my.system.optimizations = {
+  options.my.system.core.optimizations = {
     enable = lib.mkEnableOption "system optimizations";
   };
 

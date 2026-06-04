@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.open-webui;
+  cfg = config.my.system.ai.open-webui;
 in
 {
-  options.my.system.open-webui = {
+  options.my.system.ai.open-webui = {
     enable = lib.mkEnableOption "Open-WebUI settings";
   };
 

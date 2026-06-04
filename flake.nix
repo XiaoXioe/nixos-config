@@ -97,7 +97,6 @@
           commonModules = [
             ./hosts/nixos
             ./modules
-            ./custom_shell
             inputs.preservation.nixosModules.preservation
             inputs.sops-nix.nixosModules.sops
             inputs.home-manager.nixosModules.home-manager
@@ -110,7 +109,7 @@
               home-manager.users = inputs.nixpkgs.lib.genAttrs (builtins.attrNames allUsers) (name: {
                 imports = [
                   ./hosts/nixos/home.nix
-                  ./modules/user/${name}
+                  ./modules/home
                 ];
                 _module.args = {
                   userName = name;
@@ -141,7 +140,7 @@
 
                   modules = [
                     ./hosts/nixos/home.nix
-                    ./modules/user/${name}
+                    ./modules/home
                   ];
                 };
               }

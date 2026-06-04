@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.retro-gaming;
+  cfg = config.my.system.specialisation.retro-gaming;
 in
 {
-  options.my.system.retro-gaming = {
+  options.my.system.specialisation.retro-gaming = {
     enable = lib.mkEnableOption "retro-gaming specialisation";
   };
 

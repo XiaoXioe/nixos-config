@@ -24,59 +24,72 @@
   # --- System Modules ---
   my.system = {
     hostname = hostName;
-    packages.enable = true;
 
-    # Disk
-    auto-mount.enable = true;
+    # ── Core ──────────────────────────────────────────────────────
+    core = {
+      packages.enable = true;
+      fonts.enable = true;
+      locale.enable = true;
+      graphics.enable = true;
+      bootloader.enable = true;
+      environment.enable = true;
+      nix-settings.enable = true;
+      optimizations.enable = true;
+    };
 
-    # Core
-    fonts.enable = true;
-    locale.enable = true;
-    graphics.enable = true;
-    bootloader.enable = true;
-    environment.enable = true;
-    nix-settings.enable = true;
-    optimizations.enable = true;
+    # ── Hardware ──────────────────────────────────────────────────
+    hardware = {
+      auto-mount.enable = true;
+      preservation.enable = true; # Ephemeral root — bind-mount critical files to /persist
+    };
 
-    # Ephemeral root — bind-mount critical files to /persist
-    preservation.enable = true;
+    # ── Security ──────────────────────────────────────────────────
+    security = {
+      gnupg.enable = true;
+      secrets.enable = true;
+      keyring.enable = true;
+      hardening.enable = true;
+      networking.enable = true;
+      compatibility.enable = true;
+      packages.enable = true;
+      wrappers.enable = true;
+      tools.enable = true;
+    };
 
-    # Security
-    gnupg.enable = true;
-    secrets.enable = true;
-    keyring.enable = true;
-    security.enable = true;
-    networking.enable = true;
-    compatibility.enable = true;
-    packages-security.enable = true;
-    security-wrappers.enable = true;
-    security-tools-system.enable = true;
+    # ── AI ────────────────────────────────────────────────────────
+    ai = {
+      llama.enable = true;
+      ollama.enable = true;
+      open-webui.enable = false;
+      packages.enable = true;
+    };
 
-    # Virtualization & AI
-    llama.enable = true;
-    ollama.enable = true;
-    waydroid.enable = true;
-    open-webui.enable = false;
-    packages-vm.enable = true;
-    packages-ai.enable = true;
-    virtualization = {
+    # ── Virtualisation ────────────────────────────────────────────
+    virtualisation = {
       enable = true;
       mt5.enable = false;
+      "9router".enable = true;
+      waydroid.enable = true;
+      packages.enable = true;
     };
 
-    # Desktop
-    niri.enable = true;
-    kde = {
-      enable = true;
-      unstable = false;
+    # ── Desktop ───────────────────────────────────────────────────
+    desktop = {
+      niri.enable = true;
+      kde = {
+        enable = true;
+        unstable = false;
+      };
+      gnome.enable = false;
+      greeter.enable = true;
+      hyprland.enable = true;
     };
-    gnome.enable = false;
-    greeter.enable = true;
-    hyprland.enable = true;
 
-    # Specializations
-    daily.enable = false;
-    retro-gaming.enable = false;
+    # ── Specialisations ───────────────────────────────────────────
+    specialisation = {
+      daily.enable = false;
+      retro-gaming.enable = false;
+    };
   };
 
   my.custompkgs = {

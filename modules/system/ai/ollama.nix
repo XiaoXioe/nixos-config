@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.ollama;
+  cfg = config.my.system.ai.ollama;
 in
 {
-  options.my.system.ollama = {
+  options.my.system.ai.ollama = {
     enable = lib.mkEnableOption "Ollama system side";
   };
 

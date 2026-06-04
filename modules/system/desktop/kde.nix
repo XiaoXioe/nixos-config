@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.kde;
+  cfg = config.my.system.desktop.kde;
 in
 {
-  options.my.system.kde = {
+  options.my.system.desktop.kde = {
     enable = lib.mkEnableOption "Kde Plasma configuration";
     unstable = lib.mkEnableOption "Use unstable packages for KDE";
   };

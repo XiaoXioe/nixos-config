@@ -33,11 +33,21 @@ in
           # Archive database: prevents re-downloading
           "archive" = "~/.local/share/gallery-dl/archive.sqlite3";
 
-          # Folder structure: Site/Username
+          # Global folder structure
           "directory" = [
             "{category}"
-            "{user[name]}"
+            "{user[name]|username|id}"
           ];
+
+          # --- OVERRIDE KHUSUS FACEBOOK ---
+          "facebook" = {
+            "directory" = [
+              "facebook"
+              "{username|author|group|group_id|id}"
+            ];
+
+          };
+          # --------------------------------
 
           "pixiv" = {
             "ugoira" = "original";
@@ -135,7 +145,7 @@ in
         extractor-args = "'generic:impersonate'";
         impersonate = "'Chrome-131:Macos-14'";
         downloader = "aria2c";
-        downloader-args = "aria2c:'-c -x8 -s8 -k1M'";
+        downloader-args = "aria2c:'-c -x2 -s2 -k1M'";
 
         # --- Output Filename ---
         output = "'%(title)s [%(id)s].%(ext)s'";

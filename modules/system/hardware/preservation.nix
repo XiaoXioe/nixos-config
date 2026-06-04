@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.system.preservation;
+  cfg = config.my.system.hardware.preservation;
   persistBase = "/persist";
 
   # Primary BTRFS device UUID
@@ -86,7 +86,7 @@ let
   '';
 in
 {
-  options.my.system.preservation = {
+  options.my.system.hardware.preservation = {
     enable = lib.mkEnableOption "preservation-based state management";
     ephemeralRoot = lib.mkOption {
       type = lib.types.bool;
@@ -147,6 +147,7 @@ in
         "/var/lib/sddm"
         "/var/lib/systemd"
         "/var/lib/NetworkManager"
+        "/var/lib/9router"
         "/etc/NetworkManager/system-connections"
         "/var/lib/bluetooth"
         "/var/lib/waydroid"

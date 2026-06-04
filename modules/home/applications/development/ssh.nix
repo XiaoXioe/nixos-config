@@ -15,7 +15,7 @@ in
 
   config = lib.mkIf cfg.enable {
     home.file.".ssh/config_raw".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/user/klein-moretti/conf/ssh-config/config.conf";
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/home/conf/ssh-config/config.conf";
 
     programs.ssh = {
       enable = true;

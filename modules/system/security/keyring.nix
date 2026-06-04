@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.keyring;
+  cfg = config.my.system.security.keyring;
 in
 {
-  options.my.system.keyring = {
+  options.my.system.security.keyring = {
     enable = lib.mkEnableOption "Keyring configuration";
   };
 

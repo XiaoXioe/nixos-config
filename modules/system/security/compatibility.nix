@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.compatibility;
+  cfg = config.my.system.security.compatibility;
 in
 {
-  options.my.system.compatibility = {
+  options.my.system.security.compatibility = {
     enable = lib.mkEnableOption "system binary compatibility (nix-ld)";
   };
 

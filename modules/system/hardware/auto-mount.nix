@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.auto-mount;
+  cfg = config.my.system.hardware.auto-mount;
 in
 {
-  options.my.system.auto-mount = {
+  options.my.system.hardware.auto-mount = {
     enable = lib.mkEnableOption "automatic partition mounting";
     dataDevice = lib.mkOption {
       type = lib.types.str;

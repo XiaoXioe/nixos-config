@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.system.environment;
+  cfg = config.my.system.core.environment;
 in
 {
-  options.my.system.environment = {
+  options.my.system.core.environment = {
     enable = lib.mkEnableOption "Environments configuration";
   };
 

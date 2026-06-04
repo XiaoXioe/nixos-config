@@ -8,7 +8,7 @@
   ...
 }:
 let
-  cfg = config.my.system.secrets;
+  cfg = config.my.system.security.secrets;
   vpnDir = ../../../secrets/vpn-files;
   vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
   vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
@@ -16,7 +16,7 @@ let
   );
 in
 {
-  options.my.system.secrets = {
+  options.my.system.security.secrets = {
     enable = lib.mkEnableOption "sops-nix secrets management";
   };
 

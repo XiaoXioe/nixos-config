@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.niri;
+  cfg = config.my.system.desktop.niri;
 in
 {
-  options.my.system.niri = {
+  options.my.system.desktop.niri = {
     enable = lib.mkEnableOption "niri Wayland compositor";
   };
 

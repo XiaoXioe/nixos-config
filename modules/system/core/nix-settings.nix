@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.nix-settings;
+  cfg = config.my.system.core.nix-settings;
 in
 {
-  options.my.system.nix-settings = {
+  options.my.system.core.nix-settings = {
     enable = lib.mkEnableOption "Nix settings";
   };
 

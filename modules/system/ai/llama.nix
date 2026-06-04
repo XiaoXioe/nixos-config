@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.llama;
+  cfg = config.my.system.ai.llama;
 in
 {
-  options.my.system.llama = {
+  options.my.system.ai.llama = {
     enable = lib.mkEnableOption "Llama system side";
 
     # Deklarasikan paket kustom sebagai opsi modul
