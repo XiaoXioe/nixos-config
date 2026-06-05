@@ -144,8 +144,8 @@ in
         # --- Performance & Anti-Bot ---
         extractor-args = "'generic:impersonate'";
         impersonate = "'Chrome-131:Macos-14'";
-        downloader = "aria2c";
-        downloader-args = "aria2c:'-c -x2 -s2 -k1M'";
+        # downloader = "aria2c";
+        # downloader-args = "aria2c:'-c -x2 -s2 -k1M'";
 
         # --- Output Filename ---
         output = "'%(title)s [%(id)s].%(ext)s'";

@@ -76,12 +76,5 @@ in
     services.udev.packages = with pkgs; [
       gnome-settings-daemon
     ];
-
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-    };
   };
 }

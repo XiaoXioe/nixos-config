@@ -2,9 +2,9 @@
   description = "Klein Moretti's NixOS Flake Configuration";
 
   inputs = {
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    # nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    # nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
+
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,120 +53,104 @@
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" ];
+    inputs@{ ... }:
+    let
+      lib = inputs.nixpkgs.lib;
+      hostName = "KleinMoretti";
+      flakePath = "/home/klein-moretti/nixos-config";
+      system = "x86_64-linux";
+      adminUser = "klein-moretti";
 
-      flake =
-        let
-          hostName = "KleinMoretti";
-          flakePath = "/home/klein-moretti/nixos-config";
-          system = "x86_64-linux";
-          adminUser = "klein-moretti";
+      # User data & custom library
+      allUsers = (import ./lib/users.nix).users;
+      selfLib = import ./lib { inherit lib; };
 
-          # User data & custom library
-          allUsers = (import ./lib/users.nix).users;
-          selfLib = import ./lib { inherit (inputs.nixpkgs) lib; };
+      pkgs = import inputs.nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
 
-          nixpkgsConfig = {
-            allowUnfree = true;
-          };
+      };
 
-          pkgs = import inputs.nixpkgs {
-            inherit system;
-            config = nixpkgsConfig;
-          };
+      # Shared arguments for both NixOS and Home Manager
+      baseArgs = {
+        inherit
+          inputs
+          selfLib
+          hostName
+          flakePath
+          allUsers
+          ;
+      };
 
-          # Shared arguments for both NixOS and Home Manager
-          baseArgs = {
-            inherit
-              inputs
-              selfLib
-              hostName
-              flakePath
-              allUsers
-              ;
-          };
+      # Merge baseArgs with host-specific arguments
+      commonSpecialArgs = baseArgs // {
+        userName = adminUser;
+        fullName = allUsers.${adminUser}.fullName;
+      };
 
-          # Merge baseArgs with host-specific arguments
-          commonSpecialArgs = baseArgs // {
-            userName = adminUser;
-            fullName = allUsers.${adminUser}.fullName;
-          };
+      homeModules = [
+        ./hosts/nixos/home.nix
+        ./modules/home
+      ];
 
-          commonModules = [
-            ./hosts/nixos
-            ./modules
-            inputs.preservation.nixosModules.preservation
-            inputs.sops-nix.nixosModules.sops
-            inputs.home-manager.nixosModules.home-manager
-            inputs.nix-index-database.nixosModules.nix-index
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = baseArgs;
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.users = inputs.nixpkgs.lib.genAttrs (builtins.attrNames allUsers) (name: {
-                imports = [
-                  ./hosts/nixos/home.nix
-                  ./modules/home
-                ];
-                _module.args = {
-                  userName = name;
-                  fullName = allUsers.${name}.fullName;
-                  userFeatures = allUsers.${name}.userFeatures or { };
-                };
-              });
-            }
-          ];
-
-          # Standalone Home Manager configurations (one per user)
-          mkHomeConfigurations = inputs.nixpkgs.lib.listToAttrs (
-            map (
-              name:
-              let
-                user = allUsers.${name};
-              in
-              {
-                name = "${name}@${hostName}";
-                value = inputs.home-manager.lib.homeManagerConfiguration {
-                  inherit pkgs;
-
-                  extraSpecialArgs = baseArgs // {
-                    userName = name;
-                    fullName = user.fullName;
-                    userFeatures = user.userFeatures or { };
-                  };
-
-                  modules = [
-                    ./hosts/nixos/home.nix
-                    ./modules/home
-                  ];
-                };
-              }
-            ) (builtins.attrNames allUsers)
-          );
-
-          myNixosConfigurations = {
-            ${hostName} = inputs.nixpkgs.lib.nixosSystem {
-              inherit pkgs;
-              specialArgs = commonSpecialArgs;
-              modules = commonModules ++ [
-                { boot.kernelPackages = pkgs.linuxPackages_zen; }
-              ];
-            };
-          };
-
-        in
+      commonModules = [
+        ./hosts/nixos
+        ./modules
+        inputs.preservation.nixosModules.preservation
+        inputs.sops-nix.nixosModules.sops
+        inputs.home-manager.nixosModules.home-manager
+        inputs.nix-index-database.nixosModules.nix-index
         {
-          nixosConfigurations = myNixosConfigurations;
-          homeConfigurations = mkHomeConfigurations;
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = baseArgs;
+          home-manager.backupFileExtension = "hm-bak";
+          home-manager.users = lib.genAttrs (builtins.attrNames allUsers) (name: {
+            imports = homeModules;
+            _module.args = {
+              userName = name;
+              fullName = allUsers.${name}.fullName;
+              userFeatures = allUsers.${name}.userFeatures or { };
+            };
+          });
+        }
+      ];
 
-          packages.${system} = import ./packages-export.nix {
-            nixosConfigs = myNixosConfigurations;
-            homeConfigs = mkHomeConfigurations;
-            inherit hostName adminUser;
+      # Standalone Home Manager configurations (one per user)
+      mkHomeConfigurations = lib.mapAttrs' (name: user: {
+        name = "${name}@${hostName}";
+        value = inputs.home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+
+          extraSpecialArgs = baseArgs // {
+            userName = name;
+            fullName = user.fullName;
+            userFeatures = user.userFeatures or { };
           };
+
+          modules = homeModules;
         };
+      }) allUsers;
+
+      myNixosConfigurations = {
+        ${hostName} = lib.nixosSystem {
+          inherit pkgs;
+          specialArgs = commonSpecialArgs;
+          modules = commonModules ++ [
+            { boot.kernelPackages = pkgs.linuxPackages_zen; }
+          ];
+        };
+      };
+
+    in
+    {
+      nixosConfigurations = myNixosConfigurations;
+      homeConfigurations = mkHomeConfigurations;
+
+      packages.${system} = import ./packages-export.nix {
+        nixosConfigs = myNixosConfigurations;
+        homeConfigs = mkHomeConfigurations;
+        inherit hostName adminUser;
+      };
     };
 }

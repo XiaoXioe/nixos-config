@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   ...
 }:
@@ -15,6 +16,8 @@ in
   config = lib.mkIf cfg.enable {
 
     nix = {
+      package = pkgs.lixPackageSets.stable.lix;
+
       settings = {
         # Substituters + priority
         substituters = [
@@ -53,7 +56,6 @@ in
         http-connections = 128;
         download-attempts = 128;
         connect-timeout = 60;
-        download-buffer-size = "256M";
         keep-outputs = true;
         keep-derivations = true;
         eval-cache = true;
@@ -62,7 +64,6 @@ in
         experimental-features = [
           "nix-command"
           "flakes"
-          "ca-derivations"
         ];
       };
 

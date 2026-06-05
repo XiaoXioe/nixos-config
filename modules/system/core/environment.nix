@@ -40,6 +40,9 @@ in
       PasswordManagerEnabled = false;
       BrowserSignin = 0;
       BraveAIChatEnabled = false;
+      BraveP3AEnabled = false;
+      BraveStatsPingEnabled = false;
+      BraveWebDiscoveryEnabled = false;
       BraveWalletDisabled = true;
       BraveRewardsDisabled = true;
       BraveVPNDisabled = true;

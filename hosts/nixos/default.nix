@@ -35,6 +35,10 @@
       environment.enable = true;
       nix-settings.enable = true;
       optimizations.enable = true;
+      pipewireEffects = {
+        enable = true;
+        preset = "perfect-eq"; # or "autogain"
+      };
     };
 
     # ── Hardware ──────────────────────────────────────────────────
