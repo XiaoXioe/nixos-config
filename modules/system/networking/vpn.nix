@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.my.services.vpn-auto;
+  cfg = config.my.system.services.vpn-auto;
   vpnDir = ../../../secrets/vpn-files;
   vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
   vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
@@ -14,7 +14,7 @@ let
   );
 in
 {
-  options.my.services.vpn-auto = {
+  options.my.system.services.vpn-auto = {
     enable = lib.mkEnableOption "automatic VPN import service";
   };
 

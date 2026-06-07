@@ -16,16 +16,13 @@ in
     home.packages = with pkgs; [
       nix-tree
       nix-init
+      python3
+      antigravity-fhs
+      gemini-cli
+      codex
+      claude-code
+      aider-chat
 
-      ## Formatters
-      black # Untuk Python
-      shfmt # Untuk Bash
-      nixfmt # Untuk Nix
-
-      ## Linters
-      ruff # Untuk Python
-      shellcheck # Untuk Bash
-      nixd
     ];
   };
 }

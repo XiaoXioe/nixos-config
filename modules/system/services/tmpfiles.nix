@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.my.services.tmpfiles;
+  cfg = config.my.system.services.tmpfiles;
 in
 {
-  options.my.services.tmpfiles = {
+  options.my.system.services.tmpfiles = {
     enable = lib.mkEnableOption "Rules no CoW on BTRFS";
   };
 

@@ -65,16 +65,18 @@
       llama.enable = true;
       ollama.enable = true;
       open-webui.enable = false;
-      packages.enable = true;
     };
 
     # ── Virtualisation ────────────────────────────────────────────
     virtualisation = {
-      enable = true;
-      mt5.enable = false;
-      "9router".enable = true;
       waydroid.enable = true;
       packages.enable = true;
+      docker = {
+        enable = true;
+        autoUpdate = true;
+        mt5.enable = false;
+        "9router".enable = true;
+      };
     };
 
     # ── Desktop ───────────────────────────────────────────────────
@@ -107,7 +109,7 @@
     ollama-to-llama.enable = true;
   };
 
-  my.services = {
+  my.system.services = {
     openssh.enable = true;
     ananicy.enable = true;
     dnscrypt.enable = true;

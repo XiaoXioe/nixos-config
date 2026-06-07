@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.system.virtualisation;
+  cfg = config.my.system.virtualisation.docker;
 in
 {
-  options.my.system.virtualisation = {
+  options.my.system.virtualisation.docker = {
     enable = lib.mkEnableOption "system virtualization and container support";
 
     # Optional MetaTrader 5 container
@@ -15,6 +15,9 @@ in
 
     # Optional 9router container
     "9router".enable = lib.mkEnableOption "9router container via Docker";
+
+    # Global auto-update for all containers
+    autoUpdate = lib.mkEnableOption "automatic updates for all Docker containers via Watchtower";
   };
 
   config = lib.mkIf cfg.enable {
@@ -36,7 +39,7 @@ in
     virtualisation = {
       docker = {
         enable = true;
-        enableOnBoot = false;
+        enableOnBoot = true;
         daemon.settings = {
           "data-root" = "/mnt/data_btrfs/docker";
         };
@@ -88,6 +91,21 @@ in
             # Konfigurasi environment
             environment = {
               NODE_ENV = "production";
+            };
+          };
+
+          # === Watchtower: Auto-updater for all containers ===
+          watchtower = lib.mkIf cfg.autoUpdate {
+            image = "containrrr/watchtower:latest";
+            volumes = [
+              "/var/run/docker.sock:/var/run/docker.sock"
+            ];
+            environment = {
+              DOCKER_API_VERSION = "1.40";
+              WATCHTOWER_CLEANUP = "true"; # Hapus image lama setelah update
+              WATCHTOWER_POLL_INTERVAL = "86400"; # Cek setiap 24 jam (dalam detik)
+              WATCHTOWER_INCLUDE_STOPPED = "true";
+              WATCHTOWER_REVIVE_STOPPED = "false";
             };
           };
         };

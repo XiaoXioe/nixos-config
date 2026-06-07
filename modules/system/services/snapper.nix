@@ -5,13 +5,13 @@
 }:
 
 let
-  cfg = config.my.services.snapper;
+  cfg = config.my.system.services.snapper;
 
   # Daftar nama user yang dikonfigurasi
   userNames = lib.mapAttrsToList (name: _: name) config.my.users;
 in
 {
-  options.my.services.snapper = {
+  options.my.system.services.snapper = {
     enable = lib.mkEnableOption "Snapper backup home data";
   };
 

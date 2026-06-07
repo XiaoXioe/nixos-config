@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.my.services.gamemode;
+  cfg = config.my.system.services.gamemode;
 
   # Gunakan coreutils untuk memastikan echo dan tee selalu tersedia
   coreutils = pkgs.coreutils;
@@ -22,7 +22,7 @@ let
   '';
 in
 {
-  options.my.services.gamemode = {
+  options.my.system.services.gamemode = {
     enable = lib.mkEnableOption "GameMode with automatic CPU frequency management";
 
     maxFreqKHz = lib.mkOption {

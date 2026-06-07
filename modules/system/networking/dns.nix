@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.my.services.dnscrypt;
+  cfg = config.my.system.services.dnscrypt;
 in
 {
-  options.my.services.dnscrypt = {
+  options.my.system.services.dnscrypt = {
     enable = lib.mkEnableOption "dnscrypt-proxy service";
   };
 

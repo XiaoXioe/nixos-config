@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.my.services.nm-speedup;
+  cfg = config.my.system.services.nm-speedup;
 in
 {
-  options.my.services.nm-speedup = {
+  options.my.system.services.nm-speedup = {
     enable = lib.mkEnableOption "Speedup booting with disable some services";
   };
 

@@ -32,7 +32,6 @@
         starship = true;
         packages = true;
         custompkgs = true;
-        editor-file = true;
         zeditor = false;
         nemo = true;
         vscodium = true;
@@ -47,8 +46,6 @@
         browser = true;
         firefox = true;
         librewolf = true;
-        # distrobox = true;
-        # docker = true;
         settings = true;
         themes = true;
 

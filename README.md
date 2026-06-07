@@ -12,7 +12,7 @@ This repository contains my modular NixOS system configuration, powered by **Nix
   - **Hardened SSH & GnuPG**: Optimized security configurations for daily use.
   - **Pentesting Suite**: Integrated collection of security and forensics tools.
 - **Performance Optimization**: 
-  - **Xanmod Kernel**: Low-latency kernel for improved system responsiveness.
+  - **Zen Kernel**: Low-latency kernel for improved system responsiveness.
   - **Ananicy-cpp**: Auto-nice daemon for intelligent resource management.
   - **Hardware Monitoring**: Proactive SSD health tracking (TBW) and system-wide monitoring.
 - **AI Stack**: Native integration with **Ollama** and **Nullclaw** (custom/unstable) for local LLM execution.

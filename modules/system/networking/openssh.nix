@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.services.openssh;
+  cfg = config.my.system.services.openssh;
 in
 {
-  options.my.services.openssh = {
+  options.my.system.services.openssh = {
     enable = lib.mkEnableOption "openssh service";
   };
 

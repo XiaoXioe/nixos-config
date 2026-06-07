@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.services.ananicy;
+  cfg = config.my.system.services.ananicy;
 in
 {
-  options.my.services.ananicy = {
+  options.my.system.services.ananicy = {
     enable = lib.mkEnableOption "ananicy-cpp service with cachyos rules";
   };
 

@@ -222,6 +222,8 @@ in
           "Desktop"
           ".BurpSuite"
           ".config"
+          ".claude"
+          ".codex"
           ".java"
           ".local/share"
           ".local/state"
@@ -253,8 +255,9 @@ in
           "freqtrade-dev"
         ];
         files = [
-          ".bash_history"
           "link.txt"
+          ".bash_history"
+          ".claude.json"
         ];
       }) allUsers;
     };

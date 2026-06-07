@@ -46,7 +46,6 @@ in
       wget
       iotop-c
       fd
-      python3
       nethogs
       nh
       unzip
