@@ -6,9 +6,8 @@
     password: None,
     theme: "custom",
     cache_dir: None,
-    on_song_change: None,
-    volume_step: 5,
-    max_fps: 30,
+    volume_step: 2,
+    max_fps: 60,
     scrolloff: 0,
     wrap_navigation: false,
     enable_mouse: true,
@@ -27,18 +26,19 @@
     directories_sort: SortFormat(group_by_type: true, reverse: false),
     auto_open_downloads: true,
     quit_closes_modal: false,
+    on_song_change: ["~/.config/rmpc/scripts/autolrc"],
     queue_disable_current_item_style_timeout_ms: None,
     album_art: (
         method: Auto,
-        max_size_px: (width: 1200, height: 1200),
-        disabled_protocols: ["http://", "https://"],
+        // max_size_px: (width: 500, height: 500),
+        max_size_px: (width: 0, height: 0),
         vertical_align: Center,
         horizontal_align: Center,
     ),
     cava: (
         framerate: 60, // default 60
         autosens: true, // default true
-        sensitivity: 100, // default 100
+        sensitivity: 130,
 
         input: (
             method: Fifo,

@@ -25,6 +25,9 @@ in
       KCRASH_CORE_PATTERN_RAISE = "1";
 
       NIXOS_OZONE_WL = "1";
+
+      # 9Router AI gateway
+      NINEROUTER_URL = "http://localhost:20128";
     };
 
     environment.sessionVariables = {

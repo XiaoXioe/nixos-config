@@ -44,12 +44,12 @@ let
   # Marketplace extensions
   marketplaceExts = [
     # AI
-    (mkExtension {
-      name = "chatgpt";
-      publisher = "openai";
-      version = "26.5602.40724";
-      hash = "sha256-meGtMspO1bDHNJRPLmlrczdyZsZ+wf36ZLi17SGf0U8=";
-    })
+    # (mkExtension {
+    #   name = "chatgpt";
+    #   publisher = "openai";
+    #   version = "26.5602.40724";
+    #   hash = "sha256-meGtMspO1bDHNJRPLmlrczdyZsZ+wf36ZLi17SGf0U8=";
+    # })
     # mkPatchedExtension (mkExtension {
     #   name = "continue";
     #   publisher = "Continue";

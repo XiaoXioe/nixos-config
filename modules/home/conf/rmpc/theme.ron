@@ -17,23 +17,13 @@
     borders_style: (fg: "blue"),
     highlight_border_style: (fg: "blue"),
     symbols: (
-        song: "S",
-        dir: "D",
-        playlist: "P",
-        marker: "M",
-        ellipsis: "...",
+        song: "🎵",
+        dir: "📁",
+        playlist: "🎼",
+        marker: "\u{e0b0}",
+        ellipsis: "…",
         song_style: None,
         dir_style: None,
-        playlist_style: None,
-        marker_style: None,
-        song_highlighted_style: None,
-        dir_highlighted_style: None,
-        playlist_highlighted_style: None,
-        marker_highlighted_style: None,
-        song_current_style: None,
-        dir_current_style: None,
-        playlist_current_style: None,
-        marker_current_style: None,
     ),
     cava: (
         bar_color: Gradient({
@@ -51,11 +41,10 @@
         trace: (fg: "magenta", bg: "black"),
     ),
     progress_bar: (
-        symbols: ["█", "█", "█", " ", "█"],
-        track_style: None,
+        symbols: ["", "█", "", "█", "" ],
+        track_style: (fg: "#1e2030"),
         elapsed_style: (fg: "blue"),
-        thumb_style: (fg: "blue"),
-        use_track_when_empty: true,
+        thumb_style: (fg: "blue", bg: "#1e2030"),
     ),
     scrollbar: (
         symbols: ["│", "█", "▲", "▼"],
@@ -214,13 +203,18 @@
             ]
         ),
         "elapsed_and_bitrate": Pane(Property(
+            // format: "$st:el' / '$st:dur{mods: bold}[' ('$st:br ' kbps)']",
+            // format: "['sup'] ' ' %trunc(content: \"sup\"{fg: red}, length: 3)  $elapsed ' / ' $cduration [' (' $bitrate ' kbps)']",
+            // format: "%truncate(content: $tag(value:'date'), length: 4, from_start: false)",
+            // format: "%truncate(content: $title , length: 4, from_start: true)",
+            // format: "$tag(value: 'date')",
             content: [
-                (kind: Property(Status(Elapsed))),
-                (kind: Text(" / ")),
-                (kind: Property(Status(Duration))),
+                (kind: Property(Status(Elapsed))), 
+                (kind: Text(" / ")), 
+                (kind: Property(Status(Duration))), 
                 (kind: Group([
-                    (kind: Text(" (")),
-                    (kind: Property(Status(Bitrate))),
+                    (kind: Text(" (")), 
+                    (kind: Property(Status(Bitrate))), 
                     (kind: Text(" kbps)")),
                 ])),
             ],
@@ -242,32 +236,32 @@
                     pane: Pane(Property(content: [
                         (kind: Text("["), style: (fg: "blue", modifiers: "Bold")),
                         (kind: Property(Status(RepeatV2(
-                            on_label: "z",
-                            off_label: "z",
+                            on_label: " ",
+                            off_label: " ",
                             on_style: (fg: "yellow", modifiers: "Bold"),
                             off_style: (fg: "blue", modifiers: "Dim"),
                         )))),
                         (kind: Property(Status(RandomV2(
-                            on_label: "x",
-                            off_label: "x",
+                            on_label: " ",
+                            off_label: " ",
                             on_style: (fg: "yellow", modifiers: "Bold"),
                             off_style: (fg: "blue", modifiers: "Dim"),
-                        )))),
-                        (kind: Property(Status(ConsumeV2(
-                            on_label: "c",
-                            off_label: "c",
-                            oneshot_label: "c",
-                            on_style: (fg: "yellow", modifiers: "Bold"),
-                            off_style: (fg: "blue", modifiers: "Dim"),
-                            oneshot_style: (fg: "red", modifiers: "Dim"),
                         )))),
                         (kind: Property(Status(SingleV2(
-                            on_label: "v",
-                            off_label: "v",
-                            oneshot_label: "v",
+                            on_label: "󰑘 ",
+                            off_label: "󰑘 ",
+                            oneshot_label: "󰑘 ",
                             on_style: (fg: "yellow", modifiers: "Bold"),
                             off_style: (fg: "blue", modifiers: "Dim"),
                             oneshot_style: (fg: "red", modifiers: "Bold"),
+                        )))),
+                        (kind: Property(Status(ConsumeV2(
+                            on_label: " ",
+                            off_label: " ",
+                            oneshot_label: " ",
+                            on_style: (fg: "yellow", modifiers: "Bold"),
+                            off_style: (fg: "blue", modifiers: "Dim"),
+                            oneshot_style: (fg: "red", modifiers: "Dim"),
                         )))),
                         (kind: Text("]"), style: (fg: "blue", modifiers: "Bold")),
                         ],
@@ -309,16 +303,24 @@
             direction: Horizontal,
             panes: [
                 (
-                    size: "1",
-                    pane: Pane(Empty())
+                    pane: Pane(Property(content: [(kind: Property(Status(StateV2(playing_label: "  ", paused_label: "  ", stopped_label: "  ",
+                        playing_style: (fg: "blue"), paused_style: (fg: "green"), stopped_style: (fg: "red")
+                    ))))], align: Left)),
+                    size: "3",
                 ),
                 (
                     size: "100%",
-                    pane: Pane(ProgressBar)
+                    pane: Pane(ProgressBar),
                 ),
                 (
-                    size: "1",
-                    pane: Pane(Empty())
+                    size: "13",
+                    pane: Pane(Property(
+                        content: [
+                            (kind: Property(Status(Elapsed))),
+                            (kind: Text(" / ")),
+                            (kind: Property(Status(Duration))),
+                        ], align: Right,
+                    )),
                 ),
             ]
         )

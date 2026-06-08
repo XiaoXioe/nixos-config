@@ -61,6 +61,7 @@ in
         set -g fish_history_filter '^[ ]'
         set -p fish_function_path $HOME/.config/fish/functions/custom
         # set -lx GEMINI_API_KEY (cat /run/secrets/gemini-api-key)
+        set -lx NINEROUTER_KEY (cat /run/secrets/ninerouter-key)
 
         set -g fish_color_command cdd6f4       # Perintah (Putih Pastel)
         set -g fish_color_param 89b4fa         # Parameter (Biru Pastel)

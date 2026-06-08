@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }:
 let
@@ -13,16 +14,20 @@ in
   };
   config = lib.mkIf cfg.enable {
 
-    home.packages = with pkgs; [
-      nix-tree
-      nix-init
-      python3
-      antigravity-fhs
-      gemini-cli
-      codex
-      claude-code
-      aider-chat
-
-    ];
+    home.packages =
+      with pkgs;
+      [
+        nix-tree
+        nix-init
+        python3
+        antigravity-fhs
+        gemini-cli
+        claude-code
+        aider-chat
+        cachix
+      ]
+      ++ [
+        inputs.codex-cli-nix.packages.${pkgs.system}.default
+      ];
   };
 }

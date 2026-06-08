@@ -74,8 +74,20 @@ in
 
         "ollama-env" = { };
 
+        "9router-env" = {
+          # JWT_SECRET, INITIAL_PASSWORD — loaded as docker env-file
+          mode = "0400";
+        };
+
         "gemini-api-key" = {
           owner = "klein-moretti";
+        };
+
+        "ninerouter-key" = {
+          # API key from 9Router Dashboard → Keys
+          # Digunakan CLI tools (Codex, Claude Code, dkk) sbg Authorization header
+          owner = "klein-moretti";
+          mode = "0400";
         };
 
         "wg-lan.conf" = {

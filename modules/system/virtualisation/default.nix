@@ -1,6 +1,5 @@
 {
   selfLib,
-  lib,
   ...
 }:
 

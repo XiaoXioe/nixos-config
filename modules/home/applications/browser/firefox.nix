@@ -226,16 +226,16 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/keplr/latest.xpi";
             installation_mode = "force_installed";
           };
-          "arc-dark-theme@afnankhan" = {
-            install_url = "https://addons.mozilla.org/firefox/downloads/latest/arc-dark-theme-we/latest.xpi";
+          # "arc-dark-theme@afnankhan" = {
+          #   install_url = "https://addons.mozilla.org/firefox/downloads/latest/arc-dark-theme-we/latest.xpi";
+          #   installation_mode = "force_installed";
+          # };
+          "{2adf0361-e6d8-4b74-b3bc-3f450e8ebb69}" = {
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/catppuccin-mocha-blue-git/latest.xpi";
             installation_mode = "force_installed";
           };
           "vpn@proton.ch" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/proton-vpn-firefox-extension/latest.xpi";
-            installation_mode = "force_installed";
-          };
-          "websitesnotes@saveriomorelli.com" = {
-            install_url = "https://addons.mozilla.org/firefox/downloads/latest/websites-notes/latest.xpi";
             installation_mode = "force_installed";
           };
           "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}" = {
@@ -246,22 +246,22 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/auto-tab-discard/latest.xpi";
             installation_mode = "force_installed";
           };
-          "CanvasBlocker@kkapsner.de" = {
-            install_url = "https://addons.mozilla.org/firefox/downloads/latest/canvasblocker/latest.xpi";
-            installation_mode = "force_installed";
-          };
-          "{74145f27-f039-47ce-a470-a662b129930a}" = {
-            install_url = "https://addons.mozilla.org/firefox/downloads/latest/clearurls/latest.xpi";
-            installation_mode = "force_installed";
-          };
+          # "CanvasBlocker@kkapsner.de" = {
+          #   install_url = "https://addons.mozilla.org/firefox/downloads/latest/canvasblocker/latest.xpi";
+          #   installation_mode = "force_installed";
+          # };
+          # "{74145f27-f039-47ce-a470-a662b129930a}" = {
+          #   install_url = "https://addons.mozilla.org/firefox/downloads/latest/clearurls/latest.xpi";
+          #   installation_mode = "force_installed";
+          # };
           # "wappalyzer@crunchlabz.com" = {
           #   install_url = "https://addons.mozilla.org/firefox/downloads/latest/wappalyzer/latest.xpi";
           #   installation_mode = "force_installed";
           # };
-          "{b86e4813-687a-43e6-ab65-0bde4ab75758}" = {
-            install_url = "https://addons.mozilla.org/firefox/downloads/latest/localcdn-fork-of-decentraleyes/latest.xpi";
-            installation_mode = "force_installed";
-          };
+          # "{b86e4813-687a-43e6-ab65-0bde4ab75758}" = {
+          #   install_url = "https://addons.mozilla.org/firefox/downloads/latest/localcdn-fork-of-decentraleyes/latest.xpi";
+          #   installation_mode = "force_installed";
+          # };
         };
       };
       profiles.${config.my.user.name} = {
@@ -338,15 +338,14 @@ in
           ];
         };
 
-        userChrome = ''
-          /* Menyembunyikan tombol 'X' (close) pada semua tab */
-          .tab-close-button {
-            display: none !important;
-          }
-        '';
+        # userChrome = ''
+        #   /* Menyembunyikan tombol 'X' (close) pada semua tab */
+        #   .tab-close-button {
+        #     display: none !important;
+        #   }
+        # '';
 
         settings = {
-          "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
           "browser.startup.page" = 3;
           "accessibility.force_disabled" = 1;
           "browser.urlbar.quickactions.enabled" = false;
@@ -359,7 +358,7 @@ in
           "browser.urlbar.speculativeConnect.enabled" = false;
           "dom.security.https_only_mode" = true;
           "privacy.donottrackheader.enabled" = true;
-          "extensions.activeThemeID" = "arc-dark-theme@afnankhan";
+          "extensions.activeThemeID" = "{2adf0361-e6d8-4b74-b3bc-3f450e8ebb69}";
           "webgl.force-enabled" = true; # Memaksa hardware acceleration
           "media.hardware-video-decoding.force-enabled" = true; # Paksa decoding video lewat GPU
           "widget.dmabuf.force-enabled" = true;
@@ -375,7 +374,7 @@ in
             "bookmarks"
           ];
           # Remove close button
-          "browser.tabs.inTitlebar" = 0;
+          # "browser.tabs.inTitlebar" = 0;
           # Disable fx accounts
           "identity.fxaccounts.enabled" = false;
 

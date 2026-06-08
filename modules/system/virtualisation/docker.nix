@@ -78,7 +78,7 @@ in
           "9router" = lib.mkIf cfg."9router".enable {
             image = "ghcr.io/decolua/9router:latest";
 
-            # Mapping port
+            # Mapping port — localhost-only
             ports = [
               "127.0.0.1:20128:20128" # Mengikat ke localhost demi keamanan
             ];
@@ -88,10 +88,22 @@ in
               "/var/lib/9router/data:/app/data"
             ];
 
-            # Konfigurasi environment
+            # Env from .env.example
             environment = {
               NODE_ENV = "production";
+              PORT = "20128";
+              HOSTNAME = "0.0.0.0";
+              DATA_DIR = "/app/data";
+              BASE_URL = "http://localhost:20128";
+              NEXT_PUBLIC_BASE_URL = "http://localhost:20128";
+              REQUIRE_API_KEY = "true";
+              AUTH_COOKIE_SECURE = "false";
+              ENABLE_REQUEST_LOGS = "false";
+              OBSERVABILITY_ENABLED = "true";
             };
+
+            # JWT_SECRET + INITIAL_PASSWORD via sops (see secrets.nix)
+            environmentFiles = lib.optional cfg."9router".enable config.sops.secrets."9router-env".path;
           };
 
           # === Watchtower: Auto-updater for all containers ===

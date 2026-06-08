@@ -16,8 +16,6 @@ in
   config = lib.mkIf cfg.enable {
 
     nix = {
-      package = pkgs.lixPackageSets.stable.lix;
-
       settings = {
         # Substituters + priority
         substituters = [
@@ -64,6 +62,7 @@ in
         experimental-features = [
           "nix-command"
           "flakes"
+          "ca-derivations"
         ];
       };
 

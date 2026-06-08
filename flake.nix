@@ -2,8 +2,13 @@
   description = "Klein Moretti's NixOS Flake Configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    # nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
+    # nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
 
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
