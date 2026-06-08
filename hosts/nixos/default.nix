@@ -60,7 +60,7 @@
       compat.enable = true;
       packages.enable = true;
       wrappers.enable = true;
-      tools.enable = true;
+      pentest.enable = true;
     };
 
     # ── AI ────────────────────────────────────────────────────────
