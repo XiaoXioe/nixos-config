@@ -149,9 +149,30 @@
 
     in
     {
+      # Formatter
+      formatter.${system} = pkgs.nixfmt;
+
+      # Development shell for working on this flake
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          nixfmt
+          statix
+          deadnix
+          nix-output-monitor
+          nvd
+        ];
+
+        shellHook = ''
+          echo "❄️ NixOS Config DevShell"
+          echo "  Tools: nixfmt, statix, deadnix, nom, nvd"
+          echo "  Usage: nixfmt <file>     # format .nix files"
+          echo "         statix .          # lint Nix code"
+          echo "         deadnix .         # find dead code"
+        '';
+      };
+
       nixosConfigurations = myNixosConfigurations;
       homeConfigurations = mkHomeConfigurations;
-
       packages.${system} = import ./packages-export.nix {
         nixosConfigs = myNixosConfigurations;
         homeConfigs = mkHomeConfigurations;
