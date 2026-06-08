@@ -1,4 +1,4 @@
-# System-wide user and host identity declarations.
+# System-wide options registry: user definitions, host identity, and shared types.
 {
   config,
   pkgs,
