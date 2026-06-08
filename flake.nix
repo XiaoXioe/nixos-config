@@ -73,7 +73,6 @@
       pkgs = import inputs.nixpkgs {
         inherit system;
         config.allowUnfree = true;
-
       };
 
       # Shared arguments for both NixOS and Home Manager
@@ -100,7 +99,7 @@
 
       commonModules = [
         ./hosts/nixos
-        ./modules
+        ./modules/system
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
@@ -121,38 +120,32 @@
         }
       ];
 
-      # Standalone Home Manager configurations (one per user)
-      mkHomeConfigurations = lib.mapAttrs' (name: user: {
-        name = "${name}@${hostName}";
-        value = inputs.home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-
-          extraSpecialArgs = baseArgs // {
-            userName = name;
-            fullName = user.fullName;
-            userFeatures = user.userFeatures or { };
-          };
-
-          modules = homeModules;
-        };
-      }) allUsers;
-
-      myNixosConfigurations = {
-        ${hostName} = lib.nixosSystem {
-          inherit pkgs;
-          specialArgs = commonSpecialArgs;
-          modules = commonModules ++ [
-            { boot.kernelPackages = pkgs.linuxPackages_zen; }
-          ];
-        };
+      # Build configurations using extracted builders
+      builders = import ./lib/builders.nix {
+        inherit
+          lib
+          inputs
+          pkgs
+          hostName
+          adminUser
+          allUsers
+          selfLib
+          baseArgs
+          commonSpecialArgs
+          homeModules
+          commonModules
+          ;
       };
+
+      inherit (builders)
+        mkHomeConfigurations
+        mkNixosConfigurations
+        ;
 
     in
     {
-      # Formatter
       formatter.${system} = pkgs.nixfmt;
 
-      # Development shell for working on this flake
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
           nixfmt
@@ -171,10 +164,11 @@
         '';
       };
 
-      nixosConfigurations = myNixosConfigurations;
+      nixosConfigurations = mkNixosConfigurations;
       homeConfigurations = mkHomeConfigurations;
+
       packages.${system} = import ./packages-export.nix {
-        nixosConfigs = myNixosConfigurations;
+        nixosConfigs = mkNixosConfigurations;
         homeConfigs = mkHomeConfigurations;
         inherit hostName adminUser;
       };
