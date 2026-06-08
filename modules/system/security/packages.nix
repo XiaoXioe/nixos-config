@@ -19,7 +19,7 @@ in
       openresolv
       killall
       inetutils
-#      sops
+      #      sops
 
     ];
   };

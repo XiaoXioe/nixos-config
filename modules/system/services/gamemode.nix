@@ -75,7 +75,6 @@ in
       }
     ];
 
-
     programs.gamemode = {
       enable = true;
       settings = {

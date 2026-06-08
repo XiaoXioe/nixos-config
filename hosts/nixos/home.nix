@@ -9,7 +9,7 @@
 let
   # Keys handled separately (name differs from option, or no matching option).
   excludedKeys = [
-    "gaming"        # → mapped to my.user.game + my.user.wine
+    "gaming" # → mapped to my.user.game + my.user.wine
     "securityTools" # → mapped to my.user.security-tools
   ];
 
@@ -17,9 +17,7 @@ let
   # Filter to only boolean flags (excludes nested attrs like `services`),
   # then remove keys that are handled by renamedToggles below.
   standardToggles = lib.mapAttrs (_name: value: { enable = value; }) (
-    lib.filterAttrs
-      (name: v: builtins.isBool v && !(builtins.elem name excludedKeys))
-      userFeatures
+    lib.filterAttrs (name: v: builtins.isBool v && !(builtins.elem name excludedKeys)) userFeatures
   );
 
   # Features where the flag name differs from the module option name.
