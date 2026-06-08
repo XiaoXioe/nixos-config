@@ -89,9 +89,9 @@ in
     # --- rmpc: TUI client for MPD ---
     programs.rmpc = {
       enable = true;
-      config = builtins.readFile ../../conf/rmpc/config.ron;
+      config = builtins.readFile ../../dotfiles/rmpc/config.ron;
     };
 
-    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../conf/rmpc/theme.ron;
+    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../dotfiles/rmpc/theme.ron;
   };
 }
