@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.services.tmpfiles = {
-    enable = lib.mkEnableOption "Rules no CoW on BTRFS";
+    enable = lib.mkEnableOption "Rules no CoW on BTRFS" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.core.graphics = {
-    enable = lib.mkEnableOption "system graphics configuration";
+    enable = lib.mkEnableOption "system graphics configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

@@ -10,7 +10,11 @@ let
 in
 {
   options.my.system.services.base = {
-    enable = lib.mkEnableOption "system services (thermald, flatpak, udisks2, journald, udev, coredump, btrfs scrub, vnstat)";
+    enable =
+      lib.mkEnableOption "system services (thermald, flatpak, udisks2, journald, udev, coredump, btrfs scrub, vnstat)"
+      // {
+        default = true;
+      };
   };
 
   config = lib.mkIf cfg.enable {

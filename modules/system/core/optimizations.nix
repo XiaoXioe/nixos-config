@@ -8,7 +8,9 @@ let
 in
 {
   options.my.system.core.optimizations = {
-    enable = lib.mkEnableOption "system optimizations";
+    enable = lib.mkEnableOption "system optimizations" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

@@ -10,7 +10,9 @@ in
 {
 
   options.my.system.desktop.greeter = {
-    enable = lib.mkEnableOption "custom display manager greeter";
+    enable = lib.mkEnableOption "custom display manager greeter" // {
+      default = true;
+    };
 
     # Display manager backend selection
     backend = lib.mkOption {

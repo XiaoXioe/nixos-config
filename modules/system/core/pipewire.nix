@@ -10,7 +10,9 @@ let
 in
 {
   options.my.system.core.pipewire = {
-    enable = lib.mkEnableOption "PipeWire audio system";
+    enable = lib.mkEnableOption "PipeWire audio system" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

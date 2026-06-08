@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.core.packages = {
-    enable = lib.mkEnableOption "Enable common system packages";
+    enable = lib.mkEnableOption "Enable common system packages" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

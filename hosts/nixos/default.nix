@@ -1,4 +1,5 @@
 # Host-level NixOS configuration for KleinMoretti.
+# Only host-specific overrides; defaults are set in modules.
 {
   userName,
   hostName,
@@ -25,45 +26,21 @@
   my.system = {
     hostname = hostName;
 
-    # ── Core ──────────────────────────────────────────────────────
+    # ── Core overrides ────────────────────────────────────────────
     core = {
-      packages.enable = true;
-      fonts.enable = true;
-      locale.enable = true;
-      graphics.enable = true;
-      bootloader.enable = true;
-      environment.enable = true;
-      nix-settings.enable = true;
-      optimizations.enable = true;
-      pipewire = {
-        enable = true;
-      };
       pipewireEffects = {
         enable = true;
         preset = "perfect-eq"; # or "autogain"
       };
     };
 
-    # ── Hardware ──────────────────────────────────────────────────
-    hardware = {
-      auto-mount.enable = true;
-      preservation.enable = true; # Ephemeral root — bind-mount critical files to /persist
-    };
-
-    # ── Security ──────────────────────────────────────────────────
+    # ── Security overrides ─────────────────────────────────────────
     security = {
-      gnupg.enable = true;
-      secrets.enable = true;
-      keyring.enable = true;
-      hardening.enable = true;
       networking.enable = true;
-      compat.enable = true;
-      packages.enable = true;
-      wrappers.enable = true;
       pentest.enable = true;
     };
 
-    # ── AI ────────────────────────────────────────────────────────
+    # ── AI ─────────────────────────────────────────────────────────
     ai = {
       llama.enable = true;
       ollama.enable = true;
@@ -73,7 +50,6 @@
     # ── Virtualisation ────────────────────────────────────────────
     virtualisation = {
       waydroid.enable = true;
-      packages.enable = true;
       docker = {
         enable = true;
         autoUpdate = true;
@@ -90,7 +66,6 @@
         unstable = false;
       };
       gnome.enable = false;
-      greeter.enable = true;
       hyprland.enable = true;
       steam.enable = true;
     };
@@ -103,7 +78,6 @@
   };
 
   my.custompkgs = {
-    # Custom shell wrappers
     rebuild-wrapper.enable = true;
     compsize-wrapper.enable = true;
     git-commits.enable = true;
@@ -118,13 +92,10 @@
     ananicy.enable = true;
     dnscrypt.enable = true;
     vpn-auto.enable = true;
-
     ssd-monitor.enable = true;
     snapper.enable = true;
     gamemode.enable = false;
-    tmpfiles.enable = true;
     nm-speedup.enable = false;
-    base.enable = true;
   };
 
   system.stateVersion = "25.11";

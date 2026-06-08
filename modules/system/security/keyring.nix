@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.keyring = {
-    enable = lib.mkEnableOption "Keyring configuration";
+    enable = lib.mkEnableOption "Keyring configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

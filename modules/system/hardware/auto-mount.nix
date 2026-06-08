@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.hardware.auto-mount = {
-    enable = lib.mkEnableOption "automatic partition mounting";
+    enable = lib.mkEnableOption "automatic partition mounting" // {
+      default = true;
+    };
     dataDevice = lib.mkOption {
       type = lib.types.str;
       default = "/dev/disk/by-uuid/365EE7F85EE7AEB5";

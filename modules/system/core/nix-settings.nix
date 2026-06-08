@@ -10,7 +10,9 @@ let
 in
 {
   options.my.system.core.nix-settings = {
-    enable = lib.mkEnableOption "Nix settings";
+    enable = lib.mkEnableOption "Nix settings" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

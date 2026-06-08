@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.wrappers = {
-    enable = lib.mkEnableOption "system security wrappers and capabilities";
+    enable = lib.mkEnableOption "system security wrappers and capabilities" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

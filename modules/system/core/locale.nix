@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.core.locale = {
-    enable = lib.mkEnableOption "locale, timezone, and base system settings";
+    enable = lib.mkEnableOption "locale, timezone, and base system settings" // {
+      default = true;
+    };
     timezone = lib.mkOption {
       type = lib.types.str;
       default = "Asia/Jakarta";

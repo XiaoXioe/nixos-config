@@ -32,7 +32,9 @@ let
 in
 {
   options.my.system.core.bootloader = {
-    enable = lib.mkEnableOption "system bootloader configuration";
+    enable = lib.mkEnableOption "system bootloader configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

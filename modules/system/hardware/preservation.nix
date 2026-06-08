@@ -83,7 +83,9 @@ let
 in
 {
   options.my.system.hardware.preservation = {
-    enable = lib.mkEnableOption "preservation-based state management";
+    enable = lib.mkEnableOption "preservation-based state management" // {
+      default = true;
+    };
     ephemeralRoot = lib.mkOption {
       type = lib.types.bool;
       default = true;

@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.core.fonts = {
-    enable = lib.mkEnableOption "system font configuration";
+    enable = lib.mkEnableOption "system font configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

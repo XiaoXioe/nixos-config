@@ -8,7 +8,9 @@ let
 in
 {
   options.my.system.core.environment = {
-    enable = lib.mkEnableOption "Environments configuration";
+    enable = lib.mkEnableOption "Environments configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

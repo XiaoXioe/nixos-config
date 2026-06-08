@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.gnupg = {
-    enable = lib.mkEnableOption "Gnupg Tools";
+    enable = lib.mkEnableOption "Gnupg Tools" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

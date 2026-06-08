@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.packages = {
-    enable = lib.mkEnableOption "Enable packages for security";
+    enable = lib.mkEnableOption "Enable packages for security" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

@@ -17,7 +17,9 @@ let
 in
 {
   options.my.system.security.secrets = {
-    enable = lib.mkEnableOption "sops-nix secrets management";
+    enable = lib.mkEnableOption "sops-nix secrets management" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

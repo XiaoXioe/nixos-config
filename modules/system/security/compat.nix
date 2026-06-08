@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.compat = {
-    enable = lib.mkEnableOption "system binary compatibility (nix-ld)";
+    enable = lib.mkEnableOption "system binary compatibility (nix-ld)" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {

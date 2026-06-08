@@ -9,7 +9,9 @@ let
 in
 {
   options.my.system.security.hardening = {
-    enable = lib.mkEnableOption "system security configuration";
+    enable = lib.mkEnableOption "system security configuration" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {
