@@ -11,11 +11,10 @@ let
   # Primary BTRFS device UUID
   btrfsDevice = "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8";
 
-  # Root subvolume name (will be wiped on boot)
   rootSubvol = "@nixos-root";
   homeSubvol = "@nixos-home";
 
-  # Wipe script executed by systemd in initrd
+  # Wipe root & home subvolumes on each boot, preserving pre-wipe home snapshot
   wipeRootScript = ''
     echo "==> [preservation] Wiping ephemeral root and home subvolumes..."
     mkdir -p /btrfs_tmp
@@ -33,11 +32,8 @@ let
     fi
     btrfs subvolume create /btrfs_tmp/${rootSubvol}
 
-    # Snapshot home SEBELUM di-wipe → simpan ke dalam persist
-    # Ini memastikan semua file di ~/  (termasuk yang tidak di-persist
-    # secara eksplisit) ter-capture sebelum ephemeral home dihapus.
-    # Snapshot disimpan di @nixos-persist/home-snapshots/<timestamp>
-    # dan bisa diakses dari /persist/home-snapshots/ setelah boot.
+    # Pre-wipe home snapshot → saved in persist for recovery
+    # Accessible at /persist/home-snapshots/ after boot.
     if [[ -e /btrfs_tmp/${homeSubvol} ]] && [[ -e /btrfs_tmp/@nixos-persist ]]; then
       echo "==> [preservation] Snapshotting home before wipe → @nixos-persist/home-snapshots/$timestamp"
       mkdir -p /btrfs_tmp/@nixos-persist/home-snapshots

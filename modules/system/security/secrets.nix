@@ -37,12 +37,12 @@ in
       {
         "ssh-user-klein" = {
           owner = "klein-moretti";
-          path = "/home/klein-moretti/.ssh/id_ed25519";
+          path = "/home/${config.my.user.name}/.ssh/id_ed25519";
           mode = "0600";
         };
         "ssh-rsa-user-klein" = {
           owner = "klein-moretti";
-          path = "/home/klein-moretti/.ssh/id_rsa_compat";
+          path = "/home/${config.my.user.name}/.ssh/id_rsa_compat";
           mode = "0600";
         };
 
@@ -68,7 +68,7 @@ in
 
         "gh_hosts_yml" = {
           owner = "klein-moretti";
-          path = "/home/klein-moretti/.config/gh/hosts.yml";
+          path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
           mode = "0600";
         };
 

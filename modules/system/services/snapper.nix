@@ -17,28 +17,16 @@ in
 
   config = lib.mkIf cfg.enable {
     # ===========================================================
-    # SNAPPER — Konfigurasi snapshot BTRFS otomatis
+    # SNAPPER — BTRFS auto-snapshots for /persist and /home
     #
-    # Arsitektur sistem:
-    #   - Subvolume utama: @nixos-persist → dimount di /persist
-    #   - Data home user disimpan FISIK di /persist/home/<user>/
-    #   - /home/<user>/.config, .ssh, dst. adalah bind-mount dari
-    #     /persist/home/<user>/.config, .ssh, dst. (subvolume sama)
+    # /persist = @nixos-persist subvolume — all persistent data
+    # /home    = @nixos-home subvolume (ephemeral, pre-wipe snapshot)
     #
-    # Mengapa SUBVOLUME = "/persist":
-    #   Semua data persisten (termasuk home) ada di satu subvolume
-    #   @nixos-persist. Snapshot di /persist menangkap SEMUA data
-    #   persisten sekaligus, termasuk isi home, var/lib, etc.
+    # Restore: snapper -c persist rollback <N>
+    #   or manual copy from /persist/.snapshots/<N>/snapshot/
     #
-    # Mengapa file terhapus bisa di-restore:
-    #   Jika file di /persist/home/<user>/Desktop dihapus, snapshot
-    #   older snapshots still contain the file. Restore via:
-    #     snapper -c persist rollback <nomor>
-    #   atau copy manual dari /persist/.snapshots/<N>/snapshot/
-    #
-    # PERHATIAN: File yang hanya ada di /home/<user>/ (ephemeral,
-    #   not persisted) will NOT be backed up since they are wiped
-    #   on every boot. Add to preservation.nix for persistence.
+    # NOTE: Files only in /home/ (not persisted) are wiped on boot.
+    #       Add to preservation.nix for persistence.
     # ===========================================================
     services.snapper = {
       snapshotInterval = "hourly"; # Jadwal timeline snapshot
@@ -94,14 +82,7 @@ in
       };
     };
 
-    # ===========================================================
-    # BTRFS subvolume for .snapshots
-    #
-    # MUST use "Q" (not "v") because snapper requires
-    # .snapshots sebagai BTRFS subvolume, bukan direktori biasa.
-    # "Q" = buat subvolume BTRFS jika belum ada
-    # "v" = creates a regular directory (WRONG for snapper)
-    # ===========================================================
+    # MUST use "Q" (not "v") — snapper requires .snapshots to be a BTRFS subvolume
     systemd.tmpfiles.rules = [
       "Q /persist/.snapshots 0750 root root - -"
       "Q /persist/.home-snapshots 0750 root root - -"

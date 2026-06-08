@@ -1,4 +1,5 @@
 {
+  flakePath,
   config,
   pkgs,
   lib,
@@ -65,7 +66,7 @@ let
 
     SOURCE_DIR=$(pwd)
     if [ ! -f "$SOURCE_DIR/flake.nix" ]; then
-        SOURCE_DIR="/home/klein-moretti/nixos-config"
+        SOURCE_DIR="${flakePath}"
     fi
 
     # ─── Helper: jalankan perintah, tampilkan debug lengkap jika gagal ───
