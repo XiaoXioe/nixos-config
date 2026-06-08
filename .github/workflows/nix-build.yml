@@ -26,18 +26,18 @@ jobs:
           name: cachixix
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      # - name: Check flake outputs
-      #   run: nix flake check --no-build
+      - name: Check flake outputs
+        run: nix flake check --no-build
 
-      # - name: Evaluate NixOS configuration
-      #   run: |
-      #     nix eval \
-      #       '.#nixosConfigurations.KleinMoretti.config.system.build.toplevel' \
-      #       --no-build
+      - name: Evaluate NixOS configuration
+        run: |
+          nix eval \
+            '.#nixosConfigurations.KleinMoretti.config.system.build.toplevel'
 
       - name: Build cached packages
         run: |
           nix build \
             ".#caelestia" \
             ".#dank-shell" \
+            ".#devShells.x86_64-linux.default" \
             -L
