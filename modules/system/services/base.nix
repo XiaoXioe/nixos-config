@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.system.services.system-service;
+  cfg = config.my.system.services.base;
 in
 {
-  options.my.system.services.system-service = {
+  options.my.system.services.base = {
     enable = lib.mkEnableOption "system services (thermald, flatpak, udisks2, journald, udev, coredump, btrfs scrub, vnstat)";
   };
 

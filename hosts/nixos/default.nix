@@ -54,7 +54,7 @@
       keyring.enable = true;
       hardening.enable = true;
       networking.enable = true;
-      compatibility.enable = true;
+      compat.enable = true;
       packages.enable = true;
       wrappers.enable = true;
       tools.enable = true;
@@ -115,12 +115,12 @@
     dnscrypt.enable = true;
     vpn-auto.enable = true;
 
-    ssd-tbw.enable = true;
+    ssd-monitor.enable = true;
     snapper.enable = true;
     gamemode.enable = false;
     tmpfiles.enable = true;
     nm-speedup.enable = false;
-    system-service.enable = true;
+    base.enable = true;
   };
 
   system.stateVersion = "25.11";

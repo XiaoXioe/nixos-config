@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.system.services.ssd-tbw;
+  cfg = config.my.system.services.ssd-monitor;
 in
 {
-  options.my.system.services.ssd-tbw = {
+  options.my.system.services.ssd-monitor = {
     enable = lib.mkEnableOption "SSD TBW logger service";
   };
 
