@@ -26,15 +26,6 @@ in
     time.timeZone = cfg.timezone;
     i18n.defaultLocale = cfg.locale;
 
-    fonts.fontDir.enable = true;
-
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-    };
-
     # Disable documentation generation to speed up rebuilds.
     documentation = {
       enable = false;

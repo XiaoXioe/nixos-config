@@ -35,6 +35,9 @@
       environment.enable = true;
       nix-settings.enable = true;
       optimizations.enable = true;
+      pipewire = {
+        enable = true;
+      };
       pipewireEffects = {
         enable = true;
         preset = "perfect-eq"; # or "autogain"
@@ -89,6 +92,7 @@
       gnome.enable = false;
       greeter.enable = true;
       hyprland.enable = true;
+      steam.enable = true;
     };
 
     # ── Specialisations ───────────────────────────────────────────
