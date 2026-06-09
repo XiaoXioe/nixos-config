@@ -50,7 +50,7 @@
             git = true;
             ssh = true;
             nemo = true;
-            package = true;
+            packages = true;
           };
 
           editors = {

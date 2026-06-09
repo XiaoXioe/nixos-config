@@ -6,6 +6,25 @@
   ...
 }:
 let
+  # Keys that should never be passed to home-manager modules (system-only)
+  systemOnlyKeys = [
+    "docker"
+  ];
+
+  # Recursively remove system-only keys from features
+  recursiveRemove =
+    attrs: keys:
+    let
+      clean = removeAttrs attrs keys;
+    in
+    builtins.mapAttrs (
+      _: v:
+      if builtins.isAttrs v then
+        recursiveRemove v keys
+      else
+        v
+    ) clean;
+
   # Recursively convert booleans → { enable = bool; }
   toEnable =
     value:
@@ -21,11 +40,7 @@ in
   home.homeDirectory = "/home/${userName}";
 
   # Filter out system-level features before passing to home-manager
-  my.user = toEnable (
-    removeAttrs userFeatures [
-      "docker"
-    ]
-  );
+  my.user = toEnable (recursiveRemove userFeatures systemOnlyKeys);
 
   programs.man.generateCaches = false;
   manual = {
