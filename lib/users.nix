@@ -73,7 +73,7 @@
 
           packages = {
             pentest = true;
-            packages = true;
+            general = true;
           };
 
           terminal = {
