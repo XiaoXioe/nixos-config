@@ -44,7 +44,7 @@
     ai = {
       llama.enable = true;
       ollama.enable = true;
-      open-webui.enable = false;
+      open-webui.enable = true;
     };
 
     # ── Virtualisation ────────────────────────────────────────────

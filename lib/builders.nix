@@ -7,7 +7,6 @@
   hostName,
   adminUser,
   allUsers,
-  selfLib,
   baseArgs,
   commonSpecialArgs,
   homeModules,

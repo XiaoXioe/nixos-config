@@ -70,6 +70,21 @@ let
       version = "0.14.1";
       hash = "sha256-jOQkRgBkUwJupD+cRo/KRahFRs82X3K49DySw6GlU8U=";
     })
+    # --- TAMBAHAN UNTUK GUIX / SCHEME ---
+    (mkExtension {
+      name = "vscode-scheme";
+      publisher = "sjhuangx";
+      version = "0.4.0";
+      hash = "sha256-BN+C64YQ2hUw5QMiKvC7PHz3II5lEVVy0Shtt6t3ch8=";
+      arch = "";
+    })
+    (mkExtension {
+      name = "RunOnSave";
+      publisher = "emeraldwalk";
+      version = "1.1.5";
+      hash = "sha256-kN7oQPeLJyK9GXxnSchKcUF4XIXQ+Yd7dsSHwT/ua6k=";
+      arch = "";
+    })
   ];
 
   # nixpkgs-provided extensions (from pkgs.vscode-extensions)
@@ -123,6 +138,10 @@ in
 
       # Utilities
       sqlite
+
+      # Guix
+      guix
+      guile
     ];
 
     programs.vscodium = {
@@ -177,6 +196,17 @@ in
           "extensions.autoUpdate" = false;
           "vsicons.dontShowNewVersionMessage" = true;
 
+          # --- (GUIX STYLE) ---
+          "emeraldwalk.runonsave" = {
+            "commands" = [
+              {
+                "match" = "\\.scm$";
+                "isAsync" = true;
+                "cmd" = "guix style -f \${file}";
+              }
+            ];
+          };
+
           # Nix
           "nix.serverPath" = "nixd";
           "nix.enableLanguageServer" = true;
@@ -210,7 +240,7 @@ in
               "json"
               "jsonc"
             ]
-            (lang: {
+            (_lang: {
               "editor.defaultFormatter" = "esbenp.prettier-vscode";
             })
         // {

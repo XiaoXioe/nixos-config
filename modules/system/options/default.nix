@@ -95,7 +95,7 @@ in
     networking.hostName = cfg.hostname;
 
     users.mutableUsers = false;
-    users.users = lib.mapAttrs (name: userCfg: {
+    users.users = lib.mapAttrs (_name: userCfg: {
       isNormalUser = true;
       uid = userCfg.uid;
       description = userCfg.fullName;

@@ -16,7 +16,7 @@ in
       type = lib.types.package;
       description = "Llama.cpp yang dioptimalkan untuk arsitektur Ivy Bridge";
       default = pkgs.llama-cpp.overrideAttrs (
-        finalAttrs: previousAttrs: {
+        _finalAttrs: previousAttrs: {
           cmakeFlags = (previousAttrs.cmakeFlags or [ ]) ++ [
             "-DGGML_AVX2=OFF"
             "-DGGML_FMA=OFF"

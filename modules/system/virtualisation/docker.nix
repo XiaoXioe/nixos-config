@@ -22,8 +22,8 @@ in
 
   config = lib.mkIf cfg.enable {
     # Add docker group only to users with docker feature enabled
-    users.users = lib.mapAttrs (name: _: { extraGroups = [ "docker" ]; }) (
-      lib.filterAttrs (name: userCfg: userCfg.userFeatures.docker or false) config.my.users
+    users.users = lib.mapAttrs (_name: _: { extraGroups = [ "docker" ]; }) (
+      lib.filterAttrs (_name: userCfg: userCfg.userFeatures.docker or false) config.my.users
     );
 
     programs.virt-manager.enable = true;

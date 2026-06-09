@@ -1,7 +1,6 @@
 # Per-user home-manager configuration.
 # Mirrors userFeatures structure directly into my.user.* enable toggles.
 {
-  lib,
   userName,
   userFeatures,
   ...
@@ -21,7 +20,12 @@ in
   home.username = userName;
   home.homeDirectory = "/home/${userName}";
 
-  my.user = toEnable userFeatures;
+  # Filter out system-level features before passing to home-manager
+  my.user = toEnable (
+    removeAttrs userFeatures [
+      "docker"
+    ]
+  );
 
   programs.man.generateCaches = false;
   manual = {

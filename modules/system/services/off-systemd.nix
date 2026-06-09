@@ -15,7 +15,6 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services.NetworkManager-wait-online.enable = false;
     systemd.services.ModemManager.enable = false;
-    services.fwupd.enable = false;
     services.printing.enable = false;
 
     # Mematikan pelapor crash KDE secara paksa agar tidak bentrok dengan Niri
@@ -26,5 +25,15 @@ in
 
     # To prevent getting stuck at shutdown
     systemd.settings.Manager.DefaultTimeoutStopSec = "10s";
+
+    # Mematikan modul fwupd utama
+    services.fwupd.enable = lib.mkForce false;
+
+    # Memaksa mati service dan timer di level systemd
+    systemd.services.fwupd-refresh.enable = lib.mkForce false;
+    systemd.timers.fwupd-refresh.enable = lib.mkForce false;
+
+    # Opsional: Jika fwupd daemon utama juga ikut-ikutan menyala
+    systemd.services.fwupd.enable = lib.mkForce false;
   };
 }

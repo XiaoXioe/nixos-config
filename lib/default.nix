@@ -7,7 +7,7 @@
   # containing a default.nix from the given path.
   scanPaths =
     path:
-    builtins.map (f: (path + "/${f}")) (
+    map (f: (path + "/${f}")) (
       builtins.attrNames (
         lib.filterAttrs (
           name: type:

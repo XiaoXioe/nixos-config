@@ -16,7 +16,7 @@ in
   config = lib.mkIf cfg.enable {
 
     nixpkgs.overlays = lib.mkIf cfg.unstable [
-      (final: prev: {
+      (_final: _prev: {
         kdePackages = pkgs.kdePackages;
         qt6 = pkgs.qt6;
         # sddm = pkgs.sddm;
