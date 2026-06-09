@@ -31,5 +31,6 @@ jobs:
           nix build \
             ".#caelestia" \
             ".#dank-shell" \
+            ".#llama" \
             ".#devShells.x86_64-linux.default" \
             -L
