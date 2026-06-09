@@ -1,81 +1,112 @@
 # ❄️ Klein Moretti's NixOS Configuration
 
-This repository contains my modular NixOS system configuration, powered by **Nix Flakes** and **Home Manager**. It is designed for high productivity, software development, security, and experimental AI workloads.
+Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gaming/desktop support.
 
-## 🚀 Key Features
-
-- **Nix Flakes**: Reproducible dependency management with pinned inputs.
-- **Modular Architecture**: Clean separation between system modules (`modules/system`), services (`modules/services`), and user-space configurations (`modules/user`).
-- **Impermanence & Rollback**: Supports ephemeral root setups (Btrfs snapshots) to maintain a pristine system state across reboots.
-- **Security-First Approach**: 
-  - **SOPS-Nix**: Encrypted secrets management integrated into the Nix workflow.
-  - **Hardened SSH & GnuPG**: Optimized security configurations for daily use.
-  - **Pentesting Suite**: Integrated collection of security and forensics tools.
-- **Performance Optimization**: 
-  - **Zen Kernel**: Low-latency kernel for improved system responsiveness.
-  - **Ananicy-cpp**: Auto-nice daemon for intelligent resource management.
-  - **Hardware Monitoring**: Proactive SSD health tracking (TBW) and system-wide monitoring.
-- **AI Stack**: Native integration with **Ollama** and **Nullclaw** (custom/unstable) for local LLM execution.
-- **Modern Desktop Environments**: Full support for **Hyprland** (dynamic tiling Wayland compositor) and **Niri** (scrollable tiling compositor).
-- **Custom Workflow Scripts**: Includes a powerful `rebuild-all` wrapper to synchronize system and user configurations seamlessly.
-
-## 📂 Directory Structure
+## 🏗️ Architecture
 
 ```text
 .
-├── hosts/                  # Machine-specific configurations (e.g., nixos)
-├── modules/                # Reusable NixOS and Home Manager modules
-│   ├── system/             # System-level configurations (boot, hardware, network)
-│   ├── services/           # System services (AI, monitoring, maintenance)
-│   └── user/               # Home Manager modules (apps, desktop, dotfiles)
-├── lib/                    # Custom Nix library for modular logic and user definitions
-├── secrets/                # Encrypted secrets managed via SOPS
-├── custom_shell/           # Custom utility scripts (e.g., rebuild-all wrapper)
-└── flake.nix               # Main entry point for the system configuration
+├── flake.nix                    # Entry point — inputs, outputs, wiring
+├── lib/
+│   ├── default.nix              # scanPaths, forAllUsers helpers
+│   ├── builders.nix             # NixOS + Home Manager builder functions
+│   └── users.nix                # User definitions with feature flags
+│
+├── hosts/
+│   └── nixos/
+│       ├── default.nix          # Host-specific overrides (minimal)
+│       ├── home.nix             # Maps userFeatures → home module toggles
+│       └── hardware-configuration.nix
+│
+├── modules/
+│   ├── system/                  # NixOS system modules
+│   │   ├── options/             # Central option declarations
+│   │   ├── core/                # Boot, locale, fonts, graphics, nix, pipewire, ...
+│   │   ├── security/            # Hardening, secrets, gnupg, pentest, ...
+│   │   ├── networking/          # DNS, OpenSSH, VPN, firewall
+│   │   ├── services/            # Snapper, ananicy, base services, ...
+│   │   ├── hardware/            # Mounting, impermanence (preservation)
+│   │   ├── desktop/             # Hyprland, Niri, KDE, GNOME, steam, ...
+│   │   ├── ai/                  # Ollama, llama.cpp, Open WebUI
+│   │   ├── virtualisation/      # Docker, Waydroid, libvirt
+│   │   ├── scripts/             # Custom CLI wrappers (rebuild-all, etc.)
+│   │   └── specialisation/      # Daily, retro-gaming specialisations
+│   │
+│   └── home/                    # Home Manager modules
+│       ├── applications/
+│       │   ├── browsers/        # Brave, Firefox, LibreWolf
+│       │   ├── dev/             # Git, SSH, Nemo, dev packages
+│       │   ├── editors/         # Neovim (NVF), VSCodium, Zed
+│       │   ├── terminal/        # Fish, Tmux, WezTerm, Starship, Fastfetch
+│       │   ├── media/           # Media players, music, office, social
+│       │   ├── gaming/          # Wine, game packages
+│       │   ├── packages/        # User packages + pentest tools
+│       │   └── custom/          # Custom packages from private repos
+│       ├── desktop/             # Caelestia, DMS, GTK themes
+│       ├── services/            # Rclone mount
+│       ├── settings/            # Symlinks, identity
+│       └── dotfiles/            # Config files (fish, hypr, niri, rmpc, ...)
+│
+├── secrets/                     # Encrypted via sops-nix (age)
+│   ├── secrets.yaml
+│   └── vpn-files/
+│
+└── packages-export.nix          # Exported packages (caelestia, llama, etc.)
 ```
 
-## 👤 User Customization
+## ✨ Key Features
 
-This configuration supports multi-user setups with granular feature toggling. User-specific features are managed in `lib/users.nix`. You can easily enable or disable:
-- **Desktop Environments**: Hyprland, Niri, GNOME, KDE, etc.
-- **Applications**: Brave, Firefox, Discord, Office suites, and more.
-- **Development Tools**: Neovim (NVF), Git, Docker, and various compilers.
-- **Gaming**: Optimized Wine, Steam, and GameMode configurations.
+- **Nix Flakes** — Pinned inputs, `nix flake check`, repro builds
+- **Auto-import modules** — `scanPaths` discovers new `.nix` files automatically
+- **Feature flags** — `lib/users.nix` controls per-user app toggles via `freeformType`
+- **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence
+- **Secrets** — Encrypted via `sops-nix`/age, decrypted at activation
+- **Multi-DE** — Hyprland, Niri, KDE Plasma, GNOME — switchable per boot
+- **AI stack** — Local LLMs via Ollama + llama.cpp, Open WebUI
+- **Hardened** — sudo-rs, fail2ban, GnuPG, keyring, nix-ld compat
+- **Performance** — Zen kernel, BBR, zram, ananicy-cpp, Btrfs optimisations
 
-Changes in `lib/users.nix` are automatically propagated to the respective Home Manager profiles during the rebuild process.
-
-## 🛠️ Installation & Usage
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/username/nixos-config.git
-cd nixos-config
-```
-
-### 2. Apply Configuration
-Use the provided `rebuild-all` script (powered by `nh`) to manage your system:
+## 🛠️ Quick Start
 
 ```bash
-# Rebuild both system and all user profiles
+# Enter devShell (formatters + linters available)
+nix develop
+
+# Rebuild system + all users
 rebuild-all --all
 
-# Rebuild NixOS system only
+# Rebuild system only
 rebuild-all --system
 
-# Rebuild Home Manager for a specific user
+# Rebuild Home Manager for specific user
 rebuild-all --user klein-moretti
 ```
 
-*Note: This script wraps `nh os switch` and `nh home switch` for a more streamlined experience.*
+## 👤 Adding a User Feature
 
-## 🔐 Secrets Management
-
-This repository utilizes [sops-nix](https://github.com/Mic92/sops-nix). Encrypted secrets are stored in `secrets/` and decrypted on-the-fly during system activation.
-
-To edit secrets:
 ```bash
-sops secrets/secrets.yaml
+# 1. Enable flag in lib/users.nix
+userFeatures = {
+  my-new-app = true;
+};
+
+# 2. Create module in modules/home/applications/<category>/
+# scanPaths auto-imports it — no manual registration needed.
 ```
 
+## 🔐 Secrets
+
+```bash
+sops secrets/secrets.yaml           # edit
+sops secrets/foto-profile.enc       # binary file
+```
+
+Keys: `age1gktsu...` (host) + `age1yrd6...` (user).
+
+## 💻 DevShell
+
+`nix develop` provides: `nixfmt` (formatter), `statix` (linter), `deadnix` (dead code), `nom` / `nvd` (build output).
+
 ## ⚖️ License
-This configuration is available under the MIT License or as specified by the repository owner.
+
+MIT
