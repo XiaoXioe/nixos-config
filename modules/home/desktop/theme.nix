@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.user.themes;
+  cfg = config.my.user.desktop.themes;
 
   defaultApps = {
     text = [ "codium.desktop" ];
@@ -102,7 +102,7 @@ let
   );
 in
 {
-  options.my.user.themes = {
+  options.my.user.desktop.themes = {
     enable = lib.mkEnableOption "Custom Themes";
   };
 

@@ -112,6 +112,13 @@
           home-manager.users = lib.genAttrs (builtins.attrNames allUsers) (name: {
             imports = homeModules;
             _module.args = {
+              inherit
+                inputs
+                selfLib
+                hostName
+                flakePath
+                allUsers
+                ;
               userName = name;
               fullName = allUsers.${name}.fullName;
               userFeatures = allUsers.${name}.userFeatures or { };

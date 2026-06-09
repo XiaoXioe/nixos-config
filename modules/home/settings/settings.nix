@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.my.user.settings;
+  cfg = config.my.user.settings.settings;
 in
 {
-  options.my.user.settings = {
+  options.my.user.settings.settings = {
     enable = lib.mkEnableOption "Home file settings";
   };
 

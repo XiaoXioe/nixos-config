@@ -66,7 +66,6 @@
         unstable = false;
       };
       gnome.enable = false;
-      hyprland.enable = true;
       steam.enable = true;
     };
 

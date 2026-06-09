@@ -20,68 +20,73 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ9JzZzktDyRcOpqMyit78cS0xx7NRj7Mak89HjsRLR u0_a185@localhost"
       ];
       userFeatures = {
-        dms = true;
-        caelestia = true;
-        nvim = true;
-        git = true;
-        ssh = true;
-        fish = true;
-        tmux = true;
-        fastfetch = true;
-        wezterm = true;
-        starship = true;
-        packages = true;
-        custompkgs = true;
-        zeditor = false;
-        nemo = true;
-        vscodium = true;
-        devpkgs = true;
-        securityTools = true;
-        gaming = true;
-        brave = true;
-        media = true;
-        music = true;
-        sosmed = true;
-        office = true;
-        browser = true;
-        firefox = true;
-        librewolf = true;
-        settings = true;
-        themes = true;
+        desktop = {
+          dms = true;
+          themes = true;
+          caelestia = true;
+        };
+
+        settings = {
+          settings = true;
+        };
 
         services = {
           rclone = true;
         };
 
+        apps = {
+          browser = {
+            brave = true;
+            firefox = true;
+            browser = true;
+            librewolf = true;
+          };
+
+          custompkgs = {
+            custompkgs = true;
+          };
+
+          dev = {
+            git = true;
+            ssh = true;
+            nemo = true;
+            package = true;
+          };
+
+          editors = {
+            neovim = true;
+            zeditor = true;
+            vscodium = true;
+          };
+
+          gaming = {
+            game = true;
+            wine = true;
+          };
+
+          media = {
+            media = true;
+            music = true;
+            office = true;
+            sosmed = true;
+          };
+
+          packages = {
+            pentest = true;
+            packages = true;
+          };
+
+          terminal = {
+            fastfetch = true;
+            fish = true;
+            starship = true;
+            tmux = true;
+            wezterm = true;
+          };
+        };
       };
     };
 
-    # To add a new user:
-    # 1. Uncomment and customize the block below
-    # 2. Shared home modules are at: modules/home/
-    # 3. Adjust userFeatures to control which modules are enabled
-    #
-    # guest = {
-    #   fullName = "Guest User";
-    #   uid = 1001;
-    #   extraGroups = [
-    #     "wheel"
-    #     "networkmanager"
-    #     "video"
-    #     "audio"
-    #     "render"
-    #     "i2c"
-    #     "adbusers"
-    #     "kvm"
-    #   ];
-    #   openssh.authorizedKeys.keys = [ ];
-    #   userFeatures = {
-    #     nvim = true;
-    #     git = true;
-    #     ssh = true;
-    #     fish = true;
-    #     packages = true;
-    #   };
-    # };
+    # Tambahkan user disini
   };
 }

@@ -6,10 +6,10 @@
   ...
 }:
 let
-  cfg = config.my.user.dms;
+  cfg = config.my.user.desktop.dms;
 in
 {
-  options.my.user.dms = {
+  options.my.user.desktop.dms = {
     enable = lib.mkEnableOption "DankMaterialShell for Niri";
   };
 

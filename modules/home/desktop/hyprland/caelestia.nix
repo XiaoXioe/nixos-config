@@ -24,13 +24,13 @@ in
       package = inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.with-cli;
 
       # Pastikan Caelestia start saat masuk ke sesi grafis (Hyprland via UWSM)
-      systemd.target = "graphical-session.target";
+      # systemd.target = "graphical-session.target";
     };
 
     # Tambahkan kondisi agar service Caelestia hanya benar-benar jalan di Hyprland
-    systemd.user.services.caelestia = {
-      Unit.ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
-    };
+    # systemd.user.services.caelestia = {
+    #   Unit.ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
+    # };
 
     # Link konfigurasi Caelestia
     xdg.configFile."caelestia/shell.json".source =
