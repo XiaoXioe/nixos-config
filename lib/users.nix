@@ -23,7 +23,6 @@
         desktop = {
           dms = true;
           themes = true;
-          caelestia = true;
         };
 
         settings = {

@@ -29,7 +29,6 @@ jobs:
       - name: Build cached packages
         run: |
           nix build \
-            ".#caelestia" \
             ".#dank-shell" \
             ".#llama" \
             ".#devShells.x86_64-linux.default" \

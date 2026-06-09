@@ -7,7 +7,6 @@
 
 {
   # Menarik dari Home Manager
-  caelestia = homeConfigs."${adminUser}@${hostName}".config.programs.caelestia.package;
   dank-shell = homeConfigs."${adminUser}@${hostName}".config.programs.dank-material-shell.package;
   ayugram = homeConfigs."${adminUser}@${hostName}".config.my.user.custompkgs.ayugramPackage;
 
