@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.tmux;
+  cfg = config.my.user.apps.terminal.tmux;
 in
 {
-  options.my.user.tmux = {
+  options.my.user.apps.terminal.tmux = {
     enable = lib.mkEnableOption "Tmux configuration";
   };
 

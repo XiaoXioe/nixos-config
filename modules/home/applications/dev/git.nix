@@ -7,10 +7,10 @@
 }:
 
 let
-  cfg = config.my.user.git;
+  cfg = config.my.user.apps.dev.git;
 in
 {
-  options.my.user.git = {
+  options.my.user.apps.dev.git = {
     enable = lib.mkEnableOption "user git configuration";
   };
 

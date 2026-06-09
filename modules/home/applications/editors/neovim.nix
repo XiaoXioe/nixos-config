@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.nvim;
+  cfg = config.my.user.apps.editors.neovim;
 in
 {
-  options.my.user.nvim = {
+  options.my.user.apps.editors.neovim = {
     enable = lib.mkEnableOption "Neovim configuration";
   };
 

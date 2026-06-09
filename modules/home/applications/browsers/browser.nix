@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.browser;
+  cfg = config.my.user.apps.browser.browser;
 in
 {
-  options.my.user.browser = {
+  options.my.user.apps.browser.browser = {
     enable = lib.mkEnableOption "General Browser for Multi-user";
   };
 

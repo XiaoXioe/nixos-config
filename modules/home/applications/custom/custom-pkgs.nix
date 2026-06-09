@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.my.user.custompkgs;
+  cfg = config.my.user.apps.custompkgs.custompkgs;
 
   system = pkgs.stdenv.hostPlatform.system;
   custom = inputs.custompkgs.packages.${system};
@@ -16,7 +16,7 @@ in
   imports = [
     inputs.custompkgs.homeModules.freqtrade-setup
   ];
-  options.my.user.custompkgs = {
+  options.my.user.apps.custompkgs.custompkgs = {
     enable = lib.mkEnableOption "Custom packages";
 
     # Daftarkan paket di sini agar bisa dipanggil spesifik oleh GitHub Action

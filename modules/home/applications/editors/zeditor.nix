@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.zeditor;
+  cfg = config.my.user.apps.editors.zeditor;
 in
 {
-  options.my.user.zeditor = {
+  options.my.user.apps.editors.zeditor = {
     enable = lib.mkEnableOption "Zed-editor configuration";
   };
 

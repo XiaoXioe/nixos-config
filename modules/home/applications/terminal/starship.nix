@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.my.user.starship;
+  cfg = config.my.user.apps.terminal.starship;
 in
 {
-  options.my.user.starship = {
+  options.my.user.apps.terminal.starship = {
     enable = lib.mkEnableOption "Starship prompt configuration";
   };
 

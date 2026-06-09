@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.media;
+  cfg = config.my.user.apps.media.media;
 in
 {
-  options.my.user.media = {
+  options.my.user.apps.media.media = {
     enable = lib.mkEnableOption "user media configuration (mpv, yt-dlp, obs)";
   };
 

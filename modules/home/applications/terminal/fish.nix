@@ -7,10 +7,10 @@
 }:
 
 let
-  cfg = config.my.user.fish;
+  cfg = config.my.user.apps.terminal.fish;
 in
 {
-  options.my.user.fish = {
+  options.my.user.apps.terminal.fish = {
     enable = lib.mkEnableOption "Fish shell configuration";
   };
 

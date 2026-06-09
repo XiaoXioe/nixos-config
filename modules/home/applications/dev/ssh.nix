@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.ssh;
+  cfg = config.my.user.apps.dev.ssh;
 in
 {
-  options.my.user.ssh = {
+  options.my.user.apps.dev.ssh = {
     enable = lib.mkEnableOption "Ssh configuration";
   };
 

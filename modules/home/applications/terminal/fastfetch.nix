@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.my.user.fastfetch;
+  cfg = config.my.user.apps.terminal.fastfetch;
 in
 {
-  options.my.user.fastfetch = {
+  options.my.user.apps.terminal.fastfetch = {
     enable = lib.mkEnableOption "Fastfetch configuration";
   };
 

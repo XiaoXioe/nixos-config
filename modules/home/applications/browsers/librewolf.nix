@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.librewolf;
+  cfg = config.my.user.apps.browser.librewolf;
 in
 {
-  options.my.user.librewolf = {
+  options.my.user.apps.browser.librewolf = {
     enable = lib.mkEnableOption "LibreWolf configuration for user";
   };
 

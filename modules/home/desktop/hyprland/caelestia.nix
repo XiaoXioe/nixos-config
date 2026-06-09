@@ -7,14 +7,14 @@
   ...
 }:
 let
-  cfg = config.my.user.caelestia;
+  cfg = config.my.user.desktop.caelestia;
 in
 {
   imports = [
     inputs.caelestia-shell.homeManagerModules.default
   ];
 
-  options.my.user.caelestia = {
+  options.my.user.desktop.caelestia = {
     enable = lib.mkEnableOption "Caelestia shell for Hyprland";
   };
 

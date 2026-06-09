@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.sosmed;
+  cfg = config.my.user.apps.media.sosmed;
 in
 {
-  options.my.user.sosmed = {
+  options.my.user.apps.media.sosmed = {
     enable = lib.mkEnableOption "Sosmed package for users";
   };
 

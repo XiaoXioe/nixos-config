@@ -10,11 +10,11 @@
   ...
 }:
 let
-  cfg = config.my.user.music;
+  cfg = config.my.user.apps.media.music;
   fifoPath = "/tmp/mpd.fifo";
 in
 {
-  options.my.user.music = {
+  options.my.user.apps.media.music = {
     enable = lib.mkEnableOption "music player (MPD + rmpc + cava)";
   };
 

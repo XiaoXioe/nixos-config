@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.wine;
+  cfg = config.my.user.apps.gaming.wine;
 in
 {
-  options.my.user.wine = {
+  options.my.user.apps.gaming.wine = {
     enable = lib.mkEnableOption "Wine settings";
   };
   config = lib.mkIf cfg.enable {

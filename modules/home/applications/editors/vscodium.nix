@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.my.user.vscodium;
+  cfg = config.my.user.apps.editors.vscodium;
 
   # Helper: build marketplace extension with common args
   mkExtension =
@@ -105,7 +105,7 @@ let
 
 in
 {
-  options.my.user.vscodium = {
+  options.my.user.apps.editors.vscodium = {
     enable = lib.mkEnableOption "Vscodium configuration";
   };
 

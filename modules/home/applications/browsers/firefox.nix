@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.firefox;
+  cfg = config.my.user.apps.browser.firefox;
 in
 {
-  options.my.user.firefox = {
+  options.my.user.apps.browser.firefox = {
     enable = lib.mkEnableOption "Firefox configuration for user";
   };
 

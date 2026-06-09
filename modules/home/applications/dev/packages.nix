@@ -6,10 +6,10 @@
   ...
 }:
 let
-  cfg = config.my.user.devpkgs;
+  cfg = config.my.user.apps.dev.package;
 in
 {
-  options.my.user.devpkgs = {
+  options.my.user.apps.dev.package = {
     enable = lib.mkEnableOption "Packages for development";
   };
   config = lib.mkIf cfg.enable {

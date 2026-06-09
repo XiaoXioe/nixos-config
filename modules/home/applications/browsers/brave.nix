@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.brave;
+  cfg = config.my.user.apps.browser.brave;
 in
 {
-  options.my.user.brave = {
+  options.my.user.apps.browser.brave = {
     enable = lib.mkEnableOption "Brave browser configuration with maximal performance & privacy";
   };
 

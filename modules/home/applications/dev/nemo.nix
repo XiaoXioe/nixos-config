@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.nemo;
+  cfg = config.my.user.apps.dev.nemo;
 in
 {
-  options.my.user.nemo = {
+  options.my.user.apps.dev.nemo = {
     enable = lib.mkEnableOption "Nemo user settings";
   };
   config = lib.mkIf cfg.enable {

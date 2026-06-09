@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.packages;
+  cfg = config.my.user.apps.packages.packages;
 in
 {
-  options.my.user.packages = {
+  options.my.user.apps.packages.packages = {
     enable = lib.mkEnableOption "user-specific packages";
   };
 

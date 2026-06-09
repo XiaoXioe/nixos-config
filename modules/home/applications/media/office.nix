@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.my.user.office;
+  cfg = config.my.user.apps.media.office;
 in
 {
-  options.my.user.office = {
+  options.my.user.apps.media.office = {
     enable = lib.mkEnableOption "Office Apps for users";
   };
 

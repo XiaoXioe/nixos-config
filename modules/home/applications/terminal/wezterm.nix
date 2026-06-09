@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.wezterm;
+  cfg = config.my.user.apps.terminal.wezterm;
 in
 {
-  options.my.user.wezterm = {
+  options.my.user.apps.terminal.wezterm = {
     enable = lib.mkEnableOption "Wezterm configuration";
   };
 

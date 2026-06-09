@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.my.user.game;
+  cfg = config.my.user.apps.gaming.game;
 in
 {
-  options.my.user.game = {
+  options.my.user.apps.gaming.game = {
     enable = lib.mkEnableOption "User game settings";
   };
 
