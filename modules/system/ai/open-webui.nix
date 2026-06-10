@@ -18,7 +18,6 @@ in
       package = pkgs.open-webui;
       port = 8081;
       host = "127.0.0.1";
-      stateDir = "/persist/var/lib/open-webui";
       environment = {
         OLLAMA_BASE_URL = "http://127.0.0.1:11434";
       };

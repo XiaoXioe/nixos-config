@@ -26,14 +26,12 @@ in
     # To prevent getting stuck at shutdown
     systemd.settings.Manager.DefaultTimeoutStopSec = "10s";
 
-    # Mematikan modul fwupd utama
+    # Menonaktifkan modul utama fwupd
     services.fwupd.enable = lib.mkForce false;
 
-    # Memaksa mati service dan timer di level systemd
-    systemd.services.fwupd-refresh.enable = lib.mkForce false;
-    systemd.timers.fwupd-refresh.enable = lib.mkForce false;
-
-    # Opsional: Jika fwupd daemon utama juga ikut-ikutan menyala
-    systemd.services.fwupd.enable = lib.mkForce false;
+    # MASKING: Memblokir total service agar tidak bisa dipanggil oleh apapun
+    systemd.services.fwupd-refresh.mask = true;
+    systemd.timers.fwupd-refresh.mask = true;
+    systemd.services.fwupd.mask = true;
   };
 }

@@ -158,6 +158,10 @@ in
           mode = "0700";
         }
         {
+          directory = "/var/lib/private/open-webui";
+          mode = "0700";
+        }
+        {
           directory = "/var/lib/colord";
           user = "colord";
           group = "colord";

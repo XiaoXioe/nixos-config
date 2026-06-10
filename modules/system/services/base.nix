@@ -19,6 +19,7 @@ in
 
   config = lib.mkIf cfg.enable {
     services = {
+      guix.enable = true;
       thermald.enable = true;
       flatpak.enable = true;
       udisks2.enable = true;
