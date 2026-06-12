@@ -4,6 +4,13 @@
   imports = [
     ./core
     ./apps
-    ./system
+    ./security
+    ./services
+    ./ai
+    ./desktop
+    ./hardware
+    ./virtualisation
+    ./specialization
+    ./options
   ];
 }

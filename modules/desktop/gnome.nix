@@ -1,0 +1,72 @@
+{
+  config,
+  pkgs,
+  lib,
+  selfLib,
+  ...
+}:
+let
+  cfg = config.my.desktop.gnome;
+in
+{
+  options = selfLib.mkNestedEnable "desktop.gnome";
+
+  config = lib.mkIf cfg.enable {
+    services.xserver.enable = true;
+
+    services.desktopManager.gnome.enable = true;
+
+    services.gnome.gnome-keyring.enable = true;
+    security.pam.services.gdm.enableGnomeKeyring = true;
+
+    environment.gnome.excludePackages = with pkgs; [
+      gnome-tour
+      gnome-connections
+      gnome-maps
+      gnome-software
+      gnome-logs
+      gnome-music
+      gnome-text-editor
+      epiphany
+      gnome-photos
+      geary
+      evince
+      snapshot
+      loupe
+      totem
+      decibels
+      amberol
+      gnome-console
+      gnome-contacts
+      simple-scan
+      gnome-connections
+      gnome-system-monitor
+      baobab
+      gnome-font-viewer
+      gnome-characters
+      gnome-remote-desktop
+      yelp
+      showtime
+      papers
+    ];
+
+    environment.systemPackages = with pkgs; [
+      gnome-tweaks
+      gnomeExtensions.vitals
+      gnome-extension-manager
+      gnomeExtensions.appindicator
+      gnomeExtensions.dash-to-dock
+      gnomeExtensions.blur-my-shell
+      gnomeExtensions.just-perfection
+    ];
+
+    services.xserver.xkb = {
+      layout = "us";
+      variant = "";
+    };
+
+    services.udev.packages = with pkgs; [
+      gnome-settings-daemon
+    ];
+  };
+}
