@@ -14,6 +14,5 @@
     ./options
     ./settings
     ./scripts
-    ./dotfiles
   ];
 }

@@ -1,17 +1,15 @@
 {
   config,
   lib,
+  selfLib,
   ...
 }:
-let
-  cfg = config.my.user.settings.settings;
-in
-{
-  options.my.user.settings.settings = {
-    enable = lib.mkEnableOption "Home file settings";
-  };
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "settings.files";
+  description = "Home file settings";
+
+  hmConfig = {
     home.file.".var/app".source =
       config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-userdata";
     home.file.".local/share/flatpak".source =

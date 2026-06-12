@@ -1,30 +1,14 @@
 {
-  config,
   pkgs,
-  lib,
+  selfLib,
   ...
 }:
-let
-  cfg = config.my.user.apps.packages.general;
-in
-{
-  options.my.user.apps.packages.general = {
-    enable = lib.mkEnableOption "user-specific packages";
-  };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [
-      ripgrep
-      jq
-      aria2
-      ncdu
-      btdu
-      tldr
-      bat
-      ookla-speedtest
-      bmon
-      tdl
+selfLib.mkModule {
+  name = "apps.packages.general";
+  description = "user-specific packages";
 
-    ];
+  hmConfig = {
+    home.packages = with pkgs; [ ripgrep jq aria2 ncdu btdu tldr bat ookla-speedtest bmon tdl ];
   };
 }

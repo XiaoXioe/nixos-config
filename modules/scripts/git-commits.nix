@@ -1,52 +1,28 @@
 {
-  config,
   pkgs,
-  lib,
+  selfLib,
   ...
 }:
 let
-  cfg = config.my.user.scripts.git-commits;
-
-  mkGitCommitScript =
-    cmdName: commitType:
-    pkgs.writeShellApplication {
-      name = cmdName;
-      runtimeInputs = [ pkgs.git ];
-      text = ''
-        if [ "$#" -eq 0 ]; then
-          echo "Error: Masukkan pesan commit."
-          echo "Penggunaan: ${cmdName} <pesan commit>"
-          exit 1
-        fi
-
-        message="$*"
-        git commit -m "${commitType}: $message"
-      '';
-    };
-
-  gcfeat = mkGitCommitScript "gcfeat" "feat";
-  gcfix = mkGitCommitScript "gcfix" "fix";
-  gcchore = mkGitCommitScript "gcchore" "chore";
-  gcdocs = mkGitCommitScript "gcdocs" "docs";
-  gcstyle = mkGitCommitScript "gcstyle" "style";
-  gcref = mkGitCommitScript "gcref" "refactor";
-  gctest = mkGitCommitScript "gctest" "test";
-
-  git-commits-bundle = pkgs.symlinkJoin {
-    name = "git-conventional-commits-bundle";
-    paths = [
-      gcfeat gcfix gcchore gcdocs gcstyle gcref gctest
-    ];
+  mkGitCommitScript = cmdName: commitType: pkgs.writeShellApplication {
+    name = cmdName;
+    runtimeInputs = [ pkgs.git ];
+    text = "if [ \"$#\" -eq 0 ]; then exit 1; fi; git commit -m \"${commitType}: $*\";";
   };
 in
-{
-  options.my.user.scripts.git-commits = {
-    enable = lib.mkEnableOption "Git Conventional Commits helper scripts";
-  };
+selfLib.mkModule {
+  name = "scripts.git-commits";
+  description = "Git Conventional Commits helper scripts";
 
-  config = lib.mkIf cfg.enable {
+  hmConfig = {
     home.packages = [
-      git-commits-bundle
+      (pkgs.symlinkJoin {
+        name = "git-conventional-commits-bundle";
+        paths = [
+          (mkGitCommitScript "gcfeat" "feat") (mkGitCommitScript "gcfix" "fix") (mkGitCommitScript "gcchore" "chore")
+          (mkGitCommitScript "gcdocs" "docs") (mkGitCommitScript "gcstyle" "style") (mkGitCommitScript "gcref" "refactor") (mkGitCommitScript "gctest" "test")
+        ];
+      })
     ];
   };
 }

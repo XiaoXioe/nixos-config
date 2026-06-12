@@ -1,30 +1,26 @@
 {
   config,
   pkgs,
-  lib,
+  selfLib,
   ...
 }:
 
 let
-  cfg = config.my.user.services.rclone;
   rcloneRemote = "SemuaDrive";
   mountPoint = "${config.home.homeDirectory}/CloudStorage";
 in
-{
-  options.my.user.services.rclone = {
-    enable = lib.mkEnableOption "rclone mount service";
-  };
+selfLib.mkModule {
+  name = "services.rclone";
+  description = "rclone mount service";
 
-  config = lib.mkIf cfg.enable {
+  hmConfig = {
     home.packages = [ pkgs.rclone ];
-
     systemd.user.services.rclone-mount = {
       Unit = {
         Description = "Mount Rclone Remote (${rcloneRemote})";
         After = [ "network-online.target" ];
         Wants = [ "network-online.target" ];
       };
-
       Service = {
         Type = "notify";
         ExecStartPre = [
@@ -56,18 +52,13 @@ in
             --log-file="${config.home.homeDirectory}/.config/rclone/rclone.log" \
             --log-level INFO
         '';
-        # Cache warming for instant first access
         ExecStartPost = "-${pkgs.bash}/bin/bash -c '(${pkgs.coreutils}/bin/sleep 10 && ${pkgs.findutils}/bin/find ${mountPoint} -maxdepth 2 > /dev/null 2>&1) &'";
-
         Restart = "on-failure";
         RestartSec = "10s";
         TimeoutSec = "5m";
         Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
       };
-
-      Install = {
-        WantedBy = [ "default.target" ];
-      };
+      Install = { WantedBy = [ "default.target" ]; };
     };
   };
 }

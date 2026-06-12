@@ -75,7 +75,6 @@
 
       homeModules = [
         ./hosts/nixos/home.nix
-        ./modules/home
       ];
 
       commonModules = [

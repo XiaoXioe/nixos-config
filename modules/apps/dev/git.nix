@@ -2,26 +2,21 @@
   config,
   lib,
   pkgs,
-  fullName,
+  selfLib,
   ...
 }:
 
-let
-  cfg = config.my.user.apps.dev.git;
-in
-{
-  options.my.user.apps.dev.git = {
-    enable = lib.mkEnableOption "user git configuration";
-  };
+selfLib.mkModule {
+  name = "apps.dev.git";
+  description = "user git configuration";
 
-  config = lib.mkIf cfg.enable {
+  hmConfig = {
     home.packages = with pkgs; [
-      diff-so-fancy # git diff with colors
-      git-crypt # git files encryption
-      hub # github command-line client
-      tig # diff and commit view
+      diff-so-fancy
+      git-crypt
+      hub
+      tig
     ];
-
     programs.gh = {
       enable = true;
       package = pkgs.gh;
@@ -31,38 +26,21 @@ in
         editor = "codium -w";
       };
     };
-
     programs.git = {
       enable = true;
       package = pkgs.git;
-
       settings = {
         user = {
-          name = fullName;
+          name = config.my.user.fullName;
           email = "169626976+XiaoXioe@users.noreply.github.com";
         };
-
-        safe = {
-          directory = [
-            "${config.home.homeDirectory}/nixos-config"
-            "${config.home.homeDirectory}/nix-custompkgs-priv"
-          ];
-        };
-
-        # Mengatur default branch selalu ke 'main' (bukan 'master')
-        init = {
-          defaultBranch = "main";
-        };
-
-        # Otomatis set upstream saat push branch baru
-        push = {
-          autoSetupRemote = true;
-        };
-
-        # Menggunakan rebase saat pull untuk menghindari merge commit yang berantakan
-        pull = {
-          rebase = true;
-        };
+        safe.directory = [
+          "${config.home.homeDirectory}/nixos-config"
+          "${config.home.homeDirectory}/nix-custompkgs-priv"
+        ];
+        init.defaultBranch = "main";
+        push.autoSetupRemote = true;
+        pull.rebase = true;
       };
     };
   };

@@ -1,155 +1,26 @@
 {
-  config,
   pkgs,
-  lib,
+  selfLib,
   ...
 }:
-let
-  cfg = config.my.user.apps.media.media;
-in
-{
-  options.my.user.apps.media.media = {
-    enable = lib.mkEnableOption "user media configuration (mpv, yt-dlp, obs)";
-  };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [
-      # freetube
-      jellyfin-desktop
-      gnome-calculator
-      # tesseract
-      ffmpeg
-      zbar
-    ];
+selfLib.mkModule {
+  name = "apps.media.media";
+  description = "user media configuration (mpv, yt-dlp, obs)";
 
+  hmConfig = {
+    home.packages = with pkgs; [ jellyfin-desktop gnome-calculator ffmpeg zbar ];
     programs.gallery-dl = {
       enable = true;
       package = pkgs.gallery-dl;
-      settings = {
-        "extractor" = {
-          # Base download directory
-          "base-directory" = "~/CloudStorage/Gdrive_Akbar68_Enc/Gallery/";
-
-          # Archive database: prevents re-downloading
-          "archive" = "~/.local/share/gallery-dl/archive.sqlite3";
-
-          # Global folder structure
-          "directory" = [
-            "{category}"
-            "{user[name]|username|id}"
-          ];
-
-          # --- OVERRIDE KHUSUS FACEBOOK ---
-          "facebook" = {
-            "directory" = [
-              "facebook"
-              "{username|author|group|group_id|id}"
-            ];
-
-          };
-          # --------------------------------
-
-          "pixiv" = {
-            "ugoira" = "original";
-            "postprocessors" = [
-              {
-                "name" = "ugoira";
-                "extension" = "mp4";
-                "ffmpeg-location" = "ffmpeg";
-              }
-              { "name" = "mtime"; }
-            ];
-          };
-        };
-
-        "cookies" = [ "firefox" ];
-
-        "cache" = {
-          "file" = "~/.local/share/gallery-dl/cache.sqlite3";
-        };
-      };
+      settings = { "extractor" = { "base-directory" = "~/CloudStorage/Gdrive_Akbar68_Enc/Gallery/"; "archive" = "~/.local/share/gallery-dl/archive.sqlite3"; "directory" = [ "{category}" "{user[name]|username|id}" ]; "facebook" = { "directory" = [ "facebook" "{username|author|group|group_id|id}" ]; }; "pixiv" = { "ugoira" = "original"; "postprocessors" = [ { "name" = "ugoira"; "extension" = "mp4"; "ffmpeg-location" = "ffmpeg"; } { "name" = "mtime"; } ]; }; }; "cookies" = [ "firefox" ]; "cache" = { "file" = "~/.local/share/gallery-dl/cache.sqlite3"; }; };
     };
-
     programs.mpv = {
       enable = true;
-      scripts = with pkgs.mpvScripts; [
-        uosc
-        thumbfast
-        autoload
-        mpris # MPRIS media key control
-        webtorrent-mpv-hook # a hook that allows mpv to stream torrents
-        quality-menu # Userscript for MPV that allows you to change youtube video quality (ytdl-format) on the fly
-        mpv-playlistmanager # Mpv lua script to create and manage playlists
-      ];
-      config = {
-        # --- Video Output (Universal & Modern) ---
-        vo = "gpu";
-        gpu-context = "wayland";
-        gpu-api = "opengl";
-
-        # --- Hardware Decoding ---
-        hwdec = "vaapi-copy";
-
-        # --- UI (Penting untuk uosc) ---
-        osc = false;
-        osd-bar = false;
-        border = false;
-
-        # --- Error Handling (ANTI SPAM) ---
-        msg-level = "ffmpeg/video=error,ffmpeg=fatal,audio=error";
-
-        # --- Performance ---
-        profile = "fast";
-        video-sync = "audio";
-        cache = "yes";
-        demuxer-max-bytes = "800MiB";
-        demuxer-readahead-secs = 120;
-        save-position-on-quit = true;
-        hr-seek-framedrop = "yes";
-        framedrop = "decoder";
-
-        # --- Network & Downloader ---
-        network-timeout = 100;
-        stream-lavf-o = "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5,reconnect_at_eof=1";
-
-        # --- Format & Quality Rules ---
-        ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best[height<=1080][vcodec^=avc]/bestvideo[height<=720][vcodec^=avc]+bestaudio/best";
-
-        user-agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-        ytdl-raw-options = "write-auto-subs=,ignore-config=,impersonate=chrome-110:windows-10,retries=infinite,fragment-retries=infinite,cookies-from-browser=firefox";
-      };
-
-      # Ini adalah padanan dari script-opts
-      scriptOpts = {
-        ytdl_hook = {
-          ytdl_path = "${pkgs.yt-dlp}/bin/yt-dlp";
-        };
-      };
+      scripts = with pkgs.mpvScripts; [ uosc thumbfast autoload mpris webtorrent-mpv-hook quality-menu mpv-playlistmanager ];
+      config = { vo = "gpu"; gpu-context = "wayland"; gpu-api = "opengl"; hwdec = "vaapi-copy"; osc = false; osd-bar = false; border = false; msg-level = "ffmpeg/video=error,ffmpeg=fatal,audio=error"; profile = "fast"; video-sync = "audio"; cache = "yes"; demuxer-max-bytes = "800MiB"; demuxer-readahead-secs = 120; save-position-on-quit = true; hr-seek-framedrop = "yes"; framedrop = "decoder"; network-timeout = 100; stream-lavf-o = "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5,reconnect_at_eof=1"; ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best"; user-agent = "Mozilla/5.0"; ytdl-raw-options = "write-auto-subs=,ignore-config=,impersonate=chrome-110:windows-10,retries=infinite,fragment-retries=infinite,cookies-from-browser=firefox"; };
+      scriptOpts = { ytdl_hook = { ytdl_path = "${pkgs.yt-dlp}/bin/yt-dlp"; }; };
     };
-
-    programs.yt-dlp = {
-      package = pkgs.yt-dlp;
-      enable = true;
-      settings = {
-        # --- Kualitas & Format ---
-        format = "'bv+ba/b'";
-        merge-output-format = "mkv";
-
-        # --- Metadata ---
-        add-metadata = true;
-        embed-thumbnail = true;
-        embed-subs = true;
-
-        # --- Performance & Anti-Bot ---
-        extractor-args = "'generic:impersonate'";
-        impersonate = "'Chrome-131:Macos-14'";
-        # downloader = "aria2c";
-        # downloader-args = "aria2c:'-c -x2 -s2 -k1M'";
-
-        # --- Output Filename ---
-        output = "'%(title)s [%(id)s].%(ext)s'";
-      };
-    };
+    programs.yt-dlp = { package = pkgs.yt-dlp; enable = true; settings = { format = "'bv+ba/b'"; merge-output-format = "mkv"; add-metadata = true; embed-thumbnail = true; embed-subs = true; extractor-args = "'generic:impersonate'"; impersonate = "'Chrome-131:Macos-14'"; output = "'%(title)s [%(id)s].%(ext)s'"; }; };
   };
 }

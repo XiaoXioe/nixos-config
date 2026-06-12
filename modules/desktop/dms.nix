@@ -1,27 +1,17 @@
 {
   config,
-  lib,
   pkgs,
   inputs,
+  selfLib,
   ...
 }:
-let
-  cfg = config.my.user.desktop.dms;
-in
-{
-  options.my.user.desktop.dms = {
-    enable = lib.mkEnableOption "DankMaterialShell for Niri";
-  };
 
-  imports = [
-    inputs.dms.homeModules.dank-material-shell
-  ];
+selfLib.mkModule {
+  name = "desktop.dms";
+  description = "DankMaterialShell for Niri";
 
-  config = lib.mkIf cfg.enable {
-    programs.dank-material-shell = {
-      dgop.package = pkgs.dgop;
-      enable = true;
-    };
-
+  hmConfig = {
+    imports = [ inputs.dms.homeModules.dank-material-shell ];
+    programs.dank-material-shell = { dgop.package = pkgs.dgop; enable = true; };
   };
 }

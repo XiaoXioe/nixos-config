@@ -3,61 +3,35 @@
   pkgs,
   lib,
   inputs,
+  selfLib,
   ...
 }:
 let
-  cfg = config.my.user.apps.custompkgs;
-
   system = pkgs.stdenv.hostPlatform.system;
   custom = inputs.custompkgs.packages.${system};
   priv = inputs.custompkgs-priv.packages.${system};
 in
-{
-  imports = [
-    inputs.custompkgs.homeModules.freqtrade-setup
-  ];
-  options.my.user.apps.custompkgs = {
-    enable = lib.mkEnableOption "Custom packages";
-  };
+selfLib.mkModule {
+  name = "apps.custompkgs";
+  description = "Custom packages";
 
-  config = lib.mkIf cfg.enable {
+  hmConfig = {
+    imports = [ inputs.custompkgs.homeManagerModules.freqtrade-setup ];
     programs.freqtrade-setup = {
       enable = true;
       configDir = "${config.home.homeDirectory}/freqtrade-dev";
       branch = "stable";
-      extraPip = [
-        "scipy"
-        "optuna"
-        "plotly"
-        "pykalman"
-        "PyWavelets"
-        "statsmodels"
-        "scikit-learn"
-      ];
+      extraPip = [ "scipy" "optuna" "plotly" "pykalman" "PyWavelets" "statsmodels" "scikit-learn" ];
       service = {
         enable = false;
-        bots = {
-          bot-utama = {
-            enable = true;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/alesta";
-            strategyRun = "AlexBandSniperV65513";
-            configFile = "config.json";
-          };
+        bots.bot-utama = {
+          enable = true;
+          strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/alesta";
+          strategyRun = "AlexBandSniperV65513";
+          configFile = "config.json";
         };
       };
     };
-    home.packages = [
-      # --- Custompkgs Publik ---
-      custom.vimmdl
-      custom.disbox
-      custom.binance
-      custom.streambert
-
-      # --- Paket dari Private Repo ---
-      priv.anichin-scraper
-      priv.lk21-scraper
-      priv.burpsuitepro
-      # priv.titan-agent
-    ];
+    home.packages = [ custom.vimmdl custom.disbox custom.binance custom.streambert priv.anichin-scraper priv.lk21-scraper priv.burpsuitepro ];
   };
 }

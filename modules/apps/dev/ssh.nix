@@ -1,30 +1,24 @@
 {
-  lib,
   config,
+  lib,
   flakePath,
+  selfLib,
   ...
 }:
 
-let
-  cfg = config.my.user.apps.dev.ssh;
-in
-{
-  options.my.user.apps.dev.ssh = {
-    enable = lib.mkEnableOption "Ssh configuration";
-  };
+selfLib.mkModule {
+  name = "apps.dev.ssh";
+  description = "Ssh configuration";
 
-  config = lib.mkIf cfg.enable {
+  hmConfig = {
     home.file.".ssh/config_raw".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/home/dotfiles/ssh-config/config.conf";
-
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/ssh-config/config.conf";
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
       includes = [ "~/.ssh/config_raw" ];
       settings = {
-        "*" = {
-          SendEnv = "LANG LC_*";
-        };
+        "*" = { SendEnv = "LANG LC_*"; };
         "github.com" = {
           Host = "github.com";
           User = "git";
