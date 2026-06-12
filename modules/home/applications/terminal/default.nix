@@ -1,9 +1,0 @@
-{
-  selfLib,
-  ...
-}:
-
-{
-  imports = (selfLib.scanPaths ./.) ++ [
-  ];
-}

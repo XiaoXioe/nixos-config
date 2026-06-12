@@ -12,5 +12,8 @@
     ./virtualisation
     ./specialization
     ./options
+    ./settings
+    ./scripts
+    ./dotfiles
   ];
 }
