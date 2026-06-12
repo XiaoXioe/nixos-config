@@ -80,7 +80,7 @@
 
       commonModules = [
         ./hosts/nixos
-        ./modules/system
+        ./modules
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager

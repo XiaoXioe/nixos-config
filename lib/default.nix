@@ -2,7 +2,12 @@
 # Only helpers that provide genuine value beyond stdlib are kept here.
 { lib, ... }:
 
+let
+  modules = import ./modules.nix { inherit lib; };
+in
 {
+  inherit (modules) mkModule;
+
   # Auto-import all .nix files (except default.nix) and directories
   # containing a default.nix from the given path.
   scanPaths =
@@ -19,6 +24,16 @@
         ) (builtins.readDir path)
       )
     );
+
+  # Create a nested enable option under 'options.my'.
+  # Input: "apps.browsers.firefox"
+  # Output: { my.apps.browsers.firefox.enable = ...; }
+  mkNestedEnable =
+    path:
+    let
+      parts = lib.splitString "." path;
+    in
+    { my = lib.setAttrByPath (parts ++ [ "enable" ]) (lib.mkEnableOption path); };
 
   # Apply a function to every user and merge the results.
   # Useful for generating per-user systemd units, secrets, etc.

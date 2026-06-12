@@ -41,14 +41,14 @@ let
 
       mapfile -t models < <(ollama ls | awk 'NR>1 {print $1}')
 
-      if [ ${#models[@]} -eq 0 ]; then
+      if [ ''${#models[@]} -eq 0 ]; then
           echo "Tidak ada model yang ditemukan."
           exit 1
       fi
 
       PS3="Masukkan nomor model yang ingin dijalankan: "
 
-      select model in "${models[@]}"; do
+      select model in "''${models[@]}"; do
           if [ -n "$model" ]; then
               echo -e "\nMengekstrak konfigurasi dari Ollama Modelfile ($model)..."
 
@@ -62,7 +62,7 @@ let
               while IFS= read -r line || [[ -n "$line" ]]; do
                   if [[ -n "$in_block" ]]; then
                       if [[ "$line" == *"$quote_type" ]]; then
-                          line_content="${line%"$quote_type"}"
+                          line_content="''${line%"$quote_type"}"
 
                           if [[ -n "$line_content" ]]; then
                               if [[ -z "$block_content" ]]; then
@@ -92,12 +92,12 @@ let
                   fi
 
                   if [[ "$line" =~ ^(SYSTEM|TEMPLATE)[[:space:]]+(\"\"\")(.*)$ ]]; then
-                      in_block="${BASH_REMATCH[1]}"
+                      in_block="''${BASH_REMATCH[1]}"
                       quote_type='"""'
-                      content="${BASH_REMATCH[3]}"
+                      content="''${BASH_REMATCH[3]}"
 
                       if [[ "$content" == *'"""' ]]; then
-                          content="${content%'"""'}"
+                          content="''${content%'"""'}"
                           if [[ "$in_block" == "SYSTEM" ]]; then llama_args+=("--system-prompt" "$content"); fi
                           in_block=""
                       else
@@ -106,12 +106,12 @@ let
                       continue
 
                   elif [[ "$line" =~ ^(SYSTEM|TEMPLATE)[[:space:]]+(\")(.*)$ ]]; then
-                      in_block="${BASH_REMATCH[1]}"
+                      in_block="''${BASH_REMATCH[1]}"
                       quote_type='"'
-                      content="${BASH_REMATCH[3]}"
+                      content="''${BASH_REMATCH[3]}"
 
                       if [[ "$content" == *'"' ]]; then
-                          content="${content%\"}"
+                          content="''${content%\"}"
                           if [[ "$in_block" == "SYSTEM" ]]; then llama_args+=("--system-prompt" "$content"); fi
                           in_block=""
                       else
@@ -121,10 +121,10 @@ let
                   fi
 
                   if [[ "$line" == FROM* ]]; then
-                      model_path="${line#FROM }"
+                      model_path="''${line#FROM }"
                       llama_args+=("-m" "$model_path")
                   elif [[ "$line" =~ ^SYSTEM[[:space:]]+(.*)$ ]]; then
-                      llama_args+=("--system-prompt" "${BASH_REMATCH[1]}")
+                      llama_args+=("--system-prompt" "''${BASH_REMATCH[1]}")
                   elif [[ "$line" == PARAMETER* ]]; then
                     read -r _ key value <<< "$line"
                     case "$key" in
@@ -146,10 +146,10 @@ let
                   break
               fi
 
-              echo "Command: $LLAMA_CMD ${llama_args[*]}"
+              echo "Command: $LLAMA_CMD ''${llama_args[*]}"
               echo -e "------------------------------------------------------------\n"
 
-              "$LLAMA_CMD" "${llama_args[@]}"
+              "$LLAMA_CMD" "''${llama_args[@]}"
               break
           else
               echo "Pilihan tidak valid."

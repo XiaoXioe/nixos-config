@@ -74,7 +74,7 @@ let
 
       set +e
       "$@" 2>&1 | tee "$tmplog"
-      local exit_code=${PIPESTATUS[0]}
+      local exit_code=''${PIPESTATUS[0]}
       set -e
 
       if [ "$exit_code" -ne 0 ]; then

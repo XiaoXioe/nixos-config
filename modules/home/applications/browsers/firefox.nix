@@ -111,7 +111,7 @@ in
           "browser.link.open_newwindow.restriction" = 0;
 
           ### PRIVACY ###
-          "privacy.resistFingerprinting" = true;
+          "privacy.resistFingerprinting" = false;
           # disable sending downloaded files to the internet
           "browser.safebrowsing.downloads.remote.enabled" = false;
           "network.dns.disablePrefetch" = true;
@@ -133,7 +133,7 @@ in
           "browser.urlbar.suggest.searches" = false;
           # store media in cache only on private browsing
           "browser.privatebrowsing.forceMediaMemoryCache" = true;
-          "network.http.referer.XOriginTrimmingPolicy" = 2;
+          "network.http.referer.XOriginTrimmingPolicy" = 0;
           # Privacy: Disable CSP reporting
           # https://bugzilla.mozilla.org/show_bug.cgi?id=1964249
           "security.csp.reporting.enabled" = false;
