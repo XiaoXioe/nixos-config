@@ -26,6 +26,20 @@
     # --- Refactored Nested Modules ---
     core = {
       nix.enable = true;
+      pipewire = {
+        enable = true;
+        pipewireEffects = {
+          perfectEq.enable = true;
+          autogain.enable = true;
+        };
+      };
+      fonts.enable = true;
+      locale.enable = true;
+      packages.enable = true;
+      graphics.enable = true;
+      bootloader.enable = true;
+      environment.enable = true;
+      optimizations.enable = true;
     };
 
     apps = {
@@ -43,22 +57,8 @@
       };
 
       core = {
-        pipewire = {
-          enable = true;
-          pipewireEffects = {
-            perfectEq.enable = true;
-            autogain.enable = true;
-          };
-        };
-        fonts.enable = true;
-        locale.enable = true;
-        packages.enable = true;
-        graphics.enable = true;
-        bootloader.enable = true;
-        environment.enable = true;
         # nix-settings is now handled by my.core.nix
         nix-settings.enable = false;
-        optimizations.enable = true;
       };
 
       desktop = {
