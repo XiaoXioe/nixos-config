@@ -26,20 +26,6 @@
   my.system = {
     hostname = hostName;
 
-    # ── Core overrides ────────────────────────────────────────────
-    core = {
-      pipewireEffects = {
-        enable = true;
-        preset = "perfect-eq"; # or "autogain"
-      };
-    };
-
-    # ── Security overrides ─────────────────────────────────────────
-    security = {
-      networking.enable = true;
-      pentest.enable = true;
-    };
-
     # ── AI ─────────────────────────────────────────────────────────
     ai = {
       llama.enable = true;
@@ -47,26 +33,51 @@
       open-webui.enable = true;
     };
 
-    # ── Virtualisation ────────────────────────────────────────────
-    virtualisation = {
-      waydroid.enable = true;
-      docker = {
+    # ── Core overrides ────────────────────────────────────────────
+    core = {
+      pipewire = {
         enable = true;
-        autoUpdate = true;
-        mt5.enable = false;
-        "9router".enable = true;
+        pipewireEffects = {
+          perfectEq.enable = true;
+          autogain.enable = true;
+        };
       };
+      fonts.enable = true;
+      locale.enable = true;
+      packages.enable = true;
+      graphics.enable = true;
+      bootloader.enable = true;
+      environment.enable = true;
+      nix-settings.enable = true;
+      optimizations.enable = true;
     };
 
     # ── Desktop ───────────────────────────────────────────────────
     desktop = {
+      kde.enable = true;
       niri.enable = true;
-      kde = {
-        enable = true;
-        unstable = false;
-      };
-      gnome.enable = false;
       steam.enable = true;
+      gnome.enable = false;
+      greeter.enable = true;
+    };
+
+    # ── Hardware ───────────────────────────────────────────────────
+    hardware = {
+      auto-mount.enable = true;
+      preservation.enable = true;
+    };
+
+    # ── Security overrides ─────────────────────────────────────────
+    security = {
+      gnupg.enable = true;
+      compat.enable = true;
+      pentest.enable = true;
+      secrets.enable = true;
+      keyring.enable = true;
+      packages.enable = true;
+      wrappers.enable = true;
+      hardening.enable = true;
+      networking.enable = true;
     };
 
     # ── Specialisations ───────────────────────────────────────────
@@ -74,27 +85,34 @@
       daily.enable = false;
       retro-gaming.enable = false;
     };
+
+    # ── Virtualisation ────────────────────────────────────────────
+    virtualisation = {
+      waydroid.enable = true;
+      packages.enable = true;
+      docker = {
+        enable = true;
+        autoUpdate = true;
+        mt5.enable = false;
+        "9router".enable = true;
+      };
+    };
   };
 
-  my.custompkgs = {
-    rebuild-wrapper.enable = true;
-    compsize-wrapper.enable = true;
-    git-commits.enable = true;
-    show-zombie-parents.enable = true;
-    cek-cache.enable = true;
-    dl-lagu.enable = true;
-    ollama-to-llama.enable = true;
-  };
+  # --- Scripts (managed via userFeatures / home-manager) ---
+  # Script toggles are in lib/users.nix > userFeatures.scripts
 
   my.system.services = {
+    base.enable = true;
     openssh.enable = true;
     ananicy.enable = true;
+    snapper.enable = true;
+    bootSpeedup.enable = true;
+    tmpfiles.enable = true;
     dnscrypt.enable = true;
     vpn-auto.enable = true;
-    ssd-monitor.enable = true;
-    snapper.enable = true;
     gamemode.enable = false;
-    nm-speedup.enable = false;
+    ssd-monitor.enable = true;
   };
 
   system.stateVersion = "25.11";

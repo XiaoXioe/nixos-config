@@ -5,33 +5,32 @@
     address: "127.0.0.1:6600",
     password: None,
     theme: "custom",
-    cache_dir: None,
+    cache_dir: Some("/tmp/rmpc-cache"),
     volume_step: 2,
     max_fps: 60,
     scrolloff: 0,
-    wrap_navigation: false,
+    wrap_navigation: true,
     enable_mouse: true,
     enable_focus_events: true,
     scroll_amount: 1,
     enable_config_hot_reload: true,
     enable_lyrics_hot_reload: false,
-    status_update_interval_ms: 1000,
+    status_update_interval_ms: 250,
     rewind_to_start_sec: None,
     keep_state_on_song_change: true,
-    reflect_changes_to_playlist: false,
+    reflect_changes_to_playlist: true,
     select_current_song_on_change: true,
     on_exit: None,
-    ignore_leading_the: false,
+    ignore_leading_the: true,
     browser_song_sort: [Disc, Track, Artist, Title],
     directories_sort: SortFormat(group_by_type: true, reverse: false),
     auto_open_downloads: true,
     quit_closes_modal: false,
-    on_song_change: ["~/.config/rmpc/scripts/autolrc"],
     queue_disable_current_item_style_timeout_ms: None,
     album_art: (
         method: Auto,
         // max_size_px: (width: 500, height: 500),
-        max_size_px: (width: 0, height: 0),
+        max_size_px: (width: 500, height: 500),
         vertical_align: Center,
         horizontal_align: Center,
     ),
@@ -65,8 +64,8 @@
             "oP":         Partition(),
             "z":          ToggleRepeat,
             "x":          ToggleRandom,
-            "c":          ToggleConsume,
-            "v":          ToggleSingle,
+            "v":          ToggleConsume,
+            "c":          ToggleSingle,
             "p":          TogglePause,
             "s":          Stop,
             ">":          NextTrack,
@@ -174,6 +173,8 @@
                         size: "35%",
                         borders: "ALL",
                         border_symbols: Rounded,
+                        border_title: [(kind: Text(" 🎧 Now Playing "))],
+                        border_title_alignment: Center,
                         pane: Pane(AlbumArt)
                     ),
                     (
@@ -195,8 +196,10 @@
                                 ),
                                 (
                                     size: "60%",
-                                    borders: "LEFT | RIGHT | BOTTOM",
-                                    border_symbols: Inherited(parent: Rounded, bottom_left: "├", bottom_right: "┤"),
+                                    borders: "ALL",
+                                    border_symbols: Rounded,
+                                    border_title: [(kind: Text(" 📋 Play Queue "))],
+                                    border_title_alignment: Center,
                                     pane: Split(
                                         direction: Horizontal,
                                         panes: [
@@ -207,8 +210,10 @@
                                 ),
                                 (
                                     size: "40%",
-                                    borders: "LEFT | RIGHT | BOTTOM",
+                                    borders: "ALL",
                                     border_symbols: Rounded,
+                                    border_title: [(kind: Text(" 🌊 Cava Visualizer "))],
+                                    border_title_alignment: Center,
                                     pane: Pane(Cava)
                                 ),
                             ]
@@ -221,6 +226,8 @@
             name: "Directories",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 📁 Directories "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,
@@ -231,6 +238,8 @@
             name: "Artists",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 🎤 Artists "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,
@@ -238,9 +247,11 @@
             )
         ),
         (
-            name: "Album Artists",
+             name: "Album Artists",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 👥 Album Artists "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,
@@ -251,6 +262,8 @@
             name: "Albums",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 💿 Albums "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,
@@ -261,6 +274,8 @@
             name: "Playlists",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 📜 Playlists "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,
@@ -271,6 +286,8 @@
             name: "Search",
             borders: "ALL",
             border_symbols: Rounded,
+            border_title: [(kind: Text(" 🔍 Search "))],
+            border_title_alignment: Center,
             pane: Split(
                 size: "100%",
                 direction: Vertical,

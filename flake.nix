@@ -4,10 +4,6 @@
   inputs = {
     # nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
-    codex-cli-nix = {
-      url = "github:sadjow/codex-cli-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
 
     custompkgs = {
@@ -31,10 +27,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-index-database = {
-      url = "github:nix-community/nix-index-database";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -81,12 +73,6 @@
           ;
       };
 
-      # Merge baseArgs with host-specific arguments
-      commonSpecialArgs = baseArgs // {
-        userName = adminUser;
-        fullName = allUsers.${adminUser}.fullName;
-      };
-
       homeModules = [
         ./hosts/nixos/home.nix
         ./modules/home
@@ -98,7 +84,6 @@
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
-        inputs.nix-index-database.nixosModules.nix-index
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
@@ -132,7 +117,6 @@
           adminUser
           allUsers
           baseArgs
-          commonSpecialArgs
           homeModules
           commonModules
           ;

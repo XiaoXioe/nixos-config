@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.custompkgs.dl-lagu;
+  cfg = config.my.user.scripts.dl-lagu;
 
   dl-lagu-pkg = pkgs.writeShellApplication {
     name = "dl-lagu";
@@ -24,7 +24,6 @@ let
 
       query="$*"
 
-      # Regex Bash untuk mengecek apakah input dimulai dengan http:// atau https://
       if [[ "$query" =~ ^https?:// ]]; then
         echo "URL terdeteksi, mengunduh langsung: $query"
         yt-dlp --no-write-subs -f bestaudio -x --audio-format mp3 --audio-quality 0 --embed-thumbnail --add-metadata "$query"
@@ -36,12 +35,12 @@ let
   };
 in
 {
-  options.my.custompkgs.dl-lagu = {
+  options.my.user.scripts.dl-lagu = {
     enable = lib.mkEnableOption "YouTube audio downloader script";
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
+    home.packages = [
       dl-lagu-pkg
     ];
   };

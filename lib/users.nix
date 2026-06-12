@@ -34,6 +34,16 @@
           rclone = true;
         };
 
+        scripts = {
+          cek-cache = true;
+          git-commits = true;
+          dl-lagu = true;
+          compsize-scanner = true;
+          show-zombie-parents = true;
+          ollama-to-llama = true;
+          rebuild-wrapper = true;
+        };
+
         apps = {
           browser = {
             brave = true;
@@ -42,9 +52,7 @@
             librewolf = true;
           };
 
-          custompkgs = {
-            custompkgs = true;
-          };
+          custompkgs = true;
 
           dev = {
             git = true;

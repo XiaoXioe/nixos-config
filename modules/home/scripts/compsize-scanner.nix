@@ -5,12 +5,11 @@
   ...
 }:
 let
-  cfg = config.my.custompkgs.compsize-wrapper;
+  cfg = config.my.user.scripts.compsize-scanner;
 
   compsize-scanner-pkg = pkgs.writeShellApplication {
     name = "compsize-scanner";
 
-    # Do not use 'sudo' here — the script itself handles elevated permissions.
     runtimeInputs = with pkgs; [
       compsize
       gawk
@@ -34,7 +33,7 @@ let
       fi
 
       if [ "$(id -u)" -ne 0 ]; then
-         echo "⚠️ Peringatan: Script ini harus dijalankan dengan hak akses root agar bisa membaca metadata Btrfs."
+         echo "Peringatan: Script ini harus dijalankan dengan hak akses root."
          echo "Silakan ulangi dengan: sudo compsize-scanner $TARGET_DIR"
          exit 1
       fi
@@ -46,14 +45,10 @@ let
 
         for dir in "$TARGET_DIR"/*; do
           if [ -d "$dir" ] && [ ! -L "$dir" ]; then
-
-            # 1. Add -x flag to stay safe from FUSE/virtual mounts
             stats=$(compsize -x "$dir" 2>/dev/null | awk '/^TOTAL/ {print $2 "\t" $3 "\t" $4}' || true)
 
             if [ -n "$stats" ]; then
-              # 2. Normalize double slashes (e.g. //nix → /nix)
               clean_dir=$(echo "$dir" | tr -s '/')
-
               echo -e "$stats\t$clean_dir"
             fi
           fi
@@ -63,12 +58,12 @@ let
   };
 in
 {
-  options.my.custompkgs.compsize-wrapper = {
-    enable = lib.mkEnableOption "Compsize wrapper bin";
+  options.my.user.scripts.compsize-scanner = {
+    enable = lib.mkEnableOption "Compsize wrapper script";
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
+    home.packages = [
       compsize-scanner-pkg
     ];
   };

@@ -65,11 +65,27 @@ let
       hash = "sha256-XlogenuBmP+tE18VLH4lUSpOq/7d022n8HgXnKjY3n0=";
     })
     (mkExtension {
-      name = "vscode-sqlite";
-      publisher = "alexcvzz";
-      version = "0.14.1";
-      hash = "sha256-jOQkRgBkUwJupD+cRo/KRahFRs82X3K49DySw6GlU8U=";
+      name = "sqlite-viewer";
+      publisher = "qwtel";
+      version = "26.2.5";
+      hash = "sha256-fAhUWv2hyoh2G9EXQwKeBuMEwp+1kjBl12WM8/W/4zs=";
+      arch = "";
     })
+    (mkExtension {
+      name = "vscode-sqlfluff";
+      publisher = "sqlfluff";
+      version = "4.0.2";
+      hash = "sha256-Toh8jN6D08eroXPlreDy+5h8czyloUjwq4A9kFnvPdM=";
+      arch = "";
+    })
+    (mkExtension {
+      name = "vscode-intelephense-client";
+      publisher = "bmewburn";
+      version = "1.18.4";
+      hash = "sha256-fGvQq8pGpDQc9q+uhouXNaWAHDGTl0cFla0qivhNaFQ=";
+      arch = "";
+    })
+
     # --- TAMBAHAN UNTUK GUIX / SCHEME ---
     (mkExtension {
       name = "vscode-scheme";
@@ -139,13 +155,21 @@ in
       # Utilities
       sqlite
 
-      # Guix
-      guix
-      guile
+      # --- TAMBAHAN PAKET BINARY UNTUK SQLITE & PHP ---
+      sqlfluff # Linter & Formatter untuk SQL/SQLite
+      php # Menyediakan interpreter PHP untuk linting bawaan (php -l)
+
+      # Guix menggunakan systemd-service
     ];
 
     programs.vscodium = {
       enable = true;
+      argvSettings = {
+        ignore-gpu-blocklist = true;
+        enable-crash-reporter = false;
+        disable-gpu-compositing = false;
+      };
+      mutableExtensionsDir = false;
       profiles.default = {
         extensions = builtinExts ++ marketplaceExts;
         userSettings = {
@@ -230,6 +254,27 @@ in
           "[toml]" = {
             "editor.defaultFormatter" = "tamasfe.even-better-toml";
           };
+
+          # --- TAMBAHAN KONFIGURASI SQLFLUFF & PHP ---
+
+          # Konfigurasi SQLFluff (Dialek SQLite)
+          "sqlfluff.dialect" = "mysql";
+          "sqlfluff.executablePath" = "sqlfluff";
+          "sqlfluff.format.enabled" = true;
+          "sqlfluff.linter.run" = "onType";
+          "sqlfluff.linter.diagnosticSeverity" = "error";
+          "sqlfluff.format.arguments" = [ "--FIX-EVEN-UNPARSABLE" ];
+
+          # Tentukan Formatter Default per Bahasa
+          "[sql]" = {
+            "editor.defaultFormatter" = "sqlfluff.vscode-sqlfluff";
+          };
+
+          "[php]" = {
+            "editor.defaultFormatter" = "bmewburn.vscode-intelephense-client";
+          };
+
+          "intelephense.format.enable" = true;
         }
         //
           lib.genAttrs

@@ -8,20 +8,17 @@
   ...
 }:
 let
-  cfg = config.my.custompkgs.rebuild-wrapper;
+  cfg = config.my.user.scripts.rebuild-wrapper;
 
   userList = lib.mapAttrsToList (name: _: name) allUsers;
 
-  # Mendefinisikan script sebagai paket tersendiri
   rebuild-all-pkg = pkgs.writeShellScriptBin "rebuild-all" ''
     set -e
 
-    # --- DEFAULTS ---
     DO_SYSTEM=true
     DO_HOME=true
     SPECIFIC_USER=""
 
-    # --- PARSING OPSI ---
     while [[ $# -gt 0 ]]; do
       case "$1" in
         -s|--system)
@@ -36,7 +33,7 @@ let
             SPECIFIC_USER="$2"
             shift 2
           else
-            echo "❌ Error: Argumen untuk $1 hilang atau tidak valid."
+            echo "Error: Argumen untuk $1 hilang atau tidak valid."
             exit 1
           fi
           ;;
@@ -55,21 +52,20 @@ let
           exit 0
           ;;
         *)
-          echo "❌ Opsi tidak dikenal: $1"
+          echo "Opsi tidak dikenal: $1"
           echo "Gunakan --help untuk melihat daftar opsi."
           exit 1
           ;;
       esac
     done
 
-    echo "🚀 Memulai Proses Rebuild..."
+    echo "Memulai Proses Rebuild..."
 
     SOURCE_DIR=$(pwd)
     if [ ! -f "$SOURCE_DIR/flake.nix" ]; then
         SOURCE_DIR="${flakePath}"
     fi
 
-    # ─── Helper: jalankan perintah, tampilkan debug lengkap jika gagal ───
     run_or_fail() {
       local label="$1"
       shift
@@ -78,41 +74,28 @@ let
 
       set +e
       "$@" 2>&1 | tee "$tmplog"
-      local exit_code=''${PIPESTATUS[0]}
+      local exit_code=${PIPESTATUS[0]}
       set -e
 
       if [ "$exit_code" -ne 0 ]; then
         echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "❌  GAGAL: $label  (exit code: $exit_code)"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "GAGAL: $label  (exit code: $exit_code)"
 
-        # ── Cari .drv yang gagal dari output nh/nix ──
         local failed_drvs
         failed_drvs=$(grep -oP '/nix/store/[a-z0-9]+-[^ ]+\.drv' "$tmplog" | tail -5 || true)
         if [ -n "$failed_drvs" ]; then
           echo ""
-          echo "🔍 Log build derivasi yang gagal:"
-          echo "──────────────────────────────────────────────────"
+          echo "Log build derivasi yang gagal:"
           for drv in $failed_drvs; do
-            echo "▶ $drv"
-            ${pkgs.nix}/bin/nix log "$drv" 2>/dev/null | tail -40 || echo "  (tidak ada log tersedia)"
+            echo "$drv"
+            ${pkgs.nix}/bin/nix log "$drv" 2>/dev/null | tail -40 || echo "(tidak ada log tersedia)"
             echo ""
           done
         fi
 
-        # ── Systemd journal: activation errors ──
         echo ""
-        echo "📋 Systemd journal errors (saat booting/aktivasi ini):"
-        echo "──────────────────────────────────────────────────"
+        echo "Systemd journal errors:"
         ${pkgs.systemd}/bin/journalctl -b --priority=err --lines=40 --no-pager 2>/dev/null || true
-
-        echo ""
-        echo "💡 Tips debug lanjutan:"
-        echo "   • journalctl -b -p err -u <unit>  — log unit spesifik"
-        echo "   • systemctl status <unit>          — status unit yang gagal"
-        echo "   • nix log <path.drv>               — log build nix"
-        echo ""
 
         rm -f "$tmplog"
         exit "$exit_code"
@@ -121,16 +104,12 @@ let
       rm -f "$tmplog"
     }
 
-    # 1. Rebuild NixOS (Sistem)
     if [ "$DO_SYSTEM" = true ]; then
-      echo "📦 [SISTEM] Membangun ulang NixOS..."
+      echo "[SISTEM] Membangun ulang NixOS..."
       run_or_fail "NixOS System Switch" ${pkgs.nh}/bin/nh os switch "$SOURCE_DIR"
     fi
 
-    # 2. Rebuild Home Manager
     if [ "$DO_HOME" = true ]; then
-
-      # Determine target user: specific user or all users
       if [ -n "$SPECIFIC_USER" ]; then
         TARGET_USERS="$SPECIFIC_USER"
       else
@@ -138,7 +117,7 @@ let
       fi
 
       for user in $TARGET_USERS; do
-        echo "🏠 [USER: $user] Membangun ulang Home Manager..."
+        echo "[USER: $user] Membangun ulang Home Manager..."
 
         BACKUP_EXT="backup-$(date +%s)"
 
@@ -158,19 +137,16 @@ let
       done
     fi
 
-    echo "✅ Selesai! Tugas rebuild yang diminta telah diperbarui."
+    echo "Selesai! Tugas rebuild yang diminta telah diperbarui."
   '';
-
 in
 {
-  # Declarative option for this module
-  options.my.custompkgs.rebuild-wrapper = {
+  options.my.user.scripts.rebuild-wrapper = {
     enable = lib.mkEnableOption "automated system and user rebuild script";
   };
 
-  # Apply configuration only when enabled
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
+    home.packages = [
       rebuild-all-pkg
     ];
   };

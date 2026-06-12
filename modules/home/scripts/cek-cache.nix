@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.my.custompkgs.cek-cache;
+  cfg = config.my.user.scripts.cek-cache;
 
   cek-cache-pkg = pkgs.writeShellApplication {
     name = "cek-cache";
@@ -50,12 +50,12 @@ let
   };
 in
 {
-  options.my.custompkgs.cek-cache = {
+  options.my.user.scripts.cek-cache = {
     enable = lib.mkEnableOption "Check package in /nix/store";
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
+    home.packages = [
       cek-cache-pkg
     ];
   };

@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -24,6 +23,7 @@ in
       flatpak.enable = true;
       udisks2.enable = true;
       vnstat.enable = true;
+      fstrim.enable = true;
 
       btrfs.autoScrub = {
         enable = true;
@@ -31,8 +31,8 @@ in
       };
 
       journald.extraConfig = ''
-        SystemMaxUse=100M
-        SystemMaxFileSize=10M
+        SystemMaxUse=250M
+        SystemMaxFileSize=50M
         Storage=persistent
         SyncIntervalSec=5m
         MaxRetentionSec=7day
@@ -42,7 +42,6 @@ in
         ACTION=="add|change", KERNEL=="sd[a-z]|mmcblk[0-9]*|nvme[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="kyber"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 
-        ACTION=="add|change", SUBSYSTEM=="net", RUN+="${pkgs.ethtool}/bin/ethtool -K $name gro off gso off tso off"
       '';
     };
 

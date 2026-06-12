@@ -25,10 +25,9 @@ in
         claude-code
         aider-chat
         cachix
+        codex
 
-      ]
-      ++ [
-        inputs.codex-cli-nix.packages.${pkgs.system}.default
       ];
+
   };
 }

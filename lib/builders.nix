@@ -8,12 +8,16 @@
   adminUser,
   allUsers,
   baseArgs,
-  commonSpecialArgs,
   homeModules,
   commonModules,
 }:
 
 let
+  specialArgs = baseArgs // {
+    userName = adminUser;
+    fullName = allUsers.${adminUser}.fullName;
+  };
+
   # Standalone Home Manager configurations (one per user)
   mkHomeConfigurations = lib.mapAttrs' (name: user: {
     name = "${name}@${hostName}";
@@ -34,7 +38,7 @@ let
   mkNixosConfigurations = {
     ${hostName} = lib.nixosSystem {
       inherit pkgs;
-      specialArgs = commonSpecialArgs;
+      inherit specialArgs;
       modules = commonModules ++ [
         { boot.kernelPackages = pkgs.linuxPackages_zen; }
       ];

@@ -15,7 +15,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
       # bitwarden-desktop
-      # ayugram-desktop
+      ayugram-desktop
       # materialgram
       ente-auth
       tradingview

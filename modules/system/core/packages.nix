@@ -33,7 +33,6 @@ in
       fish.enable = true;
       dconf.enable = true;
       fuse.userAllowOther = true;
-      nix-index-database.comma.enable = true;
     };
 
     environment.systemPackages = with pkgs; [
