@@ -9,7 +9,8 @@ let
   cfg = config.my.desktop.kde;
 in
 {
-  options = selfLib.mkNestedEnable "desktop.kde" // {
+  options = selfLib.mkNestedOptions "desktop.kde" {
+    enable = lib.mkEnableOption "desktop.kde";
     unstable = lib.mkEnableOption "Use unstable packages for KDE";
   };
 

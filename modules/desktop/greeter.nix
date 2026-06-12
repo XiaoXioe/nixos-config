@@ -9,7 +9,8 @@ let
   cfg = config.my.desktop.greeter;
 in
 {
-  options = selfLib.mkNestedEnable "desktop.greeter" // {
+  options = selfLib.mkNestedOptions "desktop.greeter" {
+    enable = lib.mkEnableOption "desktop.greeter";
     backend = lib.mkOption {
       type = lib.types.enum [
         "dms"

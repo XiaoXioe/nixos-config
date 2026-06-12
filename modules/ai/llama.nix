@@ -9,7 +9,8 @@ let
   cfg = config.my.ai.llama;
 in
 {
-  options = selfLib.mkNestedEnable "ai.llama" // {
+  options = selfLib.mkNestedOptions "ai.llama" {
+    enable = lib.mkEnableOption "ai.llama";
     package = lib.mkOption {
       type = lib.types.package;
       description = "Llama.cpp yang dioptimalkan untuk arsitektur Ivy Bridge";
