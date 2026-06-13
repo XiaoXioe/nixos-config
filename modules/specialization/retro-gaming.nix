@@ -1,17 +1,14 @@
 {
-  config,
   pkgs,
   lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.specialization.retro-gaming;
-in
-{
-  options = selfLib.mkNestedEnable "specialization.retro-gaming";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "specialization.retro-gaming";
+
+  nixosConfig = {
     specialisation."retro-mode".configuration = {
       system.nixos.tags = [ "retro-gaming-ps" ];
       environment.systemPackages = with pkgs; [

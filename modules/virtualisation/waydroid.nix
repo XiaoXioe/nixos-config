@@ -6,13 +6,12 @@
   ...
 }:
 let
-  cfg = config.my.virtualisation.waydroid;
   waydroidUsers = config.my.users;
 in
-{
-  options = selfLib.mkNestedEnable "virtualisation.waydroid";
+selfLib.mkModule {
+  name = "virtualisation.waydroid";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
     environment.systemPackages = with pkgs; [

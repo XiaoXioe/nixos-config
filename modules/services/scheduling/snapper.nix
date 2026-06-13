@@ -6,15 +6,13 @@
 }:
 
 let
-  cfg = config.my.services.scheduling.snapper;
-
   # Daftar nama user yang dikonfigurasi
   userNames = lib.mapAttrsToList (name: _: name) config.my.users;
 in
-{
-  options = selfLib.mkNestedEnable "services.scheduling.snapper";
+selfLib.mkModule {
+  name = "services.scheduling.snapper";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     # ===========================================================
     # SNAPPER — BTRFS auto-snapshots for /persist and /home
     #

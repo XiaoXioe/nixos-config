@@ -1,21 +1,11 @@
-{
-  config,
-  lib,
-  selfLib,
-  ...
-}:
+{ config, lib, selfLib, ... }:
 
-let
-  cfg = config.my.services.boot-speedup;
-  inherit (lib) mkIf mkForce;
-in
-{
-  options = selfLib.mkNestedEnable "services.boot-speedup.fwupd";
-
-  config = mkIf (cfg.enable && cfg.fwupd.enable) {
-    services.fwupd.enable = mkForce false;
-    systemd.services.fwupd-refresh.enable = mkForce false;
-    systemd.timers.fwupd-refresh.enable = mkForce false;
-    systemd.services.fwupd.enable = mkForce false;
+selfLib.mkModule {
+  name = "services.boot-speedup.fwupd";
+  nixosConfig = lib.mkIf config.my.services.boot-speedup.enable {
+    services.fwupd.enable = lib.mkForce false;
+    systemd.services.fwupd-refresh.enable = lib.mkForce false;
+    systemd.timers.fwupd-refresh.enable = lib.mkForce false;
+    systemd.services.fwupd.enable = lib.mkForce false;
   };
 }

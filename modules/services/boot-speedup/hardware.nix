@@ -1,19 +1,9 @@
-{
-  config,
-  lib,
-  selfLib,
-  ...
-}:
+{ config, lib, selfLib, ... }:
 
-let
-  cfg = config.my.services.boot-speedup;
-  inherit (lib) mkIf mkForce;
-in
-{
-  options = selfLib.mkNestedEnable "services.boot-speedup.hardware";
-
-  config = mkIf (cfg.enable && cfg.hardware.enable) {
+selfLib.mkModule {
+  name = "services.boot-speedup.hardware";
+  nixosConfig = lib.mkIf config.my.services.boot-speedup.enable {
     services.printing.enable = false;
-    hardware.bluetooth.enable = mkForce false;
+    hardware.bluetooth.enable = lib.mkForce false;
   };
 }

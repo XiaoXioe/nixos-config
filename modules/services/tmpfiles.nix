@@ -1,17 +1,13 @@
 {
   config,
-  lib,
   selfLib,
   ...
 }:
 
-let
-  cfg = config.my.services.tmpfiles;
-in
-{
-  options = selfLib.mkNestedEnable "services.tmpfiles";
+selfLib.mkModule {
+  name = "services.tmpfiles";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     systemd.tmpfiles.rules = [
       # Format: Tipe | Path | Mode | User | Group | Atribut Tambahan
 

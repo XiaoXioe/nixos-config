@@ -7,17 +7,16 @@
 }:
 
 let
-  cfg = config.my.services.networking.vpn;
   vpnDir = ../../../secrets/vpn-files;
   vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
   vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
     builtins.attrNames vpnFilesRaw
   );
 in
-{
-  options = selfLib.mkNestedEnable "services.networking.vpn";
+selfLib.mkModule {
+  name = "services.networking.vpn";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     networking.networkmanager.enable = true;
     systemd.services.nm-import-proton = {
       description = "Auto import VPNs to NetworkManager";

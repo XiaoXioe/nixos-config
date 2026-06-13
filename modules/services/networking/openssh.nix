@@ -5,13 +5,11 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.services.networking.openssh;
-in
-{
-  options = selfLib.mkNestedEnable "services.networking.openssh";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "services.networking.openssh";
+
+  nixosConfig = {
     environment.systemPackages = with pkgs; [
       sshfs
     ];

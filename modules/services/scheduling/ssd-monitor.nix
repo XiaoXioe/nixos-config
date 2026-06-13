@@ -1,17 +1,13 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.services.scheduling.ssd-monitor;
-in
-{
-  options = selfLib.mkNestedEnable "services.scheduling.ssd-monitor";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "services.scheduling.ssd-monitor";
+
+  nixosConfig = {
     environment.systemPackages = [ pkgs.smartmontools ];
 
     systemd.timers."ssd-tracker" = {

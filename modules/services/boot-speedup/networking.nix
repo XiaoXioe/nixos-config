@@ -1,18 +1,8 @@
-{
-  config,
-  lib,
-  selfLib,
-  ...
-}:
+{ config, lib, selfLib, ... }:
 
-let
-  cfg = config.my.services.boot-speedup;
-  inherit (lib) mkIf;
-in
-{
-  options = selfLib.mkNestedEnable "services.boot-speedup.networking";
-
-  config = mkIf (cfg.enable && cfg.networking.enable) {
+selfLib.mkModule {
+  name = "services.boot-speedup.networking";
+  nixosConfig = lib.mkIf config.my.services.boot-speedup.enable {
     systemd.services.NetworkManager-wait-online.enable = false;
     systemd.services.ModemManager.enable = false;
   };

@@ -1,18 +1,14 @@
 {
-  config,
   pkgs,
   lib,
   selfLib,
   ...
 }:
 
-let
-  cfg = config.my.services.scheduling.ananicy;
-in
-{
-  options = selfLib.mkNestedEnable "services.scheduling.ananicy";
+selfLib.mkModule {
+  name = "services.scheduling.ananicy";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     services.ananicy = {
       enable = true;
       package = pkgs.ananicy-cpp;

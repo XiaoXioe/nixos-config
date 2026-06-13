@@ -1,17 +1,13 @@
 {
   config,
-  lib,
   selfLib,
   ...
 }:
 
-let
-  cfg = config.my.services.networking.dns;
-in
-{
-  options = selfLib.mkNestedEnable "services.networking.dns";
+selfLib.mkModule {
+  name = "services.networking.dns";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     # 1. Configuration template
     sops.templates."dnscrypt-proxy.toml" = {
       # Use root as owner to avoid missing-user evaluation errors

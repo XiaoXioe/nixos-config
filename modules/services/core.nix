@@ -1,17 +1,12 @@
 {
-  config,
-  lib,
   selfLib,
   ...
 }:
 
-let
-  cfg = config.my.services.core;
-in
-{
-  options = selfLib.mkNestedEnable "services.core";
+selfLib.mkModule {
+  name = "services.core";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     services = {
       guix.enable = true;
       thermald.enable = true;
@@ -36,7 +31,6 @@ in
       udev.extraRules = ''
         ACTION=="add|change", KERNEL=="sd[a-z]|mmcblk[0-9]*|nvme[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="kyber"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
-
       '';
     };
 
