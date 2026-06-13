@@ -18,7 +18,7 @@ selfLib.mkModule {
     in
     {
       users.users = lib.mapAttrs (_name: _: { extraGroups = [ "docker" ]; }) (
-        lib.filterAttrs (_name: userCfg: userCfg.userFeatures.docker or false) config.my.users
+        lib.filterAttrs (_name: userCfg: userCfg.userFeatures.virtualisation.docker or false) config.my.users
       );
 
       programs.virt-manager.enable = true;
