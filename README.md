@@ -8,63 +8,47 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 .
 ├── flake.nix                    # Entry point — inputs, outputs, wiring
 ├── lib/
-│   ├── default.nix              # scanPaths, forAllUsers helpers
-│   ├── builders.nix             # NixOS + Home Manager builder functions
-│   └── users.nix                # User definitions with feature flags
+│   ├── default.nix              # Public API for custom library functions
+│   ├── modules.nix              # Unified mkModule builder
+│   ├── builders.nix             # NixOS + Home Manager configuration builders
+│   └── users.nix                # User definitions and feature flags
 │
 ├── hosts/
 │   └── nixos/
-│       ├── default.nix          # Host-specific overrides (minimal)
-│       ├── home.nix             # Maps userFeatures → home module toggles
+│       ├── default.nix          # Host-specific overrides
+│       ├── home.nix             # Home Manager wiring
 │       └── hardware-configuration.nix
 │
 ├── modules/
-│   ├── system/                  # NixOS system modules
-│   │   ├── options/             # Central option declarations
-│   │   ├── core/                # Boot, locale, fonts, graphics, nix, pipewire, ...
-│   │   ├── security/            # Hardening, secrets, gnupg, pentest, ...
-│   │   ├── networking/          # DNS, OpenSSH, VPN, firewall
-│   │   ├── services/            # Snapper, ananicy, base services, ...
-│   │   ├── hardware/            # Mounting, impermanence (preservation)
-│   │   ├── desktop/             # Hyprland, Niri, KDE, GNOME, steam, ...
-│   │   ├── ai/                  # Ollama, llama.cpp, Open WebUI
-│   │   ├── virtualisation/      # Docker, Waydroid, libvirt
-│   │   ├── scripts/             # Custom CLI wrappers (rebuild-all, etc.)
-│   │   └── specialisation/      # Daily, retro-gaming specialisations
-│   │
-│   └── home/                    # Home Manager modules
-│       ├── applications/
-│       │   ├── browsers/        # Brave, Firefox, LibreWolf
-│       │   ├── dev/             # Git, SSH, Nemo, dev packages
-│       │   ├── editors/         # Neovim (NVF), VSCodium, Zed
-│       │   ├── terminal/        # Fish, Tmux, WezTerm, Starship, Fastfetch
-│       │   ├── media/           # Media players, music, office, social
-│       │   ├── gaming/          # Wine, game packages
-│       │   ├── packages/        # User packages + pentest tools
-│       │   └── custom/          # Custom packages from private repos
-│       ├── desktop/             # Caelestia, DMS, GTK themes
-│       ├── services/            # Rclone mount
-│       ├── settings/            # Symlinks, identity
-│       └── dotfiles/            # Config files (fish, hypr, niri, rmpc, ...)
+│   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI
+│   ├── apps/                    # Home Manager applications & user settings
+│   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire
+│   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri
+│   ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
+│   ├── options/                 # Custom global option declarations
+│   ├── scripts/                 # Custom CLI tools and scripts
+│   ├── security/                # Security & Secrets: sops, hardening, gnupg, pentest
+│   ├── services/                # System services: networking, vpn, snapper, ananicy
+│   ├── settings/                # HM settings: identity, file symlinks
+│   ├── specialization/          # Performance & Retro gaming modes
+│   └── virtualisation/          # Docker, Waydroid, libvirt
 │
 ├── secrets/                     # Encrypted via sops-nix (age)
-│   ├── secrets.yaml
-│   └── vpn-files/
+│   ├── secrets.yaml             # Main secrets file
+│   └── vpn-files/               # External VPN configuration files
 │
-└── packages-export.nix          # Exported packages (caelestia, llama, etc.)
+└── packages-export.nix          # Unified export for custom derivations
 ```
 
 ## ✨ Key Features
 
-- **Nix Flakes** — Pinned inputs, `nix flake check`, repro builds
-- **Auto-import modules** — `scanPaths` discovers new `.nix` files automatically
-- **Feature flags** — `lib/users.nix` controls per-user app toggles via `freeformType`
-- **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence
-- **Secrets** — Encrypted via `sops-nix`/age, decrypted at activation
-- **Multi-DE** — Hyprland, Niri, KDE Plasma, GNOME — switchable per boot
-- **AI stack** — Local LLMs via Ollama + llama.cpp, Open WebUI
-- **Hardened** — sudo-rs, fail2ban, GnuPG, keyring, nix-ld compat
-- **Performance** — Zen kernel, BBR, zram, ananicy-cpp, Btrfs optimisations
+- **Unified Module Builder (`mkModule`)** — Simplified syntax that handles options and config merging for both NixOS and Home Manager.
+- **Nix Flakes** — Pinned inputs and reproducible builds.
+- **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
+- **Feature flags** — Per-user features toggled via `lib/users.nix`.
+- **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
+- **Secrets Management** — `sops-nix` with SSH host key for effortless decryption.
+- **AI-Ready** — Local LLM integration optimized for hardware.
 
 ## 🛠️ Quick Start
 
@@ -82,16 +66,33 @@ rebuild-all --system
 rebuild-all --user klein-moretti
 ```
 
-## 👤 Adding a User Feature
+## 🧩 Unified Module Builder (`mkModule`)
 
-```bash
-# 1. Enable flag in lib/users.nix
-userFeatures = {
-  my-new-app = true;
-};
+All modules now use the unified `selfLib.mkModule` builder. It automatically creates an `enable` option and wraps the configuration in an `mkIf` guard.
 
-# 2. Create module in modules/home/applications/<category>/
-# scanPaths auto-imports it — no manual registration needed.
+### Simple Module
+```nix
+{ selfLib, ... }:
+selfLib.mkModule {
+  name = "core.pipewire";
+  nixosConfig = {
+    services.pipewire.enable = true;
+  };
+}
+```
+
+### Module with Options
+```nix
+{ lib, selfLib, ... }:
+selfLib.mkModule {
+  name = "virtualisation.docker";
+  options = {
+    autoUpdate = lib.mkEnableOption "Auto-update containers";
+  };
+  nixosConfig = {
+    virtualisation.docker.enable = true;
+  };
+}
 ```
 
 ## 🔐 Secrets
@@ -100,12 +101,11 @@ userFeatures = {
 sops secrets/secrets.yaml           # edit
 sops secrets/foto-profile.enc       # binary file
 ```
-
-Keys: `age1gktsu...` (host) + `age1yrd6...` (user).
+The system uses the SSH host key for decryption, so no manual key management is needed on the target machine.
 
 ## 💻 DevShell
 
-`nix develop` provides: `nixfmt` (formatter), `statix` (linter), `deadnix` (dead code), `nom` / `nvd` (build output).
+`nix develop` provides: `nixfmt` (formatter), `statix` (linter), `deadnix` (dead code), `nom` / `nvd` (build output analysis).
 
 ## ⚖️ License
 
