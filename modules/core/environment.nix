@@ -1,16 +1,7 @@
-{
-  config,
-  lib,
-  selfLib,
-  ...
-}:
-let
-  cfg = config.my.core.environment;
-in
-{
-  options = selfLib.mkNestedEnable "core.environment";
-
-  config = lib.mkIf cfg.enable {
+{ selfLib, ... }:
+selfLib.mkModule {
+  name = "core.environment";
+  nixosConfig = {
     environment.variables = {
       EDITOR = "codium -w";
 
@@ -38,16 +29,16 @@ in
       MOZ_ENABLE_WAYLAND = "1";
     };
 
-    environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
-      PasswordManagerEnabled = false;
-      BrowserSignin = 0;
-      BraveAIChatEnabled = false;
-      BraveP3AEnabled = false;
-      BraveStatsPingEnabled = false;
-      BraveWebDiscoveryEnabled = false;
-      BraveWalletDisabled = true;
-      BraveRewardsDisabled = true;
-      BraveVPNDisabled = true;
-    };
+    # environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
+    #   PasswordManagerEnabled = false;
+    #   BrowserSignin = 0;
+    #   BraveAIChatEnabled = false;
+    #   BraveP3AEnabled = false;
+    #   BraveStatsPingEnabled = false;
+    #   BraveWebDiscoveryEnabled = false;
+    #   BraveWalletDisabled = true;
+    #   BraveRewardsDisabled = true;
+    #   BraveVPNDisabled = true;
+    # };
   };
 }

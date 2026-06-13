@@ -4,16 +4,20 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.ai.ollama;
-in
-{
-  options = selfLib.mkNestedEnable "ai.ollama";
+selfLib.mkModule {
+  name = "ai.ollama";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     services.ollama = {
       enable = true;
-      acceleration = "cuda"; # atau false jika tidak pakai GPU
+      models = "/mnt/data_btrfs/ollama_storage/models";
+    };
+
+    systemd.services.ollama = {
+      wantedBy = lib.mkForce [ ];
+      serviceConfig = {
+        EnvironmentFile = [ config.sops.secrets."ollama-env".path ];
+      };
     };
   };
 }

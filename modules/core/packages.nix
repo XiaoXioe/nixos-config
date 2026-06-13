@@ -1,17 +1,13 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.core.packages;
-in
-{
-  options = selfLib.mkNestedEnable "core.packages";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "core.packages";
+
+  nixosConfig = {
     programs = {
       nano = {
         # Enable syntax highlighting
@@ -27,7 +23,6 @@ in
         '';
       };
 
-      fish.enable = true;
       dconf.enable = true;
       fuse.userAllowOther = true;
     };

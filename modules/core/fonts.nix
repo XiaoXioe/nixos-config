@@ -1,17 +1,11 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.core.fonts;
-in
-{
-  options = selfLib.mkNestedEnable "core.fonts";
-
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "core.fonts";
+  nixosConfig = {
     fonts.fontDir.enable = true;
     fonts.packages = with pkgs; [
       adwaita-fonts

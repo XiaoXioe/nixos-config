@@ -5,13 +5,9 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.core.nix;
-in
-{
-  options = selfLib.mkNestedEnable "core.nix";
-
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "core.nix";
+  nixosConfig = {
     nix = {
       settings = {
         # Substituters + priority

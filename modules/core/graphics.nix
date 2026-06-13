@@ -1,17 +1,11 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.core.graphics;
-in
-{
-  options = selfLib.mkNestedEnable "core.graphics";
-
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "core.graphics";
+  nixosConfig = {
     hardware.graphics = {
       enable = true;
       enable32Bit = true;

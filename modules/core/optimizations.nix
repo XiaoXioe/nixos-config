@@ -1,16 +1,7 @@
-{
-  config,
-  lib,
-  selfLib,
-  ...
-}:
-let
-  cfg = config.my.core.optimizations;
-in
-{
-  options = selfLib.mkNestedEnable "core.optimizations";
-
-  config = lib.mkIf cfg.enable {
+{ selfLib, ... }:
+selfLib.mkModule {
+  name = "core.optimizations";
+  nixosConfig = {
     powerManagement = {
       enable = true;
       cpuFreqGovernor = "schedutil";

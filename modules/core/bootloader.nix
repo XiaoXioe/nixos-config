@@ -6,8 +6,6 @@
   ...
 }:
 let
-  cfg = config.my.core.bootloader;
-
   grubfm-efi = pkgs.stdenv.mkDerivation rec {
     pname = "grubfm";
     version = "latest";
@@ -31,10 +29,9 @@ let
   };
 
 in
-{
-  options = selfLib.mkNestedEnable "core.bootloader";
-
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "core.bootloader";
+  nixosConfig = {
     boot.loader.systemd-boot.enable = lib.mkForce false;
     boot.loader.efi.canTouchEfiVariables = true;
     boot.loader.efi.efiSysMountPoint = "/boot/efi";

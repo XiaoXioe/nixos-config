@@ -4,17 +4,25 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.ai.open-webui;
-in
-{
-  options = selfLib.mkNestedEnable "ai.open-webui";
+selfLib.mkModule {
+  name = "ai.open-webui";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     services.open-webui = {
       enable = true;
+      port = 8081;
       host = "127.0.0.1";
-      port = 8080;
+      environment = {
+        OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+      };
     };
+
+    systemd.services.open-webui = {
+      wantedBy = lib.mkForce [ ];
+      bindsTo = [ "ollama.service" ];
+      after = [ "ollama.service" ];
+    };
+
+    systemd.services.ollama.wants = [ "open-webui.service" ];
   };
 }
