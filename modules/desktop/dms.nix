@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   inputs,
   selfLib,
@@ -12,6 +11,9 @@ selfLib.mkModule {
 
   hmConfig = {
     imports = [ inputs.dms.homeModules.dank-material-shell ];
-    programs.dank-material-shell = { dgop.package = pkgs.dgop; enable = true; };
+    programs.dank-material-shell = {
+      dgop.package = pkgs.dgop;
+      enable = true;
+    };
   };
 }

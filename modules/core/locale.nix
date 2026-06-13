@@ -20,21 +20,23 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = let
-    cfg = config.my.core.locale;
-  in {
-    time.timeZone = cfg.timezone;
-    i18n.defaultLocale = cfg.locale;
+  nixosConfig =
+    let
+      cfg = config.my.core.locale;
+    in
+    {
+      time.timeZone = cfg.timezone;
+      i18n.defaultLocale = cfg.locale;
 
-    # Disable documentation generation to speed up rebuilds.
-    documentation = {
-      enable = false;
-      man.cache.enable = false;
-      dev.enable = false;
-      man.enable = false;
-      info.enable = false;
-      doc.enable = false;
-      nixos.enable = false;
+      # Disable documentation generation to speed up rebuilds.
+      documentation = {
+        enable = false;
+        man.cache.enable = false;
+        dev.enable = false;
+        man.enable = false;
+        info.enable = false;
+        doc.enable = false;
+        nixos.enable = false;
+      };
     };
-  };
 }

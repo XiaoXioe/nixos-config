@@ -102,120 +102,122 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = let
-    cfg = config.my.hardware.preservation;
-  in {
-    boot.initrd.systemd.enable = true;
-    boot.initrd.systemd.services.wipe-btrfs-root = lib.mkIf cfg.ephemeralRoot {
-      description = "Wipe BTRFS root and home subvolumes";
-      wantedBy = [ "initrd.target" ];
-      after = [ "initrd-root-device.target" ];
-      before = [ "sysroot.mount" ];
-      unitConfig.DefaultDependencies = "no";
-      serviceConfig.Type = "oneshot";
-      script = wipeRootScript;
-    };
-    boot.initrd.supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
+  nixosConfig =
+    let
+      cfg = config.my.hardware.preservation;
+    in
+    {
+      boot.initrd.systemd.enable = true;
+      boot.initrd.systemd.services.wipe-btrfs-root = lib.mkIf cfg.ephemeralRoot {
+        description = "Wipe BTRFS root and home subvolumes";
+        wantedBy = [ "initrd.target" ];
+        after = [ "initrd-root-device.target" ];
+        before = [ "sysroot.mount" ];
+        unitConfig.DefaultDependencies = "no";
+        serviceConfig.Type = "oneshot";
+        script = wipeRootScript;
+      };
+      boot.initrd.supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
 
-    preservation.enable = true;
-    preservation.preserveAt."${persistBase}" = {
-      directories = [
-        "/var/lib/nixos"
-        "/var/lib/sddm"
-        "/var/lib/systemd"
-        "/var/lib/NetworkManager"
-        "/var/lib/9router"
-        "/etc/NetworkManager/system-connections"
-        "/var/lib/bluetooth"
-        "/var/lib/waydroid"
-        "/root"
-        "/var/lib/libvirt"
-        "/var/lib/vnstat"
-        "/var/lib/tor"
-        {
-          directory = "/var/lib/private/ollama";
-          mode = "0700";
-        }
-        {
-          directory = "/var/lib/private/open-webui";
-          mode = "0700";
-        }
-      ]
-      ++ cfg.extraDirectories;
-
-      files = [
-        {
-          file = "/etc/machine-id";
-          # machine-id must be available very early in initrd
-          inInitrd = true;
-        }
-        {
-          file = "/etc/ssh/ssh_host_ed25519_key";
-          # Use symlink to preserve SSH key permissions (0600)
-          how = "symlink";
-          configureParent = true;
-        }
-        {
-          file = "/etc/ssh/ssh_host_ed25519_key.pub";
-          how = "symlink";
-          configureParent = true;
-        }
-        {
-          file = "/etc/ssh/ssh_host_rsa_key";
-          how = "symlink";
-          configureParent = true;
-        }
-        {
-          file = "/etc/ssh/ssh_host_rsa_key.pub";
-          how = "symlink";
-          configureParent = true;
-        }
-      ]
-      ++ cfg.extraFiles;
-
-      users = lib.mapAttrs (_name: _userCfg: {
+      preservation.enable = true;
+      preservation.preserveAt."${persistBase}" = {
         directories = [
-          "Desktop"
-          ".BurpSuite"
-          ".config"
-          ".claude"
-          ".codex"
-          ".java"
-          ".local/share"
-          ".local/state"
-          ".librewolf"
-          ".steam"
-          ".vscode-oss"
-          ".cache/nix"
-          ".cache/mozilla"
-          ".cache/rclone"
+          "/var/lib/nixos"
+          "/var/lib/sddm"
+          "/var/lib/systemd"
+          "/var/lib/NetworkManager"
+          "/var/lib/9router"
+          "/etc/NetworkManager/system-connections"
+          "/var/lib/bluetooth"
+          "/var/lib/waydroid"
+          "/root"
+          "/var/lib/libvirt"
+          "/var/lib/vnstat"
+          "/var/lib/tor"
           {
-            directory = ".ssh";
+            directory = "/var/lib/private/ollama";
             mode = "0700";
           }
           {
-            directory = ".gnupg";
+            directory = "/var/lib/private/open-webui";
             mode = "0700";
           }
-          {
-            directory = ".android";
-            mode = "0700";
-          }
-          "PersistentData"
-          ".antigravity"
-          ".gemini"
-          "nixos-config"
-          "nix-custompkgs"
-          "nix-custompkg-priv"
-          "freqtrade-dev"
-        ];
+        ]
+        ++ cfg.extraDirectories;
+
         files = [
-          "link.txt"
-          ".bash_history"
-          ".claude.json"
-        ];
-      }) allUsers;
+          {
+            file = "/etc/machine-id";
+            # machine-id must be available very early in initrd
+            inInitrd = true;
+          }
+          {
+            file = "/etc/ssh/ssh_host_ed25519_key";
+            # Use symlink to preserve SSH key permissions (0600)
+            how = "symlink";
+            configureParent = true;
+          }
+          {
+            file = "/etc/ssh/ssh_host_ed25519_key.pub";
+            how = "symlink";
+            configureParent = true;
+          }
+          {
+            file = "/etc/ssh/ssh_host_rsa_key";
+            how = "symlink";
+            configureParent = true;
+          }
+          {
+            file = "/etc/ssh/ssh_host_rsa_key.pub";
+            how = "symlink";
+            configureParent = true;
+          }
+        ]
+        ++ cfg.extraFiles;
+
+        users = lib.mapAttrs (_name: _userCfg: {
+          directories = [
+            "Desktop"
+            ".BurpSuite"
+            ".config"
+            ".claude"
+            ".codex"
+            ".java"
+            ".local/share"
+            ".local/state"
+            ".librewolf"
+            ".steam"
+            ".vscode-oss"
+            ".cache/nix"
+            ".cache/mozilla"
+            ".cache/rclone"
+            {
+              directory = ".ssh";
+              mode = "0700";
+            }
+            {
+              directory = ".gnupg";
+              mode = "0700";
+            }
+            {
+              directory = ".android";
+              mode = "0700";
+            }
+            "PersistentData"
+            ".antigravity"
+            ".gemini"
+            "nixos-config"
+            "nix-custompkgs"
+            "nix-custompkg-priv"
+            "freqtrade-dev"
+          ];
+          files = [
+            "link.txt"
+            ".bash_history"
+            ".claude.json"
+          ];
+        }) allUsers;
+      };
+      systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
     };
-    systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
-  };
 }

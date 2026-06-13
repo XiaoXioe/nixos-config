@@ -1,4 +1,4 @@
-{ selfLib, ... }:
+{ ... }:
 {
   imports = [
     ./registry.nix

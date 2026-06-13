@@ -1,7 +1,5 @@
 {
-  config,
   pkgs,
-  lib,
   inputs,
   selfLib,
   ...
@@ -15,13 +13,21 @@ selfLib.mkModule {
   name = "apps.custompkgs";
   description = "Custom packages";
 
-  hmConfig = {
-    imports = [ inputs.custompkgs.homeManagerModules.freqtrade-setup ];
+  hmConfig = { config, ... }: {
+    imports = [ inputs.custompkgs.homeModules.freqtrade-setup ];
     programs.freqtrade-setup = {
       enable = true;
       configDir = "${config.home.homeDirectory}/freqtrade-dev";
       branch = "stable";
-      extraPip = [ "scipy" "optuna" "plotly" "pykalman" "PyWavelets" "statsmodels" "scikit-learn" ];
+      extraPip = [
+        "scipy"
+        "optuna"
+        "plotly"
+        "pykalman"
+        "PyWavelets"
+        "statsmodels"
+        "scikit-learn"
+      ];
       service = {
         enable = false;
         bots.bot-utama = {
@@ -32,6 +38,15 @@ selfLib.mkModule {
         };
       };
     };
-    home.packages = [ custom.vimmdl custom.disbox custom.binance custom.streambert priv.anichin-scraper priv.lk21-scraper priv.burpsuitepro ];
+    home.packages = [
+      custom.vimmdl
+      custom.disbox
+      custom.binance
+      custom.streambert
+
+      priv.anichin-scraper
+      priv.lk21-scraper
+      priv.burpsuitepro
+    ];
   };
 }

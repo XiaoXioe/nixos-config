@@ -1,97 +1,116 @@
 {
-  config,
-  lib,
+  selfLib,
   pkgs,
   flakePath,
-  selfLib,
   ...
 }:
 
-let
-  cfg = config.my.apps.terminal.fish;
-in
-{
-  options = selfLib.mkNestedEnable "apps.terminal.fish";
+selfLib.mkModule {
+  name = "apps.terminal.fish";
+  description = "Fish configuration";
 
-  config = lib.mkIf cfg.enable {
-    home-manager.users.${config.my.user.name} = {
-      # --- FZF: Fuzzy Finder ---
-      programs.fzf = {
-        enable = true;
-        enableFishIntegration = true;
-        colors = {
-          "bg+" = "#3b4252";
-          "fg+" = "#e5e9f0";
-          "hl+" = "#81a1c1";
-          "pointer" = "#b48ead";
-          "marker" = "#a3be8c";
-        };
-        defaultOptions = [
-          "--preview 'echo {}'"
-          "--preview-window down:3:wrap"
-        ];
+  nixosConfig = {
+    programs.fish.enable = true;
+  };
+
+  hmConfig = { config, ... }: {
+    # --- FZF: Fuzzy Finder ---
+    programs.fzf = {
+      enable = true;
+      enableFishIntegration = true;
+      colors = {
+        "bg+" = "#3b4252";
+        "fg+" = "#e5e9f0";
+        "hl+" = "#81a1c1";
+        "pointer" = "#b48ead";
+        "marker" = "#a3be8c";
       };
-
-      programs.direnv = {
-        enable = true;
-        nix-direnv.enable = true;
-      };
-
-      # --- Zoxide: Pengganti 'cd' yang cerdas ---
-      programs.zoxide = {
-        enable = true;
-        enableFishIntegration = true;
-      };
-
-      # --- Eza: Pengganti 'ls' modern ---
-      programs.eza = {
-        enable = true;
-        enableFishIntegration = true;
-        icons = "auto";
-        git = true;
-      };
-
-      programs.fish = {
-        enable = true;
-        interactiveShellInit = ''
-          set -g fish_greeting
-          set -g fish_history_filter '^[ ]'
-          set -p fish_function_path $HOME/.config/fish/functions/custom
-          set -lx NINEROUTER_KEY (cat /run/secrets/ninerouter-key)
-
-          set -g fish_color_command cdd6f4
-          set -g fish_color_param 89b4fa
-          set -g fish_color_quote f9e2af
-          set -g fish_color_error f38ba8
-          set -g fish_color_escape f5c2e7
-          set -g fish_color_operator 94e2d5
-        '';
-
-        plugins = with pkgs.fishPlugins; [
-          { name = "async-prompt"; src = async-prompt; }
-          { name = "autopair"; src = autopair; }
-        ];
-
-        shellAbbrs = {
-          gl = "gallery-dl";
-          aria = "aria2c -x16 -s16 -c '' -o ''";
-        };
-
-        shellAliases = {
-          ls = "eza --icons=auto";
-          ll = "eza -lh --icons=auto --git";
-          la = "eza -lah --icons=auto --git";
-          cd = "z";
-          ".." = "cd ..";
-          "..." = "cd ../..";
-          c = "clear";
-          sz = "sudo compsize -x";
-          squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
-        };
-      };
-
-      xdg.configFile."fish/functions/custom".source =
-        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/fish/functions";
+      defaultOptions = [
+        "--preview 'echo {}'"
+        "--preview-window down:3:wrap"
+      ];
     };
+
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+
+    programs.zoxide = {
+      enable = true;
+      enableFishIntegration = true;
+    };
+
+    programs.eza = {
+      enable = true;
+      enableFishIntegration = true;
+      icons = "auto";
+      git = true;
+    };
+
+    programs.fish = {
+      enable = true;
+      interactiveShellInit = ''
+        set -g fish_greeting
+        set -g fish_history_filter '^[ ]'
+        set -p fish_function_path $HOME/.config/fish/functions/custom
+        set -lx NINEROUTER_KEY (cat /run/secrets/ninerouter-key)
+
+        set -g fish_color_command cdd6f4
+        set -g fish_color_param 89b4fa
+        set -g fish_color_quote f9e2af
+        set -g fish_color_error f38ba8
+        set -g fish_color_escape f5c2e7
+        set -g fish_color_operator 94e2d5
+      '';
+
+      plugins = with pkgs.fishPlugins; [
+        {
+          name = "async-prompt";
+          src = async-prompt;
+        }
+        {
+          name = "autopair";
+          src = autopair;
+        }
+      ];
+
+      shellAbbrs = {
+        gl = "gallery-dl";
+        aria = "aria2c -x16 -s16 -c '' -o ''";
+      };
+
+      shellAliases = {
+
+        ls = "eza --icons=auto";
+        ll = "eza -lh --icons=auto --git";
+        la = "eza -lah --icons=auto --git";
+
+        cd = "z";
+        editnix = "codium ~/nixos-config";
+
+        ".." = "cd ..";
+        "..." = "cd ../..";
+
+        c = "clear";
+
+        sz = "sudo compsize -x";
+
+        rebuild = "sudo nixos-rebuild switch --flake ${flakePath} --print-build-logs --show-trace";
+        cln = "nh clean all --keep 3 --ask --optimise";
+        gcp = "git add . && git commit -m 'update' && git push";
+        nfu = "nix flake update --flake ${flakePath}";
+
+        # --- ALIAS NIXOS SYSTEM ---
+        osbuild = "nh os switch ${flakePath}";
+        ostest = "nh os test ${flakePath}";
+        osboot = "nh os boot ${flakePath}";
+
+        squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
+      };
+    };
+
+    xdg.configFile."fish/functions/custom".source =
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/fish/functions";
   };
 }

@@ -4,11 +4,17 @@
   ...
 }:
 let
-  mkGitCommitScript = cmdName: commitType: pkgs.writeShellApplication {
-    name = cmdName;
-    runtimeInputs = [ pkgs.git ];
-    text = "if [ \"$#\" -eq 0 ]; then exit 1; fi; git commit -m \"${commitType}: $*\";";
-  };
+  mkGitCommitScript =
+    cmdName: commitType:
+    pkgs.writeShellApplication {
+      name = cmdName;
+      runtimeInputs = [ pkgs.git ];
+      text = "
+      if [ \"$#\" -eq 0 ]; then 
+        exit 1; 
+      fi;
+      git commit -m \"${commitType}: $*\";";
+    };
 in
 selfLib.mkModule {
   name = "scripts.git-commits";
@@ -19,8 +25,13 @@ selfLib.mkModule {
       (pkgs.symlinkJoin {
         name = "git-conventional-commits-bundle";
         paths = [
-          (mkGitCommitScript "gcfeat" "feat") (mkGitCommitScript "gcfix" "fix") (mkGitCommitScript "gcchore" "chore")
-          (mkGitCommitScript "gcdocs" "docs") (mkGitCommitScript "gcstyle" "style") (mkGitCommitScript "gcref" "refactor") (mkGitCommitScript "gctest" "test")
+          (mkGitCommitScript "gcfeat" "feat")
+          (mkGitCommitScript "gcfix" "fix")
+          (mkGitCommitScript "gcchore" "chore")
+          (mkGitCommitScript "gcdocs" "docs")
+          (mkGitCommitScript "gcstyle" "style")
+          (mkGitCommitScript "gcref" "refactor")
+          (mkGitCommitScript "gctest" "test")
         ];
       })
     ];

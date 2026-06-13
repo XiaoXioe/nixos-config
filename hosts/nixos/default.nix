@@ -59,12 +59,13 @@
 
     services = {
       core.enable = true;
-      openssh.enable = true;
       tmpfiles.enable = true;
       networking = {
         dns.enable = true;
         vpn.enable = true;
+        openssh.enable = true;
       };
+
       scheduling = {
         ananicy.enable = true;
         snapper.enable = true;
@@ -87,7 +88,6 @@
     desktop = {
       kde.enable = true;
       niri.enable = true;
-      steam.enable = true;
       gnome.enable = false;
       greeter.enable = true;
     };

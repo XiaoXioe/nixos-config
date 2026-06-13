@@ -42,54 +42,56 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = let
-    cfg = config.my.services.scheduling.gamemode;
-  in {
-    # Kunci CPU di frekuensi hemat setiap kali sistem booting
-    # (gunakan systemd service karena tmpfiles tidak mendukung glob path)
-    systemd.services.cpu-freq-idle = {
-      description = "Set CPU max frequency to idle limit on boot";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "systemd-modules-load.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${pkgs.bash}/bin/bash -c 'echo ${toString cfg.idleFreqKHz} | tee /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq > /dev/null'";
-      };
-    };
-
-    # Izinkan user menjalankan kedua script tanpa password sudo
-    security.sudo-rs.extraRules = [
-      {
-        users = [ cfg.user ];
-        commands = [
-          {
-            command = "${gameModeStart}/bin/gamemode-start";
-            options = [ "NOPASSWD" ];
-          }
-          {
-            command = "${gameModeEnd}/bin/gamemode-end";
-            options = [ "NOPASSWD" ];
-          }
-        ];
-      }
-    ];
-
-    programs.gamemode = {
-      enable = true;
-      settings = {
-        general = {
-          # Berhenti mencoba mematikan split_lock
-          disable_splitlock = 0;
-
-          # Berhenti mencoba mengubah governor (karena kita sudah urus GHz-nya manual)
-          desiredgov = "schedutil";
-        };
-        custom = {
-          start = "/run/wrappers/bin/sudo ${gameModeStart}/bin/gamemode-start";
-          end = "/run/wrappers/bin/sudo ${gameModeEnd}/bin/gamemode-end";
+  nixosConfig =
+    let
+      cfg = config.my.services.scheduling.gamemode;
+    in
+    {
+      # Kunci CPU di frekuensi hemat setiap kali sistem booting
+      # (gunakan systemd service karena tmpfiles tidak mendukung glob path)
+      systemd.services.cpu-freq-idle = {
+        description = "Set CPU max frequency to idle limit on boot";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "systemd-modules-load.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${pkgs.bash}/bin/bash -c 'echo ${toString cfg.idleFreqKHz} | tee /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq > /dev/null'";
         };
       };
+
+      # Izinkan user menjalankan kedua script tanpa password sudo
+      security.sudo-rs.extraRules = [
+        {
+          users = [ cfg.user ];
+          commands = [
+            {
+              command = "${gameModeStart}/bin/gamemode-start";
+              options = [ "NOPASSWD" ];
+            }
+            {
+              command = "${gameModeEnd}/bin/gamemode-end";
+              options = [ "NOPASSWD" ];
+            }
+          ];
+        }
+      ];
+
+      programs.gamemode = {
+        enable = true;
+        settings = {
+          general = {
+            # Berhenti mencoba mematikan split_lock
+            disable_splitlock = 0;
+
+            # Berhenti mencoba mengubah governor (karena kita sudah urus GHz-nya manual)
+            desiredgov = "schedutil";
+          };
+          custom = {
+            start = "/run/wrappers/bin/sudo ${gameModeStart}/bin/gamemode-start";
+            end = "/run/wrappers/bin/sudo ${gameModeEnd}/bin/gamemode-end";
+          };
+        };
+      };
     };
-  };
 }

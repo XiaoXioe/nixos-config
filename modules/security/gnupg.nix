@@ -1,18 +1,13 @@
 {
-  config,
-  lib,
   pkgs,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.gnupg;
-in
-{
-  options = selfLib.mkNestedEnable "security.gnupg";
 
-  config = lib.mkIf cfg.enable {
-    # Enable GPG Agent
+selfLib.mkModule {
+  name = "security.gnupg";
+
+  nixosConfig = {
     programs.gnupg.agent = {
       enable = true;
       enableSSHSupport = true;

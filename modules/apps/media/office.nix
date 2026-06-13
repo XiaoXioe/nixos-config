@@ -9,10 +9,15 @@ selfLib.mkModule {
   description = "Office Apps for users";
 
   hmConfig = {
-    home.packages = with pkgs; [ zathura libreoffice ];
+    home.packages = with pkgs; [
+      zathura
+      libreoffice
+    ];
     programs.onlyoffice = {
       enable = true;
-      settings = { UITheme = "theme-contrast-dark"; };
+      settings = {
+        UITheme = "theme-contrast-dark";
+      };
     };
   };
 }

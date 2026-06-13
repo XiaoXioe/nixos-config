@@ -35,7 +35,7 @@ selfLib.mkModule {
     };
 
     systemd.coredump = {
-      enable = true;
+      enable = false;
       settings.Coredump = {
         Storage = "external";
         Compress = "yes";

@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   selfLib,
   ...
@@ -10,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.git";
   description = "user git configuration";
 
-  hmConfig = {
+  hmConfig = { config, osConfig, ... }: {
     home.packages = with pkgs; [
       diff-so-fancy
       git-crypt
@@ -31,7 +29,7 @@ selfLib.mkModule {
       package = pkgs.git;
       settings = {
         user = {
-          name = config.my.user.fullName;
+          name = osConfig.my.user.fullName;
           email = "169626976+XiaoXioe@users.noreply.github.com";
         };
         safe.directory = [

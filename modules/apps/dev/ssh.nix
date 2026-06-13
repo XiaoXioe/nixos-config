@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   flakePath,
   selfLib,
   ...
@@ -10,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.ssh";
   description = "Ssh configuration";
 
-  hmConfig = {
+  hmConfig = { config, ... }: {
     home.file.".ssh/config_raw".source =
       config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/ssh-config/config.conf";
     programs.ssh = {
@@ -18,7 +16,9 @@ selfLib.mkModule {
       enableDefaultConfig = false;
       includes = [ "~/.ssh/config_raw" ];
       settings = {
-        "*" = { SendEnv = "LANG LC_*"; };
+        "*" = {
+          SendEnv = "LANG LC_*";
+        };
         "github.com" = {
           Host = "github.com";
           User = "git";

@@ -52,9 +52,18 @@
   };
 
   options.my.user = {
-    name = lib.mkOption { type = lib.types.str; default = ""; };
-    fullName = lib.mkOption { type = lib.types.str; default = ""; };
-    flakePath = lib.mkOption { type = lib.types.str; default = ""; };
+    name = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+    };
+    fullName = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+    };
+    flakePath = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+    };
   };
 
   options.my.hostname = lib.mkOption {

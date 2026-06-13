@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   selfLib,
   ...
@@ -24,10 +22,6 @@ selfLib.mkModule {
         bind - split-window -v
         unbind '"'
         unbind %
-        bind h select-pane -L
-        bind j select-pane -D
-        bind k select-pane -U
-        bind l select-pane -R
         bind r source-file ~/.config/tmux/tmux.conf \; display "Tmux Reloaded!"
       '';
       plugins = with pkgs.tmuxPlugins; [

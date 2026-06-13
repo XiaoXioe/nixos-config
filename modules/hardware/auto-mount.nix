@@ -24,55 +24,57 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = let
-    cfg = config.my.hardware.auto-mount;
-  in {
-    fileSystems."/mnt/data" = {
-      device = cfg.dataDevice;
-      fsType = "ntfs-3g";
-      options = [
-        "rw"
-        "uid=1000"
-        "gid=100"
-        "dmask=0000"
-        "fmask=0000"
-        "exec"
-        "nofail"
-        "noatime"
-        "x-systemd.automount"
-        "x-systemd.mount-timeout=30s"
-      ];
-    };
+  nixosConfig =
+    let
+      cfg = config.my.hardware.auto-mount;
+    in
+    {
+      fileSystems."/mnt/data" = {
+        device = cfg.dataDevice;
+        fsType = "ntfs-3g";
+        options = [
+          "rw"
+          "uid=1000"
+          "gid=100"
+          "dmask=0000"
+          "fmask=0000"
+          "exec"
+          "nofail"
+          "noatime"
+          "x-systemd.automount"
+          "x-systemd.mount-timeout=30s"
+        ];
+      };
 
-    fileSystems."/mnt/data_btrfs" = {
-      device = cfg.btrfsDevice;
-      fsType = "btrfs";
-      options = [
-        "compress=zstd:6"
-        "noatime"
-        "nofail"
-        "discard=async"
-        "space_cache=v2"
-      ];
-    };
+      fileSystems."/mnt/data_btrfs" = {
+        device = cfg.btrfsDevice;
+        fsType = "btrfs";
+        options = [
+          "compress=zstd:6"
+          "noatime"
+          "nofail"
+          "discard=async"
+          "space_cache=v2"
+        ];
+      };
 
-    fileSystems."/mnt/btrfs-root" = {
-      device = cfg.btrfsRoot;
-      fsType = "btrfs";
-      options = [
-        "subvolid=5"
-        "defaults"
-        "noatime"
-        "noauto"
-        "x-systemd.automount"
-        "x-systemd.idle-timeout=1min"
-      ];
-    };
+      fileSystems."/mnt/btrfs-root" = {
+        device = cfg.btrfsRoot;
+        fsType = "btrfs";
+        options = [
+          "subvolid=5"
+          "defaults"
+          "noatime"
+          "noauto"
+          "x-systemd.automount"
+          "x-systemd.idle-timeout=1min"
+        ];
+      };
 
-    fileSystems."/var/lib/flatpak" = {
-      device = "/mnt/data_btrfs/flatpak-system";
-      fsType = "none";
-      options = [ "bind" ];
+      fileSystems."/var/lib/flatpak" = {
+        device = "/mnt/data_btrfs/flatpak-system";
+        fsType = "none";
+        options = [ "bind" ];
+      };
     };
-  };
 }

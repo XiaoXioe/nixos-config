@@ -10,7 +10,10 @@ selfLib.mkModule {
   description = "Nemo user settings";
 
   hmConfig = {
-    home.packages = with pkgs; [ nemo-with-extensions nemo-fileroller ];
+    home.packages = with pkgs; [
+      nemo-with-extensions
+      nemo-fileroller
+    ];
     dconf.settings = {
       "org/nemo/preferences" = {
         always-use-browser = true;
@@ -31,14 +34,20 @@ selfLib.mkModule {
         show-show-thumbnails-toolbar = false;
         thumbnail-limit = lib.gvariant.mkUint64 (100 * 1024 * 1024);
       };
-      "org/nemo/list-view" = { default-zoom-level = "smaller"; enable-folder-expansion = true; };
+      "org/nemo/list-view" = {
+        default-zoom-level = "smaller";
+        enable-folder-expansion = true;
+      };
       "org/nemo/preferences/menu-config" = {
         background-menu-open-as-root = false;
         selection-menu-open-as-root = false;
         selection-menu-open-in-terminal = false;
         selection-menu-scripts = false;
       };
-      "org/nemo/search" = { search-reverse-sort = false; search-sort-column = "name"; };
+      "org/nemo/search" = {
+        search-reverse-sort = false;
+        search-sort-column = "name";
+      };
       "org/nemo/window-state" = {
         maximized = true;
         network-expanded = true;

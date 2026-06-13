@@ -1,4 +1,9 @@
-{ config, lib, selfLib, ... }:
+{
+  config,
+  lib,
+  selfLib,
+  ...
+}:
 
 selfLib.mkModule {
   name = "services.boot-speedup.networking";

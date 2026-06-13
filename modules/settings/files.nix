@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   selfLib,
   ...
 }:
@@ -9,7 +7,7 @@ selfLib.mkModule {
   name = "settings.files";
   description = "Home file settings";
 
-  hmConfig = {
+  hmConfig = { config, ... }: {
     home.file.".var/app".source =
       config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-userdata";
     home.file.".local/share/flatpak".source =

@@ -1,18 +1,18 @@
-{ selfLib, ... }:
+{ ... }:
 
 {
   imports = [
-    ./core
-    ./apps
-    ./security
-    ./services
     ./ai
+    ./apps
+    ./core
     ./desktop
     ./hardware
-    ./virtualisation
-    ./specialization
     ./options
-    ./settings
     ./scripts
+    ./security
+    ./services
+    ./settings
+    ./specialization
+    ./virtualisation
   ];
 }
