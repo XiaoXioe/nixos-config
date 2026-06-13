@@ -1,6 +1,6 @@
 {
-  config,
   pkgs,
+  config,
   selfLib,
   ...
 }:
@@ -9,10 +9,10 @@ selfLib.mkModule {
   name = "apps.browsers.firefox";
   description = "Firefox configuration for user";
 
-  hmConfig = {
+  hmConfig = { config, userName, ... }: {
     programs.firefox = {
       package = pkgs.firefox;
-      configPath = ".mozilla/firefox";
+      configPath = "${config.xdg.configHome}/mozilla/firefox";
       enable = true;
       languagePacks = [
         "en-US"
@@ -190,7 +190,7 @@ selfLib.mkModule {
           };
         };
       };
-      profiles.${config.my.user.name} = {
+      profiles.${userName} = {
         isDefault = true;
         bookmarks = {
           force = true;
@@ -263,7 +263,14 @@ selfLib.mkModule {
           "sidebar.revamp" = true;
           "identity.fxaccounts.enabled" = false;
           "toolkit.telemetry.enabled" = false;
+
+          # Disable irritating first-run stuff
+          "browser.disableResetPrompt" = true;
+          "browser.feeds.showFirstRunUI" = false;
+          "browser.messaging-system.whatsNewPanel.enabled" = false;
           "browser.shell.checkDefaultBrowser" = false;
+          "browser.shell.defaultBrowserCheckCount" = 1;
+          "browser.uitour.enabled" = false;
           "trailhead.firstrun.didSeeAboutWelcome" = true;
         };
       };

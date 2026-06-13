@@ -9,7 +9,7 @@ selfLib.mkModule {
   options = {
     mt5.enable = lib.mkEnableOption "MetaTrader 5 headless container via Docker";
     "9router".enable = lib.mkEnableOption "9router container via Docker";
-    autoUpdate = lib.mkEnableOption "automatic updates for all Docker containers via Watchtower";
+    autoUpdate.enable = lib.mkEnableOption "automatic updates for all Docker containers via Watchtower";
   };
 
   nixosConfig =
@@ -17,11 +17,7 @@ selfLib.mkModule {
       cfg = config.my.virtualisation.docker;
     in
     {
-      users.users = lib.mapAttrs (_name: _: { extraGroups = [ "docker" ]; }) (
-        lib.filterAttrs (
-          _name: userCfg: userCfg.userFeatures.virtualisation.docker or false
-        ) config.my.users
-      );
+      users.users.klein-moretti.extraGroups = [ "docker" ];
 
       programs.virt-manager.enable = true;
 
@@ -78,7 +74,7 @@ selfLib.mkModule {
               environmentFiles = lib.optional cfg."9router".enable config.sops.secrets."9router-env".path;
             };
 
-            watchtower = lib.mkIf cfg.autoUpdate {
+            watchtower = lib.mkIf cfg.autoUpdate.enable {
               image = "containrrr/watchtower:latest";
               volumes = [ "/var/run/docker.sock:/var/run/docker.sock" ];
               environment = {

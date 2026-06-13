@@ -30,6 +30,7 @@ jobs:
         run: |
           nix build \
             ".#dank-shell" \
+            ".#caelestia" \
             ".#llama" \
             ".#devShells.x86_64-linux.default" \
             -L

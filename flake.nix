@@ -41,6 +41,16 @@
       url = "github:notashelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -53,7 +63,7 @@
       adminUser = "klein-moretti";
 
       # User data & custom library
-      allUsers = (import ./lib/users.nix).users;
+      userData = import ./lib/users.nix;
       selfLib = import ./lib { inherit lib; };
 
       pkgs = import inputs.nixpkgs {
@@ -68,8 +78,10 @@
           selfLib
           hostName
           flakePath
-          allUsers
           ;
+        userName = adminUser;
+        fullName = userData.fullName;
+        userFeatures = userData.userFeatures or { };
       };
 
       homeModules = [
@@ -87,21 +99,10 @@
           home-manager.useUserPackages = true;
           home-manager.extraSpecialArgs = baseArgs;
           home-manager.backupFileExtension = "hm-bak";
-          home-manager.users = lib.genAttrs (builtins.attrNames allUsers) (name: {
+          home-manager.users.klein-moretti = {
             imports = homeModules;
-            _module.args = {
-              inherit
-                inputs
-                selfLib
-                hostName
-                flakePath
-                allUsers
-                ;
-              userName = name;
-              fullName = allUsers.${name}.fullName;
-              userFeatures = allUsers.${name}.userFeatures or { };
-            };
-          });
+            _module.args = baseArgs;
+          };
         }
       ];
 
@@ -113,7 +114,6 @@
           pkgs
           hostName
           adminUser
-          allUsers
           baseArgs
           homeModules
           commonModules

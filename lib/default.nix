@@ -4,9 +4,20 @@
 
 let
   modules = import ./modules.nix { inherit lib; };
+
+  mapFeatures = attrs:
+    lib.mapAttrs (name: value:
+      if builtins.isBool value then
+        if name == "enable" then value else { enable = value; }
+      else if builtins.isAttrs value then
+        mapFeatures value
+      else
+        value
+    ) attrs;
 in
 {
   inherit (modules) mkModule;
+  inherit mapFeatures;
 
   # Auto-import all .nix files (except default.nix) and directories
   # containing a default.nix from the given path.
@@ -24,10 +35,4 @@ in
         ) (builtins.readDir path)
       )
     );
-
-  # Apply a function to every user and merge the results.
-  # Useful for generating per-user systemd units, secrets, etc.
-  forAllUsers =
-    users: func:
-    lib.mkMerge (lib.mapAttrsToList (userName: userConfig: func userName userConfig) users);
 }

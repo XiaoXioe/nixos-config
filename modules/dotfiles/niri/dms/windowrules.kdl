@@ -1,0 +1,14 @@
+// DMS Window Rules - Managed by DankMaterialShell
+// Do not edit manually - changes may be overwritten
+
+// @id=wr_1778331439283266736 @name=firefox
+window-rule {
+    match app-id="^firefox$"
+    open-maximized true
+}
+
+// @id=wr_1780643277243333257 @name=codium
+window-rule {
+    match app-id="^codium$"
+    open-maximized true
+}

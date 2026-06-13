@@ -9,7 +9,7 @@ selfLib.mkModule {
   name = "apps.browsers.librewolf";
   description = "LibreWolf configuration for user";
 
-  hmConfig = {
+  hmConfig = { userName, ... }: {
     programs.librewolf = {
       enable = true;
       package = pkgs.librewolf;
@@ -65,7 +65,7 @@ selfLib.mkModule {
           };
         };
       };
-      profiles.${config.my.user.name} = {
+      profiles.${userName} = {
         isDefault = true;
         bookmarks = {
           force = true;
@@ -101,7 +101,7 @@ selfLib.mkModule {
         "signon.rememberSignons" = false;
       };
     };
-    home.file.".librewolf/${config.my.user.name}/chrome/userChrome.css".text = ''
+    home.file.".librewolf/${userName}/chrome/userChrome.css".text = ''
       .tab-close-button { display: none !important; }
     '';
   };
