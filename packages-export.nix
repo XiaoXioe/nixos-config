@@ -1,5 +1,6 @@
 {
   nixosConfigs,
+  homeConfigs,
   hostName,
   adminUser,
 }:

@@ -24,14 +24,17 @@ selfLib.mkModule {
       cfg = config.my.desktop.greeter;
     in
     {
-      environment.systemPackages = [
-        (pkgs.catppuccin-sddm.override {
+      environment.systemPackages = with pkgs; [
+        (catppuccin-sddm.override {
           flavor = "mocha";
           accent = "mauve";
           font = "Noto Sans";
           fontSize = "9";
           loginBackground = true;
         })
+
+        seahorse
+        polkit_gnome
       ];
 
       services.displayManager.dms-greeter = lib.mkIf (cfg.backend == "dms") {
@@ -50,5 +53,8 @@ selfLib.mkModule {
       systemd.services.display-manager.restartIfChanged = false;
 
       hardware.i2c.enable = true;
+      security.polkit.enable = true;
+      services.gnome.gnome-keyring.enable = true;
+      security.pam.services.sddm.enableGnomeKeyring = true;
     };
 }

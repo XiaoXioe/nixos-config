@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   selfLib,
   ...
 }:
@@ -15,19 +14,6 @@ selfLib.mkModule {
       owner = "root";
       group = "root";
     };
-
-    # Enable Wireshark with security wrappers (capabilities)
-    programs.wireshark = {
-      enable = true;
-      # Force install the Qt GUI version.
-      package = pkgs.wireshark;
-    };
-
-    services.tor = {
-      enable = true;
-      client.enable = true;
-    };
-    systemd.services.tor.wantedBy = lib.mkForce [ ];
 
     security.wrappers.btop = {
       owner = "root";

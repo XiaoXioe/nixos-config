@@ -76,15 +76,15 @@ selfLib.mkModule {
           mode = "0400";
         };
 
-        "gemini-api-key" = {
-          owner = "klein-moretti";
-        };
-
         "ninerouter-key" = {
           # API key from 9Router Dashboard → Keys
           # Digunakan CLI tools (Codex, Claude Code, dkk) sbg Authorization header
           owner = "klein-moretti";
           mode = "0400";
+        };
+
+        "gemini-api-key" = {
+          owner = "klein-moretti";
         };
 
         "wg-lan.conf" = {
@@ -107,12 +107,14 @@ selfLib.mkModule {
 
         # Rclone config — placed at /run/secrets/rclone.conf,
         # then copied to ~/.config/rclone/ by rclone.nix at activation.
+        # Made readable by the 'users' group so any user with rclone enabled can copy it.
         "rclone.conf" = {
           format = "binary";
           sopsFile = ../../secrets/rclone.enc.conf;
-          owner = "klein-moretti";
+          # We don't set an explicit owner so root owns it,
+          # but we give the 'users' group read access.
           group = "users";
-          mode = "0400";
+          mode = "0440";
         };
 
         "nextdns_stamp" = { };

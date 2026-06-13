@@ -39,7 +39,6 @@
 
           editors = {
             neovim = true;
-            zeditor = false;
             vscodium = true;
           };
 
@@ -120,6 +119,12 @@
           boot-speedup = true;
         };
 
+        security = {
+          gnupg = true;
+          compat = true;
+          pentest = true;
+        };
+
         scripts = {
           cek-cache = true;
           git-commits = true;
@@ -146,37 +151,68 @@
         "audio"
         "render"
       ];
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ9JzZzktDyRcOpqMyit78cS0xx7NRj7Mak89HjsRLR u0_a185@localhost"
+      ];
       userFeatures = {
         apps = {
           browsers = {
             firefox = true;
           };
+
+          dev = {
+            ssh = true;
+            nemo = true;
+          };
+
+          media = {
+            media = true;
+            music = true;
+            office = true;
+            sosmed = true;
+          };
+
+          packages = {
+            general = true;
+          };
+
           terminal = {
-            fish = true;
             fastfetch = true;
+            fish = true;
+            wezterm = true;
           };
         };
 
-        ai = false; # Matikan AI
-
-        core = {
-          nix = true;
-          pipewire.enable = true;
-          fonts = true;
-          locale = true;
-          packages = true;
-          graphics = true;
-        };
-
         desktop = {
-          kde = true; # Hanya aktifkan KDE Plasma
-          gnome = false;
-          niri = false;
-          dms = false;
+          dms = true;
           theme = true;
+          kde = true;
+          niri = true;
+          greeter = true;
         };
 
-        virtualisation.docker = false; # Matikan Docker
+        scripts = {
+          cek-cache = true;
+          dl-lagu = true;
+          show-zombie-parents = true;
+        };
+
+        services = {
+          rclone = true;
+          networking = {
+            dns = true;
+            vpn = true;
+          };
+          scheduling = {
+            snapper = true;
+            ssd-monitor = true;
+          };
+          boot-speedup = true;
+        };
+
+        virtualisation = {
+          waydroid = true;
+        };
       };
     };
   };

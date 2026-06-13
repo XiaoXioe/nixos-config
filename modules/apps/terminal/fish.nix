@@ -102,9 +102,9 @@ selfLib.mkModule {
         nfu = "nix flake update --flake ${flakePath}";
 
         # --- ALIAS NIXOS SYSTEM ---
-        osbuild = "nh os switch ${flakePath}";
-        ostest = "nh os test ${flakePath}";
-        osboot = "nh os boot ${flakePath}";
+        osbuild = "nh os switch ${flakePath} --show-trace --diff auto --ask";
+        ostest = "nh os test ${flakePath} --show-trace --diff auto --ask";
+        osboot = "nh os boot ${flakePath} --show-trace --diff auto --ask";
 
         squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
       };

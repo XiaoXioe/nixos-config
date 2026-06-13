@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ ... }:
 
 {
   # Unified module builder for NixOS and Home Manager.
@@ -15,7 +15,8 @@
     }:
     {
       imports = imports ++ [
-        ({ config, lib, ... }:
+        (
+          { config, lib, ... }:
           let
             optionPath = lib.splitString "." name;
             cfg = lib.getAttrFromPath (optionPath ++ [ "enable" ]) config.my;
@@ -24,15 +25,18 @@
             options.my = lib.setAttrByPath optionPath (
               {
                 enable = lib.mkEnableOption (if description != "" then description else name);
-              } // options
+              }
+              // options
             );
 
-            config = lib.mkIf cfg (lib.mkMerge [
-              nixosConfig
-              (lib.mkIf (hmConfig != { }) {
-                home-manager.users.${config.my.user.name} = hmConfig;
-              })
-            ]);
+            config = lib.mkIf cfg (
+              lib.mkMerge [
+                nixosConfig
+                {
+                  home-manager.users.${config.my.user.name} = hmConfig;
+                }
+              ]
+            );
           }
         )
       ];

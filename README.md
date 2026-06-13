@@ -11,11 +11,11 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 │   ├── default.nix              # Public API for custom library functions
 │   ├── modules.nix              # Unified mkModule builder
 │   ├── builders.nix             # NixOS + Home Manager configuration builders
-│   └── users.nix                # User definitions and feature flags
+│   └── users.nix                # User definitions and feature flags (Single Source of Truth)
 │
 ├── hosts/
 │   └── nixos/
-│       ├── default.nix          # Host-specific overrides
+│       ├── default.nix          # Host-specific overrides & dynamic feature linking
 │       ├── home.nix             # Home Manager wiring
 │       └── hardware-configuration.nix
 │
@@ -43,11 +43,11 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ## ✨ Key Features
 
 - **Unified Module Builder (`mkModule`)** — Simplified syntax that handles options and config merging for both NixOS and Home Manager.
+- **Single Source of Truth** — Per-user features (`lib/users.nix`) automatically drive and map to system-wide configurations using dynamic feature linking in `hosts/nixos/default.nix`.
 - **Nix Flakes** — Pinned inputs and reproducible builds.
 - **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
-- **Feature flags** — Per-user features toggled via `lib/users.nix`.
 - **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
-- **Secrets Management** — `sops-nix` with SSH host key for effortless decryption.
+- **Secrets Management** — `sops-nix` with SSH host key for effortless decryption and dynamic user password injection.
 - **AI-Ready** — Local LLM integration optimized for hardware.
 
 ## 🛠️ Quick Start
@@ -55,20 +55,30 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ```bash
 # Enter devShell (formatters + linters available)
 nix develop
-
-# Rebuild system + all users
-rebuild-all --all
-
-# Rebuild system only
-rebuild-all --system
-
-# Rebuild Home Manager for specific user
-rebuild-all --user klein-moretti
 ```
 
-## 🧩 Unified Module Builder (`mkModule`)
+## 🧩 User Feature Mapping (The Core Logic)
 
-All modules now use the unified `selfLib.mkModule` builder. It automatically creates an `enable` option and wraps the configuration in an `mkIf` guard.
+The core logic of this configuration centers around `lib/users.nix`. Instead of toggling features manually per-host, you enable features explicitly per-user.
+
+In `lib/users.nix`:
+```nix
+users = {
+  tamu = {
+    uid = 1001;
+    userFeatures = {
+      desktop.kde = true;
+      services.networking.dns = true;
+    };
+  };
+};
+```
+
+This configuration is automatically mapped in `hosts/nixos/default.nix` through a dynamic function (`hasFeature`) to determine if global system-level modules (like the DNS service or KDE dependencies) need to be enabled on the host machine.
+
+## 🧱 Unified Module Builder (`mkModule`)
+
+All modules use the unified `selfLib.mkModule` builder. It automatically creates an `enable` option and wraps the configuration in an `mkIf` guard, cleanly handling both OS and Home Manager state in one file.
 
 ### Simple Module
 ```nix
@@ -81,7 +91,7 @@ selfLib.mkModule {
 }
 ```
 
-### Module with Options
+### Module with Options and Home Manager Integration
 ```nix
 { lib, selfLib, ... }:
 selfLib.mkModule {
@@ -92,16 +102,27 @@ selfLib.mkModule {
   nixosConfig = {
     virtualisation.docker.enable = true;
   };
+  hmConfig = { config, ... }: {
+    # Home manager config applied directly to the user who enabled this module
+  };
 }
 ```
 
-## 🔐 Secrets
+## 🔐 Secrets & Multi-User Passwords
 
 ```bash
 sops secrets/secrets.yaml           # edit
 sops secrets/foto-profile.enc       # binary file
 ```
 The system uses the SSH host key for decryption, so no manual key management is needed on the target machine.
+
+**Adding New Users:**
+Because `mutableUsers = false` is active, every user declared in `lib/users.nix` must have a corresponding password hash defined in `secrets.yaml` under the key `<userName>_password_hash` (e.g., `tamu_password_hash`). 
+
+Generate a hash using:
+```bash
+mkpasswd -m yescrypt
+```
 
 ## 💻 DevShell
 
