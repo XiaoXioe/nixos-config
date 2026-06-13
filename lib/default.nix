@@ -25,15 +25,15 @@ in
       )
     );
 
-  # Create a nested enable option under 'options.my'.
-  # Input: "apps.browsers.firefox"
-  # Output: { my.apps.browsers.firefox.enable = ...; }
-  mkNestedEnable =
-    path:
+  # Create nested options under 'options.my'.
+  # Input: "apps.browsers.firefox", { extra = lib.mkOption ...; }
+  # Output: { my.apps.browsers.firefox.extra = ...; }
+  mkNestedOptions =
+    path: options:
     let
       parts = lib.splitString "." path;
     in
-    { my = lib.setAttrByPath (parts ++ [ "enable" ]) (lib.mkEnableOption path); };
+    { my = lib.setAttrByPath parts options; };
 
   # Apply a function to every user and merge the results.
   # Useful for generating per-user systemd units, secrets, etc.
