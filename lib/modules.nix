@@ -9,11 +9,12 @@
       name,
       description ? "",
       options ? { },
+      imports ? [ ],
       nixosConfig ? { },
       hmConfig ? { },
     }:
     {
-      imports = [
+      imports = imports ++ [
         ({ config, lib, ... }:
           let
             optionPath = lib.splitString "." name;
