@@ -7,8 +7,6 @@
 }:
 
 let
-  cfg = config.my.services.scheduling.gamemode;
-
   # Gunakan coreutils untuk memastikan echo dan tee selalu tersedia
   coreutils = pkgs.coreutils;
 
@@ -22,30 +20,31 @@ let
     ${coreutils}/bin/echo 1600000 | ${coreutils}/bin/tee /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq > /dev/null
   '';
 in
-{
-  options = (selfLib.mkNestedEnable "services.scheduling.gamemode") // {
-    my.services.scheduling.gamemode = {
-      maxFreqKHz = lib.mkOption {
-        type = lib.types.int;
-        default = 3900000;
-        description = "Batas maksimum CPU frequency saat mode gaming aktif (dalam kHz).";
-      };
+selfLib.mkModule {
+  name = "services.scheduling.gamemode";
+  options = {
+    maxFreqKHz = lib.mkOption {
+      type = lib.types.int;
+      default = 3900000;
+      description = "Batas maksimum CPU frequency saat mode gaming aktif (dalam kHz).";
+    };
 
-      idleFreqKHz = lib.mkOption {
-        type = lib.types.int;
-        default = 1600000;
-        description = "Batas CPU frequency saat idle / normal (dalam kHz).";
-      };
+    idleFreqKHz = lib.mkOption {
+      type = lib.types.int;
+      default = 1600000;
+      description = "Batas CPU frequency saat idle / normal (dalam kHz).";
+    };
 
-      user = lib.mkOption {
-        type = lib.types.str;
-        default = "klein-moretti";
-        description = "User yang diberi izin sudo tanpa password untuk menjalankan script gamemode.";
-      };
+    user = lib.mkOption {
+      type = lib.types.str;
+      default = "klein-moretti";
+      description = "User yang diberi izin sudo tanpa password untuk menjalankan script gamemode.";
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = let
+    cfg = config.my.services.scheduling.gamemode;
+  in {
     # Kunci CPU di frekuensi hemat setiap kali sistem booting
     # (gunakan systemd service karena tmpfiles tidak mendukung glob path)
     systemd.services.cpu-freq-idle = {

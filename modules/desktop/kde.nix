@@ -5,23 +5,9 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.desktop.kde;
-in
-{
-  options = selfLib.mkNestedOptions "desktop.kde" {
-    enable = lib.mkEnableOption "desktop.kde";
-    unstable = lib.mkEnableOption "Use unstable packages for KDE";
-  };
-
-  config = lib.mkIf cfg.enable {
-    nixpkgs.overlays = lib.mkIf cfg.unstable [
-      (_final: _prev: {
-        kdePackages = pkgs.kdePackages;
-        qt6 = pkgs.qt6;
-      })
-    ];
-
+selfLib.mkModule {
+  name = "desktop.kde";
+  nixosConfig = {
     services.xserver.enable = true;
     services.desktopManager.plasma6.enable = true;
 

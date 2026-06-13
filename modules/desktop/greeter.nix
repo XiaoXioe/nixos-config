@@ -5,12 +5,9 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.desktop.greeter;
-in
-{
-  options = selfLib.mkNestedOptions "desktop.greeter" {
-    enable = lib.mkEnableOption "desktop.greeter";
+selfLib.mkModule {
+  name = "desktop.greeter";
+  options = {
     backend = lib.mkOption {
       type = lib.types.enum [
         "dms"
@@ -22,7 +19,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = let
+    cfg = config.my.desktop.greeter;
+  in {
     environment.systemPackages = [
       (pkgs.catppuccin-sddm.override {
         flavor = "mocha";

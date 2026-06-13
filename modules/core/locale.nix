@@ -5,26 +5,24 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.core.locale;
-in
-{
-  options = lib.recursiveUpdate (selfLib.mkNestedEnable "core.locale") {
-    my.core.locale = {
-      timezone = lib.mkOption {
-        type = lib.types.str;
-        default = "Asia/Jakarta";
-        description = "System timezone.";
-      };
-      locale = lib.mkOption {
-        type = lib.types.str;
-        default = "en_US.UTF-8";
-        description = "Default system locale.";
-      };
+selfLib.mkModule {
+  name = "core.locale";
+  options = {
+    timezone = lib.mkOption {
+      type = lib.types.str;
+      default = "Asia/Jakarta";
+      description = "System timezone.";
+    };
+    locale = lib.mkOption {
+      type = lib.types.str;
+      default = "en_US.UTF-8";
+      description = "Default system locale.";
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = let
+    cfg = config.my.core.locale;
+  in {
     time.timeZone = cfg.timezone;
     i18n.defaultLocale = cfg.locale;
 

@@ -4,17 +4,17 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.virtualisation.docker;
-in
-{
-  options = selfLib.mkNestedEnable "virtualisation.docker" // {
+selfLib.mkModule {
+  name = "virtualisation.docker";
+  options = {
     mt5.enable = lib.mkEnableOption "MetaTrader 5 headless container via Docker";
     "9router".enable = lib.mkEnableOption "9router container via Docker";
     autoUpdate = lib.mkEnableOption "automatic updates for all Docker containers via Watchtower";
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = let
+    cfg = config.my.virtualisation.docker;
+  in {
     users.users = lib.mapAttrs (_name: _: { extraGroups = [ "docker" ]; }) (
       lib.filterAttrs (_name: userCfg: userCfg.userFeatures.docker or false) config.my.users
     );

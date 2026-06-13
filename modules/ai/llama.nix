@@ -5,12 +5,9 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.ai.llama;
-in
-{
-  options = selfLib.mkNestedOptions "ai.llama" {
-    enable = lib.mkEnableOption "ai.llama";
+selfLib.mkModule {
+  name = "ai.llama";
+  options = {
     package = lib.mkOption {
       type = lib.types.package;
       description = "Llama.cpp yang dioptimalkan untuk arsitektur Ivy Bridge";
@@ -28,9 +25,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     environment.systemPackages = [
-      cfg.package
+      config.my.ai.llama.package
     ];
   };
 }

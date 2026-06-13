@@ -4,11 +4,9 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.hardware.auto-mount;
-in
-{
-  options = selfLib.mkNestedEnable "hardware.auto-mount" // {
+selfLib.mkModule {
+  name = "hardware.auto-mount";
+  options = {
     dataDevice = lib.mkOption {
       type = lib.types.str;
       default = "/dev/disk/by-uuid/365EE7F85EE7AEB5";
@@ -26,7 +24,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = let
+    cfg = config.my.hardware.auto-mount;
+  in {
     fileSystems."/mnt/data" = {
       device = cfg.dataDevice;
       fsType = "ntfs-3g";
