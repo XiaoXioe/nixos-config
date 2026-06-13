@@ -1,17 +1,11 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.compat;
-in
-{
-  options = selfLib.mkNestedEnable "security.compat";
-
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "security.compat";
+  nixosConfig = {
     programs.nix-ld.enable = true;
     programs.nix-ld.libraries = with pkgs; [
       stdenv.cc.cc.lib

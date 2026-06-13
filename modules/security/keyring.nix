@@ -1,17 +1,12 @@
 {
-  config,
-  lib,
   pkgs,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.keyring;
-in
-{
-  options = selfLib.mkNestedEnable "security.keyring";
+selfLib.mkModule {
+  name = "security.keyring";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     # Enable Polkit
     security.polkit.enable = true;
 

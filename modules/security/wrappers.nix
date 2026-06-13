@@ -1,17 +1,14 @@
 {
-  config,
   pkgs,
   lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.wrappers;
-in
-{
-  options = selfLib.mkNestedEnable "security.wrappers";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "security.wrappers";
+
+  nixosConfig = {
     security.wrappers.nethogs = {
       source = "${pkgs.nethogs}/bin/nethogs";
       capabilities = "cap_net_admin,cap_net_raw+ep";

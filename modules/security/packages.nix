@@ -1,17 +1,13 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.packages;
-in
-{
-  options = selfLib.mkNestedEnable "security.packages";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "security.packages";
+
+  nixosConfig = {
     environment.systemPackages = with pkgs; [
       wireguard-tools
       iproute2
@@ -19,7 +15,6 @@ in
       killall
       inetutils
       #      sops
-
     ];
   };
 }

@@ -1,16 +1,12 @@
 {
-  config,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.networking;
-in
-{
-  options = selfLib.mkNestedEnable "security.networking";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "security.networking";
+
+  nixosConfig = {
     networking = {
       firewall = {
         enable = true;
@@ -45,6 +41,5 @@ in
       enableIPv6 = false;
       useDHCP = false;
     };
-
   };
 }

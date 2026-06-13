@@ -1,16 +1,12 @@
 {
   config,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.security.hardening;
-in
-{
-  options = selfLib.mkNestedEnable "security.hardening";
+selfLib.mkModule {
+  name = "security.hardening";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     services = {
       fail2ban = {
         enable = true;

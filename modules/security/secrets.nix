@@ -8,22 +8,21 @@
   ...
 }:
 let
-  cfg = config.my.security.secrets;
-  vpnDir = ../../../secrets/vpn-files;
+  vpnDir = ../../secrets/vpn-files;
   vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
   vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
     builtins.attrNames vpnFilesRaw
   );
 in
-{
-  options = selfLib.mkNestedEnable "security.secrets";
+selfLib.mkModule {
+  name = "security.secrets";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     environment.systemPackages = with pkgs; [
       sops
     ];
     sops = {
-      defaultSopsFile = ../../../secrets/secrets.yaml;
+      defaultSopsFile = ../../secrets/secrets.yaml;
       defaultSopsFormat = "yaml";
 
       # Use the SSH host key as the age decryption key
@@ -46,7 +45,7 @@ in
 
         "fastfetch-logo" = {
           format = "binary";
-          sopsFile = ../../../secrets/fastfetch-logo.enc;
+          sopsFile = ../../secrets/fastfetch-logo.enc;
           owner = "klein-moretti";
           mode = "0444";
         };
@@ -54,7 +53,7 @@ in
         "foto-profile" = {
           format = "binary";
           owner = "klein-moretti";
-          sopsFile = ../../../secrets/foto-profile.enc;
+          sopsFile = ../../secrets/foto-profile.enc;
         };
 
         "github-token" = {
@@ -89,7 +88,7 @@ in
         };
 
         "wg-lan.conf" = {
-          sopsFile = ../../../secrets/wg-lan.enc.conf;
+          sopsFile = ../../secrets/wg-lan.enc.conf;
           format = "binary";
           path = "/etc/wireguard/wg-lan.conf";
           owner = "root";
@@ -98,7 +97,7 @@ in
         };
 
         "wg-wifi.conf" = {
-          sopsFile = ../../../secrets/wg-wifi.enc.conf;
+          sopsFile = ../../secrets/wg-wifi.enc.conf;
           format = "binary";
           path = "/etc/wireguard/wg-wifi.conf";
           owner = "root";
@@ -110,7 +109,7 @@ in
         # then copied to ~/.config/rclone/ by rclone.nix at activation.
         "rclone.conf" = {
           format = "binary";
-          sopsFile = ../../../secrets/rclone.enc.conf;
+          sopsFile = ../../secrets/rclone.enc.conf;
           owner = "klein-moretti";
           group = "users";
           mode = "0400";
@@ -129,7 +128,7 @@ in
 
       # --- Dynamic VPN configs ---
       (lib.genAttrs vpnFiles (fileName: {
-        sopsFile = ../../../secrets/vpn-files/${fileName};
+        sopsFile = ../../secrets/vpn-files/${fileName};
         format = "binary";
         owner = config.my.user.name;
         mode = "600";
