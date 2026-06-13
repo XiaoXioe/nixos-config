@@ -2,7 +2,6 @@
   config,
   lib,
   selfLib,
-  allUsers,
   ...
 }:
 let
@@ -175,7 +174,7 @@ selfLib.mkModule {
         ]
         ++ cfg.extraFiles;
 
-        users = lib.mapAttrs (_name: _userCfg: {
+        users.klein-moretti = {
           directories = [
             "Desktop"
             ".BurpSuite"
@@ -216,7 +215,7 @@ selfLib.mkModule {
             ".bash_history"
             ".claude.json"
           ];
-        }) allUsers;
+        };
       };
       systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
     };

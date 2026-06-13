@@ -4,7 +4,6 @@
   lib,
   pkgs,
   selfLib,
-  allUsers,
   ...
 }:
 let
@@ -121,12 +120,15 @@ selfLib.mkModule {
         "nextdns_name" = { };
       }
 
-      # --- Dynamic password hashes (root + all users) ---
-      (lib.genAttrs (map (name: "${name}_password_hash") ([ "root" ] ++ builtins.attrNames allUsers))
-        (_: {
+      # --- Password hashes (root + klein-moretti) ---
+      {
+        "root_password_hash" = {
           neededForUsers = true;
-        })
-      )
+        };
+        "klein-moretti_password_hash" = {
+          neededForUsers = true;
+        };
+      }
 
       # --- Dynamic VPN configs ---
       (lib.genAttrs vpnFiles (fileName: {
@@ -136,30 +138,32 @@ selfLib.mkModule {
         mode = "600";
       }))
 
-      # --- Per-user dynamic secrets ---
-      (selfLib.forAllUsers allUsers (
-        userName: _: {
-          # ADB key pair (auto-provisioned per user)
-          "adbkey_${userName}" = {
-            key = "adbkey";
-            owner = userName;
-            path = "/home/${userName}/.android/adbkey";
-            mode = "0400";
-          };
+      # --- Per-user secrets (klein-moretti) ---
+      {
+        "adbkey_klein-moretti" = {
+          key = "adbkey";
+          owner = "klein-moretti";
+          path = "/home/klein-moretti/.android/adbkey";
+          mode = "0400";
+        };
 
-          "adbkey_pub_${userName}" = {
-            key = "adbkey_pub";
-            owner = userName;
-            path = "/home/${userName}/.android/adbkey.pub";
-            mode = "0444";
-          };
-        }
-      ))
+        "adbkey_pub_klein-moretti" = {
+          key = "adbkey_pub";
+          owner = "klein-moretti";
+          path = "/home/klein-moretti/.android/adbkey.pub";
+          mode = "0444";
+        };
+      }
     ];
 
-    # Bind sops password hashes to users.users declaratively
-    users.users = lib.genAttrs ([ "root" ] ++ builtins.attrNames allUsers) (userName: {
-      hashedPasswordFile = lib.mkForce config.sops.secrets."${userName}_password_hash".path;
-    });
+    # Bind sops password hashes to users
+    users.users = {
+      root = {
+        hashedPasswordFile = lib.mkForce config.sops.secrets."root_password_hash".path;
+      };
+      klein-moretti = {
+        hashedPasswordFile = lib.mkForce config.sops.secrets."klein-moretti_password_hash".path;
+      };
+    };
   };
 }

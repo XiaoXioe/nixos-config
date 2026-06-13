@@ -20,25 +20,17 @@
       "$mod, Tab, exec, caelestia shell drawers toggle dashboard"
       "$mod ALT, U, exec, caelestia shell drawers toggle utilities"
 
-      # Window Focus Movement (Niri: H/J/K/L or Arrow Keys)
+      # Window Focus Movement (Niri: Arrow Keys)
       "$mod, left, movefocus, l"
       "$mod, right, movefocus, r"
       "$mod, up, movefocus, u"
       "$mod, down, movefocus, d"
-      "$mod, H, movefocus, l"
-      "$mod, L, movefocus, r"
-      "$mod, K, movefocus, u"
-      "$mod, J, movefocus, d"
 
-      # Move Windows / Swap position (Niri: Shift + H/J/K/L or Arrow Keys)
+      # Move Windows / Swap position (Niri: Shift + Arrow Keys)
       "$mod SHIFT, left, swapwindow, l"
       "$mod SHIFT, right, swapwindow, r"
       "$mod SHIFT, up, swapwindow, u"
       "$mod SHIFT, down, swapwindow, d"
-      "$mod SHIFT, H, swapwindow, l"
-      "$mod SHIFT, L, swapwindow, r"
-      "$mod SHIFT, K, swapwindow, u"
-      "$mod SHIFT, J, swapwindow, d"
 
       # Workspace Switching (Niri: Mod + 1..9)
       "$mod, 1, workspace, 1"
@@ -81,8 +73,8 @@
 
     # Media, Brightness and Audio keys (work when locked and repeat)
     bindel = [
-      ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-      ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+      ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+"
+      ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-"
       ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
       ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
     ];

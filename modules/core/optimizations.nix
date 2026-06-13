@@ -45,6 +45,7 @@ selfLib.mkModule {
 
       kernel = {
         sysctl = {
+          "kernel.core_pattern" = "/dev/null";
           "net.core.default_qdisc" = "cake";
           "net.ipv4.tcp_congestion_control" = "bbr";
 

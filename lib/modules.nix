@@ -2,8 +2,7 @@
 
 {
   # Unified module builder for NixOS and Home Manager.
-  # Automatically creates 'options.my.${name}.enable'.
-  # Merges nixosConfig and hmConfig under an 'mkIf' guard.
+  # Automatically creates 'options.my.${name}.enable' for global NixOS state.
   mkModule =
     {
       name,
@@ -32,9 +31,9 @@
             config = lib.mkIf cfg (
               lib.mkMerge [
                 nixosConfig
-                {
+                (lib.mkIf (hmConfig != { }) {
                   home-manager.users.${config.my.user.name} = hmConfig;
-                }
+                })
               ]
             );
           }

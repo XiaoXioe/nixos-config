@@ -6,33 +6,23 @@
   pkgs,
   hostName,
   adminUser,
-  allUsers,
   baseArgs,
   homeModules,
   commonModules,
+  ...
 }:
 
 let
-  specialArgs = baseArgs // {
-    userName = adminUser;
-    fullName = allUsers.${adminUser}.fullName;
-  };
+  specialArgs = baseArgs;
 
-  # Standalone Home Manager configurations (one per user)
-  mkHomeConfigurations = lib.mapAttrs' (name: user: {
-    name = "${name}@${hostName}";
-    value = inputs.home-manager.lib.homeManagerConfiguration {
+  # Standalone Home Manager configuration (single user)
+  mkHomeConfigurations = {
+    "${adminUser}@${hostName}" = inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
-
-      extraSpecialArgs = baseArgs // {
-        userName = name;
-        fullName = user.fullName;
-        userFeatures = user.userFeatures or { };
-      };
-
+      extraSpecialArgs = baseArgs;
       modules = homeModules;
     };
-  }) allUsers;
+  };
 
   # NixOS configurations (one per host)
   mkNixosConfigurations = {

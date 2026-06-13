@@ -1,14 +1,9 @@
 {
-  config,
   lib,
   selfLib,
   ...
 }:
 
-let
-  # Daftar nama user yang dikonfigurasi
-  userNames = lib.mapAttrsToList (name: _: name) config.my.users;
-in
 selfLib.mkModule {
   name = "services.scheduling.snapper";
 
@@ -34,7 +29,7 @@ selfLib.mkModule {
         # Mencakup: home/, var/lib/, etc/ — semua data yang dipersist
         persist = {
           SUBVOLUME = "/persist";
-          ALLOW_USERS = userNames;
+          ALLOW_USERS = [ "klein-moretti" ];
           # SYNC_ACL: sync ACL so ALLOW_USERS can read snapshots
           # without sudo (needed for manual list & restore)
           SYNC_ACL = "yes";
@@ -57,7 +52,7 @@ selfLib.mkModule {
         # TAPI Anda bisa meng-copy file yang terhapus dari snapshot lama.
         home = {
           SUBVOLUME = "/home";
-          ALLOW_USERS = userNames;
+          ALLOW_USERS = [ "klein-moretti" ];
           SYNC_ACL = "yes";
 
           TIMELINE_CREATE = true;

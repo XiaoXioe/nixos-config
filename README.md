@@ -23,7 +23,8 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 │   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI
 │   ├── apps/                    # Home Manager applications & user settings
 │   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire
-│   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri
+│   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland
+│   ├── dotfiles/                # Direct repository dotfiles (Niri, DMS, fish, rmpc)
 │   ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
 │   ├── options/                 # Custom global option declarations
 │   ├── scripts/                 # Custom CLI tools and scripts
@@ -43,7 +44,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ## ✨ Key Features
 
 - **Unified Module Builder (`mkModule`)** — Simplified syntax that handles options and config merging for both NixOS and Home Manager.
-- **Single Source of Truth** — Per-user features (`lib/users.nix`) automatically drive and map to system-wide configurations using dynamic feature linking in `hosts/nixos/default.nix`.
+- **Single Source of Truth** — Per-user features (`lib/users.nix`) automatically drive and map to system-wide configurations using recursive feature mapping (`mapFeatures`) in `hosts/nixos/default.nix`.
 - **Nix Flakes** — Pinned inputs and reproducible builds.
 - **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
 - **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
@@ -74,7 +75,7 @@ users = {
 };
 ```
 
-This configuration is automatically mapped in `hosts/nixos/default.nix` through a dynamic function (`hasFeature`) to determine if global system-level modules (like the DNS service or KDE dependencies) need to be enabled on the host machine.
+This configuration is automatically mapped in `hosts/nixos/default.nix` through a recursive helper function (`mapFeatures`) that converts flat/nested boolean configurations into the appropriate `.enable = true` structure needed by NixOS options, and merges them directly using `lib.recursiveUpdate`.
 
 ## 🧱 Unified Module Builder (`mkModule`)
 
