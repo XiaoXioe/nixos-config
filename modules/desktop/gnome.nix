@@ -1,17 +1,13 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.desktop.gnome;
-in
-{
-  options = selfLib.mkNestedEnable "desktop.gnome";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "desktop.gnome";
+
+  nixosConfig = {
     services.xserver.enable = true;
 
     services.desktopManager.gnome.enable = true;

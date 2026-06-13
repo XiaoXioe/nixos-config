@@ -6,23 +6,77 @@
   ...
 }:
 let
-  cfg = config.my.core.pipewire.pipewireEffects.perfectEq;
-
   eqFilters = [
-    { type = "bq_highshelf"; freq = 0;       q = 1.0;    gain = -2.0; }
-    { type = "bq_peaking";   freq = 32.0;    q = 1.5048; gain = 4.0; }
-    { type = "bq_peaking";   freq = 64.0;    q = 1.5048; gain = 2.0; }
-    { type = "bq_peaking";   freq = 125.0;   q = 1.5048; gain = 1.0; }
-    { type = "bq_peaking";   freq = 250.0;   q = 1.5048; gain = 0.0; }
-    { type = "bq_peaking";   freq = 500.0;   q = 1.5048; gain = -1.0; }
-    { type = "bq_peaking";   freq = 1000.0;  q = 1.5048; gain = -2.0; }
-    { type = "bq_peaking";   freq = 2000.0;  q = 1.5048; gain = 0.0; }
-    { type = "bq_peaking";   freq = 4000.0;  q = 1.5048; gain = 2.0; }
-    { type = "bq_peaking";   freq = 8000.0;  q = 1.5048; gain = 3.0; }
-    { type = "bq_peaking";   freq = 16000.0; q = 1.5048; gain = 3.0; }
+    {
+      type = "bq_highshelf";
+      freq = 0;
+      q = 1.0;
+      gain = -2.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 32.0;
+      q = 1.5048;
+      gain = 4.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 64.0;
+      q = 1.5048;
+      gain = 2.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 125.0;
+      q = 1.5048;
+      gain = 1.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 250.0;
+      q = 1.5048;
+      gain = 0.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 500.0;
+      q = 1.5048;
+      gain = -1.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 1000.0;
+      q = 1.5048;
+      gain = -2.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 2000.0;
+      q = 1.5048;
+      gain = 0.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 4000.0;
+      q = 1.5048;
+      gain = 2.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 8000.0;
+      q = 1.5048;
+      gain = 3.0;
+    }
+    {
+      type = "bq_peaking";
+      freq = 16000.0;
+      q = 1.5048;
+      gain = 3.0;
+    }
   ];
 
-  renderFilter = f:
+  renderFilter =
+    f:
     "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }";
 
   renderedFilters = lib.concatMapStringsSep "\n                    " renderFilter eqFilters;
@@ -79,10 +133,10 @@ let
     ]
   '';
 in
-{
-  options = selfLib.mkNestedEnable "core.pipewire.pipewireEffects.perfectEq";
+selfLib.mkModule {
+  name = "core.pipewire.pipewireEffects.perfectEq";
 
-  config = lib.mkIf cfg.enable {
+  nixosConfig = {
     assertions = [
       {
         assertion = config.services.pipewire.enable;
@@ -91,10 +145,7 @@ in
     ];
 
     services.pipewire.configPackages = [
-      (pkgs.writeTextDir
-        "share/pipewire/pipewire.conf.d/50-perfect-eq.conf"
-        filterChainConf
-      )
+      (pkgs.writeTextDir "share/pipewire/pipewire.conf.d/50-perfect-eq.conf" filterChainConf)
     ];
   };
 }

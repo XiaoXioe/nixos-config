@@ -1,17 +1,13 @@
 {
-  config,
   pkgs,
-  lib,
   selfLib,
   ...
 }:
-let
-  cfg = config.my.desktop.niri;
-in
-{
-  options = selfLib.mkNestedEnable "desktop.niri";
 
-  config = lib.mkIf cfg.enable {
+selfLib.mkModule {
+  name = "desktop.niri";
+
+  nixosConfig = {
     environment.systemPackages = with pkgs; [
       nautilus
       kdePackages.gwenview
