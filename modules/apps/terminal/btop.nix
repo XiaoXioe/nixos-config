@@ -27,11 +27,12 @@ selfLib.mkModule {
         color_theme = "adwaita-dark.theme";
         theme_background = false;
         update_ms = 1000;
-        rounded_corners = false;
+        mem_graphs = false;
         graph_symbol = "braille";
         disks_filter = "/ /mnt/data /mnt/data_btrfs";
         show_swap = true;
         swap_disk = false;
+        rounded_corners = true;
         net_iface = "eth0";
       };
     };

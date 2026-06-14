@@ -10,6 +10,8 @@ let
 
   rootSubvol = "@nixos-root";
   homeSubvol = "@nixos-home";
+  keepHome = 10;
+  keepRoot = 20;
 in
 selfLib.mkModule {
   name = "hardware.preservation";
@@ -95,6 +97,14 @@ selfLib.mkModule {
         description = "Background cleanup of old BTRFS roots and home backups";
         after = [ "local-fs.target" ];
         wantedBy = [ "multi-user.target" ];
+        path = [
+          "/run/wrappers/bin"
+        ]
+        ++ (with pkgs; [
+          btrfs-progs
+          coreutils
+          util-linux
+        ]);
         serviceConfig = {
           Type = "oneshot";
           ExecStart = pkgs.writeShellScript "preservation-cleanup" ''
@@ -115,7 +125,7 @@ selfLib.mkModule {
 
             cleanup_old_backups() {
               prefix=$1
-              backups=$(ls -1d /tmp/btrfs_cleanup/@nixos-old-roots/$prefix-* 2>/dev/null | sort -r | tail -n +21)
+              backups=$(ls -1d /tmp/btrfs_cleanup/@nixos-old-roots/$prefix-* 2>/dev/null | sort -r | tail -n +${toString (keepRoot + 1)})
               for i in $backups; do
                 echo "Deleting old $prefix backup: $i"
                 delete_subvolume_recursively "$i"
@@ -123,7 +133,7 @@ selfLib.mkModule {
             }
 
             # Delete old home snapshots (keep last 10)
-            old_snaps=$(ls -1dt /tmp/btrfs_cleanup/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +11)
+            old_snaps=$(ls -1dt /tmp/btrfs_cleanup/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +${toString (keepHome + 1)})
             for snap in $old_snaps; do
               echo "Deleting old home snapshot: $snap"
               btrfs subvolume delete "$snap"
