@@ -111,6 +111,6 @@ selfLib.mkModule {
     };
 
     xdg.configFile."fish/functions/custom".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/fish/functions";
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/functions";
   };
 }

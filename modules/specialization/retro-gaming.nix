@@ -14,8 +14,6 @@ selfLib.mkModule {
       environment.systemPackages = with pkgs; [
         retroarch-full
         libretro.swanstation
-        ppsspp
-        pcsx2
         antimicrox
       ];
 

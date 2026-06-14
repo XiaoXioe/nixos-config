@@ -9,7 +9,7 @@
     settings = {
       # Monitors
       monitor = [
-        ",preferred,auto,1"
+        ",preferred,auto,auto"
       ];
 
       # Exec once (startup scripts/apps)
@@ -23,8 +23,8 @@
         kb_layout = "us";
         follow_mouse = 1;
         touchpad = {
-          natural_scroll = true;
-          tap-to-click = true;
+          natural_scroll = false;
+          # tap-to-click = true;
         };
         sensitivity = 0;
       };
@@ -43,6 +43,7 @@
       # Decoration (Rounding, Blur, Shadow)
       decoration = {
         rounding = 12;
+        rounding_power = 2;
         active_opacity = 0.95;
         inactive_opacity = 0.90;
 
@@ -64,34 +65,54 @@
 
       # Animations (Smooth, fluid modern animations)
       animations = {
-        enable = true;
+        enabled = true;
         bezier = [
-          "wind, 0.05, 0.9, 0.1, 1.05"
-          "winIn, 0.1, 1.1, 0.1, 1.1"
-          "winOut, 0.3, -0.3, 0, 1"
-          "liner, 1, 1, 1, 1"
+          # "wind, 0.05, 0.9, 0.1, 1.05"
+          # "winIn, 0.1, 1.1, 0.1, 1.1"
+          # "winOut, 0.3, -0.3, 0, 1"
+          # "liner, 1, 1, 1, 1"
+          "easeOutQuint, 0.23, 1, 0.32, 1"
+          "easeInOutCubic, 0.65, 0.05, 0.36, 1"
+          "linear, 0, 0, 1, 1"
+          "almostLinear, 0.5, 0.5, 0.75, 1"
+          "quick, 0.15, 0, 0.1, 1"
         ];
         animation = [
-          "windows, 1, 6, wind, slide"
-          "windowsIn, 1, 6, winIn, slide"
-          "windowsOut, 1, 5, winOut, slide"
-          "windowsMove, 1, 5, wind, slide"
-          "border, 1, 1, liner"
-          "fade, 1, 10, default"
-          "workspaces, 1, 5, wind, slidefade 20%"
+          # "windows, 1, 6, wind, slide"
+          # "windowsIn, 1, 6, winIn, slide"
+          # "windowsOut, 1, 5, winOut, slide"
+          # "windowsMove, 1, 5, wind, slide"
+          # "border, 1, 1, liner"
+          # "fade, 1, 10, default"
+          # "workspaces, 1, 5, wind, slidefade 20%"
+          "global,        1,     10,    default"
+          "border,        1,     5.39,  easeOutQuint"
+          "windows,       1,     4.79,  easeOutQuint"
+          "windowsIn,     1,     4.1,   easeOutQuint, popin 87%"
+          "windowsOut,    1,     1.49,  linear,       popin 87%"
+          "fadeIn,        1,     1.73,  almostLinear"
+          "fadeOut,       1,     1.46,  almostLinear"
+          "fade,          1,     3.03,  quick"
+          "layers,        1,     3.81,  easeOutQuint"
+          "layersIn,      1,     4,     easeOutQuint, fade"
+          "layersOut,     1,     1.5,   linear,       fade"
+          "fadeLayersIn,  1,     1.79,  almostLinear"
+          "fadeLayersOut, 1,     1.39,  almostLinear"
+          "workspaces,    1,     1.94,  almostLinear, fade"
+          "workspacesIn,  1,     1.21,  almostLinear, fade"
+          "workspacesOut, 1,     1.94,  almostLinear, fade"
+          "zoomFactor,    1,     7,     quick"
         ];
       };
 
       # Layout settings
       dwindle = {
-        pseudotile = true;
         preserve_split = true;
       };
 
-      gestures = {
-        workspace_swipe = true;
-        workspace_swipe_fingers = 3;
-      };
+      gesture = [
+        "3, horizontal, workspace"
+      ];
 
       misc = {
         force_default_wallpaper = 0;

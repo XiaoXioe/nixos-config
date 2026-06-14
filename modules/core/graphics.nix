@@ -6,6 +6,13 @@
 selfLib.mkModule {
   name = "core.graphics";
   nixosConfig = {
+
+    environment.sessionVariables = {
+      MESA_LOADER_DRIVER_OVERRIDE = "crocus";
+      LIBVA_DRIVER_NAME = "i965";
+      VAAPI_MPEG4_ENABLED = "true";
+    };
+
     hardware.graphics = {
       enable = true;
       enable32Bit = true;

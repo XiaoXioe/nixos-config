@@ -33,7 +33,6 @@ selfLib.mkModule {
       fd
       nethogs
       nh
-      unzip
       intel-gpu-tools
       compsize
 
@@ -43,6 +42,9 @@ selfLib.mkModule {
       go
       usbutils
       pciutils
+
+      killall
+      inetutils
 
       unzip # Archive handler for .zip
       zip

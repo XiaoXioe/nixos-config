@@ -15,5 +15,5 @@
 
   # Link DankMaterialShell configuration from the repository using out-of-store symlink
   xdg.configFile."DankMaterialShell".source =
-    config.lib.file.mkOutOfStoreSymlink "${osConfig.my.user.flakePath}/modules/dotfiles/DankMaterialShell";
+    config.lib.file.mkOutOfStoreSymlink "${osConfig.my.user.flakePath}/dotfiles/DankMaterialShell";
 }

@@ -2,6 +2,7 @@
   config,
   lib,
   selfLib,
+  pkgs,
   ...
 }:
 selfLib.mkModule {
@@ -19,11 +20,74 @@ selfLib.mkModule {
     {
       users.users.klein-moretti.extraGroups = [ "docker" ];
 
+      environment.variables = {
+
+        # 9Router AI gateway
+        NINEROUTER_URL = "http://localhost:20128";
+      };
+
       programs.virt-manager.enable = true;
 
       systemd.services.libvirtd.serviceConfig = {
         TimeoutStopSec = "5s";
         TimeoutStartSec = "5s";
+      };
+
+      systemd.services.docker-autoupdate = lib.mkIf cfg.autoUpdate.enable {
+        description = "Auto-update all running Docker containers";
+        path = [
+          pkgs.docker
+          pkgs.systemd
+          pkgs.coreutils
+        ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "docker-autoupdate" ''
+            set -euo pipefail
+
+            # Get list of running docker container names
+            containers=$(docker ps --format '{{.Names}}')
+
+            for container in $containers; do
+              # Get image name used by the container
+              image=$(docker inspect --format '{{.Config.Image}}' "$container")
+
+              echo "Checking updates for $container ($image)..."
+
+              # Store the old image ID
+              old_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
+
+              # Pull the latest image
+              if docker pull "$image"; then
+                # Get the new image ID
+                new_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
+
+                # If the image was updated, restart the systemd service for the container
+                if [ "$old_image_id" != "$new_image_id" ]; then
+                  echo "Image updated for $container. Restarting service docker-$container.service..."
+                  if systemctl is-active --quiet "docker-$container.service"; then
+                    systemctl restart "docker-$container.service"
+                  else
+                    echo "Service docker-$container.service is not active, skipping restart."
+                  fi
+                else
+                  echo "Image is already up-to-date for $container."
+                fi
+              else
+                echo "Failed to pull image $image"
+              fi
+            done
+          '';
+        };
+      };
+
+      systemd.timers.docker-autoupdate = lib.mkIf cfg.autoUpdate.enable {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5m";
+          OnUnitActiveSec = "4h";
+          Unit = "docker-autoupdate.service";
+        };
       };
 
       virtualisation = {
@@ -74,17 +138,6 @@ selfLib.mkModule {
               environmentFiles = lib.optional cfg."9router".enable config.sops.secrets."9router-env".path;
             };
 
-            watchtower = lib.mkIf cfg.autoUpdate.enable {
-              image = "containrrr/watchtower:latest";
-              volumes = [ "/var/run/docker.sock:/var/run/docker.sock" ];
-              environment = {
-                DOCKER_API_VERSION = "1.40";
-                WATCHTOWER_CLEANUP = "true";
-                WATCHTOWER_POLL_INTERVAL = "86400";
-                WATCHTOWER_INCLUDE_STOPPED = "true";
-                WATCHTOWER_REVIVE_STOPPED = "false";
-              };
-            };
           };
         };
       };

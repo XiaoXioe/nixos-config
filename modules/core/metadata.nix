@@ -1,4 +1,4 @@
-# System-wide options registry: host identity and user info.
+# System-wide options metadata: host identity and user info.
 {
   config,
   lib,

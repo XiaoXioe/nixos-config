@@ -10,7 +10,7 @@ selfLib.mkModule {
 
   hmConfig = { config, ... }: {
     home.file.".ssh/config_raw".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/dotfiles/ssh-config/config.conf";
+      config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/ssh-config/config.conf";
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;

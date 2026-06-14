@@ -7,26 +7,25 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ```text
 .
 ├── flake.nix                    # Entry point — inputs, outputs, wiring
+├── dotfiles/                    # Direct repository dotfiles (Niri, DMS, fish, rmpc)
 ├── lib/
 │   ├── default.nix              # Public API for custom library functions
 │   ├── modules.nix              # Unified mkModule builder
-│   ├── builders.nix             # NixOS + Home Manager configuration builders
-│   └── users.nix                # User definitions and feature flags (Single Source of Truth)
+│   └── builders.nix             # NixOS + Home Manager configuration builders
 │
 ├── hosts/
 │   └── nixos/
 │       ├── default.nix          # Host-specific overrides & dynamic feature linking
 │       ├── home.nix             # Home Manager wiring
+│       ├── users.nix            # User definitions and feature flags (Single Source of Truth)
 │       └── hardware-configuration.nix
 │
 ├── modules/
 │   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI
 │   ├── apps/                    # Home Manager applications & user settings
-│   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire
+│   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire (including metadata options)
 │   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland
-│   ├── dotfiles/                # Direct repository dotfiles (Niri, DMS, fish, rmpc)
 │   ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
-│   ├── options/                 # Custom global option declarations
 │   ├── scripts/                 # Custom CLI tools and scripts
 │   ├── security/                # Security & Secrets: sops, hardening, gnupg, pentest
 │   ├── services/                # System services: networking, vpn, snapper, ananicy
@@ -36,6 +35,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 │
 ├── secrets/                     # Encrypted via sops-nix (age)
 │   ├── secrets.yaml             # Main secrets file
+│   ├── binary/                  # Encrypted binary secrets (fastfetch-logo, foto-profile, etc.)
 │   └── vpn-files/               # External VPN configuration files
 │
 └── packages-export.nix          # Unified export for custom derivations
@@ -44,7 +44,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ## ✨ Key Features
 
 - **Unified Module Builder (`mkModule`)** — Simplified syntax that handles options and config merging for both NixOS and Home Manager.
-- **Single Source of Truth** — Per-user features (`lib/users.nix`) automatically drive and map to system-wide configurations using recursive feature mapping (`mapFeatures`) in `hosts/nixos/default.nix`.
+- **Single Source of Truth** — Per-user features (`hosts/nixos/users.nix`) automatically drive and map to system-wide configurations using recursive feature mapping (`mapFeatures`) in `hosts/nixos/default.nix`.
 - **Nix Flakes** — Pinned inputs and reproducible builds.
 - **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
 - **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
@@ -60,19 +60,19 @@ nix develop
 
 ## 🧩 User Feature Mapping (The Core Logic)
 
-The core logic of this configuration centers around `lib/users.nix`. Instead of toggling features manually per-host, you enable features explicitly per-user.
+The core logic of this configuration centers around `hosts/nixos/users.nix`. Instead of toggling features manually per-host, you enable features explicitly per-user.
 
-In `lib/users.nix`:
+In `hosts/nixos/users.nix`:
 ```nix
-users = {
-  tamu = {
-    uid = 1001;
-    userFeatures = {
-      desktop.kde = true;
-      services.networking.dns = true;
-    };
+{
+  fullName = "Klein Moretti (admin)";
+  uid = 1000;
+  extraGroups = [ "wheel" "networkmanager" ];
+  userFeatures = {
+    desktop.niri = true;
+    services.networking.dns = true;
   };
-};
+}
 ```
 
 This configuration is automatically mapped in `hosts/nixos/default.nix` through a recursive helper function (`mapFeatures`) that converts flat/nested boolean configurations into the appropriate `.enable = true` structure needed by NixOS options, and merges them directly using `lib.recursiveUpdate`.
@@ -113,12 +113,12 @@ selfLib.mkModule {
 
 ```bash
 sops secrets/secrets.yaml           # edit
-sops secrets/foto-profile.enc       # binary file
+sops secrets/binary/foto-profile.enc       # binary file
 ```
 The system uses the SSH host key for decryption, so no manual key management is needed on the target machine.
 
 **Adding New Users:**
-Because `mutableUsers = false` is active, every user declared in `lib/users.nix` must have a corresponding password hash defined in `secrets.yaml` under the key `<userName>_password_hash` (e.g., `tamu_password_hash`). 
+Because `mutableUsers = false` is active, every user declared in `hosts/nixos/users.nix` must have a corresponding password hash defined in `secrets.yaml` under the key `<userName>_password_hash` (e.g., `klein-moretti_password_hash`). 
 
 Generate a hash using:
 ```bash

@@ -1,4 +1,5 @@
 {
+  pkgs,
   config,
   selfLib,
   ...
@@ -67,11 +68,11 @@ selfLib.mkModule {
         enable = true;
       };
 
-      # apparmor = {
-      #   enable = true;
-      #   enableCache = true;
-      #   packages = [ pkgs.apparmor-profiles ];
-      # };
+      apparmor = {
+        enable = true;
+        enableCache = true;
+        packages = [ pkgs.apparmor-profiles ];
+      };
 
     };
   };

@@ -1,82 +1,15 @@
 {
   config,
   lib,
+  pkgs,
   selfLib,
   ...
 }:
 let
   persistBase = "/persist";
 
-  btrfsDevice = "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8";
   rootSubvol = "@nixos-root";
   homeSubvol = "@nixos-home";
-
-  # Wipe root & home subvolumes on each boot, preserving pre-wipe home snapshot
-  wipeRootScript = ''
-    echo "==> [preservation] Wiping ephemeral root and home subvolumes..."
-    mkdir -p /btrfs_tmp
-
-    # Mount fisik disk BTRFS di initrd
-    mount -t btrfs -o subvol=/ ${btrfsDevice} /btrfs_tmp
-
-    timestamp=$(date "+%Y-%m-%d_%H:%M:%S")
-    mkdir -p /btrfs_tmp/@nixos-old-roots
-
-    # Wipe Root
-    if [[ -e /btrfs_tmp/${rootSubvol} ]]; then
-      echo "==> [preservation] Moving old root to @nixos-old-roots/root-$timestamp"
-      mv /btrfs_tmp/${rootSubvol} "/btrfs_tmp/@nixos-old-roots/root-$timestamp"
-    fi
-    btrfs subvolume create /btrfs_tmp/${rootSubvol}
-
-    # Pre-wipe home snapshot → saved in persist for recovery
-    # Accessible at /persist/home-snapshots/ after boot.
-    if [[ -e /btrfs_tmp/${homeSubvol} ]] && [[ -e /btrfs_tmp/@nixos-persist ]]; then
-      echo "==> [preservation] Snapshotting home before wipe → @nixos-persist/home-snapshots/$timestamp"
-      mkdir -p /btrfs_tmp/@nixos-persist/home-snapshots
-      btrfs subvolume snapshot -r \
-        /btrfs_tmp/${homeSubvol} \
-        "/btrfs_tmp/@nixos-persist/home-snapshots/$timestamp"
-
-      # Delete old home snapshots (keep last 10)
-      old_snaps=$(ls -1dt /btrfs_tmp/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +11)
-      for snap in $old_snaps; do
-        echo "==> [preservation] Deleting old home snapshot: $snap"
-        btrfs subvolume delete "$snap"
-      done
-    fi
-
-    # Wipe Home
-    if [[ -e /btrfs_tmp/${homeSubvol} ]]; then
-      echo "==> [preservation] Moving old home to @nixos-old-roots/home-$timestamp"
-      mv /btrfs_tmp/${homeSubvol} "/btrfs_tmp/@nixos-old-roots/home-$timestamp"
-    fi
-    btrfs subvolume create /btrfs_tmp/${homeSubvol}
-
-    # Delete excess old root/home backups (keep last 20)
-    delete_subvolume_recursively() {
-      IFS=$'\n'
-      for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-        delete_subvolume_recursively "/btrfs_tmp/$i"
-      done
-      btrfs subvolume delete "$1"
-    }
-
-    cleanup_old_backups() {
-      prefix=$1
-      backups=$(ls -1d /btrfs_tmp/@nixos-old-roots/$prefix-* 2>/dev/null | sort -r | tail -n +21)
-      for i in $backups; do
-        echo "==> [preservation] Deleting old $prefix backup: $i"
-        delete_subvolume_recursively "$i"
-      done
-    }
-
-    cleanup_old_backups "root"
-    cleanup_old_backups "home"
-
-    umount /btrfs_tmp
-    echo "==> [preservation] Ephemeral root and home ready."
-  '';
 in
 selfLib.mkModule {
   name = "hardware.preservation";
@@ -104,6 +37,45 @@ selfLib.mkModule {
   nixosConfig =
     let
       cfg = config.my.hardware.preservation;
+      btrfsDevice = config.fileSystems."/".device;
+
+      # Instant wipe in initrd (only renames and snapshot creation)
+      wipeRootScript = ''
+        echo "==> [preservation] Wiping ephemeral root and home subvolumes..."
+        mkdir -p /btrfs_tmp
+
+        # Mount BTRFS root
+        mount -t btrfs -o subvol=/ ${btrfsDevice} /btrfs_tmp
+
+        timestamp=$(date "+%Y-%m-%d_%H:%M:%S")
+        mkdir -p /btrfs_tmp/@nixos-old-roots
+
+        # Wipe Root
+        if [[ -e /btrfs_tmp/${rootSubvol} ]]; then
+          echo "==> [preservation] Moving old root to @nixos-old-roots/root-$timestamp"
+          mv /btrfs_tmp/${rootSubvol} "/btrfs_tmp/@nixos-old-roots/root-$timestamp"
+        fi
+        btrfs subvolume create /btrfs_tmp/${rootSubvol}
+
+        # Pre-wipe home snapshot
+        if [[ -e /btrfs_tmp/${homeSubvol} ]] && [[ -e /btrfs_tmp/@nixos-persist ]]; then
+          echo "==> [preservation] Snapshotting home before wipe → @nixos-persist/home-snapshots/$timestamp"
+          mkdir -p /btrfs_tmp/@nixos-persist/home-snapshots
+          btrfs subvolume snapshot -r \
+            /btrfs_tmp/${homeSubvol} \
+            "/btrfs_tmp/@nixos-persist/home-snapshots/$timestamp"
+        fi
+
+        # Wipe Home
+        if [[ -e /btrfs_tmp/${homeSubvol} ]]; then
+          echo "==> [preservation] Moving old home to @nixos-old-roots/home-$timestamp"
+          mv /btrfs_tmp/${homeSubvol} "/btrfs_tmp/@nixos-old-roots/home-$timestamp"
+        fi
+        btrfs subvolume create /btrfs_tmp/${homeSubvol}
+
+        umount /btrfs_tmp
+        echo "==> [preservation] Ephemeral root and home ready."
+      '';
     in
     {
       boot.initrd.systemd.enable = true;
@@ -117,6 +89,55 @@ selfLib.mkModule {
         script = wipeRootScript;
       };
       boot.initrd.supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
+
+      # Offload slow recursive BTRFS deletions to a background post-boot service
+      systemd.services.preservation-cleanup = lib.mkIf cfg.ephemeralRoot {
+        description = "Background cleanup of old BTRFS roots and home backups";
+        after = [ "local-fs.target" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "preservation-cleanup" ''
+            set -euo pipefail
+            echo "==> [preservation] Starting background cleanup..."
+
+            # Temporary mount point
+            mkdir -p /tmp/btrfs_cleanup
+            mount -t btrfs -o subvol=/ ${btrfsDevice} /tmp/btrfs_cleanup
+
+            delete_subvolume_recursively() {
+              IFS=$'\n'
+              for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
+                delete_subvolume_recursively "/tmp/btrfs_cleanup/$i"
+              done
+              btrfs subvolume delete "$1"
+            }
+
+            cleanup_old_backups() {
+              prefix=$1
+              backups=$(ls -1d /tmp/btrfs_cleanup/@nixos-old-roots/$prefix-* 2>/dev/null | sort -r | tail -n +21)
+              for i in $backups; do
+                echo "Deleting old $prefix backup: $i"
+                delete_subvolume_recursively "$i"
+              done
+            }
+
+            # Delete old home snapshots (keep last 10)
+            old_snaps=$(ls -1dt /tmp/btrfs_cleanup/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +11)
+            for snap in $old_snaps; do
+              echo "Deleting old home snapshot: $snap"
+              btrfs subvolume delete "$snap"
+            done
+
+            cleanup_old_backups "root"
+            cleanup_old_backups "home"
+
+            umount /tmp/btrfs_cleanup
+            rmdir /tmp/btrfs_cleanup
+            echo "==> [preservation] Background cleanup finished."
+          '';
+        };
+      };
 
       preservation.enable = true;
       preservation.preserveAt."${persistBase}" = {
@@ -178,6 +199,7 @@ selfLib.mkModule {
           directories = [
             "Desktop"
             ".BurpSuite"
+            ".agents"
             ".config"
             ".claude"
             ".codex"
@@ -203,7 +225,7 @@ selfLib.mkModule {
               mode = "0700";
             }
             "PersistentData"
-            ".antigravity"
+            ".antigravity-ide"
             ".gemini"
             "nixos-config"
             "nix-custompkgs"

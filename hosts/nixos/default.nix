@@ -10,7 +10,7 @@
   ...
 }:
 let
-  userData = import ../../lib/users.nix;
+  userData = import ./users.nix;
 in
 {
   imports = [
@@ -34,25 +34,6 @@ in
       name = userName;
       fullName = fullName;
       flakePath = flakePath;
-    };
-
-    # Force enable host-specific baseline options
-    services = {
-      core.enable = true;
-      networking.openssh.enable = true;
-    };
-
-    security = {
-      wrappers.enable = true;
-      secrets.enable = true;
-      packages.enable = true;
-      hardening.enable = true;
-      networking.enable = true;
-    };
-
-    hardware = {
-      auto-mount.enable = true;
-      preservation.enable = true;
     };
   };
 

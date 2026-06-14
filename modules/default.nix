@@ -7,7 +7,6 @@
     ./core
     ./desktop
     ./hardware
-    ./options
     ./scripts
     ./security
     ./services

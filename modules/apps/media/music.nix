@@ -62,9 +62,9 @@ selfLib.mkModule {
     systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/data" ];
     programs.rmpc = {
       enable = true;
-      config = builtins.readFile ../../dotfiles/rmpc/config.ron;
+      config = builtins.readFile ../../../dotfiles/rmpc/config.ron;
     };
 
-    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../dotfiles/rmpc/theme.ron;
+    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../../dotfiles/rmpc/theme.ron;
   };
 }

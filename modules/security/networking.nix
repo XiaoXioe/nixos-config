@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -7,6 +8,23 @@ selfLib.mkModule {
   name = "security.networking";
 
   nixosConfig = {
+
+    environment.systemPackages = with pkgs; [
+      wireguard-tools
+      iproute2
+      openresolv
+
+    ];
+
+    security.wrappers = {
+      nethogs = {
+        source = "${pkgs.nethogs}/bin/nethogs";
+        capabilities = "cap_net_admin,cap_net_raw+ep";
+        owner = "root";
+        group = "root";
+      };
+    };
+
     networking = {
       firewall = {
         enable = true;

@@ -8,6 +8,12 @@ selfLib.mkModule {
   name = "apps.browsers.firefox";
   description = "Firefox configuration for user";
 
+  nixosConfig = {
+    environment.sessionVariables = {
+      MOZ_ENABLE_WAYLAND = "1";
+    };
+  };
+
   hmConfig = { config, userName, ... }: {
     programs.firefox = {
       package = pkgs.firefox;

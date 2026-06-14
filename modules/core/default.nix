@@ -1,6 +1,6 @@
 { selfLib, ... }:
 {
   imports = (selfLib.scanPaths ./.) ++ [
-    ./pipewire-effects
+    # ./pipewire-effects
   ];
 }

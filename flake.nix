@@ -63,7 +63,7 @@
       adminUser = "klein-moretti";
 
       # User data & custom library
-      userData = import ./lib/users.nix;
+      userData = import ./hosts/nixos/users.nix;
       selfLib = import ./lib { inherit lib; };
 
       pkgs = import inputs.nixpkgs {
@@ -110,18 +110,14 @@
       builders = import ./lib/builders.nix {
         inherit
           lib
-          inputs
           pkgs
           hostName
-          adminUser
           baseArgs
-          homeModules
           commonModules
           ;
       };
 
       inherit (builders)
-        mkHomeConfigurations
         mkNixosConfigurations
         ;
 
@@ -148,11 +144,9 @@
       };
 
       nixosConfigurations = mkNixosConfigurations;
-      homeConfigurations = mkHomeConfigurations;
 
       packages.${system} = import ./packages-export.nix {
         nixosConfigs = mkNixosConfigurations;
-        homeConfigs = mkHomeConfigurations;
         inherit hostName adminUser;
       };
     };

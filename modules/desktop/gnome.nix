@@ -12,9 +12,6 @@ selfLib.mkModule {
 
     services.desktopManager.gnome.enable = true;
 
-    services.gnome.gnome-keyring.enable = true;
-    security.pam.services.gdm.enableGnomeKeyring = true;
-
     environment.gnome.excludePackages = with pkgs; [
       gnome-tour
       gnome-connections

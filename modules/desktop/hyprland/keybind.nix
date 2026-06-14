@@ -12,12 +12,10 @@
       "$mod SHIFT, E, exit,"
       "$mod SHIFT, T, togglefloating,"
       "$mod, F, fullscreen, 0"
-      "$mod SHIFT, F, fullscreen, 1"
 
       # Caelestia Shell IPC Drawer Toggles (Aligned with spotlight/dashboard/utilities in DMS)
       "$mod, Space, exec, caelestia shell drawers toggle launcher"
       "$mod, D, exec, caelestia shell drawers toggle dashboard"
-      "$mod, Tab, exec, caelestia shell drawers toggle dashboard"
       "$mod ALT, U, exec, caelestia shell drawers toggle utilities"
 
       # Window Focus Movement (Niri: Arrow Keys)
@@ -64,11 +62,15 @@
 
       # Scratchpad/Minimize-like behavior
       "$mod, S, togglespecialworkspace, magic"
-      "$mod SHIFT, S, movetoworkspace, special:magic"
+      "$mod CTRL, S, movetoworkspace, special:magic"
 
       # Screenshots
       "$mod SHIFT, S, exec, grim -g \"$(slurp)\" - | wl-copy"
       "CTRL, Print, exec, grim - | wl-copy"
+
+      # Scroll through existing workspaces with mainMod + scroll
+      "$mod, mouse_down, workspace, e+1"
+      "$mod, mouse_up, workspace, e-1"
     ];
 
     # Media, Brightness and Audio keys (work when locked and repeat)

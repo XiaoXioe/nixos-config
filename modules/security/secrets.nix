@@ -44,7 +44,7 @@ selfLib.mkModule {
 
         "fastfetch-logo" = {
           format = "binary";
-          sopsFile = ../../secrets/fastfetch-logo.enc;
+          sopsFile = ../../secrets/binary/fastfetch-logo.enc;
           owner = "klein-moretti";
           mode = "0444";
         };
@@ -52,7 +52,7 @@ selfLib.mkModule {
         "foto-profile" = {
           format = "binary";
           owner = "klein-moretti";
-          sopsFile = ../../secrets/foto-profile.enc;
+          sopsFile = ../../secrets/binary/foto-profile.enc;
         };
 
         "github-token" = {

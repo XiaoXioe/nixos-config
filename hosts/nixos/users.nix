@@ -57,6 +57,7 @@
       };
 
       terminal = {
+        btop = true;
         fastfetch = true;
         fish = true;
         starship = true;
@@ -85,17 +86,21 @@
       packages = true;
       graphics = true;
       bootloader = true;
-      environment = true;
       optimizations = true;
     };
 
     desktop = {
       kde = false;
       niri = true;
-      hyprland = true;
+      hyprland = false;
       theme = true;
       gnome = true;
       greeter = true;
+    };
+
+    hardware = {
+      auto-mount = true;
+      preservation = true;
     };
 
     settings = {
@@ -103,11 +108,13 @@
     };
 
     services = {
+      core = true;
       rclone = true;
       tmpfiles = true;
       networking = {
         dns = true;
         vpn = true;
+        openssh = true;
       };
       scheduling = {
         ananicy = true;
@@ -121,6 +128,9 @@
       gnupg = true;
       compat = true;
       pentest = true;
+      secrets = true;
+      hardening = true;
+      networking = true;
     };
 
     scripts = {
@@ -129,6 +139,11 @@
       dl-lagu = true;
       show-zombie-parents = true;
       ollama-to-llama = true;
+    };
+
+    specialization = {
+      retro-gaming = false;
+      daily = false;
     };
 
     virtualisation = {
