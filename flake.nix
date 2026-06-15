@@ -2,18 +2,12 @@
   description = "Klein Moretti's NixOS Flake Configuration";
 
   inputs = {
-    # nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-
     nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
 
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # custompkgs = {
-    #   url = "path:/home/klein-moretti/nix-custompkgs";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
 
     custompkgs-priv = {
       url = "github:XiaoXioe/nix-custompkg-priv";
@@ -47,10 +41,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # caelestia-shell = {
-    #   url = "github:caelestia-dots/shell";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+
   };
 
   outputs =
