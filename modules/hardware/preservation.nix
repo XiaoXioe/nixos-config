@@ -219,7 +219,7 @@ selfLib.mkModule {
             ".local/state"
             ".librewolf"
             ".steam"
-            ".vscode-oss"
+            # ".vscode-oss"
             ".cache/nix"
             ".cache/mozilla"
             ".cache/rclone"

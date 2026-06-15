@@ -84,9 +84,13 @@ selfLib.mkModule {
         hr-seek-framedrop = "yes";
         framedrop = "decoder";
         network-timeout = 100;
-        stream-lavf-o = "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5,reconnect_at_eof=1";
-        ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best[height<=1080][vcodec^=avc]/bestvideo[height<=720][vcodec^=avc]+bestaudio/best";
-        ytdl-raw-options = "write-auto-subs=,ignore-config=,impersonate=chrome-110:windows-10,retries=infinite,fragment-retries=infinite,cookies-from-browser=firefox";
+        # stream-lavf-o = "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5,reconnect_at_eof=1";
+        # ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best[height<=1080][vcodec^=avc]/bestvideo[height<=720][vcodec^=avc]+bestaudio/best";
+        ytdl-raw-options = "cookies-from-browser=firefox";
+      };
+      bindings = {
+        RIGHT = "seek 2";
+        LEFT = "seek -2";
       };
       scriptOpts = {
         ytdl_hook = {
@@ -103,8 +107,8 @@ selfLib.mkModule {
         add-metadata = true;
         embed-thumbnail = true;
         embed-subs = true;
-        extractor-args = "'generic:impersonate'";
-        impersonate = "'Chrome-131:Macos-14'";
+        # extractor-args = "'generic:impersonate'";
+        # impersonate = "'Chrome-131:Macos-14'";
         output = "'%(title)s [%(id)s].%(ext)s'";
       };
     };

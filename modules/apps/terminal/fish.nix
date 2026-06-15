@@ -80,7 +80,18 @@ selfLib.mkModule {
         aria = "aria2c -x16 -s16 -c '' -o ''";
       };
 
+      functions = {
+        sudo = ''
+          if test "$argv[1]" = "-i"
+            doas -s
+          else
+            command doas $argv
+          end
+        '';
+      };
+
       shellAliases = {
+        sudo = "doas";
 
         ls = "eza --icons=auto";
         ll = "eza -lh --icons=auto --git";

@@ -113,10 +113,11 @@ selfLib.mkModule {
       enable = true;
       gtk4.theme = config.gtk.theme;
       theme = {
-        name = "Colloid-Dark";
-        package = pkgs.colloid-gtk-theme.override {
-          colorVariants = [ "dark" ];
-          tweaks = [ "normal" ];
+        name = "catppuccin-mocha-sky-standard";
+        package = pkgs.catppuccin-gtk.override {
+          accents = [ "sky" ]; # Pilihan: blue, flamingo, green, lavender, mauve, pink, dll.
+          size = "standard";
+          variant = "mocha";
         };
       };
       iconTheme = {

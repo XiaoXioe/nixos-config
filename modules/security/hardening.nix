@@ -21,51 +21,36 @@ selfLib.mkModule {
     security = {
 
       sudo.enable = false;
-      # sudo-rs (rust)
-      sudo-rs = {
+
+      doas = {
         enable = true;
-        execWheelOnly = true;
-        extraConfig = ''
-          # Show asterisks when typing password
-          Defaults env_reset,pwfeedback
-
-          # Extend sudo session timeout to 30 minutes (default is 15)
-          Defaults timestamp_timeout=30
-        '';
-
-        extraRules = [
-          {
-            users = [
-              config.my.user.name
-            ];
-            commands = [
-              {
-                command = "/run/current-system/sw/bin/compsize";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/dmesg";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/pkill";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/systemctl";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/nixos-rebuild";
-                options = [ "NOPASSWD" ];
-              }
-              {
-                command = "/run/current-system/sw/bin/nh";
-                options = [ "NOPASSWD" ];
-              }
-            ];
-          }
-        ];
+        extraRules =
+          let
+            adminUsers = [ config.my.user.name ];
+          in
+          [
+            {
+              users = adminUsers;
+              keepEnv = true;
+              persist = true;
+            }
+          ]
+          ++ (map
+            (cmd: {
+              users = adminUsers;
+              noPass = true;
+              keepEnv = true;
+            })
+            [
+              "nix"
+              "nixos-rebuild"
+              "nix-collect-garbage"
+              "compsize"
+              "dmesg"
+              "pkill"
+              "systemctl"
+            ]
+          );
       };
 
       rtkit = {
