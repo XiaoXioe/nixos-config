@@ -87,6 +87,7 @@ selfLib.mkModule {
         la = "eza -lah --icons=auto --git";
 
         cd = "z";
+        cat = "bat";
         editnix = "codium ~/nixos-config";
 
         ".." = "cd ..";

@@ -30,7 +30,6 @@ selfLib.mkModule {
     environment.systemPackages = with pkgs; [
       wget
       iotop-c
-      fd
       nethogs
       nh
       intel-gpu-tools

@@ -11,6 +11,7 @@ selfLib.mkModule {
   hmConfig = {
     home.packages = with pkgs; [
       ripgrep
+      fd
       jq
       aria2
       ncdu
