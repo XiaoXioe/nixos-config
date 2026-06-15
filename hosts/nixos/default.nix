@@ -19,7 +19,7 @@ in
 
   # Single user definition
   users.mutableUsers = false;
-  users.users.klein-moretti = {
+  users.users.${userName} = {
     isNormalUser = true;
     uid = userData.uid;
     description = userData.fullName;

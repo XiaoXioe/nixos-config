@@ -30,7 +30,7 @@ selfLib.mkModule {
 
         trusted-users = [
           "root"
-          "klein-moretti"
+          config.my.user.name
         ];
 
         # Ensure substitution is active

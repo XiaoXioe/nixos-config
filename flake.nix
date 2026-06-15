@@ -58,7 +58,7 @@
     let
       lib = inputs.nixpkgs.lib;
       hostName = "KleinMoretti";
-      flakePath = "/home/klein-moretti/nixos-config";
+      flakePath = "/home/${adminUser}/nixos-config";
       system = "x86_64-linux";
       adminUser = "klein-moretti";
 
@@ -99,9 +99,8 @@
           home-manager.useUserPackages = true;
           home-manager.extraSpecialArgs = baseArgs;
           home-manager.backupFileExtension = "hm-bak";
-          home-manager.users.klein-moretti = {
+          home-manager.users.${adminUser} = {
             imports = homeModules;
-            _module.args = baseArgs;
           };
         }
       ];

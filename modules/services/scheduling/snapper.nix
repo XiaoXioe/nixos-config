@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   selfLib,
   ...
@@ -29,7 +30,7 @@ selfLib.mkModule {
         # Mencakup: home/, var/lib/, etc/ — semua data yang dipersist
         persist = {
           SUBVOLUME = "/persist";
-          ALLOW_USERS = [ "klein-moretti" ];
+          ALLOW_USERS = [ config.my.user.name ];
           # SYNC_ACL: sync ACL so ALLOW_USERS can read snapshots
           # without sudo (needed for manual list & restore)
           SYNC_ACL = "yes";
@@ -52,7 +53,7 @@ selfLib.mkModule {
         # TAPI Anda bisa meng-copy file yang terhapus dari snapshot lama.
         home = {
           SUBVOLUME = "/home";
-          ALLOW_USERS = [ "klein-moretti" ];
+          ALLOW_USERS = [ config.my.user.name ];
           SYNC_ACL = "yes";
 
           TIMELINE_CREATE = true;

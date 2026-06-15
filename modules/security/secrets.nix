@@ -7,6 +7,7 @@
   ...
 }:
 let
+  userName = config.my.user.name;
   vpnDir = ../../secrets/vpn-files;
   vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
   vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
@@ -32,12 +33,12 @@ selfLib.mkModule {
       # --- Static secrets ---
       {
         "ssh-user-klein" = {
-          owner = "klein-moretti";
+          owner = userName;
           path = "/home/${config.my.user.name}/.ssh/id_ed25519";
           mode = "0600";
         };
         "ssh-rsa-user-klein" = {
-          owner = "klein-moretti";
+          owner = userName;
           path = "/home/${config.my.user.name}/.ssh/id_rsa_compat";
           mode = "0600";
         };
@@ -45,25 +46,25 @@ selfLib.mkModule {
         "fastfetch-logo" = {
           format = "binary";
           sopsFile = ../../secrets/binary/fastfetch-logo.enc;
-          owner = "klein-moretti";
+          owner = userName;
           mode = "0444";
         };
 
         "foto-profile" = {
           format = "binary";
-          owner = "klein-moretti";
+          owner = userName;
           sopsFile = ../../secrets/binary/foto-profile.enc;
         };
 
         "github-token" = {
-          owner = "klein-moretti";
+          owner = userName;
           # Restart nix-daemon to reload the token on change
           restartUnits = [ "nix-daemon.service" ];
           mode = "0400";
         };
 
         "gh_hosts_yml" = {
-          owner = "klein-moretti";
+          owner = userName;
           path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
           mode = "0600";
         };
@@ -78,12 +79,12 @@ selfLib.mkModule {
         "ninerouter-key" = {
           # API key from 9Router Dashboard → Keys
           # Digunakan CLI tools (Codex, Claude Code, dkk) sbg Authorization header
-          owner = "klein-moretti";
+          owner = userName;
           mode = "0400";
         };
 
         "gemini-api-key" = {
-          owner = "klein-moretti";
+          owner = userName;
         };
 
         "wg-lan.conf" = {
@@ -125,8 +126,9 @@ selfLib.mkModule {
         "root_password_hash" = {
           neededForUsers = true;
         };
-        "klein-moretti_password_hash" = {
+        "${userName}_password_hash" = {
           neededForUsers = true;
+          key = "klein-moretti_password_hash";
         };
       }
 
@@ -140,17 +142,17 @@ selfLib.mkModule {
 
       # --- Per-user secrets (klein-moretti) ---
       {
-        "adbkey_klein-moretti" = {
+        "adbkey_${userName}" = {
           key = "adbkey";
-          owner = "klein-moretti";
-          path = "/home/klein-moretti/.android/adbkey";
+          owner = userName;
+          path = "/home/${userName}/.android/adbkey";
           mode = "0400";
         };
 
-        "adbkey_pub_klein-moretti" = {
+        "adbkey_pub_${userName}" = {
           key = "adbkey_pub";
-          owner = "klein-moretti";
-          path = "/home/klein-moretti/.android/adbkey.pub";
+          owner = userName;
+          path = "/home/${userName}/.android/adbkey.pub";
           mode = "0444";
         };
       }
@@ -161,8 +163,8 @@ selfLib.mkModule {
       root = {
         hashedPasswordFile = lib.mkForce config.sops.secrets."root_password_hash".path;
       };
-      klein-moretti = {
-        hashedPasswordFile = lib.mkForce config.sops.secrets."klein-moretti_password_hash".path;
+      ${userName} = {
+        hashedPasswordFile = lib.mkForce config.sops.secrets."${userName}_password_hash".path;
       };
     };
   };

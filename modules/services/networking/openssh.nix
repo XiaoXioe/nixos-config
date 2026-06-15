@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   selfLib,
   ...
@@ -19,7 +20,7 @@ selfLib.mkModule {
       settings = {
         PermitRootLogin = "no";
         PasswordAuthentication = true;
-        AllowUsers = [ "klein-moretti" ];
+        AllowUsers = [ config.my.user.name ];
       };
     };
   };

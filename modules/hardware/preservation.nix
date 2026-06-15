@@ -205,7 +205,7 @@ selfLib.mkModule {
         ]
         ++ cfg.extraFiles;
 
-        users.klein-moretti = {
+        users.${config.my.user.name} = {
           directories = [
             "Desktop"
             ".BurpSuite"

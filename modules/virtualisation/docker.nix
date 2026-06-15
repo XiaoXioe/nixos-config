@@ -18,7 +18,7 @@ selfLib.mkModule {
       cfg = config.my.virtualisation.docker;
     in
     {
-      users.users.klein-moretti.extraGroups = [ "docker" ];
+      users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
       environment.variables = {
 
