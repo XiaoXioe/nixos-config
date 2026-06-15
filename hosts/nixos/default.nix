@@ -4,14 +4,12 @@
   fullName,
   flakePath,
   userFeatures,
+  userData,
   selfLib,
   lib,
   pkgs,
   ...
 }:
-let
-  userData = import ./users.nix;
-in
 {
   imports = [
     ./hardware-configuration.nix

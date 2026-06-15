@@ -69,6 +69,7 @@
           selfLib
           hostName
           flakePath
+          userData
           ;
         userName = adminUser;
         fullName = userData.fullName;
