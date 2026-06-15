@@ -1,6 +1,7 @@
 {
   pkgs,
   selfLib,
+  lib,
   ...
 }:
 
@@ -56,6 +57,8 @@ selfLib.mkModule {
       layout = "us";
       variant = "";
     };
+
+    services.gnome.gnome-online-accounts.enable = lib.mkForce false;
 
     services.udev.packages = with pkgs; [
       gnome-settings-daemon
