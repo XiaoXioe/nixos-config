@@ -154,6 +154,7 @@ selfLib.mkModule {
         directories = [
           "/var/lib/nixos"
           "/var/lib/sddm"
+          "/var/lib/dms-greeter"
           "/var/lib/systemd"
           "/var/lib/NetworkManager"
           "/var/lib/9router"

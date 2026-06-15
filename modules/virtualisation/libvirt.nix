@@ -1,8 +1,6 @@
 {
   config,
-  lib,
   selfLib,
-  pkgs,
   ...
 }:
 selfLib.mkModule {

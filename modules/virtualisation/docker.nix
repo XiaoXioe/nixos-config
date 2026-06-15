@@ -26,8 +26,6 @@ selfLib.mkModule {
         NINEROUTER_URL = "http://localhost:20128";
       };
 
-
-
       systemd.services.docker-autoupdate = lib.mkIf cfg.autoUpdate.enable {
         description = "Auto-update all running Docker containers";
         path = [
@@ -93,8 +91,6 @@ selfLib.mkModule {
             "data-root" = "/mnt/data_btrfs/docker";
           };
         };
-
-
 
         oci-containers = {
           backend = "docker";

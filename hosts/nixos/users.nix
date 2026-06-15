@@ -1,6 +1,6 @@
 # lib/users.nix — Single user data for klein-moretti.
 {
-  fullName = "Klein Moretti (admin)";
+  fullName = "Klein Moretti";
   uid = 1000;
   extraGroups = [
     "wheel"

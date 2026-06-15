@@ -8,19 +8,20 @@
 selfLib.mkModule {
   name = "virtualisation.waydroid";
 
-  nixosConfig =
-    {
-      virtualisation.waydroid.package = pkgs.waydroid-nftables;
+  nixosConfig = {
+    virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
-      environment.systemPackages = with pkgs; [
-        bindfs
-        wl-clipboard
-      ];
-      boot.supportedFilesystems = [ "fuse" ];
+    environment.systemPackages = with pkgs; [
+      bindfs
+      wl-clipboard
+    ];
+    boot.supportedFilesystems = [ "fuse" ];
 
-      systemd.tmpfiles.rules = let
+    systemd.tmpfiles.rules =
+      let
         userName = config.my.user.name;
-      in [
+      in
+      [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
         "d /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
         "z /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
@@ -28,13 +29,15 @@ selfLib.mkModule {
         "z /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
       ];
 
-      virtualisation.waydroid.enable = true;
-      boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
-      systemd.services.waydroid-container.wantedBy = lib.mkForce [ ];
+    virtualisation.waydroid.enable = true;
+    boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
+    systemd.services.waydroid-container.wantedBy = lib.mkForce [ ];
 
-      fileSystems = let
+    fileSystems =
+      let
         userName = config.my.user.name;
-      in lib.mkMerge [
+      in
+      lib.mkMerge [
         {
           "/home/${userName}/WaydroidShare" = {
             device = "/persist/home/${userName}/.local/share/waydroid/data/media/0/Download";
@@ -67,5 +70,5 @@ selfLib.mkModule {
           };
         }
       ];
-    };
+  };
 }

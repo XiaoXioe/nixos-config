@@ -3,6 +3,7 @@
   pkgs,
   lib,
   selfLib,
+  userName,
   ...
 }:
 selfLib.mkModule {
@@ -45,6 +46,7 @@ selfLib.mkModule {
           dms-greeter = lib.mkIf (cfg.backend == "dms") {
             enable = true;
             compositor.name = "niri";
+            configHome = "/home/${userName}";
           };
 
           sddm = lib.mkIf (cfg.backend == "sddm") {
