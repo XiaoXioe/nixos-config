@@ -5,6 +5,10 @@
 let
   modules = import ./modules.nix { inherit lib; };
 
+  # Recursively maps a user features attribute set to a module enable structure.
+  # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
+  # If the key name is already "enable" (e.g. `{ feat = { enable = true; option = 1; }; }`),
+  # it leaves the boolean value as-is to avoid nested wrapping (e.g. `{ enable = { enable = true; }; }`).
   mapFeatures = attrs:
     lib.mapAttrs (name: value:
       if builtins.isBool value then
