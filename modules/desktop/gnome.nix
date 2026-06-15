@@ -59,6 +59,7 @@ selfLib.mkModule {
     };
 
     services.gnome.gnome-online-accounts.enable = lib.mkForce false;
+    services.avahi.enable = lib.mkForce false;
 
     services.udev.packages = with pkgs; [
       gnome-settings-daemon
