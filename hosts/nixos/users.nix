@@ -152,6 +152,7 @@
         autoUpdate = true;
         "9router" = true;
       };
+      libvirt = true;
       waydroid = true;
       packages = true;
     };

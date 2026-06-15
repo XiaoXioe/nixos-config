@@ -26,12 +26,7 @@ selfLib.mkModule {
         NINEROUTER_URL = "http://localhost:20128";
       };
 
-      programs.virt-manager.enable = true;
 
-      systemd.services.libvirtd.serviceConfig = {
-        TimeoutStopSec = "5s";
-        TimeoutStartSec = "5s";
-      };
 
       systemd.services.docker-autoupdate = lib.mkIf cfg.autoUpdate.enable {
         description = "Auto-update all running Docker containers";
@@ -99,10 +94,7 @@ selfLib.mkModule {
           };
         };
 
-        libvirtd = {
-          enable = true;
-          onBoot = "ignore";
-        };
+
 
         oci-containers = {
           backend = "docker";
