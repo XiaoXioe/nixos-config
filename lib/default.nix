@@ -42,4 +42,13 @@ in
       f:
       "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }"
     ) filters;
+
+  getVpnFiles =
+    dir:
+    let
+      raw = if builtins.pathExists dir then builtins.readDir dir else { };
+    in
+    builtins.filter (name: raw.${name} == "regular" && lib.hasSuffix ".conf" name) (
+      builtins.attrNames raw
+    );
 }

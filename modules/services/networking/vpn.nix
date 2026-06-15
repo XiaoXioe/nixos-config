@@ -8,10 +8,7 @@
 
 let
   vpnDir = ../../../secrets/vpn-files;
-  vpnFilesRaw = if builtins.pathExists vpnDir then builtins.readDir vpnDir else { };
-  vpnFiles = builtins.filter (name: vpnFilesRaw.${name} == "regular" && lib.hasSuffix ".conf" name) (
-    builtins.attrNames vpnFilesRaw
-  );
+  vpnFiles = selfLib.getVpnFiles vpnDir;
 in
 selfLib.mkModule {
   name = "services.networking.vpn";

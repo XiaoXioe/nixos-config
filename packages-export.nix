@@ -10,22 +10,10 @@ let
 in
 {
   # Menarik dari Home Manager via NixOS config
-  dank-shell =
-    if userConfig.programs ? dank-material-shell then
-      userConfig.programs.dank-material-shell.package
-    else
-      pkgs.hello;
+  dank-shell = userConfig.programs.dank-material-shell.package or pkgs.hello;
 
-  caelestia =
-    if userConfig.programs ? caelestia then
-      userConfig.programs.caelestia.package
-    else
-      pkgs.hello;
+  caelestia = userConfig.programs.caelestia.package or pkgs.hello;
 
   # Menarik dari NixOS
-  llama =
-    if config.my ? ai && config.my.ai ? llama then
-      config.my.ai.llama.package
-    else
-      pkgs.hello;
+  llama = config.my.ai.llama.package or pkgs.hello;
 }
