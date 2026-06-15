@@ -32,7 +32,6 @@ selfLib.mkModule {
       gnome-console
       gnome-contacts
       simple-scan
-      gnome-connections
       gnome-system-monitor
       baobab
       gnome-font-viewer
