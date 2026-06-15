@@ -2,6 +2,7 @@
   pkgs,
   inputs,
   selfLib,
+  lib,
   ...
 }:
 
@@ -36,10 +37,11 @@ selfLib.mkModule {
 
   hmConfig = {
     imports = [
-      inputs.caelestia-shell.homeManagerModules.default
-      ./caelestia.nix
       ./settings.nix
       ./keybind.nix
+    ] ++ lib.optionals (inputs ? caelestia-shell) [
+      inputs.caelestia-shell.homeManagerModules.default
+      ./caelestia.nix
     ];
   };
 }
