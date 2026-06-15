@@ -76,6 +76,11 @@ selfLib.mkModule {
           mode = "0400";
         };
 
+        "mt5-vnc-env" = {
+          # VNC_PASSWORD — loaded as docker env-file
+          mode = "0400";
+        };
+
         "ninerouter-key" = {
           # API key from 9Router Dashboard → Keys
           # Digunakan CLI tools (Codex, Claude Code, dkk) sbg Authorization header

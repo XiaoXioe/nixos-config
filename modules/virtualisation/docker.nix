@@ -106,9 +106,7 @@ selfLib.mkModule {
                 "8001:8001"
               ];
               volumes = [ "/mnt/data_btrfs/mt5-data:/config" ];
-              environment = {
-                VNC_PASSWORD = "123456";
-              };
+              environmentFiles = lib.optional cfg.mt5.enable config.sops.secrets."mt5-vnc-env".path;
             };
 
             "9router" = lib.mkIf cfg."9router".enable {
