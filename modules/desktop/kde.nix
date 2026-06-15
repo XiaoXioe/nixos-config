@@ -47,4 +47,11 @@ selfLib.mkModule {
       variant = "";
     };
   };
+
+  hmConfig = {
+    xdg.configFile."baloofilerc".text = ''
+      [Basic Settings]
+      Indexing-Enabled=false
+    '';
+  };
 }
