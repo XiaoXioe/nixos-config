@@ -34,14 +34,6 @@ selfLib.mkModule {
       '';
     };
 
-    systemd.coredump = {
-      enable = false;
-      settings.Coredump = {
-        Storage = "external";
-        Compress = "yes";
-        ExternalSizeMax = "500M";
-        ProcessSizeMax = "50M";
-      };
-    };
+    systemd.coredump.enable = false;
   };
 }
