@@ -1,10 +1,5 @@
 # PipeWire audio effects — auto-imports all preset modules.
+{ selfLib, ... }:
 {
-  selfLib,
-  ...
-}:
-
-{
-  imports = (selfLib.scanPaths ./.) ++ [
-  ];
+  imports = selfLib.scanPaths ./.;
 }
