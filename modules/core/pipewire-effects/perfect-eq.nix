@@ -75,11 +75,7 @@ let
     }
   ];
 
-  renderFilter =
-    f:
-    "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }";
-
-  renderedFilters = lib.concatMapStringsSep "\n                    " renderFilter eqFilters;
+  renderedFilters = selfLib.mkEqFilterString eqFilters;
 
   filterChainConf = ''
     context.modules = [

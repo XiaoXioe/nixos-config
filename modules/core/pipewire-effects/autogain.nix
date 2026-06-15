@@ -91,11 +91,7 @@ let
     }
   ];
 
-  renderFilter =
-    f:
-    "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }";
-
-  renderedFilters = lib.concatMapStringsSep "\n                    " renderFilter eqFilters;
+  renderedFilters = selfLib.mkEqFilterString eqFilters;
 
   # Port symbols verified with lv2info against installed plugin versions:
   #   Calf Exciter:      in_l, in_r, out_l, out_r, amount, drive, blend, freq, ceil, ceil_active, listen, level_in, level_out
