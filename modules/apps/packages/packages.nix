@@ -21,6 +21,7 @@ selfLib.mkModule {
       ookla-speedtest
       bmon
       tdl
+      gthumb
     ];
   };
 }

@@ -21,7 +21,7 @@
       browsers = {
         brave = true;
         firefox = true;
-        browser = true;
+        chromium = true;
         librewolf = true;
       };
 
@@ -70,6 +70,7 @@
       llama = true;
       ollama = true;
       open-webui = true;
+      tools = true;
     };
 
     core = {
@@ -139,6 +140,7 @@
       dl-lagu = true;
       show-zombie-parents = true;
       ollama-to-llama = true;
+      file-transfer = true;
     };
 
     specialization = {

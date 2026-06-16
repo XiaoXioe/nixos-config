@@ -60,6 +60,11 @@ selfLib.mkModule {
           mode = "0400";
         };
 
+        "github-access-token" = {
+          owner = userName;
+          mode = "0400";
+        };
+
         "gh_hosts_yml" = {
           owner = userName;
           path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
@@ -67,6 +72,11 @@ selfLib.mkModule {
         };
 
         "ollama-env" = { };
+
+        "cloudflare-token" = {
+          owner = userName;
+          mode = "0400";
+        };
 
         "9router-env" = {
           # JWT_SECRET, INITIAL_PASSWORD — loaded as docker env-file

@@ -215,6 +215,7 @@ selfLib.mkModule {
             ".claude"
             ".codex"
             ".java"
+            ".tdl"
             ".local/share"
             ".local/state"
             ".librewolf"

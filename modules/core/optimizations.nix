@@ -36,9 +36,6 @@ selfLib.mkModule {
         # "quiet"
         "i915.modeset=1"
         "psi=1"
-
-        # Disable Render Standby (RC6)
-        "i915.enable_rc6=0"
         # Disable USB autosuspend at kernel level
         # "usbcore.autosuspend=-1"
       ];

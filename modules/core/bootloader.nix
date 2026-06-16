@@ -7,11 +7,11 @@
 let
   grubfm-efi = pkgs.stdenv.mkDerivation rec {
     pname = "grubfm";
-    version = "latest";
+    version = "v7.4.0";
 
     src = pkgs.fetchurl {
       url = "https://github.com/a1ive/grub2-filemanager/releases/download/${version}/grubfm-en_US.7z";
-      hash = "sha256-dC1Rw1thicmKvTRJvpj4KtEf6FD4L2u0GTkDbAz6yuM=";
+      hash = "sha256-J2TDaqdBzTY9kqCQ3Ra6pQ/x83a+Q9XBf6Ihc83mFpI=";
     };
 
     nativeBuildInputs = [ pkgs.p7zip ];
@@ -40,6 +40,7 @@ selfLib.mkModule {
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
+      theme = pkgs.catppuccin-grub.override { flavor = "macchiato"; };
 
       extraEntries = ''
         menuentry "Grub2 File Manager" --class efi {

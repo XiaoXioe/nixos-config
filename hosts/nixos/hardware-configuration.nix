@@ -65,6 +65,7 @@ in
       "noatime"
       "discard=async"
       "space_cache=v2"
+      "commit=120"
       "ssd"
     ];
     neededForBoot = true;

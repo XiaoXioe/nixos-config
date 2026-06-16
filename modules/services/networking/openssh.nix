@@ -19,7 +19,7 @@ selfLib.mkModule {
       # listenAddresses default = all interfaces (LAN accessible)
       settings = {
         PermitRootLogin = "no";
-        PasswordAuthentication = true;
+        PasswordAuthentication = false;
         AllowUsers = [ config.my.user.name ];
       };
     };

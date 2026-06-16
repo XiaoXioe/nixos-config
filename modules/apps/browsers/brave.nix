@@ -11,6 +11,7 @@ selfLib.mkModule {
     environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
       PasswordManagerEnabled = false;
       BrowserSignin = 0;
+      RestoreOnStartup = 1;
       BraveAIChatEnabled = false;
       BraveP3AEnabled = false;
       BraveStatsPingEnabled = false;
@@ -39,17 +40,11 @@ selfLib.mkModule {
         { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
       ];
       commandLineArgs = [
-        "--force-dark-mode" # Memaksa UI Brave menjadi gelap
-        # --- Performa & Kompatibilitas Wayland ---
-        "--ozone-platform=wayland"
-        "--enable-wayland-ime"
         "--enable-gpu-rasterization" # Memaksa akselerasi GPU untuk rendering
         "--ignore-gpu-blocklist" # Memaksa fitur GPU meskipun driver tidak dikenali secara resmi
 
         # --- PAKSA HARDWARE DECODING (VA-API) ---
-        "--enable-features=WebUIDarkMode,Containers,VaapiVideoDecoder,VaapiIgnoreDriverChecks"
-        # "--enable-features=UseOzonePlatform,WebUIDarkMode,Containers,VaapiVideoDecoder,VaapiIgnoreDriverChecks,VaapiVideoEncoder"
-        "--disable-features=Vulkan,UseChromeOSDirectVideoDecoder,BraveRewards,BraveWallet,BraveVPN,BraveLeo,BraveAI,WebDiscoveryProject"
+        "--enable-features=WebUIDarkMode,Containers"
         "--disable-gpu-driver-bug-workarounds" # Mengabaikan aturan pembatasan dari Chromium untuk GPU lama
 
         # --- Privasi Tambahan ---
@@ -57,5 +52,7 @@ selfLib.mkModule {
         "--no-pings" # Mencegah pengiriman hyperlink auditing pings
       ];
     };
+
+    xdg.configFile."brave-flags.conf".text = "--password-store=gnome-libsecret";
   };
 }

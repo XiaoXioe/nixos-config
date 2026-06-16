@@ -8,9 +8,13 @@ selfLib.mkModule {
   name = "security.hardening";
 
   nixosConfig = {
+    environment.systemPackages = [
+      pkgs.doas-sudo-shim
+    ];
+
     services = {
       fail2ban = {
-        enable = false;
+        enable = true;
         ignoreIP = [
           "127.0.0.0/8"
           "192.168.0.0/16"
@@ -40,6 +44,7 @@ selfLib.mkModule {
               users = adminUsers;
               noPass = true;
               keepEnv = true;
+              cmd = cmd;
             })
             [
               "nix"
@@ -62,7 +67,6 @@ selfLib.mkModule {
         enableCache = true;
         packages = [ pkgs.apparmor-profiles ];
       };
-
     };
   };
 }
