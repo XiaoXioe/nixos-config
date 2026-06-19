@@ -43,8 +43,7 @@ in
   mkEqFilterString =
     filters:
     lib.concatMapStringsSep "\n                    " (
-      f:
-      "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }"
+      f: "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }"
     ) filters;
 
   getVpnFiles =

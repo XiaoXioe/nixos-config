@@ -7,7 +7,7 @@
 let
   defaultApps = {
     text = [ "codium.desktop" ];
-    image = [ "org.kde.gwenview.desktop" ];
+    image = [ "org.gnome.gThumb.desktop" ];
     audio = [ "mpv.desktop" ];
     video = [ "mpv.desktop" ];
     directory = [ "nemo.desktop" ];
@@ -112,12 +112,19 @@ selfLib.mkModule {
     gtk = {
       enable = true;
       gtk4.theme = config.gtk.theme;
+      # theme = {
+      #   name = "catppuccin-mocha-sky-standard";
+      #   package = pkgs.catppuccin-gtk.override {
+      #     accents = [ "sky" ]; # Pilihan: blue, flamingo, green, lavender, mauve, pink, dll.
+      #     size = "standard";
+      #     variant = "mocha";
+      #   };
+      # };
       theme = {
-        name = "catppuccin-mocha-sky-standard";
-        package = pkgs.catppuccin-gtk.override {
-          accents = [ "sky" ]; # Pilihan: blue, flamingo, green, lavender, mauve, pink, dll.
-          size = "standard";
-          variant = "mocha";
+        name = "Colloid-Dark";
+        package = pkgs.colloid-gtk-theme.override {
+          colorVariants = [ "dark" ];
+          tweaks = [ "normal" ];
         };
       };
       iconTheme = {

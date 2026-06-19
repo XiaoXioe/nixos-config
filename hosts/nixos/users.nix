@@ -94,6 +94,7 @@
       kde = false;
       niri = true;
       hyprland = false;
+      xfce = false;
       theme = true;
       gnome = true;
       greeter = true;

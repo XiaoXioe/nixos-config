@@ -85,7 +85,7 @@ selfLib.mkModule {
         framedrop = "decoder";
         network-timeout = 100;
         # stream-lavf-o = "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5,reconnect_at_eof=1";
-        # ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best[height<=1080][vcodec^=avc]/bestvideo[height<=720][vcodec^=avc]+bestaudio/best";
+        ytdl-format = "bestvideo[height<=1080][vcodec^=avc]+bestaudio/best[height<=1080][vcodec^=avc]/bestvideo[height<=720][vcodec^=avc]+bestaudio/best";
         ytdl-raw-options = "cookies-from-browser=firefox";
       };
       bindings = {

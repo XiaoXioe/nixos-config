@@ -100,7 +100,7 @@ selfLib.mkModule {
         };
 
         "wg-lan.conf" = {
-          sopsFile = ../../secrets/wg-lan.enc.conf;
+          sopsFile = ../../secrets/binary/wg-lan.enc.conf;
           format = "binary";
           path = "/etc/wireguard/wg-lan.conf";
           owner = "root";
@@ -109,7 +109,7 @@ selfLib.mkModule {
         };
 
         "wg-wifi.conf" = {
-          sopsFile = ../../secrets/wg-wifi.enc.conf;
+          sopsFile = ../../secrets/binary/wg-wifi.enc.conf;
           format = "binary";
           path = "/etc/wireguard/wg-wifi.conf";
           owner = "root";
@@ -117,14 +117,9 @@ selfLib.mkModule {
           mode = "600";
         };
 
-        # Rclone config — placed at /run/secrets/rclone.conf,
-        # then copied to ~/.config/rclone/ by rclone.nix at activation.
-        # Made readable by the 'users' group so any user with rclone enabled can copy it.
         "rclone.conf" = {
           format = "binary";
-          sopsFile = ../../secrets/rclone.enc.conf;
-          # We don't set an explicit owner so root owns it,
-          # but we give the 'users' group read access.
+          sopsFile = ../../secrets/binary/rclone.enc.conf;
           group = "users";
           mode = "0440";
         };

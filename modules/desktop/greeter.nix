@@ -15,7 +15,7 @@ selfLib.mkModule {
         "sddm"
         "gdm"
       ];
-      default = "dms";
+      default = "sddm";
       description = "Pilih display manager yang ingin digunakan: dms, sddm, atau gdm.";
     };
   };
@@ -31,15 +31,27 @@ selfLib.mkModule {
           seahorse
           polkit_gnome
         ]
-        ++ lib.optional (cfg.backend == "sddm") (
-          catppuccin-sddm.override {
-            flavor = "mocha";
-            accent = "mauve";
-            font = "Noto Sans";
-            fontSize = "9";
-            loginBackground = true;
+        ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") pkgs.vimix-cursors
+        ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") (
+          pkgs.writeTextFile {
+            name = "default-cursor-theme";
+            destination = "/share/icons/default/index.theme";
+            text = ''
+              [Icon Theme]
+              Inherits=Vimix-white-cursors
+            '';
           }
-        );
+        )
+        ++ lib.optional (cfg.backend == "sddm") pkgs.sddm-astronaut;
+      # (
+      #   pkgs.catppuccin-sddm.override {
+      #     flavor = "mocha";
+      #     accent = "mauve";
+      #     font = "Noto Sans";
+      #     fontSize = "9";
+      #     loginBackground = true;
+      #   }
+      # );
 
       services = {
         displayManager = {
@@ -51,11 +63,26 @@ selfLib.mkModule {
 
           sddm = lib.mkIf (cfg.backend == "sddm") {
             enable = true;
-            theme = "catppuccin-mocha-mauve";
+            # theme = "catppuccin-mocha-mauve";
+            theme = "sddm-astronaut-theme";
             wayland.enable = true;
+            wayland.compositor = "kwin";
+            extraPackages = with pkgs; [
+              kdePackages.qtmultimedia # Required for video backgrounds/audio
+            ];
+            settings = {
+              Theme = {
+                CursorTheme = "Vimix-white-cursors";
+              };
+            };
           };
 
-          gdm.enable = cfg.backend == "gdm";
+          gdm = lib.mkIf (cfg.backend == "gdm") {
+            enable = true;
+            settings = {
+              org.gnome.desktop.interface.cursor-theme = "Vimix-white-cursors";
+            };
+          };
         };
 
         gnome.gnome-keyring.enable = true;
@@ -64,8 +91,9 @@ selfLib.mkModule {
       systemd.services.display-manager.restartIfChanged = false;
 
       environment.variables = {
-
         NIXOS_OZONE_WL = "1";
+        XCURSOR_THEME = "Vimix-white-cursors";
+        XCURSOR_SIZE = "24";
       };
 
       hardware.i2c.enable = true;

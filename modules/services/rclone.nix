@@ -9,7 +9,7 @@ selfLib.mkModule {
   description = "rclone mount service";
 
   hmConfig =
-    { config, ... }:
+    { config, osConfig, ... }:
     let
       rcloneRemote = "SemuaDrive";
       mountPoint = "${config.home.homeDirectory}/CloudStorage";
@@ -23,17 +23,15 @@ selfLib.mkModule {
           Wants = [ "network-online.target" ];
         };
         Service = {
-          Type = "notify";
+          Type = "simple";
           ExecStartPre = [
             "-${pkgs.bash}/bin/bash -c '${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint} > /dev/null 2>&1 || true'"
             "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
             "${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.config/rclone"
-            "${pkgs.coreutils}/bin/cp /run/secrets/rclone.conf ${config.home.homeDirectory}/.config/rclone/rclone.conf"
-            "${pkgs.coreutils}/bin/chmod 600 ${config.home.homeDirectory}/.config/rclone/rclone.conf"
           ];
           ExecStart = ''
             ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
-              --config "${config.home.homeDirectory}/.config/rclone/rclone.conf" \
+              --config "${osConfig.sops.secrets."rclone.conf".path}" \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
               --vfs-cache-max-size 5G \

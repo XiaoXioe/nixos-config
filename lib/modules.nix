@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Unified module builder for NixOS and Home Manager.
@@ -10,7 +10,7 @@
       options ? { },
       imports ? [ ],
       nixosConfig ? { },
-      hmConfig ? { },
+      hmConfig ? null,
     }:
     {
       imports = imports ++ [
@@ -31,7 +31,7 @@
             config = lib.mkIf cfg (
               lib.mkMerge [
                 nixosConfig
-                (lib.mkIf (hmConfig != { }) {
+                (lib.mkIf (hmConfig != null && hmConfig != { }) {
                   home-manager.users.${config.my.user.name} = hmConfig;
                 })
               ]

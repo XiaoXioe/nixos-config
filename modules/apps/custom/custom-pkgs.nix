@@ -29,12 +29,39 @@ selfLib.mkModule {
         "scikit-learn"
       ];
       service = {
-        enable = false;
-        bots.bot-utama = {
-          enable = true;
-          strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/alesta";
-          strategyRun = "AlexBandSniperV65513";
-          configFile = "config.json";
+        enable = true;
+        startupDelay = "3m";
+        bots = {
+          bot-smc = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/smc";
+            strategyRun = "SMCStrategy";
+            configFile = "config.json";
+            memoryLimit = "2G";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-tfm = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategyRun = "TimesFMScalpingFutures5m";
+            configFile = "config.json";
+            memoryLimit = "2G";
+            extra = [
+              "uvicorn timesfm_api:app --host 127.0.0.1 --port 8000"
+            ];
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-tfmbb = {
+            memoryLimit = "2G";
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategyRun = "TimesFMBBScalpingFutures30m";
+            configFile = "config-30m.json";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
         };
       };
     };

@@ -195,6 +195,7 @@ environment {
   TERMINAL "ghostty"
 }
 spawn-at-startup "dms" "run"
+spawn-at-startup "killall" "ibus-daemon"
 // spawn-at-startup "bash" "-c" "/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1"
 hotkey-overlay {
     skip-at-startup

@@ -239,6 +239,7 @@ selfLib.mkModule {
             "PersistentData"
             ".antigravity-ide"
             ".gemini"
+            ".npm"
             "nixos-config"
             "nix-custompkgs"
             "nix-custompkg-priv"
