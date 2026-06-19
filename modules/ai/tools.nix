@@ -171,6 +171,17 @@ selfLib.mkModule {
                 "${config.home.homeDirectory}/.gemini/main.db"
               ];
             };
+
+            memory = {
+              command = "${pkgs.nodejs}/bin/npx";
+              args = [
+                "-y"
+                "@modelcontextprotocol/server-memory"
+              ];
+              env = {
+                MEMORY_FILE_PATH = "${config.home.homeDirectory}/.gemini/memory.json";
+              };
+            };
           };
         };
       };
