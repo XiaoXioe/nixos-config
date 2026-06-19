@@ -51,6 +51,22 @@ let
       chmod +x $out/bin/codebase-memory-mcp
     '';
   };
+
+  patched-src = pkgs.runCommand "patched-hermes-agent-src" { } ''
+    cp -r ${inputs.hermes-agent} $out
+    chmod -R +w $out
+    substituteInPlace $out/nix/lib.nix \
+      --replace 'npmDepsHash = "sha256-kbjJksq7limRIYqP3DwI+GNgCXkG96tXcsQqmuEedxo=";' \
+                'npmDepsHash = "sha256-rcZA9b/e02qQOvurztSkpQWrGyS2QL8pn0Jc8wuGs2c=";'
+  '';
+
+  patched-hermes-agent = pkgs.callPackage "${patched-src}/nix/hermes-agent.nix" {
+    uv2nix = inputs.hermes-agent.inputs.uv2nix;
+    pyproject-nix = inputs.hermes-agent.inputs.pyproject-nix;
+    pyproject-build-systems = inputs.hermes-agent.inputs.pyproject-build-systems;
+    npm-lockfile-fix = inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${system}.default;
+    rev = inputs.hermes-agent.rev or null;
+  };
 in
 selfLib.mkModule {
   name = "ai.tools";
@@ -69,6 +85,7 @@ selfLib.mkModule {
 
     services.hermes-agent = {
       enable = true;
+      package = patched-hermes-agent;
       addToSystemPackages = true;
       environmentFiles = [ config.sops.secrets."hermes-env".path ];
       settings = {
