@@ -51,57 +51,10 @@ let
       chmod +x $out/bin/codebase-memory-mcp
     '';
   };
-
-  patched-src = pkgs.runCommand "patched-hermes-agent-src" { } ''
-    cp -r ${inputs.hermes-agent} $out
-    chmod -R +w $out
-    substituteInPlace $out/nix/lib.nix \
-      --replace 'npmDepsHash = "sha256-kbjJksq7limRIYqP3DwI+GNgCXkG96tXcsQqmuEedxo=";' \
-                'npmDepsHash = "sha256-rcZA9b/e02qQOvurztSkpQWrGyS2QL8pn0Jc8wuGs2c=";'
-  '';
-
-  patched-hermes-agent = pkgs.callPackage "${patched-src}/nix/hermes-agent.nix" {
-    uv2nix = inputs.hermes-agent.inputs.uv2nix;
-    pyproject-nix = inputs.hermes-agent.inputs.pyproject-nix;
-    pyproject-build-systems = inputs.hermes-agent.inputs.pyproject-build-systems;
-    npm-lockfile-fix = inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${system}.default;
-    rev = inputs.hermes-agent.rev or null;
-  };
 in
 selfLib.mkModule {
   name = "ai.tools";
   description = "AI development tools and Model Context Protocol (MCP) configuration";
-
-  imports = [
-    inputs.hermes-agent.nixosModules.default
-  ];
-
-  nixosConfig = {
-    sops.secrets."hermes-env" = {
-      owner = "hermes";
-      group = "hermes";
-      mode = "0400";
-    };
-
-    services.hermes-agent = {
-      enable = true;
-      package = patched-hermes-agent;
-      addToSystemPackages = true;
-      environmentFiles = [ config.sops.secrets."hermes-env".path ];
-      settings = {
-        model = {
-          default = "ag/gemini-3.5-flash-low";
-          provider = "ninerouter";
-        };
-        providers = {
-          ninerouter = {
-            base_url = "http://localhost:20128/v1";
-            api_key = "\${NINEROUTER_KEY}";
-          };
-        };
-      };
-    };
-  };
 
   hmConfig =
     {
