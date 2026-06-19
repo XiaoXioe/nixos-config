@@ -182,6 +182,14 @@ selfLib.mkModule {
                 MEMORY_FILE_PATH = "${config.home.homeDirectory}/.gemini/memory.json";
               };
             };
+
+            fetch = {
+              command = "${pkgs.nodejs}/bin/npx";
+              args = [
+                "-y"
+                "@modelcontextprotocol/server-fetch"
+              ];
+            };
           };
         };
       };
