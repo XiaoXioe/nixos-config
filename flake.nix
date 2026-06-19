@@ -9,11 +9,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # custompkgs = {
-    #   url = "path:/home/klein-moretti/nix-custompkgs";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
     custompkgs-priv = {
       url = "github:XiaoXioe/nix-custompkg-priv";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,6 +48,11 @@
 
     claude-code = {
       url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
