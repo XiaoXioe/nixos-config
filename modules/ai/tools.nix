@@ -56,6 +56,36 @@ selfLib.mkModule {
   name = "ai.tools";
   description = "AI development tools and Model Context Protocol (MCP) configuration";
 
+  imports = [
+    inputs.hermes-agent.nixosModules.default
+  ];
+
+  nixosConfig = {
+    sops.secrets."hermes-env" = {
+      owner = "hermes";
+      group = "hermes";
+      mode = "0400";
+    };
+
+    services.hermes-agent = {
+      enable = true;
+      addToSystemPackages = true;
+      environmentFiles = [ config.sops.secrets."hermes-env".path ];
+      settings = {
+        model = {
+          default = "ag/gemini-3.5-flash-low";
+          provider = "ninerouter";
+        };
+        providers = {
+          ninerouter = {
+            base_url = "http://localhost:20128/v1";
+            api_key = "\${NINEROUTER_KEY}";
+          };
+        };
+      };
+    };
+  };
+
   hmConfig =
     {
       config,
