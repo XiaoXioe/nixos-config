@@ -12,6 +12,8 @@
     "i2c"
     "adbusers"
     "kvm"
+    "dialout"
+    "uucp"
   ];
   openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ9JzZzktDyRcOpqMyit78cS0xx7NRj7Mak89HjsRLR u0_a185@localhost"
@@ -151,9 +153,9 @@
 
     virtualisation = {
       docker = {
-        enable = true;
-        autoUpdate = true;
-        "9router" = true;
+        enable = false;
+        autoUpdate = false;
+        "9router" = false;
       };
       libvirt = true;
       waydroid = true;
