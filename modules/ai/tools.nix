@@ -51,6 +51,11 @@ let
       chmod +x $out/bin/codebase-memory-mcp
     '';
   };
+
+  agent-browser-cli = pkgs.writeShellScriptBin "agent-browser" ''
+    export AGENT_BROWSER_EXECUTABLE_PATH="${pkgs.chromium}/bin/chromium"
+    exec ${pkgs.nodejs}/bin/npx -y agent-browser "$@"
+  '';
 in
 selfLib.mkModule {
   name = "ai.tools";
@@ -73,9 +78,52 @@ selfLib.mkModule {
           pkgs.aider-chat
           codex-cli
           codebase-memory-mcp-pkg
+          agent-browser-cli
         ];
 
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          # Setup Patch bb-browser-mcp
+          PATCH_DIR="$HOME/.agents/bb-browser-mcp"
+          mkdir -p "$PATCH_DIR"
+          if [ ! -f "$PATCH_DIR/package.json" ]; then
+            cd "$PATCH_DIR"
+            ${pkgs.nodejs}/bin/npm init -y
+            ${pkgs.nodejs}/bin/npm install bb-browser@0.11.1
+          fi
+
+          # Tulis file wrapper
+          cat << 'EOF' > "$PATCH_DIR/mcp-wrapper.mjs"
+          import fs from "fs";
+          import path from "path";
+          import os from "os";
+
+          const originalFetch = globalThis.fetch;
+          globalThis.fetch = function(url, options) {
+            if (typeof url === "string" && (url.includes("/command") || url.includes("/status") || url.includes("/shutdown"))) {
+              let token = "";
+              try {
+                const daemonJsonPath = path.join(os.homedir(), ".bb-browser", "daemon.json");
+                if (fs.existsSync(daemonJsonPath)) {
+                  const daemonInfo = JSON.parse(fs.readFileSync(daemonJsonPath, "utf8"));
+                  token = daemonInfo.token;
+                }
+              } catch (e) {
+                // ignore
+              }
+
+              if (token) {
+                options = options || {};
+                options.headers = options.headers || {};
+                options.headers["Authorization"] = `Bearer ''${token}`;
+              }
+            }
+            return originalFetch(url, options);
+          };
+
+          // Dinamis import mcp.js asli
+          await import("bb-browser/dist/mcp.js");
+          EOF
+
           # Path referensi
           TOKEN_PATH="${osConfig.sops.secrets."cloudflare-token".path}"
           BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
@@ -184,11 +232,33 @@ selfLib.mkModule {
             };
 
             fetch = {
+              command = "${pkgs.uv}/bin/uvx";
+              args = [
+                "mcp-server-fetch"
+              ];
+            };
+
+            agent-browser = {
               command = "${pkgs.nodejs}/bin/npx";
               args = [
                 "-y"
-                "@modelcontextprotocol/server-fetch"
+                "agent-browser-mcp"
               ];
+              env = {
+                AGENT_BROWSER_PATH = "${agent-browser-cli}/bin/agent-browser";
+                AGENT_BROWSER_EXECUTABLE_PATH = "${pkgs.chromium}/bin/chromium";
+              };
+            };
+
+            bb-browser = {
+              command = "${pkgs.nodejs}/bin/node";
+              args = [
+                "${config.home.homeDirectory}/.agents/bb-browser-mcp/mcp-wrapper.mjs"
+              ];
+              env = {
+                BB_BROWSER_CDP_URL = "http://127.0.0.1:9222";
+                NODE_PATH = "${config.home.homeDirectory}/.agents/bb-browser-mcp/node_modules";
+              };
             };
           };
         };
