@@ -73,7 +73,13 @@
 
       pkgs = import inputs.nixpkgs {
         inherit system;
-        config.allowUnfree = true;
+        config = {
+          allowUnfree = true;
+          permittedInsecurePackages = [
+            "librewolf-152.0-1"
+            "librewolf-unwrapped-152.0-1"
+          ];
+        };
       };
 
       # Shared arguments for both NixOS and Home Manager
