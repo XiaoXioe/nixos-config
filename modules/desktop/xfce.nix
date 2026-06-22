@@ -15,7 +15,6 @@ selfLib.mkModule {
       xfce4-pulseaudio-plugin
       xfce4-whiskermenu-plugin
       xfce4-battery-plugin
-
     ];
   };
 }
