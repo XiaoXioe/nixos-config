@@ -44,7 +44,6 @@
       enable = true;
       interactiveShellInit = ''
         set -g fish_greeting
-        set -g fish_history_filter '^[ ]'
         set -p fish_function_path $HOME/.config/fish/functions/custom
         if test -r /run/secrets/ninerouter-key
             set -lx NINEROUTER_KEY (cat /run/secrets/ninerouter-key)
@@ -75,10 +74,38 @@
       shellAbbrs = {
         gl = "gallery-dl";
         aria = "aria2c -x16 -s16 -c '' -o ''";
+
+        # --- SYSTEMD & JOURNALCTL ---
+        sc = "sudo systemctl";
+        scu = "systemctl --user";
+        scstart = "sudo systemctl start";
+        scstop = "sudo systemctl stop";
+        screstart = "sudo systemctl restart";
+        scstatus = "systemctl status";
+        scfailed = "systemctl --failed";
+
+        jc = "journalctl -xe";
+        jcf = "journalctl -f";
+        jcu = "journalctl --user -xe";
+        jceu = "sudo journalctl -xeu";
+
+        # --- GIT ---
+        gcp = "git add . && git commit -m 'update' && git push";
+
+        # --- NIXOS REBUILD & MAINTENANCE ---
+        rebuild = "sudo nixos-rebuild switch --flake ${flakePath} --print-build-logs --show-trace";
+        cln = "nh clean all --keep 3 --ask --optimise";
+        nfu = "nix flake update --flake ${flakePath}";
+        osbuild = "nh os switch ${flakePath} --show-trace --diff auto --ask";
+        ostest = "nh os test ${flakePath} --show-trace --diff auto --ask";
+        osboot = "nh os boot ${flakePath} --show-trace --diff auto --ask";
       };
     };
   };
 
   xdg.configFile."fish/functions/custom".source =
     config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/functions";
+
+  xdg.configFile."fish/history_blacklist".source =
+    config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/history_blacklist";
 }
