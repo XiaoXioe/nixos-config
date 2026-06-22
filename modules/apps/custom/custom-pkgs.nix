@@ -32,8 +32,44 @@ selfLib.mkModule {
         enable = true;
         startupDelay = "3m";
         bots = {
-          bot-smc = {
+          bot-xstar = {
             enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategyRun = "xstar";
+            configFile = "config.json";
+            memoryLimit = "2G";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-xstar-v1 = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategyRun = "xstar_V1";
+            configFile = "config_v1.json";
+            memoryLimit = "2G";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-coba-freqai = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategyRun = "coba_freqai";
+            configFile = "config-freqai.json";
+            memoryLimit = "2G";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-chronos = {
+            enable = true;
+            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategyRun = "Chronos2_AdvancedScalper";
+            configFile = "config.json";
+            memoryLimit = "2G";
+            logToFile = true;
+            logMaxSize = "10M";
+          };
+          bot-smc = {
+            enable = false;
             strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/smc";
             strategyRun = "SMCStrategy";
             configFile = "config.json";
@@ -42,7 +78,7 @@ selfLib.mkModule {
             logMaxSize = "10M";
           };
           bot-tfm = {
-            enable = true;
+            enable = false;
             strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
             strategyRun = "TimesFMScalpingFutures5m";
             configFile = "config.json";
@@ -55,7 +91,7 @@ selfLib.mkModule {
           };
           bot-tfmbb = {
             memoryLimit = "2G";
-            enable = true;
+            enable = false;
             strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
             strategyRun = "TimesFMBBScalpingFutures30m";
             configFile = "config-30m.json";
