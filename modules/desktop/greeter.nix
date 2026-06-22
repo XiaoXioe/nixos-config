@@ -43,15 +43,6 @@ selfLib.mkModule {
           }
         )
         ++ lib.optional (cfg.backend == "sddm") pkgs.sddm-astronaut;
-      # (
-      #   pkgs.catppuccin-sddm.override {
-      #     flavor = "mocha";
-      #     accent = "mauve";
-      #     font = "Noto Sans";
-      #     fontSize = "9";
-      #     loginBackground = true;
-      #   }
-      # );
 
       services = {
         displayManager = {
@@ -63,7 +54,6 @@ selfLib.mkModule {
 
           sddm = lib.mkIf (cfg.backend == "sddm") {
             enable = true;
-            # theme = "catppuccin-mocha-mauve";
             theme = "sddm-astronaut-theme";
             wayland.enable = true;
             wayland.compositor = "kwin";
