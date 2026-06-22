@@ -35,6 +35,19 @@ let
       "application/json"
       "text/x-shellscript"
       "application/javascript"
+      "text/x-python"
+      "text/x-python3"
+      "text/x-go"
+      "text/x-rust"
+      "text/x-c++src"
+      "text/x-c++hdr"
+      "text/x-java"
+      "text/css"
+      "text/javascript"
+      "text/typescript"
+      "application/typescript"
+      "text/x-yaml"
+      "text/yaml"
     ];
     image = [
       "image/bmp"
@@ -112,14 +125,6 @@ selfLib.mkModule {
     gtk = {
       enable = true;
       gtk4.theme = config.gtk.theme;
-      # theme = {
-      #   name = "catppuccin-mocha-sky-standard";
-      #   package = pkgs.catppuccin-gtk.override {
-      #     accents = [ "sky" ]; # Pilihan: blue, flamingo, green, lavender, mauve, pink, dll.
-      #     size = "standard";
-      #     variant = "mocha";
-      #   };
-      # };
       theme = {
         name = "Colloid-Dark";
         package = pkgs.colloid-gtk-theme.override {
