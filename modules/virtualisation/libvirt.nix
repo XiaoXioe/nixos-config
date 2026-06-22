@@ -16,6 +16,8 @@ selfLib.mkModule {
       TimeoutStartSec = "5s";
     };
 
+    systemd.services.libvirt-guests.enable = false;
+
     virtualisation.libvirtd = {
       enable = true;
       onBoot = "ignore";
