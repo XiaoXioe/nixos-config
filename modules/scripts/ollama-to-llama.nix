@@ -15,6 +15,7 @@ selfLib.mkModule {
         runtimeInputs = [
           pkgs.gawk
           pkgs.coreutils
+          pkgs.jq
         ];
         text = ''
           if ! command -v ollama &> /dev/null; then
@@ -123,6 +124,50 @@ selfLib.mkModule {
 
                       if [[ "$line" == FROM* ]]; then
                           model_path="''${line#FROM }"
+                          if [ ! -f "$model_path" ]; then
+                              if [[ "$model_path" =~ ^sha256[-:] ]]; then
+                                  blob_name="''${model_path//:/-}"
+                                  for base_dir in "''${OLLAMA_MODELS:-$HOME/.ollama/models}" "/usr/share/ollama/.ollama/models" "/var/lib/ollama/models"; do
+                                      if [ -f "$base_dir/blobs/$blob_name" ]; then
+                                          model_path="$base_dir/blobs/$blob_name"
+                                          break
+                                      fi
+                                  done
+                              else
+                                  ref_path=$(echo "$model_path" | xargs)
+                                  if [[ "$ref_path" == *:* ]]; then
+                                      tag="''${ref_path##*:}"
+                                      model_and_ns="''${ref_path%:*}"
+                                  else
+                                      tag="latest"
+                                      model_and_ns="$ref_path"
+                                  fi
+                                  if [[ "$model_and_ns" == */* ]]; then
+                                      ns="''${model_and_ns%/*}"
+                                      model_name="''${model_and_ns##*/}"
+                                  else
+                                      ns="library"
+                                      model_name="$model_and_ns"
+                                  fi
+                                  found_blob=""
+                                  for base_dir in "''${OLLAMA_MODELS:-$HOME/.ollama/models}" "/usr/share/ollama/.ollama/models" "/var/lib/ollama/models"; do
+                                      manifest_file="$base_dir/manifests/registry.ollama.ai/$ns/$model_name/$tag"
+                                      if [ -f "$manifest_file" ]; then
+                                          digest=$(jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest' "$manifest_file" 2>/dev/null || true)
+                                          if [ -n "$digest" ]; then
+                                              blob_name="''${digest//:/-}"
+                                              if [ -f "$base_dir/blobs/$blob_name" ]; then
+                                                  found_blob="$base_dir/blobs/$blob_name"
+                                                  break
+                                              fi
+                                          fi
+                                      fi
+                                  done
+                                  if [ -n "$found_blob" ]; then
+                                      model_path="$found_blob"
+                                  fi
+                              fi
+                          fi
                           llama_args+=("-m" "$model_path")
                       elif [[ "$line" =~ ^SYSTEM[[:space:]]+(.*)$ ]]; then
                           llama_args+=("--system-prompt" "''${BASH_REMATCH[1]}")
