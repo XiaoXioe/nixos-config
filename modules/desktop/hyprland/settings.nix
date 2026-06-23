@@ -7,6 +7,8 @@
     configType = "hyprlang";
 
     settings = {
+      source = [ "~/.config/hypr/dms/colors.conf" ];
+
       # Monitors
       monitor = [
         ",preferred,auto,auto"
@@ -34,8 +36,6 @@
         gaps_in = 4;
         gaps_out = 8;
         border_size = 2;
-        "col.active_border" = "rgba(cba6f7ff) rgba(89b4faff) 45deg"; # Mauve to Blue gradient
-        "col.inactive_border" = "rgba(313244ff)"; # Crust/Base color
         layout = "dwindle";
         resize_on_border = true;
       };
