@@ -242,19 +242,23 @@ selfLib.mkModule {
 
           "intelephense.format.enable" = true;
         }
-        //
-          lib.genAttrs
-            [
-              "yaml"
-              "javascript"
-              "html"
-              "json"
-              "jsonc"
-            ]
-            (_lang: {
-              "editor.defaultFormatter" = "esbenp.prettier-vscode";
-            })
         // {
+          "[yaml]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "[javascript]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "[html]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "[json]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "[jsonc]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+
           # Error Lens
           "errorLens.delay" = 500;
           "errorLens.enabledDiagnosticLevels" = [
