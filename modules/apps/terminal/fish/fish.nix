@@ -93,12 +93,12 @@
         gcp = "git add . && git commit -m 'update' && git push";
 
         # --- NIXOS REBUILD & MAINTENANCE ---
-        rebuild = "sudo nixos-rebuild switch --flake ${flakePath} --print-build-logs --show-trace";
+        rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
         cln = "nh clean all --keep 3 --ask --optimise";
-        nfu = "nix flake update --flake ${flakePath}";
-        osbuild = "nh os switch ${flakePath} --show-trace --diff auto --ask";
-        ostest = "nh os test ${flakePath} --show-trace --diff auto --ask";
-        osboot = "nh os boot ${flakePath} --show-trace --diff auto --ask";
+        nfu = "nix flake update --flake";
+        osbuild = "nh os switch --no-nom --show-trace --diff auto --ask";
+        ostest = "nh os test --no-nom --show-trace --diff auto --ask";
+        osboot = "nh os boot --no-nom --show-trace --diff auto --ask";
       };
     };
   };
