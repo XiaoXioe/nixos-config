@@ -163,7 +163,12 @@ selfLib.mkModule {
           "/var/lib/waydroid"
           "/root"
           "/var/lib/libvirt"
-          "/var/lib/vnstat"
+          {
+            directory = "/var/lib/vnstat";
+            user = "vnstatd";
+            group = "vnstatd";
+            mode = "0755";
+          }
           "/var/lib/tor"
           {
             directory = "/var/lib/private/ollama";
@@ -218,9 +223,7 @@ selfLib.mkModule {
             ".tdl"
             ".local/share"
             ".local/state"
-            ".librewolf"
             ".steam"
-            # ".vscode-oss"
             ".cache/nix"
             ".cache/mozilla"
             ".cache/rclone"
