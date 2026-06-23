@@ -66,7 +66,10 @@ selfLib.mkModule {
           "/var/lib/waydroid/images" = {
             device = "/mnt/data_btrfs/waydroid_images/images13";
             fsType = "none";
-            options = [ "bind" ];
+            options = [
+              "bind"
+              "nofail"
+            ];
           };
         }
       ];
