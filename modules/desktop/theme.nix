@@ -137,7 +137,7 @@ selfLib.mkModule {
         package = pkgs.tela-circle-icon-theme;
       };
       font = {
-        name = "Adwaita Mono";
+        name = "JetBrainsMono Nerd Font";
         size = 10;
       };
     };
