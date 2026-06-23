@@ -1,4 +1,5 @@
 {
+  lib,
   selfLib,
   ...
 }:
@@ -10,7 +11,6 @@ selfLib.mkModule {
     services = {
       guix.enable = true;
       thermald.enable = true;
-      flatpak.enable = true;
       udisks2.enable = true;
       vnstat.enable = true;
       fstrim.enable = true;
@@ -32,6 +32,32 @@ selfLib.mkModule {
         ACTION=="add|change", KERNEL=="sd[a-z]|mmcblk[0-9]*|nvme[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="kyber"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
       '';
+    };
+
+    services.flatpak = {
+      enable = true;
+      update = {
+        onActivation = false;
+        auto = {
+          enable = true;
+          onCalendar = "weekly";
+        };
+      };
+      restartOnFailure = {
+        enable = true;
+        restartDelay = "60s";
+        exponentialBackoff = {
+          enable = true;
+          steps = 10;
+          maxDelay = "1h";
+        };
+      };
+      remotes = lib.mkDefault [
+        {
+          name = "flathub";
+          location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+        }
+      ];
     };
 
     systemd.coredump.enable = false;

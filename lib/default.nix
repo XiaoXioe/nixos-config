@@ -3,7 +3,7 @@
 { lib, ... }:
 
 let
-  modules = import ./modules.nix { inherit lib; };
+  modules = import ./modules { inherit lib; };
 
   # Recursively maps a user features attribute set to a module enable structure.
   # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
@@ -14,13 +14,24 @@ let
       if builtins.isBool value then
         if name == "enable" then value else { enable = value; }
       else if builtins.isAttrs value then
-        mapFeatures value
+        if value ? flatpak then
+          let
+            rest = mapFeatures (builtins.removeAttrs value [ "flatpak" "enable" ]);
+            enableVal = if value ? enable then value.enable else true;
+            flatpakVal = if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
+          in
+          {
+            enable = enableVal;
+            flatpak = flatpakVal;
+          } // rest
+        else
+          mapFeatures value
       else
         value
     ) attrs;
 in
 {
-  inherit (modules) mkModule;
+  inherit (modules) mkModule mkApp;
   inherit mapFeatures;
 
   # Auto-import all .nix files (except default.nix) and directories

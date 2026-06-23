@@ -1,6 +1,7 @@
 {
   pkgs,
   selfLib,
+  inputs,
   ...
 }:
 let
@@ -20,6 +21,13 @@ let
     Value = value;
     Status = "locked";
   };
+
+  addons = inputs.firefox-addons.packages.${pkgs.system};
+  video-downloadhelper = addons.video-downloadhelper.overrideAttrs (old: {
+    meta = (old.meta or { }) // {
+      license = [ ];
+    };
+  });
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -310,11 +318,10 @@ selfLib.mkModule {
             id = 0;
             inherit bookmarks userChrome;
             extensions.packages =
-              (with pkgs.firefox-addons; [
+              (with inputs.firefox-addons.packages.${pkgs.system}; [
                 ublock-origin
                 multi-account-containers
                 bitwarden
-                video-downloadhelper
                 enhanced-h264ify
                 simple-tab-groups
                 darkreader
@@ -324,6 +331,7 @@ selfLib.mkModule {
               ++ [
                 keplr
                 catppuccin-mocha-blue
+                video-downloadhelper
               ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
@@ -339,20 +347,23 @@ selfLib.mkModule {
             isDefault = false;
             id = 1;
             inherit bookmarks userChrome;
-            extensions.packages = with pkgs.firefox-addons; [
-              ublock-origin
-              bitwarden
-              privacy-badger
-              canvasblocker
-              clearurls
-              localcdn
-              user-agent-string-switcher
-              video-downloadhelper
-              proton-vpn
-              darkreader
-              auto-tab-discard
-              simple-tab-groups
-            ];
+            extensions.packages =
+              (with inputs.firefox-addons.packages.${pkgs.system}; [
+                ublock-origin
+                bitwarden
+                privacy-badger
+                canvasblocker
+                clearurls
+                localcdn
+                user-agent-string-switcher
+                proton-vpn
+                darkreader
+                auto-tab-discard
+                simple-tab-groups
+              ])
+              ++ [
+                video-downloadhelper
+              ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;

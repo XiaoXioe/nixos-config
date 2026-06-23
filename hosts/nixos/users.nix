@@ -21,7 +21,10 @@
   userFeatures = {
     apps = {
       browsers = {
-        brave = true;
+        brave = {
+          enable = true;
+          flatpak = true;
+        };
         firefox = true;
         chromium = true;
         librewolf = false;
@@ -52,7 +55,10 @@
         media = true;
         music = true;
         office = true;
-        sosmed = true;
+        sosmed = {
+          enable = true;
+          flatpak = true;
+        };
       };
 
       packages = {
