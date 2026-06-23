@@ -24,12 +24,13 @@
         brave = true;
         firefox = true;
         chromium = true;
-        librewolf = true;
+        librewolf = false;
       };
 
       custompkgs = true;
 
       dev = {
+        nh = true;
         git = true;
         ssh = true;
         nemo = true;
@@ -157,9 +158,9 @@
         autoUpdate = false;
         "9router" = false;
       };
-      libvirt = true;
+      libvirt = false;
       waydroid = true;
-      packages = true;
+      packages = false;
     };
   };
 }
