@@ -31,7 +31,6 @@ selfLib.mkModule {
       wget
       iotop-c
       nethogs
-      nh
       intel-gpu-tools
       compsize
 
