@@ -29,9 +29,28 @@ let
     };
   });
 in
-selfLib.mkModule {
+selfLib.mkApp {
   name = "apps.browsers.firefox";
   description = "Firefox configuration for user";
+
+  flatpak = {
+    appId = "org.mozilla.firefox";
+
+    symlinks = [
+      {
+        host = ".config/mozilla/firefox";
+        guest = ".mozilla/firefox";
+      }
+    ];
+  };
+
+  native = {
+    package = pkgs.firefox;
+  };
+
+  hmProgram = {
+    name = "firefox";
+  };
 
   nixosConfig = {
     environment.sessionVariables = {
@@ -156,9 +175,7 @@ selfLib.mkModule {
     in
     {
       programs.firefox = {
-        package = pkgs.firefox;
         configPath = "${config.xdg.configHome}/mozilla/firefox";
-        enable = true;
         languagePacks = [
           "en-US"
           "id"
@@ -241,7 +258,7 @@ selfLib.mkModule {
             # 3. Kredensial & Pengisian Otomatis (Credentials & Autofill)
             # ==========================================
             "signon.rememberSignons" = lock-false; # Matikan penawaran penyimpanan sandi bawaan Firefox (direkomendasikan pakai Bitwarden)
-            "signon.autofillForms" = lock-false; # Matikan pengisian sandi otomatis sebelum diklik (mencegah pencurian kredensial tak terlihat)
+            "signon.autofillForms" = lock-false; # Matikan pengisian otomatis sebelum diklik (mencegah pencurian kredensial tak terlihat)
             "signon.generation.enabled" = lock-false; # Matikan generator sandi bawaan Firefox
             "signon.management.page.breach-alerts.enabled" = lock-false; # Matikan peringatan kebocoran sandi bawaan Firefox
             "signon.formlessCapture.enabled" = lock-false; # Matikan perekaman username/password pada form tanpa tombol submit resmi
@@ -307,7 +324,7 @@ selfLib.mkModule {
             "dom.disable_window_move_resize" = lock-true; # Blokir situs web mengubah ukuran atau memindahkan jendela browser
             "devtools.debugger.remote-enabled" = lock-false; # Matikan remote debugging demi keamanan lokal
             "extensions.enabledScopes" = lock 5; # Batasi direktori instalasi ekstensi hanya dari profil pengguna (cegah instalasi siluman)
-            "app.shield.optoutstudies.enabled" = lock-false; # Matikan partisipasi dalam studi/uji coba Firefox Shield
+            "app.shield.optoutstudies.enabled" = lock-false; # Matikan privat-studi/uji coba Firefox Shield
             "nimbus.rollouts.enabled" = lock-false; # Matikan eksperimen rollout fitur otomatis Mozilla
           };
         };
