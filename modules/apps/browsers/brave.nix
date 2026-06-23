@@ -1,30 +1,57 @@
 {
   selfLib,
+  pkgs,
   ...
 }:
 
-selfLib.mkModule {
+selfLib.mkApp {
   name = "apps.browsers.brave";
   description = "Brave browser configuration with maximal performance & privacy";
 
-  nixosConfig = {
-    environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
-      PasswordManagerEnabled = false;
-      BrowserSignin = 0;
-      RestoreOnStartup = 1;
-      BraveAIChatEnabled = false;
-      BraveP3AEnabled = false;
-      BraveStatsPingEnabled = false;
-      BraveWebDiscoveryEnabled = false;
-      BraveWalletDisabled = true;
-      BraveRewardsDisabled = true;
-      BraveVPNDisabled = true;
+  flatpak = {
+    appId = "com.brave.Browser";
+
+    # Overrides manual tambahan (seperti kebijakan sistem)
+    overrides = {
+      Context = {
+        filesystems = [
+          "/etc/brave:ro" # Diperlukan untuk membaca policies.json di /etc
+        ];
+      };
+    };
+
+    # Otomatis membuat symlink dan mendaftarkannya di sandbox filesystem overrides
+    symlinks = [
+      {
+        host = ".config/BraveSoftware";
+        guest = "config/BraveSoftware";
+      }
+    ];
+
+    # Menulis file flags
+    flags = {
+      file = "config/brave-flags.conf";
+      text = ''
+        --password-store=gnome-libsecret
+        --enable-gpu-rasterization
+        --ignore-gpu-blocklist
+        --enable-features=WebUIDarkMode,Containers
+        --disable-gpu-driver-bug-workarounds
+        --disable-reading-from-canvas
+        --no-pings
+      '';
     };
   };
 
-  hmConfig = {
-    programs.brave = {
-      enable = true;
+  # Paket native untuk fallback jika flatpak dinonaktifkan
+  native = {
+    package = pkgs.brave;
+  };
+
+  # Integrasi Home Manager program
+  hmProgram = {
+    name = "brave";
+    extraConfig = {
       extensions = [
         { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
         { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
@@ -39,20 +66,22 @@ selfLib.mkModule {
         { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
         { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
       ];
-      commandLineArgs = [
-        "--enable-gpu-rasterization" # Memaksa akselerasi GPU untuk rendering
-        "--ignore-gpu-blocklist" # Memaksa fitur GPU meskipun driver tidak dikenali secara resmi
-
-        # --- PAKSA HARDWARE DECODING (VA-API) ---
-        "--enable-features=WebUIDarkMode,Containers"
-        "--disable-gpu-driver-bug-workarounds" # Mengabaikan aturan pembatasan dari Chromium untuk GPU lama
-
-        # --- Privasi Tambahan ---
-        "--disable-reading-from-canvas" # Mencegah canvas fingerprinting
-        "--no-pings" # Mencegah pengiriman hyperlink auditing pings
-      ];
     };
+  };
 
-    xdg.configFile."brave-flags.conf".text = "--password-store=gnome-libsecret";
+  # Kebijakan sistem browser (berlaku universal baik Flatpak maupun Native)
+  nixosConfig = {
+    environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
+      PasswordManagerEnabled = false;
+      BrowserSignin = 0;
+      RestoreOnStartup = 1;
+      BraveAIChatEnabled = false;
+      BraveP3AEnabled = false;
+      BraveStatsPingEnabled = false;
+      BraveWebDiscoveryEnabled = false;
+      BraveWalletDisabled = true;
+      BraveRewardsDisabled = true;
+      BraveVPNDisabled = true;
+    };
   };
 }

@@ -60,7 +60,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
+
   };
+
 
   outputs =
     inputs@{ ... }:
@@ -78,9 +81,7 @@
       pkgs = import inputs.nixpkgs {
         inherit system;
         config.allowUnfree = true;
-        overlays = [
-          inputs.firefox-addons.overlays.default
-        ];
+        overlays = [ ];
       };
 
       # Shared arguments for both NixOS and Home Manager
@@ -107,6 +108,7 @@
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
+        inputs.nix-flatpak.nixosModules.nix-flatpak
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;

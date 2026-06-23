@@ -15,7 +15,7 @@ let
     pdf = [ "org.pwmt.zathura.desktop" ];
     terminal = [ "org.wezfurlong.wezterm.desktop" ];
     archive = [ "org.gnome.FileRoller.desktop" ];
-    discord = [ "discord.desktop" ];
+    discord = [ "com.discordapp.Discord.desktop" ];
     link = [ "firefox.desktop" ];
   };
   mimeMap = {
