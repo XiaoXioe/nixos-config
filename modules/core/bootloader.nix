@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   selfLib,
@@ -31,6 +32,13 @@ in
 selfLib.mkModule {
   name = "core.bootloader";
   nixosConfig = {
+    assertions = [
+      {
+        assertion = config.fileSystems ? "/boot/efi";
+        message = "Partisi /boot/efi harus dikonfigurasi dalam fileSystems agar bootloader dapat diinisialisasi.";
+      }
+    ];
+
     boot.loader.systemd-boot.enable = lib.mkForce false;
     boot.loader.efi.canTouchEfiVariables = true;
     boot.loader.efi.efiSysMountPoint = "/boot/efi";
