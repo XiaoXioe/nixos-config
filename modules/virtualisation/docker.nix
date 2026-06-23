@@ -59,9 +59,13 @@ selfLib.mkModule {
                 if [ "$old_image_id" != "$new_image_id" ]; then
                   echo "Image updated for $container. Restarting service docker-$container.service..."
                   if systemctl is-active --quiet "docker-$container.service"; then
-                    systemctl restart "docker-$container.service"
+                    if ! systemctl restart "docker-$container.service"; then
+                      echo "Failed to restart systemd service, trying docker restart directly..."
+                      docker restart "$container"
+                    fi
                   else
-                    echo "Service docker-$container.service is not active, skipping restart."
+                    echo "Service docker-$container.service is not active or does not exist, restarting container directly..."
+                    docker restart "$container"
                   fi
                 else
                   echo "Image is already up-to-date for $container."
