@@ -13,14 +13,31 @@ let
     // extraAttrs;
   };
 in
-selfLib.mkModule {
+selfLib.mkApp {
   name = "apps.browsers.librewolf";
   description = "LibreWolf configuration for user";
 
+  flatpak = {
+    appId = "io.gitlab.librewolf-community";
+
+    symlinks = [
+      {
+        host = ".librewolf";
+        guest = ".librewolf";
+      }
+    ];
+  };
+
+  native = {
+    package = pkgs.librewolf;
+  };
+
+  hmProgram = {
+    name = "librewolf";
+  };
+
   hmConfig = { userName, ... }: {
     programs.librewolf = {
-      enable = true;
-      package = pkgs.librewolf;
       policies = {
         ExtensionSettings = {
           "*" = {
