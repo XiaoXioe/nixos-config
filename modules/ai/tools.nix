@@ -20,15 +20,14 @@ let
       key ? "id_ed25519",
     }:
     {
-      command = "${pkgs.nodejs}/bin/npx";
+      command = "${pkgs.nodejs}/bin/node";
       args = [
-        "-y"
-        "ssh-mcp"
+        "/home/${config.my.user.name}/.agents/mcp-servers/node_modules/.bin/ssh-mcp"
         "--host=${host}"
         "--port=${toString port}"
         "--user=${user}"
         "--key=/home/${config.my.user.name}/.ssh/${key}"
-        "--timeout=60000"
+        "--timeout=3000"
       ];
     };
 
@@ -52,10 +51,6 @@ let
     '';
   };
 
-  agent-browser-cli = pkgs.writeShellScriptBin "agent-browser" ''
-    export AGENT_BROWSER_EXECUTABLE_PATH="${pkgs.chromium}/bin/chromium"
-    exec ${pkgs.nodejs}/bin/npx -y agent-browser "$@"
-  '';
 in
 selfLib.mkModule {
   name = "ai.tools";
@@ -78,51 +73,21 @@ selfLib.mkModule {
           pkgs.aider-chat
           codex-cli
           codebase-memory-mcp-pkg
-          agent-browser-cli
         ];
 
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          # Setup Patch bb-browser-mcp
-          PATCH_DIR="$HOME/.agents/bb-browser-mcp"
-          mkdir -p "$PATCH_DIR"
-          if [ ! -f "$PATCH_DIR/package.json" ]; then
-            cd "$PATCH_DIR"
-            ${pkgs.nodejs}/bin/npm init -y
-            ${pkgs.nodejs}/bin/npm install bb-browser@0.11.1
+          export PATH="${pkgs.nodejs}/bin:$PATH"
+
+          # Setup local MCP servers to avoid npx online latency
+          LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
+          mkdir -p "$LOCAL_MCP_DIR"
+          if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
+            cd "$LOCAL_MCP_DIR"
+            if [ ! -f "package.json" ]; then
+              ${pkgs.nodejs}/bin/npm init -y
+            fi
+            ${pkgs.nodejs}/bin/npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
           fi
-
-          # Tulis file wrapper
-          cat << 'EOF' > "$PATCH_DIR/mcp-wrapper.mjs"
-          import fs from "fs";
-          import path from "path";
-          import os from "os";
-
-          const originalFetch = globalThis.fetch;
-          globalThis.fetch = function(url, options) {
-            if (typeof url === "string" && (url.includes("/command") || url.includes("/status") || url.includes("/shutdown"))) {
-              let token = "";
-              try {
-                const daemonJsonPath = path.join(os.homedir(), ".bb-browser", "daemon.json");
-                if (fs.existsSync(daemonJsonPath)) {
-                  const daemonInfo = JSON.parse(fs.readFileSync(daemonJsonPath, "utf8"));
-                  token = daemonInfo.token;
-                }
-              } catch (e) {
-                // ignore
-              }
-
-              if (token) {
-                options = options || {};
-                options.headers = options.headers || {};
-                options.headers["Authorization"] = `Bearer ''${token}`;
-              }
-            }
-            return originalFetch(url, options);
-          };
-
-          // Dinamis import mcp.js asli
-          await import("bb-browser/dist/mcp.js");
-          EOF
 
           # Path referensi
           TOKEN_PATH="${osConfig.sops.secrets."cloudflare-token".path}"
@@ -171,17 +136,17 @@ selfLib.mkModule {
               key = "id_rsa_compat";
             };
 
-            ssh_nikel_termux = makeSshMcp {
-              host = "192.168.5.187";
-              port = 8022;
-              user = "u0_a90";
-            };
+            # ssh_nikel_termux = makeSshMcp {
+            #   host = "192.168.5.187";
+            #   port = 8022;
+            #   user = "u0_a90";
+            # };
 
-            ssh_arch_nikel = makeSshMcp {
-              host = "192.168.5.187";
-              port = 4242;
-              user = "arch-nikel";
-            };
+            # ssh_arch_nikel = makeSshMcp {
+            #   host = "192.168.5.187";
+            #   port = 4242;
+            #   user = "arch-nikel";
+            # };
 
             ssh_stb = makeSshMcp {
               host = "192.168.5.207";
@@ -207,59 +172,36 @@ selfLib.mkModule {
                 "-c"
                 "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${
                   osConfig.sops.secrets."github-access-token".path
-                }) ${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-github"
+                }) ${pkgs.nodejs}/bin/node ${config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-github"
               ];
             };
 
-            sqlite = {
-              command = "${pkgs.uv}/bin/uvx";
-              args = [
-                "mcp-server-sqlite"
-                "--db-path"
-                "${config.home.homeDirectory}/.gemini/main.db"
-              ];
-            };
+            # sqlite = {
+            #   command = "${pkgs.uv}/bin/uvx";
+            #   args = [
+            #     "mcp-server-sqlite"
+            #     "--db-path"
+            #     "${config.home.homeDirectory}/.gemini/main.db"
+            #   ];
+            # };
 
             memory = {
-              command = "${pkgs.nodejs}/bin/npx";
+              command = "${pkgs.nodejs}/bin/node";
               args = [
-                "-y"
-                "@modelcontextprotocol/server-memory"
+                "${config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-memory"
               ];
               env = {
                 MEMORY_FILE_PATH = "${config.home.homeDirectory}/.gemini/memory.json";
               };
             };
 
-            fetch = {
-              command = "${pkgs.uv}/bin/uvx";
-              args = [
-                "mcp-server-fetch"
-              ];
-            };
+            # fetch = {
+            #   command = "${pkgs.uv}/bin/uvx";
+            #   args = [
+            #     "mcp-server-fetch"
+            #   ];
+            # };
 
-            agent-browser = {
-              command = "${pkgs.nodejs}/bin/npx";
-              args = [
-                "-y"
-                "agent-browser-mcp"
-              ];
-              env = {
-                AGENT_BROWSER_PATH = "${agent-browser-cli}/bin/agent-browser";
-                AGENT_BROWSER_EXECUTABLE_PATH = "${pkgs.chromium}/bin/chromium";
-              };
-            };
-
-            bb-browser = {
-              command = "${pkgs.nodejs}/bin/node";
-              args = [
-                "${config.home.homeDirectory}/.agents/bb-browser-mcp/mcp-wrapper.mjs"
-              ];
-              env = {
-                BB_BROWSER_CDP_URL = "http://127.0.0.1:9222";
-                NODE_PATH = "${config.home.homeDirectory}/.agents/bb-browser-mcp/node_modules";
-              };
-            };
           };
         };
       };
