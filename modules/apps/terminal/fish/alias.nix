@@ -1,6 +1,5 @@
-{ flakePath, ... }: {
+{ ... }: {
   programs.fish.shellAliases = {
-
     ls = "eza --icons -l -T -L=1";
 
     cd = "z";
