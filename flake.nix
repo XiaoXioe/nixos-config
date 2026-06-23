@@ -3,6 +3,10 @@
 
   inputs = {
     nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-26.05";
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     custompkgs = {
       url = "github:XiaoXioe/nix-custompkgs";
@@ -73,13 +77,10 @@
 
       pkgs = import inputs.nixpkgs {
         inherit system;
-        config = {
-          allowUnfree = true;
-          permittedInsecurePackages = [
-            "librewolf-152.0-1"
-            "librewolf-unwrapped-152.0-1"
-          ];
-        };
+        config.allowUnfree = true;
+        overlays = [
+          inputs.firefox-addons.overlays.default
+        ];
       };
 
       # Shared arguments for both NixOS and Home Manager
