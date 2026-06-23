@@ -1,22 +1,24 @@
 { ... }: {
   programs.fish.functions = {
     "," = {
+      wraps = "nix run";
       body = ''
         if not set -q argv[1]
             echo "Usage: , <package> [args...]"
             return 1
         end
-        nix run "nixpkgs#$argv[1]" -- $argv[2..-1]
+        env NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_INSECURE=1 nix run --impure "nixpkgs#$argv[1]" -- $argv[2..-1]
       '';
     };
 
     ",," = {
+      wraps = "nix shell";
       body = ''
         if not set -q argv[1]
             echo "Usage: ,, <packages...>"
             return 1
         end
-        nix shell "nixpkgs#"$argv
+        env NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_INSECURE=1 nix shell --impure "nixpkgs#"$argv
       '';
     };
 
