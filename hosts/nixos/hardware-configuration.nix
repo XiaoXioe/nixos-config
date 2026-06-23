@@ -47,7 +47,7 @@ in
     fsType = "btrfs";
     options = [
       "subvol=@nixos-nix"
-      "compress=zstd:6"
+      "compress=zstd:3"
       "noatime"
       "discard=async"
       "space_cache=v2"
