@@ -224,7 +224,7 @@ selfLib.mkModule {
           # --- TAMBAHAN KONFIGURASI SQLFLUFF & PHP ---
 
           # Konfigurasi SQLFluff (Dialek SQLite)
-          "sqlfluff.dialect" = "mysql";
+          "sqlfluff.dialect" = "sqlite";
           "sqlfluff.executablePath" = "sqlfluff";
           "sqlfluff.format.enabled" = true;
           "sqlfluff.linter.run" = "onType";
