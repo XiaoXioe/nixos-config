@@ -144,7 +144,6 @@
     security = {
       gnupg = true;
       compat = true;
-      pentest = true;
       secrets = true;
       hardening = true;
       networking = true;
