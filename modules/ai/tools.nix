@@ -70,7 +70,6 @@ selfLib.mkModule {
           antigravity-cli
           pkgs.gemini-cli
           claude-code
-          pkgs.aider-chat
           codex-cli
           codebase-memory-mcp-pkg
         ];
