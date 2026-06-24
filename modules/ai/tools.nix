@@ -66,9 +66,9 @@ selfLib.mkModule {
     {
       home = {
         packages = [
-          antigravity-ide
+          # antigravity-ide
           antigravity-cli
-          pkgs.gemini-cli
+          # pkgs.gemini-cli
           claude-code
           codex-cli
           codebase-memory-mcp-pkg
