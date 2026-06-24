@@ -1,58 +1,147 @@
 {
   pkgs,
   selfLib,
+  lib,
+  config,
   ...
 }:
 
-selfLib.mkModule {
-  name = "apps.gaming.game";
-  description = "User game settings";
+{
+  imports = [
+    (selfLib.mkModule {
+      name = "apps.gaming.game";
+      description = "User game settings";
 
-  nixosConfig = {
-    hardware.steam-hardware.enable = true;
+      nixosConfig = {
+        hardware.steam-hardware.enable = true;
 
-    programs.steam = {
-      enable = true;
-      remotePlay.openFirewall = true;
-      dedicatedServer.openFirewall = true;
-    };
-  };
+        programs.steam = {
+          enable = true;
+          remotePlay.openFirewall = true;
+          dedicatedServer.openFirewall = true;
+        };
 
-  hmConfig = {
-    home.packages = with pkgs; [
-      # lutris
-      xwayland-satellite
-      ppsspp
-      pcsx2
-    ];
-    home.sessionVariables = {
-      SDL_GAMECONTROLLERCONFIG = "03000000790000000600000010010000,Microntek USB Joystick,crc:79be,platform:Linux,a:b2,b:b1,x:b3,y:b0,dpleft:h0.8,dpright:h0.2,dpup:h0.1,dpdown:h0.4,leftx:a0,lefty:a1,leftstick:b10,rightx:a2,righty:a3,rightstick:b11,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,back:b8,start:b9,steam:2,";
-    };
-    programs.retroarch = {
-      enable = true;
-      cores = {
-        nestopia.enable = true;
-        snes9x.enable = true;
-        "genesis-plus-gx".enable = true;
-        mgba.enable = true;
-        mupen64plus.enable = true;
-        swanstation.enable = true;
-        ppsspp.enable = true;
-        pcsx2.enable = true;
+        services.flatpak = {
+          packages = [
+            "org.vinegarhq.Sober"
+          ];
+        };
       };
-      settings = {
-        "video_driver" = "gl";
-        "audio_driver" = "pulse";
-        "input_joypad_driver" = "udev";
-        "fps_show" = "true";
-        "menu_swap_ok_cancel_buttons" = "true";
-        "input_menu_toggle_gamepad_combo" = "4";
-        "video_threaded" = "true";
-        "quit_press_twice" = "true";
-        "savestate_auto_save" = "true";
-        "savestate_auto_load" = "true";
-        "notification_show_autoconfig" = "false";
+
+      hmConfig = {
+        home.packages = with pkgs; [
+          # lutris
+          xwayland-satellite
+        ];
+        home.sessionVariables = {
+          SDL_GAMECONTROLLERCONFIG = "03000000790000000600000010010000,Microntek USB Joystick,crc:79be,platform:Linux,a:b2,b:b1,x:b3,y:b0,dpleft:h0.8,dpright:h0.2,dpup:h0.1,dpdown:h0.4,leftx:a0,lefty:a1,leftstick:b10,rightx:a2,righty:a3,rightstick:b11,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,back:b8,start:b9,steam:2,";
+        };
       };
-    };
-  };
+    })
+
+    (selfLib.mkApp {
+      name = "apps.gaming.retroarch";
+      description = "RetroArch emulator frontend";
+      options = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = config.my.apps.gaming.game.enable;
+          description = "Enable RetroArch emulator frontend";
+        };
+      };
+      native = {
+        package = pkgs.retroarch.withCores (cores: with cores; [
+          nestopia
+          snes9x
+          genesis-plus-gx
+          mgba
+          mupen64plus
+          swanstation
+          ppsspp
+          pcsx2
+        ]);
+      };
+      flatpak = {
+        appId = "org.libretro.RetroArch";
+        symlinks = [
+          {
+            host = ".config/retroarch";
+            guest = "config/retroarch";
+          }
+        ];
+      };
+      hmProgram = {
+        name = "retroarch";
+      };
+      hmConfig = hmArgs@{ pkgs, lib, ... }: {
+        programs.retroarch.package = lib.mkIf config.my.apps.gaming.retroarch.flatpak.enable (
+          lib.mkForce ((pkgs.runCommand "empty-retroarch" { } "mkdir -p $out") // {
+            wrapper = { ... }: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
+          })
+        );
+
+        programs.retroarch.settings = {
+          "video_driver" = "gl";
+          "audio_driver" = "pulse";
+          "input_joypad_driver" = "udev";
+          "fps_show" = "true";
+          "menu_swap_ok_cancel_buttons" = "true";
+          "input_menu_toggle_gamepad_combo" = "4";
+          "video_threaded" = "true";
+          "quit_press_twice" = "true";
+          "savestate_auto_save" = "true";
+          "savestate_auto_load" = "true";
+          "notification_show_autoconfig" = "false";
+        };
+      };
+    })
+
+    (selfLib.mkApp {
+      name = "apps.gaming.ppsspp";
+      description = "PPSSPP Sony PSP emulator";
+      options = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = config.my.apps.gaming.game.enable;
+          description = "Enable PPSSPP emulator";
+        };
+      };
+      native = {
+        package = pkgs.ppsspp;
+      };
+      flatpak = {
+        appId = "org.ppsspp.PPSSPP";
+        symlinks = [
+          {
+            host = ".config/ppsspp";
+            guest = "config/ppsspp";
+          }
+        ];
+      };
+    })
+
+    (selfLib.mkApp {
+      name = "apps.gaming.pcsx2";
+      description = "PCSX2 Sony PlayStation 2 emulator";
+      options = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = config.my.apps.gaming.game.enable;
+          description = "Enable PCSX2 emulator";
+        };
+      };
+      native = {
+        package = pkgs.pcsx2;
+      };
+      flatpak = {
+        appId = "net.pcsx2.PCSX2";
+        symlinks = [
+          {
+            host = ".config/PCSX2";
+            guest = "config/PCSX2";
+          }
+        ];
+      };
+    })
+  ];
 }

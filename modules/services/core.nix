@@ -36,6 +36,7 @@ selfLib.mkModule {
 
     services.flatpak = {
       enable = true;
+      uninstallUnmanaged = true;
       update = {
         onActivation = false;
         auto = {
