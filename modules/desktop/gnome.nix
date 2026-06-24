@@ -12,6 +12,7 @@ selfLib.mkModule {
     services.xserver.enable = true;
 
     services.desktopManager.gnome.enable = true;
+    services.speechd.enable = lib.mkForce false;
 
     environment.gnome.excludePackages = with pkgs; [
       gnome-tour
