@@ -30,6 +30,9 @@ jobs:
         run: |
           nix build \
             ".#dank-shell" \
+            ".#quickshell" \
+            ".#pipewire" \
+            ".#pipewire-32bit" \
             ".#caelestia" \
             ".#llama" \
             ".#devShells.x86_64-linux.default" \
