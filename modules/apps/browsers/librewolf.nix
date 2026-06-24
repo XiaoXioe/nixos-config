@@ -20,12 +20,12 @@ selfLib.mkApp {
   flatpak = {
     appId = "io.gitlab.librewolf-community";
 
-    symlinks = [
-      {
-        host = ".librewolf";
-        guest = ".librewolf";
-      }
-    ];
+    # symlinks = [
+    #   {
+    #     host = ".librewolf";
+    #     guest = ".librewolf";
+    #   }
+    # ];
   };
 
   native = {
