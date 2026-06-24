@@ -163,7 +163,7 @@
         symlinks = [
           {
             host = ".local/share/io.ente.auth";
-            guest = "data/io.ente.auth";
+            guest = "data/enteauth";
           }
         ];
       };
