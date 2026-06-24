@@ -21,13 +21,19 @@
   userFeatures = {
     apps = {
       browsers = {
+        firefox = true;
         brave = {
           enable = true;
           flatpak = true;
         };
-        firefox = true;
-        chromium = true;
-        librewolf = false;
+        chromium = {
+          enable = true;
+          flatpak = true;
+        };
+        librewolf = {
+          enable = false;
+          flatpak = true;
+        };
       };
 
       custompkgs = true;
