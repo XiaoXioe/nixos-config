@@ -1,19 +1,25 @@
 {
-  pkgs,
-  inputs,
   config,
-  osConfig,
+  selfLib,
   ...
 }:
-{
-  imports = [ inputs.dms.homeModules.dank-material-shell ];
 
-  programs.dank-material-shell = {
-    dgop.package = pkgs.dgop;
-    enable = true;
+selfLib.mkModule {
+  name = "desktop.niri.dms";
+  description = "DankMaterialShell";
+
+  nixosConfig = {
+    programs.dms-shell = {
+      enable = true;
+      systemd = {
+        enable = false;
+      };
+    };
   };
 
-  # Link DankMaterialShell configuration from the repository using out-of-store symlink
-  xdg.configFile."DankMaterialShell".source =
-    config.lib.file.mkOutOfStoreSymlink "${osConfig.my.user.flakePath}/dotfiles/DankMaterialShell";
+  hmConfig = hmOpts: {
+    # Link DankMaterialShell configuration from the repository using out-of-store symlink
+    xdg.configFile."DankMaterialShell".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/dotfiles/DankMaterialShell";
+  };
 }
