@@ -24,6 +24,15 @@ selfLib.mkModule {
 
       # Use the SSH host key as the age decryption key
       age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+
+      templates."cachix.dhall" = {
+        path = "/home/${userName}/.config/cachix/cachix.dhall";
+        owner = userName;
+        mode = "0600";
+        content = ''
+          { authToken = "${config.sops.placeholder.cachix-token}" }
+        '';
+      };
     };
 
     sops.secrets = lib.mkMerge [
@@ -97,6 +106,11 @@ selfLib.mkModule {
 
         "gemini-api-key" = {
           owner = userName;
+        };
+
+        "cachix-token" = {
+          owner = userName;
+          group = "users";
         };
 
         "wg-lan.conf" = {
