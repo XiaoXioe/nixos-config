@@ -107,7 +107,10 @@
 
     desktop = {
       kde = false;
-      niri = true;
+      niri = {
+        enable = true;
+        dms = true;
+      };
       hyprland = false;
       xfce = false;
       theme = true;
