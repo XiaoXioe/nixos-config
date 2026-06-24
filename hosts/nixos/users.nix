@@ -31,7 +31,7 @@
           flatpak = true;
         };
         librewolf = {
-          enable = false;
+          enable = true;
           flatpak = true;
         };
       };
