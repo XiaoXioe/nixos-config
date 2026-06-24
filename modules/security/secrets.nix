@@ -110,6 +110,7 @@ selfLib.mkModule {
 
         "cachix-token" = {
           owner = userName;
+          group = "users";
         };
 
         "wg-lan.conf" = {
