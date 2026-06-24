@@ -35,11 +35,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell/stable";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nvf = {
       url = "github:notashelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -63,7 +58,6 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
   };
-
 
   outputs =
     inputs@{ ... }:
