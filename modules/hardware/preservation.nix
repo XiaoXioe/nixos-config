@@ -247,6 +247,7 @@ selfLib.mkModule {
             "nix-custompkgs"
             "nix-custompkg-priv"
             "freqtrade-dev"
+            "pentest"
           ];
           files = [
             "link.txt"
