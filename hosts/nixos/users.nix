@@ -143,7 +143,7 @@
 
     security = {
       gnupg = true;
-      compat = true;
+      compat = false;
       secrets = true;
       hardening = true;
       networking = true;
