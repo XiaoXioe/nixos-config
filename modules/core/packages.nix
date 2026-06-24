@@ -28,6 +28,10 @@ selfLib.mkModule {
     };
 
     environment.systemPackages = with pkgs; [
+      android-tools
+      proton-vpn
+      exiftool
+      oniux
       wget
       iotop-c
       nethogs
