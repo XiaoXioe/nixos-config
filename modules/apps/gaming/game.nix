@@ -50,16 +50,18 @@
         };
       };
       native = {
-        package = pkgs.retroarch.withCores (cores: with cores; [
-          nestopia
-          snes9x
-          genesis-plus-gx
-          mgba
-          mupen64plus
-          swanstation
-          ppsspp
-          pcsx2
-        ]);
+        package = pkgs.retroarch.withCores (
+          cores: with cores; [
+            nestopia
+            snes9x
+            genesis-plus-gx
+            mgba
+            mupen64plus
+            swanstation
+            ppsspp
+            pcsx2
+          ]
+        );
       };
       flatpak = {
         appId = "org.libretro.RetroArch";
@@ -73,27 +75,32 @@
       hmProgram = {
         name = "retroarch";
       };
-      hmConfig = hmArgs@{ pkgs, lib, ... }: {
-        programs.retroarch.package = lib.mkIf config.my.apps.gaming.retroarch.flatpak.enable (
-          lib.mkForce ((pkgs.runCommand "empty-retroarch" { } "mkdir -p $out") // {
-            wrapper = { ... }: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
-          })
-        );
+      hmConfig =
+        hmArgs@{ pkgs, lib, ... }:
+        {
+          programs.retroarch.package = lib.mkIf config.my.apps.gaming.retroarch.flatpak.enable (
+            lib.mkForce (
+              (pkgs.runCommand "empty-retroarch" { } "mkdir -p $out")
+              // {
+                wrapper = { ... }: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
+              }
+            )
+          );
 
-        programs.retroarch.settings = {
-          "video_driver" = "gl";
-          "audio_driver" = "pulse";
-          "input_joypad_driver" = "udev";
-          "fps_show" = "true";
-          "menu_swap_ok_cancel_buttons" = "true";
-          "input_menu_toggle_gamepad_combo" = "4";
-          "video_threaded" = "true";
-          "quit_press_twice" = "true";
-          "savestate_auto_save" = "true";
-          "savestate_auto_load" = "true";
-          "notification_show_autoconfig" = "false";
+          programs.retroarch.settings = {
+            "video_driver" = "gl";
+            "audio_driver" = "pulse";
+            "input_joypad_driver" = "udev";
+            "fps_show" = "true";
+            "menu_swap_ok_cancel_buttons" = "true";
+            "input_menu_toggle_gamepad_combo" = "4";
+            "video_threaded" = "true";
+            "quit_press_twice" = "true";
+            "savestate_auto_save" = "true";
+            "savestate_auto_load" = "true";
+            "notification_show_autoconfig" = "false";
+          };
         };
-      };
     })
 
     (selfLib.mkApp {
