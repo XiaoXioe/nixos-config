@@ -49,7 +49,13 @@ selfLib.mkApp {
         WINEARCH = "win64";
       };
 
-      home.file.".local/share/bottles".source =
-        hmArgs.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/bottles";
+      home.activation.setupBottlesSymlinks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if [ -d "$HOME/.local/share/bottles" ] && [ ! -L "$HOME/.local/share/bottles" ]; then
+          rm -rf "$HOME/.local/share/bottles"
+        fi
+        mkdir -p "$HOME/.local/share"
+        mkdir -p "/mnt/data_btrfs/bottles"
+        ln -sfn "/mnt/data_btrfs/bottles" "$HOME/.local/share/bottles"
+      '';
     };
 }
