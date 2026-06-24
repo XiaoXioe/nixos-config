@@ -84,7 +84,7 @@
     ai = {
       llama = true;
       ollama = true;
-      open-webui = true;
+      open-webui = false;
       tools = true;
     };
 
