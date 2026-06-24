@@ -1,25 +1,55 @@
 {
   pkgs,
   selfLib,
+  config,
   ...
 }:
 
-selfLib.mkModule {
+selfLib.mkApp {
   name = "apps.gaming.wine";
-  description = "Wine settings";
+  description = "Wine and Bottles compatibility layer";
 
-  hmConfig = { config, ... }: {
-    home.packages = with pkgs; [
-      wineWow64Packages.stable
-      winetricks
-      #bottles
-    ];
-    home.sessionVariables = {
-      WINEDLLOVERRIDES = "winemenubuilder.exe=d";
-      WINEPREFIX = "/mnt/data_btrfs/wine-data";
-      WINEARCH = "win64";
+  flatpak = {
+    appId = "com.usebottles.bottles";
+    overrides = {
+      Context = {
+        filesystems = [
+          "/mnt/data_btrfs/bottles"
+          "/mnt/data_btrfs/wine-data"
+        ];
+      };
     };
-    home.file.".local/share/bottles".source =
-      config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/bottles";
+    symlinks = [
+      {
+        host = ".local/share/bottles";
+        guest = "data/bottles";
+      }
+    ];
   };
+
+  native = {
+    package = pkgs.bottles;
+  };
+
+  hmProgram = null;
+
+  hmConfig =
+    hmArgs@{ pkgs, lib, ... }:
+    {
+      home.packages =
+        with pkgs;
+        lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
+          wineWow64Packages.stable
+          winetricks
+        ];
+
+      home.sessionVariables = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
+        WINEDLLOVERRIDES = "winemenubuilder.exe=d";
+        WINEPREFIX = "/mnt/data_btrfs/wine-data";
+        WINEARCH = "win64";
+      };
+
+      home.file.".local/share/bottles".source =
+        hmArgs.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/bottles";
+    };
 }
