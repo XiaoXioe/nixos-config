@@ -29,8 +29,6 @@ jobs:
       - name: Build cached packages
         run: |
           nix build \
-            ".#dank-shell" \
-            ".#quickshell" \
             ".#pipewire" \
             ".#pipewire-32bit" \
             ".#caelestia" \
