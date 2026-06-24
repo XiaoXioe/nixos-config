@@ -20,6 +20,8 @@ selfLib.mkModule {
       pkgs.doas-sudo-shim
     ];
 
+    programs.firejail.enable = true;
+
     services = {
       fail2ban = {
         enable = true;
