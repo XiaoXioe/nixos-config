@@ -1,11 +1,64 @@
 {
   selfLib,
+  pkgs,
   ...
 }:
 
-selfLib.mkModule {
+selfLib.mkApp {
   name = "apps.browsers.chromium";
   description = "Chromium browser configuration";
+
+  flatpak = {
+    appId = "org.chromium.Chromium";
+
+    overrides = {
+      Context = {
+        filesystems = [
+          "/etc/chromium:ro"
+        ];
+      };
+    };
+
+    symlinks = [
+      {
+        host = ".config/chromium";
+        guest = "config/chromium";
+      }
+    ];
+
+    flags = {
+      file = "config/chromium-flags.conf";
+      text = ''
+        --password-store=gnome-libsecret
+        --enable-gpu-rasterization
+        --ignore-gpu-blocklist
+        --disable-gpu-driver-bug-workarounds
+      '';
+    };
+  };
+
+  native = {
+    package = pkgs.chromium;
+  };
+
+  hmProgram = {
+    name = "chromium";
+    extraConfig = {
+      extensions = [
+        { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
+        { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
+        { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
+        { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
+        { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
+        { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
+        { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
+        { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
+        { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
+        { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
+        { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
+      ];
+    };
+  };
 
   nixosConfig = {
     environment.etc."chromium/policies/managed/policies.json".text = builtins.toJSON {
@@ -21,33 +74,6 @@ selfLib.mkModule {
       DefaultSearchProviderEnabled = true;
       DefaultSearchProviderName = "DuckDuckGo";
       DefaultSearchProviderSearchURL = "https://duckduckgo.com/?q={searchTerms}";
-
     };
-  };
-
-  hmConfig = {
-    programs.chromium = {
-      enable = true;
-      extensions = [
-        { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
-        { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
-        { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
-        { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
-        { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
-        { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
-        { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
-        { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
-        { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
-        { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
-        { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
-      ];
-      commandLineArgs = [
-        "--enable-gpu-rasterization"
-        "--ignore-gpu-blocklist"
-        "--disable-gpu-driver-bug-workarounds"
-      ];
-    };
-
-    xdg.configFile."chromium-flags.conf".text = "--password-store=gnome-libsecret";
   };
 }
