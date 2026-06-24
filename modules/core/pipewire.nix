@@ -8,6 +8,18 @@ selfLib.mkModule {
   name = "core.pipewire";
 
   nixosConfig = {
+    nixpkgs.overlays = [
+      (final: prev: {
+        pkgsi686Linux = prev.pkgsi686Linux // {
+          pipewire = prev.pkgsi686Linux.pipewire.override {
+            libcamera = { meta.platforms = [ ]; };
+            ffadoSupport = false;
+            rocSupport = false;
+          };
+        };
+      })
+    ];
+
     services.pipewire = {
       enable = true;
       alsa.enable = true;
