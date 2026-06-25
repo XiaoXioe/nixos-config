@@ -75,6 +75,7 @@ selfLib.mkModule {
         claude-code
         codex-cli
         codebase-memory-mcp-pkg
+        inputs.mcp-nixos.packages.${system}.default
       ];
 
       activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -215,12 +216,8 @@ selfLib.mkModule {
         };
 
         nixos = {
-          command = "${pkgs.nix}/bin/nix";
-          args = [
-            "run"
-            "github:utensils/mcp-nixos"
-            "--"
-          ];
+          command = "${inputs.mcp-nixos.packages.${system}.default}/bin/mcp-nixos";
+          args = [ ];
         };
 
         # fetch = {
