@@ -214,6 +214,15 @@ selfLib.mkModule {
           };
         };
 
+        nixos = {
+          command = "${pkgs.nix}/bin/nix";
+          args = [
+            "run"
+            "github:utensils/mcp-nixos"
+            "--"
+          ];
+        };
+
         # fetch = {
         #   command = "${pkgs.uv}/bin/uvx";
         #   args = [
