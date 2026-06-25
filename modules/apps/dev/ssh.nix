@@ -8,9 +8,9 @@ selfLib.mkModule {
   name = "apps.dev.ssh";
   description = "Ssh configuration";
 
-  hmConfig = { config, ... }: {
+  hmConfig = hmOpts: {
     home.file.".ssh/config_raw".source =
-      config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/ssh-config/config.conf";
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/ssh-config/config.conf";
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;

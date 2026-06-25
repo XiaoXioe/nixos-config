@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.git";
   description = "user git configuration";
 
-  hmConfig = { config, osConfig, ... }: {
+  hmConfig = hmOpts: {
     home.packages = with pkgs; [
       diff-so-fancy
       git-crypt
@@ -29,12 +29,12 @@ selfLib.mkModule {
       package = pkgs.git;
       settings = {
         user = {
-          name = osConfig.my.user.fullName;
+          name = hmOpts.osConfig.my.user.fullName;
           email = "169626976+XiaoXioe@users.noreply.github.com";
         };
         safe.directory = [
-          "${config.home.homeDirectory}/nixos-config"
-          "${config.home.homeDirectory}/nix-custompkgs-priv"
+          "${hmOpts.config.home.homeDirectory}/nixos-config"
+          "${hmOpts.config.home.homeDirectory}/nix-custompkgs-priv"
         ];
         init.defaultBranch = "main";
         push.autoSetupRemote = true;

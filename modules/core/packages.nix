@@ -39,7 +39,6 @@ selfLib.mkModule {
       oniux
       wget
       iotop-c
-      nethogs
       intel-gpu-tools
       compsize
 

@@ -19,6 +19,11 @@ selfLib.mkModule {
       ];
       nativePkgs = pkgs.bitwarden-desktop;
     };
+
+    "org.gnome.gThumb" = {
+      enable = true;
+      nativePkgs = pkgs.gthumb;
+    };
   };
 
   hmConfig = hmOpts: {
@@ -26,7 +31,6 @@ selfLib.mkModule {
       ripgrep
       fd
       jq
-      aria2
       ncdu
       btdu
       tldr
@@ -34,7 +38,6 @@ selfLib.mkModule {
       ookla-speedtest
       bmon
       tdl
-      gthumb
     ];
   };
 }

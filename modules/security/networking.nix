@@ -16,13 +16,11 @@ selfLib.mkModule {
 
     ];
 
-    security.wrappers = {
-      nethogs = {
-        source = "${pkgs.nethogs}/bin/nethogs";
-        capabilities = "cap_net_admin,cap_net_raw+ep";
-        owner = "root";
-        group = "root";
-      };
+    security.wrappers.bandwhich = {
+      source = "${pkgs.bandwhich}/bin/bandwhich";
+      owner = "root";
+      group = "root";
+      capabilities = "cap_sys_ptrace,cap_dac_read_search,cap_net_raw,cap_net_admin+ep";
     };
 
     networking = {

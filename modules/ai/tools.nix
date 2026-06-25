@@ -18,15 +18,16 @@ let
       port ? 22,
       user,
       key ? "id_ed25519",
+      homeDir,
     }:
     {
       command = "${pkgs.nodejs}/bin/node";
       args = [
-        "/home/${config.my.user.name}/.agents/mcp-servers/node_modules/.bin/ssh-mcp"
+        "${homeDir}/.agents/mcp-servers/node_modules/.bin/ssh-mcp"
         "--host=${host}"
         "--port=${toString port}"
         "--user=${user}"
-        "--key=/home/${config.my.user.name}/.ssh/${key}"
+        "--key=${homeDir}/.ssh/${key}"
         "--timeout=3000"
       ];
     };
@@ -77,19 +78,6 @@ selfLib.mkModule {
       ];
 
       activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        export PATH="${pkgs.nodejs}/bin:$PATH"
-
-        # Setup local MCP servers to avoid npx online latency
-        LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
-        mkdir -p "$LOCAL_MCP_DIR"
-        if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
-          cd "$LOCAL_MCP_DIR"
-          if [ ! -f "package.json" ]; then
-            ${pkgs.nodejs}/bin/npm init -y
-          fi
-          ${pkgs.nodejs}/bin/npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
-        fi
-
         # Path referensi
         TOKEN_PATH="${hmOpts.osConfig.sops.secrets."cloudflare-token".path}"
         BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
@@ -128,83 +116,112 @@ selfLib.mkModule {
           chmod 600 "$FINAL_CONF"
         fi
       '';
+    };
 
-        file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
-          mcpServers = {
-            ssh_openwrt_old = makeSshMcp {
-              host = "192.168.5.1";
-              user = "root";
-              key = "id_rsa_compat";
-            };
-
-            # ssh_nikel_termux = makeSshMcp {
-            #   host = "192.168.5.187";
-            #   port = 8022;
-            #   user = "u0_a90";
-            # };
-
-            # ssh_arch_nikel = makeSshMcp {
-            #   host = "192.168.5.187";
-            #   port = 4242;
-            #   user = "arch-nikel";
-            # };
-
-            ssh_stb = makeSshMcp {
-              host = "192.168.5.207";
-              user = "klein";
-            };
-
-            ssh_mido = makeSshMcp {
-              host = "192.168.5.185";
-              user = "klein";
-            };
-
-            # ghidra = {
-            #   command = "${pkgs.bash}/bin/bash";
-            #   args = [
-            #     "-c"
-            #     "GHIDRA_INSTALL_DIR=${pkgs.ghidra}/lib/ghidra JAVA_HOME=${pkgs.jdk} LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH ${pkgs.uv}/bin/uvx --from pyghidra-mcp pyghidra-mcp"
-            #   ];
-            # };
-
-            github = {
-              command = "${pkgs.bash}/bin/bash";
-              args = [
-                "-c"
-                "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${
-                  hmOpts.osConfig.sops.secrets."github-access-token".path
-                }) ${pkgs.nodejs}/bin/node ${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-github"
-              ];
-            };
-
-            # sqlite = {
-            #   command = "${pkgs.uv}/bin/uvx";
-            #   args = [
-            #     "mcp-server-sqlite"
-            #     "--db-path"
-            #     "${hmOpts.config.home.homeDirectory}/.gemini/main.db"
-            #   ];
-            # };
-
-            memory = {
-              command = "${pkgs.nodejs}/bin/node";
-              args = [
-                "${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-memory"
-              ];
-              env = {
-                MEMORY_FILE_PATH = "${hmOpts.config.home.homeDirectory}/.gemini/memory.json";
-              };
-            };
-
-            # fetch = {
-            #   command = "${pkgs.uv}/bin/uvx";
-            #   args = [
-            #     "mcp-server-fetch"
-            #   ];
-            # };
-
-          };
-        };
+    systemd.user.services.setup-mcp-servers = {
+      Unit = {
+        Description = "Setup local MCP servers asynchronously";
+        After = [ "network-online.target" ];
+        Wants = [ "network-online.target" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.writeShellScript "setup-mcp-servers.sh" ''
+          export PATH="${pkgs.nodejs}/bin:$PATH"
+          LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
+          mkdir -p "$LOCAL_MCP_DIR"
+          if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
+            cd "$LOCAL_MCP_DIR"
+            if [ ! -f package.json ]; then
+              npm init -y
+            fi
+            npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
+          fi
+        ''}";
+      };
+      Install = {
+        WantedBy = [ "default.target" ];
       };
     };
+
+    home.file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
+      mcpServers = {
+        ssh_openwrt_old = makeSshMcp {
+          host = "192.168.5.1";
+          user = "root";
+          key = "id_rsa_compat";
+          homeDir = hmOpts.config.home.homeDirectory;
+        };
+
+        # ssh_nikel_termux = makeSshMcp {
+        #   host = "192.168.5.187";
+        #   port = 8022;
+        #   user = "u0_a90";
+        # };
+
+        # ssh_arch_nikel = makeSshMcp {
+        #   host = "192.168.5.187";
+        #   port = 4242;
+        #   user = "arch-nikel";
+        # };
+
+        ssh_stb = makeSshMcp {
+          host = "192.168.5.207";
+          user = "klein";
+          homeDir = hmOpts.config.home.homeDirectory;
+        };
+
+        ssh_mido = makeSshMcp {
+          host = "192.168.5.185";
+          user = "klein";
+          homeDir = hmOpts.config.home.homeDirectory;
+        };
+
+        # ghidra = {
+        #   command = "${pkgs.bash}/bin/bash";
+        #   args = [
+        #     "-c"
+        #     "GHIDRA_INSTALL_DIR=${pkgs.ghidra}/lib/ghidra JAVA_HOME=${pkgs.jdk} LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH ${pkgs.uv}/bin/uvx --from pyghidra-mcp pyghidra-mcp"
+        #   ];
+        # };
+
+        github = {
+          command = "${pkgs.bash}/bin/bash";
+          args = [
+            "-c"
+            "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${
+              hmOpts.osConfig.sops.secrets."github-access-token".path
+            }) ${pkgs.nodejs}/bin/node ${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-github"
+          ];
+        };
+
+        # sqlite = {
+        #   command = "${pkgs.uv}/bin/uvx";
+        #   args = [
+        #     "mcp-server-sqlite"
+        #     "--db-path"
+        #     "${hmOpts.config.home.homeDirectory}/.gemini/main.db"
+        #   ];
+        # };
+
+        memory = {
+          command = "${pkgs.nodejs}/bin/node";
+          args = [
+            "${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-memory"
+          ];
+          env = {
+            MEMORY_FILE_PATH = "${hmOpts.config.home.homeDirectory}/.gemini/memory.json";
+          };
+        };
+
+        # fetch = {
+        #   command = "${pkgs.uv}/bin/uvx";
+        #   args = [
+        #     "mcp-server-fetch"
+        #   ];
+        # };
+
+      };
+    };
+  };
 }
