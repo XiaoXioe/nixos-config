@@ -126,16 +126,18 @@ selfLib.mkModule {
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash -c '\
-          export PATH=\"${pkgs.nodejs}/bin:$PATH\" \
-          && LOCAL_MCP_DIR=\"$HOME/.agents/mcp-servers\" \
-          && mkdir -p \"$LOCAL_MCP_DIR\" \
-          && if [ ! -d \"$LOCAL_MCP_DIR/node_modules\" ]; then \
-               cd \"$LOCAL_MCP_DIR\" \
-               && if [ ! -f package.json ]; then ${pkgs.nodejs}/bin/npm init -y; fi \
-               && ${pkgs.nodejs}/bin/npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory; \
-             fi \
-        '";
+        ExecStart = "${pkgs.writeShellScript "setup-mcp-servers.sh" ''
+          export PATH="${pkgs.nodejs}/bin:$PATH"
+          LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
+          mkdir -p "$LOCAL_MCP_DIR"
+          if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
+            cd "$LOCAL_MCP_DIR"
+            if [ ! -f package.json ]; then
+              npm init -y
+            fi
+            npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
+          fi
+        ''}";
       };
       Install = {
         WantedBy = [ "default.target" ];
