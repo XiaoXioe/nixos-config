@@ -106,7 +106,7 @@ selfLib.mkModule {
           ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
             '.mcpServers += {
               "cloudflare-api": {
-                "url": "https://mcp.cloudflare.com/sse",
+                "url": "https://mcp.cloudflare.com/mcp",
                 "headers": {
                   "Authorization": $token
                 }
