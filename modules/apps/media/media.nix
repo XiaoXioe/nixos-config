@@ -10,7 +10,6 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages = with pkgs; [
-      gnome-calculator
       ffmpeg
       zbar
     ];
