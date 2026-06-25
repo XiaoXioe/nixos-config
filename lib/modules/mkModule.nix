@@ -186,7 +186,11 @@
               flatpak = {
                 enable = lib.mkOption {
                   type = lib.types.bool;
-                  default = appVal.enable or true;
+                  default =
+                    if (options ? flatpak && options.flatpak ? enable) then
+                      lib.getAttrFromPath (optionPath ++ [ "flatpak" "enable" ]) config.my
+                    else
+                      appVal.enable or true;
                   description = "Whether to use Flatpak for ${appId} instead of the native package.";
                 };
               };
