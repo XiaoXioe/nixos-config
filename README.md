@@ -21,7 +21,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 │       └── hardware-configuration.nix
 │
 ├── modules/
-│   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI
+│   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI, Antigravity CLI, & local MCP servers (mcp-nixos, codebase-memory-mcp)
 │   ├── apps/                    # Home Manager applications & user settings
 │   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire (including metadata options)
 │   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland
@@ -49,7 +49,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 - **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
 - **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
 - **Secrets Management** — `sops-nix` with SSH host key for effortless decryption and dynamic user password injection.
-- **AI-Ready** — Local LLM integration optimized for hardware.
+- **AI-Ready & Declarative MCP** — Integrasi LLM lokal (Ollama, llama.cpp, Open WebUI) yang dioptimalkan untuk perangkat keras, dikombinasikan dengan lingkungan agen pengkodean (Antigravity CLI, Claude Code) dan server Model Context Protocol (MCP) terintegrasi secara native (seperti `mcp-nixos` dengan dukungan saluran `26.05`).
 
 ## 🛠️ Quick Start
 
