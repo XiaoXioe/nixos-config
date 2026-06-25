@@ -11,7 +11,7 @@ selfLib.mkModule {
   flatpakCfg = {
     "com.bitwarden.desktop" = {
       enable = true;
-      dataDir = [
+      symlinks = [
         {
           host = ".config/Bitwarden";
           guest = "config/Bitwarden";
