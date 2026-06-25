@@ -22,18 +22,9 @@
     apps = {
       browsers = {
         firefox = true;
-        brave = {
-          enable = true;
-          flatpak = true;
-        };
-        chromium = {
-          enable = true;
-          flatpak = true;
-        };
-        librewolf = {
-          enable = true;
-          flatpak = true;
-        };
+        brave = true;
+        chromium = true;
+        librewolf = false;
       };
 
       custompkgs = true;
@@ -42,7 +33,7 @@
         nh = true;
         git = true;
         ssh = true;
-        nemo = true;
+        file-manager = true;
         packages = true;
       };
 
@@ -61,10 +52,7 @@
         media = true;
         music = true;
         office = true;
-        sosmed = {
-          enable = true;
-          flatpak = true;
-        };
+        sosmed = true;
       };
 
       packages = {
