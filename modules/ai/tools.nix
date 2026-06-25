@@ -75,6 +75,7 @@ selfLib.mkModule {
         claude-code
         codex-cli
         codebase-memory-mcp-pkg
+        inputs.mcp-nixos.packages.${system}.default
       ];
 
       activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -212,6 +213,11 @@ selfLib.mkModule {
           env = {
             MEMORY_FILE_PATH = "${hmOpts.config.home.homeDirectory}/.gemini/memory.json";
           };
+        };
+
+        nixos = {
+          command = "${inputs.mcp-nixos.packages.${system}.default}/bin/mcp-nixos";
+          args = [ ];
         };
 
         # fetch = {
