@@ -6,79 +6,49 @@
   ...
 }:
 
-{
-  imports = [
-    (selfLib.mkModule {
-      name = "apps.gaming.game";
-      description = "User game settings";
+selfLib.mkModule {
+  name = "apps.gaming.game";
+  description = "User game settings";
 
-      nixosConfig = {
-        hardware.steam-hardware.enable = true;
+  nixosConfig = {
+    hardware.steam-hardware.enable = true;
 
-        programs.steam = {
-          enable = true;
-          remotePlay.openFirewall = true;
-          dedicatedServer.openFirewall = true;
-        };
+    programs.steam = {
+      enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+    };
+  };
 
-        services.flatpak = {
-          packages = [
-            "org.vinegarhq.Sober"
-          ];
-        };
-      };
+  flatpakCfg = {
+    "org.vinegarhq.Sober" = {
+      enable = true;
+    };
 
-      hmConfig = {
-        home.packages = with pkgs; [
-          # lutris
-          xwayland-satellite
-        ];
-        home.sessionVariables = {
-          SDL_GAMECONTROLLERCONFIG = "03000000790000000600000010010000,Microntek USB Joystick,crc:79be,platform:Linux,a:b2,b:b1,x:b3,y:b0,dpleft:h0.8,dpright:h0.2,dpup:h0.1,dpdown:h0.4,leftx:a0,lefty:a1,leftstick:b10,rightx:a2,righty:a3,rightstick:b11,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,back:b8,start:b9,steam:2,";
-        };
-      };
-    })
-
-    (selfLib.mkApp {
-      name = "apps.gaming.retroarch";
-      description = "RetroArch emulator frontend";
-      options = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = config.my.apps.gaming.game.enable;
-          description = "Enable RetroArch emulator frontend";
-        };
-      };
-      native = {
-        package = pkgs.retroarch.withCores (
-          cores: with cores; [
-            nestopia
-            snes9x
-            genesis-plus-gx
-            mgba
-            mupen64plus
-            swanstation
-            ppsspp
-            pcsx2
-          ]
-        );
-      };
-      flatpak = {
-        appId = "org.libretro.RetroArch";
-        symlinks = [
-          {
-            host = ".config/retroarch";
-            guest = "config/retroarch";
-          }
-        ];
-      };
+    "org.libretro.RetroArch" = {
+      enable = true;
+      symlinks = [
+        {
+          host = ".config/retroarch";
+          guest = "config/retroarch";
+        }
+      ];
+      nativePkgs = pkgs.retroarch.withCores (
+        cores: with cores; [
+          nestopia
+          snes9x
+          genesis-plus-gx
+          mgba
+          mupen64plus
+          swanstation
+          ppsspp
+          pcsx2
+        ]
+      );
       hmProgram = {
         name = "retroarch";
-      };
-      hmConfig =
-        hmArgs@{ pkgs, lib, ... }:
-        {
-          programs.retroarch.package = lib.mkIf config.my.apps.gaming.retroarch.flatpak.enable (
+        extraConfig = {
+          package = lib.mkIf config.my.apps.gaming.game.flatpaks."org.libretro.RetroArch".flatpak.enable (
             lib.mkForce (
               (pkgs.runCommand "empty-retroarch" { } "mkdir -p $out")
               // {
@@ -86,8 +56,7 @@
               }
             )
           );
-
-          programs.retroarch.settings = {
+          settings = {
             "video_driver" = "gl";
             "audio_driver" = "pulse";
             "input_joypad_driver" = "udev";
@@ -101,54 +70,38 @@
             "notification_show_autoconfig" = "false";
           };
         };
-    })
+      };
+    };
 
-    (selfLib.mkApp {
-      name = "apps.gaming.ppsspp";
-      description = "PPSSPP Sony PSP emulator";
-      options = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = config.my.apps.gaming.game.enable;
-          description = "Enable PPSSPP emulator";
-        };
-      };
-      native = {
-        package = pkgs.ppsspp;
-      };
-      flatpak = {
-        appId = "org.ppsspp.PPSSPP";
-        symlinks = [
-          {
-            host = ".config/ppsspp";
-            guest = "config/ppsspp";
-          }
-        ];
-      };
-    })
+    "org.ppsspp.PPSSPP" = {
+      enable = true;
+      symlinks = [
+        {
+          host = ".config/ppsspp";
+          guest = "config/ppsspp";
+        }
+      ];
+      nativePkgs = pkgs.ppsspp;
+    };
 
-    (selfLib.mkApp {
-      name = "apps.gaming.pcsx2";
-      description = "PCSX2 Sony PlayStation 2 emulator";
-      options = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = config.my.apps.gaming.game.enable;
-          description = "Enable PCSX2 emulator";
-        };
-      };
-      native = {
-        package = pkgs.pcsx2;
-      };
-      flatpak = {
-        appId = "net.pcsx2.PCSX2";
-        symlinks = [
-          {
-            host = ".config/PCSX2";
-            guest = "config/PCSX2";
-          }
-        ];
-      };
-    })
-  ];
+    "net.pcsx2.PCSX2" = {
+      enable = true;
+      symlinks = [
+        {
+          host = ".config/PCSX2";
+          guest = "config/PCSX2";
+        }
+      ];
+      nativePkgs = pkgs.pcsx2;
+    };
+  };
+
+  hmConfig = hmOpts: {
+    home.packages = with pkgs; [
+      xwayland-satellite
+    ];
+    home.sessionVariables = {
+      SDL_GAMECONTROLLERCONFIG = "03000000790000000600000010010000,Microntek USB Joystick,crc:79be,platform:Linux,a:b2,b:b1,x:b3,y:b0,dpleft:h0.8,dpright:h0.2,dpup:h0.1,dpdown:h0.4,leftx:a0,lefty:a1,leftstick:b10,rightx:a2,righty:a3,rightstick:b11,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,back:b8,start:b9,steam:2,";
+    };
+  };
 }

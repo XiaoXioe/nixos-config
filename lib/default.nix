@@ -31,7 +31,7 @@ let
     ) attrs;
 in
 {
-  inherit (modules) mkModule mkApp;
+  inherit (modules) mkModule;
   inherit mapFeatures;
 
   # Auto-import all .nix files (except default.nix) and directories
