@@ -229,8 +229,8 @@
   "notepadFontFamily": "",
   "notepadFontSize": 14,
   "notepadShowLineNumbers": true,
-  "notepadTransparencyOverride": 0.5,
-  "notepadLastCustomTransparency": 0.5,
+  "notepadTransparencyOverride": 0.53,
+  "notepadLastCustomTransparency": 0.53,
   "soundsEnabled": true,
   "useSystemSoundTheme": false,
   "soundNewNotification": true,
@@ -452,11 +452,11 @@
           "enabled": true
         },
         {
-          "id": "clipboard",
+          "id": "notificationButton",
           "enabled": true
         },
         {
-          "id": "notificationButton",
+          "id": "clipboard",
           "enabled": true
         },
         {
