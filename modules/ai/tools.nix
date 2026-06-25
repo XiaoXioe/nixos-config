@@ -43,6 +43,15 @@ let
 
     sourceRoot = ".";
 
+    nativeBuildInputs = [
+      pkgs.autoPatchelfHook
+    ];
+
+    buildInputs = [
+      pkgs.stdenv.cc.cc.lib
+      pkgs.zlib
+    ];
+
     installPhase = ''
       mkdir -p $out/bin
       # Menyalin biner yang diekstrak ke direktori /bin lingkungan Nix
@@ -56,76 +65,69 @@ selfLib.mkModule {
   name = "ai.tools";
   description = "AI development tools and Model Context Protocol (MCP) configuration";
 
-  hmConfig =
-    {
-      config,
-      lib,
-      osConfig,
-      ...
-    }:
-    {
-      home = {
-        packages = [
-          # antigravity-ide
-          antigravity-cli
-          # pkgs.gemini-cli
-          claude-code
-          codex-cli
-          codebase-memory-mcp-pkg
-        ];
+  hmConfig = hmOpts: {
+    home = {
+      packages = [
+        # antigravity-ide
+        antigravity-cli
+        # pkgs.gemini-cli
+        claude-code
+        codex-cli
+        codebase-memory-mcp-pkg
+      ];
 
-        activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          export PATH="${pkgs.nodejs}/bin:$PATH"
+      activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        export PATH="${pkgs.nodejs}/bin:$PATH"
 
-          # Setup local MCP servers to avoid npx online latency
-          LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
-          mkdir -p "$LOCAL_MCP_DIR"
-          if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
-            cd "$LOCAL_MCP_DIR"
-            if [ ! -f "package.json" ]; then
-              ${pkgs.nodejs}/bin/npm init -y
-            fi
-            ${pkgs.nodejs}/bin/npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
+        # Setup local MCP servers to avoid npx online latency
+        LOCAL_MCP_DIR="$HOME/.agents/mcp-servers"
+        mkdir -p "$LOCAL_MCP_DIR"
+        if [ ! -d "$LOCAL_MCP_DIR/node_modules" ]; then
+          cd "$LOCAL_MCP_DIR"
+          if [ ! -f "package.json" ]; then
+            ${pkgs.nodejs}/bin/npm init -y
           fi
+          ${pkgs.nodejs}/bin/npm install ssh-mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-memory
+        fi
 
-          # Path referensi
-          TOKEN_PATH="${osConfig.sops.secrets."cloudflare-token".path}"
-          BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
-          FINAL_CONF="$HOME/.gemini/config/mcp_config.json"
+        # Path referensi
+        TOKEN_PATH="${hmOpts.osConfig.sops.secrets."cloudflare-token".path}"
+        BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
+        FINAL_CONF="$HOME/.gemini/config/mcp_config.json"
 
-          # Pastikan direktori tujuan ada
-          mkdir -p "$HOME/.gemini/config"
+        # Pastikan direktori tujuan ada
+        mkdir -p "$HOME/.gemini/config"
 
-          # Jika file token SOPS berhasil didekripsi, gabungkan konfigurasi
-          if [ -f "$TOKEN_PATH" ]; then
-            CF_TOKEN=$(cat "$TOKEN_PATH")
-            
-            # Gunakan jq untuk menambahkan server Cloudflare beserta Header Autentikasi
-            ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
-              '.mcpServers += {
-                "cloudflare-api": {
-                  "url": "https://mcp.cloudflare.com/sse",
-                  "headers": {
-                    "Authorization": $token
-                  }
-                },
-                "codebase-memory-mcp": {
-                  "command": "${codebase-memory-mcp-pkg}/bin/codebase-memory-mcp",
-                  "args": [],
-                  "env": {
-                    "CBM_CACHE_DIR": "${config.home.homeDirectory}/.agents/codebase_memory"
-                  }
+        # Jika file token SOPS berhasil didekripsi, gabungkan konfigurasi
+        if [ -f "$TOKEN_PATH" ]; then
+          CF_TOKEN=$(cat "$TOKEN_PATH")
+          
+          # Gunakan jq untuk menambahkan server Cloudflare beserta Header Autentikasi
+          ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
+            '.mcpServers += {
+              "cloudflare-api": {
+                "url": "https://mcp.cloudflare.com/sse",
+                "headers": {
+                  "Authorization": $token
                 }
-              }' "$BASE_CONF" > "$FINAL_CONF"
-              
-            # Kunci izin file final agar hanya bisa dibaca oleh Anda
-            chmod 600 "$FINAL_CONF"
-          else
-            # Jika token tidak ada, gunakan konfigurasi dasar saja
-            cp "$BASE_CONF" "$FINAL_CONF"
-            chmod 600 "$FINAL_CONF"
-          fi
-        '';
+              },
+              "codebase-memory-mcp": {
+                "command": "${codebase-memory-mcp-pkg}/bin/codebase-memory-mcp",
+                "args": [],
+                "env": {
+                  "CBM_CACHE_DIR": "${hmOpts.config.home.homeDirectory}/.agents/codebase_memory"
+                }
+              }
+            }' "$BASE_CONF" > "$FINAL_CONF"
+            
+          # Kunci izin file final agar hanya bisa dibaca oleh Anda
+          chmod 600 "$FINAL_CONF"
+        else
+          # Jika token tidak ada, gunakan konfigurasi dasar saja
+          cp "$BASE_CONF" "$FINAL_CONF"
+          chmod 600 "$FINAL_CONF"
+        fi
+      '';
 
         file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
           mcpServers = {
@@ -170,8 +172,8 @@ selfLib.mkModule {
               args = [
                 "-c"
                 "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${
-                  osConfig.sops.secrets."github-access-token".path
-                }) ${pkgs.nodejs}/bin/node ${config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-github"
+                  hmOpts.osConfig.sops.secrets."github-access-token".path
+                }) ${pkgs.nodejs}/bin/node ${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-github"
               ];
             };
 
@@ -180,17 +182,17 @@ selfLib.mkModule {
             #   args = [
             #     "mcp-server-sqlite"
             #     "--db-path"
-            #     "${config.home.homeDirectory}/.gemini/main.db"
+            #     "${hmOpts.config.home.homeDirectory}/.gemini/main.db"
             #   ];
             # };
 
             memory = {
               command = "${pkgs.nodejs}/bin/node";
               args = [
-                "${config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-memory"
+                "${hmOpts.config.home.homeDirectory}/.agents/mcp-servers/node_modules/.bin/mcp-server-memory"
               ];
               env = {
-                MEMORY_FILE_PATH = "${config.home.homeDirectory}/.gemini/memory.json";
+                MEMORY_FILE_PATH = "${hmOpts.config.home.homeDirectory}/.gemini/memory.json";
               };
             };
 
