@@ -8,15 +8,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    custompkgs = {
-      url = "github:XiaoXioe/nix-custompkgs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # custompkgs = {
-    #   url = "path:/home/klein-moretti/nix-custompkgs";
+    #   url = "github:XiaoXioe/nix-custompkgs";
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
+
+    custompkgs = {
+      url = "path:/home/klein-moretti/nix-custompkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     custompkgs-priv = {
       url = "github:XiaoXioe/nix-custompkg-priv";
