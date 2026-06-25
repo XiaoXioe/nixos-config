@@ -41,8 +41,8 @@ selfLib.mkModule {
           # Simpan 3 snapshot per jam (setiap ~20 menit)
           # so recently deleted files can be restored
           TIMELINE_LIMIT_HOURLY = "3";
-          TIMELINE_LIMIT_DAILY = "3"; # 1 minggu harian
-          TIMELINE_LIMIT_WEEKLY = "2";
+          TIMELINE_LIMIT_DAILY = "7"; # 1 minggu harian
+          TIMELINE_LIMIT_WEEKLY = "4";
           TIMELINE_LIMIT_MONTHLY = "0";
           TIMELINE_LIMIT_YEARLY = "0";
         };
