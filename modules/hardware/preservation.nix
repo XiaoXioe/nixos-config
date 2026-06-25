@@ -225,8 +225,10 @@ selfLib.mkModule {
             ".local/state"
             ".steam"
             ".cache/nix"
+            ".cache/DankMaterialShell"
             ".cache/mozilla"
             ".cache/rclone"
+            ".cache/fish"
             {
               directory = ".ssh";
               mode = "0700";
