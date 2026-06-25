@@ -8,11 +8,10 @@ selfLib.mkModule {
   name = "services.rclone";
   description = "rclone mount service";
 
-  hmConfig =
-    { config, osConfig, ... }:
+  hmConfig = hmOpts:
     let
       rcloneRemote = "SemuaDrive";
-      mountPoint = "${config.home.homeDirectory}/CloudStorage";
+      mountPoint = "${hmOpts.config.home.homeDirectory}/CloudStorage";
     in
     {
       home.packages = [ pkgs.rclone ];
@@ -25,13 +24,13 @@ selfLib.mkModule {
         Service = {
           Type = "simple";
           ExecStartPre = [
-            "-${pkgs.bash}/bin/bash -c '${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint} > /dev/null 2>&1 || true'"
+            "-${pkgs.bash}/bin/bash -c '/run/wrappers/bin/fusermount3 -uz ${mountPoint} > /dev/null 2>&1 || true'"
             "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
-            "${pkgs.coreutils}/bin/mkdir -p ${config.home.homeDirectory}/.config/rclone"
+            "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
           ];
           ExecStart = ''
             ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
-              --config "${osConfig.sops.secrets."rclone.conf".path}" \
+              --config "${hmOpts.osConfig.sops.secrets."rclone.conf".path}" \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
               --vfs-cache-max-size 5G \
@@ -48,7 +47,7 @@ selfLib.mkModule {
               --vfs-fast-fingerprint \
               --no-checksum \
               --drive-pacer-min-sleep=10ms \
-              --log-file="${config.home.homeDirectory}/.config/rclone/rclone.log" \
+              --log-file="${hmOpts.config.home.homeDirectory}/.config/rclone/rclone.log" \
               --log-level INFO
           '';
           ExecStartPost = "-${pkgs.bash}/bin/bash -c '(${pkgs.coreutils}/bin/sleep 10 && ${pkgs.findutils}/bin/find ${mountPoint} -maxdepth 2 > /dev/null 2>&1) &'";
