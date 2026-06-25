@@ -1,22 +1,12 @@
 {
   selfLib,
   pkgs,
-  lib,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.media.sosmed";
   description = "Social Media applications bundle";
-  options = {
-    flatpak = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Whether to use Flatpak for all social media applications by default.";
-      };
-    };
-  };
 
   flatpakCfg = {
     "com.ayugram.desktop" = {
