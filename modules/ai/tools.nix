@@ -49,6 +49,7 @@ let
 
     buildInputs = [
       pkgs.stdenv.cc.cc.lib
+      pkgs.zlib
     ];
 
     installPhase = ''
