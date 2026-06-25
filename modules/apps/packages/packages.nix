@@ -8,7 +8,20 @@ selfLib.mkModule {
   name = "apps.packages.general";
   description = "Base packages for user";
 
-  hmConfig = {
+  flatpakCfg = {
+    "com.bitwarden.desktop" = {
+      enable = true;
+      dataDir = [
+        {
+          host = ".config/Bitwarden";
+          guest = "config/Bitwarden";
+        }
+      ];
+      nativePkgs = pkgs.bitwarden-desktop;
+    };
+  };
+
+  hmConfig = hmOpts: {
     home.packages = with pkgs; [
       ripgrep
       fd
