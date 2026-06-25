@@ -14,9 +14,5 @@ selfLib.mkModule {
       pinentryPackage = pkgs.pinentry-gnome3;
     };
 
-    # Menginstal aplikasi GUI
-    environment.systemPackages = with pkgs; [
-      kdePackages.kleopatra
-    ];
   };
 }
