@@ -103,8 +103,8 @@ selfLib.mkModule {
     };
     home.packages = [
       custom.vimmdl
-      custom.disbox
-      custom.binance
+      # custom.disbox
+      # custom.binance
       custom.streambert
 
       priv.anichin-scraper
