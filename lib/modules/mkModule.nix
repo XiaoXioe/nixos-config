@@ -21,22 +21,31 @@
 
         # Flatpak configuration processing
         hasFlatpaks = flatpakCfg != { };
+        isSingleApp = hasFlatpaks && (lib.length (builtins.attrNames flatpakCfg) == 1);
+        singleAppId = if isSingleApp then builtins.elemAt (builtins.attrNames flatpakCfg) 0 else null;
 
         # Helper to check if a specific app is enabled
         isAppEnabled = appId:
-          let
-            appOptPath = optionPath ++ [ "flatpaks" appId "enable" ];
-          in
-          if lib.hasAttrByPath appOptPath config.my then
-            lib.getAttrFromPath appOptPath config.my
+          if isSingleApp && appId == singleAppId then
+            cfg
           else
-            true;
+            let
+              appOptPath = optionPath ++ [ "flatpaks" appId "enable" ];
+            in
+            if lib.hasAttrByPath appOptPath config.my then
+              lib.getAttrFromPath appOptPath config.my
+            else
+              true;
 
         # Helper to check if a specific flatpak app is using Flatpak
         useFlatpak = appId:
           let
-            appOptPath = optionPath ++ [ "flatpaks" appId "flatpak" "enable" ];
             appVal = flatpakCfg.${appId};
+            appOptPath =
+              if isSingleApp && appId == singleAppId then
+                optionPath ++ [ "flatpak" "enable" ]
+              else
+                optionPath ++ [ "flatpaks" appId "flatpak" "enable" ];
           in
           isAppEnabled appId && (
             if lib.hasAttrByPath appOptPath config.my then
@@ -176,7 +185,7 @@
           {
             enable = lib.mkEnableOption (if description != "" then description else name);
           }
-          // (lib.optionalAttrs hasFlatpaks {
+          // (lib.optionalAttrs (hasFlatpaks && !isSingleApp) {
             flatpaks = lib.mapAttrs (appId: appVal: {
               enable = lib.mkOption {
                 type = lib.types.bool;
@@ -195,6 +204,15 @@
                 };
               };
             }) flatpakCfg;
+          })
+          // (lib.optionalAttrs (hasFlatpaks && isSingleApp) {
+            flatpak = {
+              enable = lib.mkOption {
+                type = lib.types.bool;
+                default = flatpakCfg.${singleAppId}.enable or true;
+                description = "Whether to use Flatpak for ${singleAppId} instead of the native package.";
+              };
+            };
           })
           // options
         );
@@ -216,7 +234,7 @@
             (lib.mkIf (hasFlatpaks || nativePackagesList != [ ]) {
               home-manager.users.${config.my.user.name} = hmArgs@{ lib, ... }:
                 let
-                  programsConfig = hmProgramsConfig hmArgs.pkgs;
+                  programsConfig = hmProgramsConfig pkgs;
                 in
                 {
                   home.activation = flatpakActivationScripts lib;
