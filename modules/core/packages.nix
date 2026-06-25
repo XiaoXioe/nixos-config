@@ -27,9 +27,14 @@ selfLib.mkModule {
       fuse.userAllowOther = true;
     };
 
+    services.flatpak = {
+      packages = [
+        "com.protonvpn.www"
+      ];
+    };
+
     environment.systemPackages = with pkgs; [
       android-tools
-      proton-vpn
       exiftool
       oniux
       wget
@@ -47,11 +52,6 @@ selfLib.mkModule {
 
       killall
       inetutils
-
-      unzip # Archive handler for .zip
-      zip
-      unrar # Archive handler for .rar
-      p7zip # Archive handler for .7z
     ];
   };
 }
