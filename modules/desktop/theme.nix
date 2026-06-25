@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "desktop.theme";
   description = "Custom Themes";
 
-  hmConfig = { config, ... }: {
+  hmConfig = hmOpts: {
     home.pointerCursor = {
       name = "Vimix-white-cursors";
       package = pkgs.vimix-cursors;
@@ -17,7 +17,7 @@ selfLib.mkModule {
     };
     gtk = {
       enable = true;
-      gtk4.theme = config.gtk.theme;
+      gtk4.theme = hmOpts.config.gtk.theme;
       theme = {
         name = "Colloid-Dark";
         package = pkgs.colloid-gtk-theme.override {
