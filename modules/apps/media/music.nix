@@ -1,5 +1,6 @@
 {
   selfLib,
+  flakePath,
   ...
 }:
 let
@@ -9,7 +10,7 @@ selfLib.mkModule {
   name = "apps.media.music";
   description = "Music player (MPD + rmpc + cava)";
 
-  hmConfig = { config, ... }: {
+  hmConfig = hmOpts: {
     programs.cava = {
       enable = true;
       settings = {
@@ -30,7 +31,7 @@ selfLib.mkModule {
 
     services.mpd = {
       enable = true;
-      musicDirectory = "${config.home.homeDirectory}/Music";
+      musicDirectory = "${hmOpts.config.home.homeDirectory}/Music";
       network = {
         listenAddress = "127.0.0.1";
         startWhenNeeded = true;
@@ -62,9 +63,12 @@ selfLib.mkModule {
     systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/data" ];
     programs.rmpc = {
       enable = true;
-      config = builtins.readFile ../../../dotfiles/rmpc/config.ron;
     };
 
-    xdg.configFile."rmpc/themes/custom.ron".text = builtins.readFile ../../../dotfiles/rmpc/theme.ron;
+    xdg.configFile."rmpc/config.ron".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/rmpc/config.ron";
+
+    xdg.configFile."rmpc/themes/custom.ron".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/rmpc/theme.ron";
   };
 }
