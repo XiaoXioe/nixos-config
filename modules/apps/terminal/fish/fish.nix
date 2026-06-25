@@ -73,7 +73,6 @@
 
       shellAbbrs = {
         gl = "gallery-dl";
-        aria = "aria2c -x16 -s16 -c '' -o ''";
 
         # --- SYSTEMD & JOURNALCTL ---
         sc = "sudo systemctl";
