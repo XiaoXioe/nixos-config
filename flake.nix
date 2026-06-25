@@ -56,7 +56,7 @@
     };
 
     mcp-nixos = {
-      url = "github:utensils/mcp-nixos";
+      url = "github:jsiegel-supplyframe/mcp-nixos/nix-taco-sprint/channel-fallback-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
