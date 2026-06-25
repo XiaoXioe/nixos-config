@@ -13,11 +13,11 @@ selfLib.mkModule {
   name = "apps.custompkgs";
   description = "Custom packages";
 
-  hmConfig = { config, ... }: {
+  hmConfig = {
     imports = [ inputs.custompkgs.homeModules.freqtrade-setup ];
     programs.freqtrade-setup = {
       enable = true;
-      configDir = "${config.home.homeDirectory}/freqtrade-dev";
+      configDir = "/mnt/data_btrfs/freqtrade-dev";
       branch = "stable";
       extraPip = [
         "scipy"
