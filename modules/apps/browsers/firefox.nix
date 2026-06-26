@@ -21,7 +21,7 @@ let
     Value = value;
     Status = "locked";
   };
-  addons = inputs.firefox-addons.packages.${pkgs.system};
+  addons = inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
   video-downloadhelper = addons.video-downloadhelper.overrideAttrs (old: {
     meta = (old.meta or { }) // {
       license = [ ];
@@ -70,13 +70,6 @@ selfLib.mkModule {
         sha256 = "166ggld6b4lh1hvsm2bd0g8b7kp7y9ln2fhf7jfcmx0pbd9z4zzp";
       };
 
-      catppuccin-mocha-blue = buildAmoAddon {
-        pname = "catppuccin-mocha-blue";
-        addonId = "{2adf0361-e6d8-4b74-b3bc-3f450e8ebb69}";
-        slug = "catppuccin-mocha-blue-git";
-        sha256 = "0fgl7jcx5h3p5kgp3pcas89s25vjbyx7rzp0hs38s8l0ij6mp0y7";
-      };
-
       baseSettings = {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
@@ -90,7 +83,6 @@ selfLib.mkModule {
         "browser.uitour.enabled" = false;
         "trailhead.firstrun.didSeeAboutWelcome" = true;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        "extensions.activeThemeID" = "{2adf0361-e6d8-4b74-b3bc-3f450e8ebb69}";
         "extensions.autoDisableScopes" = 0;
       };
 
@@ -326,11 +318,12 @@ selfLib.mkModule {
                 darkreader
                 auto-tab-discard
                 metamask
+                consent-o-matic
+                container-proxy
+                video-downloadhelper
               ])
               ++ [
                 keplr
-                catppuccin-mocha-blue
-                video-downloadhelper
               ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
@@ -346,8 +339,9 @@ selfLib.mkModule {
             isDefault = false;
             id = 1;
             inherit bookmarks userChrome;
-            extensions.packages =
-              (with addons; [
+            extensions.packages = (
+              with addons;
+              [
                 ublock-origin
                 bitwarden
                 privacy-badger
@@ -359,10 +353,12 @@ selfLib.mkModule {
                 darkreader
                 auto-tab-discard
                 simple-tab-groups
-              ])
-              ++ [
+                consent-o-matic
                 video-downloadhelper
-              ];
+              ]
+            );
+            # ++ [
+            # ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
