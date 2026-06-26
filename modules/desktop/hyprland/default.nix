@@ -35,7 +35,7 @@ selfLib.mkModule {
     ];
   };
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     imports = [
       ./settings.nix
       ./keybind.nix
