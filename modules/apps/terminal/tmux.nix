@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.tmux";
   description = "Tmux configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.tmux = {
       enable = true;
       shortcut = "a";
