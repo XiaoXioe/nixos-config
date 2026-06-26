@@ -12,7 +12,7 @@ selfLib.mkModule {
     # NixOS side (optional, e.g. packages)
   };
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     imports = [ inputs.nvf.homeManagerModules.default ];
     programs.nvf = {
       enable = true;
