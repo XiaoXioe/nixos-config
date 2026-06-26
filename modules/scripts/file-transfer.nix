@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "scripts.file-transfer";
   description = "File transfer scripts (ambil & kirim)";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.writers.writePython3Bin "ambil" { flakeIgnore = [ "E501" ]; } ''
         import os
