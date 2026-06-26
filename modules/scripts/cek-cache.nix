@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "scripts.cek-cache";
   description = "Check package in /nix/store";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.writeShellApplication {
         name = "cek-cache";
