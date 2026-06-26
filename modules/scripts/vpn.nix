@@ -13,6 +13,16 @@ selfLib.mkModule {
       vpn_on = {
         description = "Jalankan Wireproxy via RAM dan aktifkan SOCKS5";
         body = ''
+          # 0. Cek apakah wireproxy sudah berjalan di sistem
+          if ${pkgs.procps}/bin/pgrep -x wireproxy >/dev/null
+              set -gx ALL_PROXY "socks5h://127.0.0.1:1080"
+              echo "ℹ️ Wireproxy sudah berjalan di latar belakang."
+              echo "✅ ALL_PROXY diarahkan ke 127.0.0.1:1080."
+              set -l my_ip (${pkgs.curl}/bin/curl -s --max-time 5 ifconfig.me; or echo "Gagal mendapatkan IP")
+              echo "🌐 IP Terminal Anda: $my_ip"
+              return 0
+          end
+
           set secret_conf "/run/secrets/proton-wg-sg19.conf"
 
           # 1. Validasi keberadaan file rahasia
@@ -34,8 +44,18 @@ selfLib.mkModule {
           # Simpan PID dari proses wireproxy agar mudah dimatikan nanti
           set -gx WIREPROXY_PID $last_pid
 
+          # Beri waktu sebentar agar wireproxy selesai membaca berkas konfigurasi sebelum dihapus
+          sleep 0.5
+
           # 5. Segera hapus file konfigurasi dari RAM setelah dibaca sistem
           rm -f $temp_conf
+
+          # Verifikasi apakah proses wireproxy benar-benar berjalan
+          if not kill -0 $WIREPROXY_PID 2>/dev/null
+              echo "❌ Error: Wireproxy gagal berjalan (proses langsung keluar)."
+              set -e WIREPROXY_PID
+              return 1
+          end
 
           # 6. Terapkan proxy ke sesi terminal saat ini
           set -gx ALL_PROXY "socks5h://127.0.0.1:1080"
@@ -45,7 +65,8 @@ selfLib.mkModule {
           
           # Beri waktu 2 detik agar handshake WireGuard selesai sebelum cek IP
           sleep 2
-          echo "🌐 IP Terminal Anda: "(${pkgs.curl}/bin/curl -s ifconfig.me)
+          set -l my_ip (${pkgs.curl}/bin/curl -s --max-time 5 ifconfig.me; or echo "Gagal mendapatkan IP")
+          echo "🌐 IP Terminal Anda: $my_ip"
         '';
       };
 
