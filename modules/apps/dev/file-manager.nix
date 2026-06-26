@@ -119,7 +119,11 @@ selfLib.mkModule {
   name = "apps.dev.file-manager";
   description = "FileManager user settings";
 
-  hmConfig = { lib, ... }: {
+  hmConfig = hmOpts:
+    let
+      lib = hmOpts.lib;
+    in
+    {
     xdg = {
       portal = {
         enable = true;

@@ -20,7 +20,7 @@ selfLib.mkModule {
   name = "scripts.git-commits";
   description = "Git Conventional Commits helper scripts";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.symlinkJoin {
         name = "git-conventional-commits-bundle";

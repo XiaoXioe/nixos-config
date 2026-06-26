@@ -70,14 +70,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1782206174,
-        "narHash": "sha256-NkWdM7shuZnHHy0J2zx8/9GGFTFVHX+nnJn2XaIOwCY=",
-        "path": "/home/klein-moretti/nix-custompkgs",
-        "type": "path"
+        "lastModified": 1782206172,
+        "narHash": "sha256-R9iJvPDxALFmhJZm8hQZF6d3UeG88EeDtl6uqUxmQlQ=",
+        "owner": "XiaoXioe",
+        "repo": "nix-custompkgs",
+        "rev": "de9d6fb3f15478c05145b498f10e859a08c29c3f",
+        "type": "github"
       },
       "original": {
-        "path": "/home/klein-moretti/nix-custompkgs",
-        "type": "path"
+        "owner": "XiaoXioe",
+        "repo": "nix-custompkgs",
+        "type": "github"
       }
     },
     "custompkgs-priv": {

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.editors.zeditor";
   description = "Zed-editor configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.zed-editor = {
       enable = true;
       package = pkgs.zed-editor-fhs;

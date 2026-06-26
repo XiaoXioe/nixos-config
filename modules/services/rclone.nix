@@ -28,8 +28,8 @@ selfLib.mkModule {
             "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
             "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
           ];
-          ExecStart = ''
-            ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
+          ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
+            exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "${hmOpts.osConfig.sops.secrets."rclone.conf".path}" \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
@@ -49,7 +49,7 @@ selfLib.mkModule {
               --drive-pacer-min-sleep=10ms \
               --log-file="${hmOpts.config.home.homeDirectory}/.config/rclone/rclone.log" \
               --log-level INFO
-          '';
+          ''}";
           ExecStartPost = "-${pkgs.bash}/bin/bash -c '(${pkgs.coreutils}/bin/sleep 10 && ${pkgs.findutils}/bin/find ${mountPoint} -maxdepth 2 > /dev/null 2>&1) &'";
           Restart = "on-failure";
           RestartSec = "10s";

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.nh";
   description = "NH configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.nh = {
       enable = true;
       flake = flakePath;

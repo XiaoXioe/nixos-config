@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   selfLib,
   ...
 }:
@@ -116,7 +115,7 @@ selfLib.mkModule {
   name = "apps.editors.vscodium";
   description = "Vscodium configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = with pkgs; [
       black
       shfmt

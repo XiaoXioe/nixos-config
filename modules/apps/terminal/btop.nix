@@ -19,7 +19,7 @@ selfLib.mkModule {
     };
   };
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.btop = {
       enable = true;
 

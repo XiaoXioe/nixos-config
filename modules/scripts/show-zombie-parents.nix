@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "scripts.show-zombie-parents";
   description = "Identify zombie/defunct processes";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.writeShellScriptBin "show-zombie-parents" ''
         ZOMBIE_PPIDS=$(ps -A -ostat,ppid | grep -e '[zZ]' | awk '{ print $2 }' | uniq)

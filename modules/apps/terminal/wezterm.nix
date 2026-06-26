@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.terminal.wezterm";
   description = "Wezterm configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.wezterm = {
       enable = true;
       extraConfig = ''

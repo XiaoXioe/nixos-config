@@ -15,7 +15,7 @@ selfLib.mkModule {
     programs.niri.enable = true;
   };
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     imports = [
       ./settings.nix
     ];

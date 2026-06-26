@@ -11,7 +11,7 @@ selfLib.mkModule {
     programs.fish.enable = true;
   };
 
-  hmConfig = { ... }: {
+  hmConfig = hmOpts: {
     imports = [
       ./fish.nix
       ./alias.nix
