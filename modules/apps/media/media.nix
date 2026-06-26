@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.media.media";
   description = "user media configuration (mpv, yt-dlp, obs)";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = with pkgs; [
       ffmpeg
       zbar
