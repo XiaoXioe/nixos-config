@@ -13,7 +13,7 @@ selfLib.mkModule {
   name = "apps.custompkgs";
   description = "Custom packages";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     imports = [ inputs.custompkgs.homeModules.freqtrade-setup ];
     programs.freqtrade-setup = {
       enable = true;
