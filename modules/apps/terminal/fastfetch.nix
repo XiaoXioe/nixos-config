@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.terminal.fastfetch";
   description = "Fastfetch configuration";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     programs.fastfetch = {
       enable = true;
 
