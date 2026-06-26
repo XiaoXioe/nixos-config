@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "scripts.ollama-to-llama";
   description = "Llama.cpp wrapper from Ollama Modelfiles";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.writeShellApplication {
         name = "ollama-to-llama";
