@@ -147,6 +147,7 @@
       show-zombie-parents = true;
       ollama-to-llama = true;
       file-transfer = true;
+      vpn = true;
     };
 
     specialization = {
