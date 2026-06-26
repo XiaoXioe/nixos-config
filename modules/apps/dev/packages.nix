@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.packages";
   description = "Packages for development";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = with pkgs; [
       nodejs_22
       uv
