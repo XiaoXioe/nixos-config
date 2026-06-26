@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "scripts.dl-lagu";
   description = "YouTube audio downloader script";
 
-  hmConfig = {
+  hmConfig = hmOpts: {
     home.packages = [
       (pkgs.writeShellApplication {
         name = "dl-lagu";
