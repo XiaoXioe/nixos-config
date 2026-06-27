@@ -161,6 +161,7 @@ selfLib.mkModule {
           "/etc/NetworkManager/system-connections"
           "/var/lib/bluetooth"
           "/var/lib/waydroid"
+          "/var/lib/cloudflare-warp"
           "/root"
           "/var/lib/libvirt"
           {
@@ -248,7 +249,6 @@ selfLib.mkModule {
             "nixos-config"
             "nix-custompkgs"
             "nix-custompkg-priv"
-            "freqtrade-dev"
             "pentest"
           ];
           files = [
