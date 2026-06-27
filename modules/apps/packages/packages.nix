@@ -21,7 +21,7 @@ selfLib.mkModule {
     };
 
     "org.gnome.gThumb" = {
-      enable = true;
+      enable = false;
       nativePkgs = pkgs.gthumb;
     };
   };
