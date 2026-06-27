@@ -39,7 +39,7 @@ selfLib.mkModule {
   };
 
   hmConfig =
-    { config, userName, ... }:
+    hmOpts:
     let
       buildAmoAddon =
         {
@@ -148,7 +148,7 @@ selfLib.mkModule {
     {
       programs.firefox = {
         package = pkgs.firefox;
-        configPath = "${config.xdg.configHome}/mozilla/firefox";
+        configPath = "${hmOpts.config.xdg.configHome}/mozilla/firefox";
         enable = true;
         languagePacks = [
           "en-US"
@@ -304,7 +304,7 @@ selfLib.mkModule {
         };
 
         profiles = {
-          ${userName} = {
+          ${hmOpts.config.home.username} = {
             isDefault = true;
             id = 0;
             inherit bookmarks userChrome;
@@ -335,7 +335,7 @@ selfLib.mkModule {
               "geo.enabled" = true;
             };
           };
-          "${userName}-hardened" = {
+          "${hmOpts.config.home.username}-hardened" = {
             isDefault = false;
             id = 1;
             inherit bookmarks userChrome;
