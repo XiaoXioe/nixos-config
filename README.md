@@ -10,8 +10,8 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ├── dotfiles/                    # Direct repository dotfiles (Niri, DMS, fish, rmpc)
 ├── lib/
 │   ├── default.nix              # Public API for custom library functions
-│   ├── modules.nix              # Unified mkModule builder
-│   └── builders.nix             # NixOS + Home Manager configuration builders
+│   ├── builders.nix             # NixOS + Home Manager configuration builders
+│   └── modules/                 # Module helper engine (mkModule & flatpak-helper)
 │
 ├── hosts/
 │   └── nixos/
@@ -21,7 +21,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 │       └── hardware-configuration.nix
 │
 ├── modules/
-│   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI, Antigravity CLI, & local MCP servers (mcp-nixos, codebase-memory-mcp)
+│   ├── ai/                      # AI stack: Ollama, llama.cpp, Open WebUI, Antigravity CLI, & native MCP servers (mcp.nix, tools.nix)
 │   ├── apps/                    # Home Manager applications & user settings
 │   ├── core/                    # System core: boot, fonts, graphics, nix, pipewire (including metadata options)
 │   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland
@@ -103,8 +103,8 @@ selfLib.mkModule {
   nixosConfig = {
     virtualisation.docker.enable = true;
   };
-  hmConfig = { config, ... }: {
-    # Home manager config applied directly to the user who enabled this module
+  hmConfig = hmOpts: {
+    # Home manager config applied directly to the user who enabled this module (using hmOpts.config)
   };
 }
 ```
