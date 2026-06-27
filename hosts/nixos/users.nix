@@ -74,6 +74,7 @@
       ollama = true;
       open-webui = false;
       tools = true;
+      mcp = true;
     };
 
     core = {
@@ -123,6 +124,7 @@
         dns = true;
         vpn = true;
         openssh = true;
+        "cloudflare-warp" = true;
       };
       scheduling = {
         ananicy = true;
