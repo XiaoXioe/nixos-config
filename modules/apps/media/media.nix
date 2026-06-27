@@ -17,7 +17,7 @@ selfLib.mkModule {
       enable = true;
       settings = {
         "extractor" = {
-          "base-directory" = "~/CloudStorage/Gdrive_Akbar68_Enc/Gallery/";
+          "base-directory" = "~/CloudStorage/gdrive-akbar-68-decrypted/Gallery/";
           "archive" = "~/.local/share/gallery-dl/archive.sqlite3";
 
           "directory" = [
@@ -148,7 +148,7 @@ selfLib.mkModule {
         sponsorblock-mark = "all"; # Menandai segmen sponsor sebagai chapter di MKV
         sponsorblock-remove = "sponsor";
 
-        extractor-args = "youtube:player-client=web";
+        # extractor-args = "youtube:player-client=web";
         impersonate = "Chrome-142:Macos-26";
       };
     };
