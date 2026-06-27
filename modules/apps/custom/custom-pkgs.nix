@@ -29,7 +29,7 @@ selfLib.mkModule {
         "scikit-learn"
       ];
       service = {
-        enable = true;
+        enable = false;
         startupDelay = "3m";
         bots = {
           bot-xstar = {
