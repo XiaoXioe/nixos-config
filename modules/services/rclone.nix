@@ -8,9 +8,10 @@ selfLib.mkModule {
   name = "services.rclone";
   description = "rclone mount service";
 
-  hmConfig = hmOpts:
+  hmConfig =
+    hmOpts:
     let
-      rcloneRemote = "SemuaDrive";
+      rcloneRemote = "semua-drive";
       mountPoint = "${hmOpts.config.home.homeDirectory}/CloudStorage";
     in
     {
@@ -27,10 +28,12 @@ selfLib.mkModule {
             "-${pkgs.bash}/bin/bash -c '/run/wrappers/bin/fusermount3 -uz ${mountPoint} > /dev/null 2>&1 || true'"
             "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
             "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
+            "${pkgs.coreutils}/bin/cp ${hmOpts.osConfig.sops.secrets."rclone.conf".path} %t/rclone.conf"
+            "${pkgs.coreutils}/bin/chmod 600 %t/rclone.conf"
           ];
           ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
-              --config "${hmOpts.osConfig.sops.secrets."rclone.conf".path}" \
+              --config "$XDG_RUNTIME_DIR/rclone.conf" \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
               --vfs-cache-max-size 5G \
@@ -43,10 +46,9 @@ selfLib.mkModule {
               --buffer-size 64M \
               --no-modtime \
               --drive-use-trash \
-              --transfers=4 \
               --vfs-fast-fingerprint \
               --no-checksum \
-              --drive-pacer-min-sleep=10ms \
+              --drive-pacer-min-sleep=100ms \
               --log-file="${hmOpts.config.home.homeDirectory}/.config/rclone/rclone.log" \
               --log-level INFO
           ''}";
@@ -54,7 +56,12 @@ selfLib.mkModule {
           Restart = "on-failure";
           RestartSec = "10s";
           TimeoutSec = "5m";
-          Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
+          Environment = [
+            "PATH=/run/wrappers/bin:$PATH"
+            "HTTP_PROXY=socks5://127.0.0.1:40000"
+            "HTTPS_PROXY=socks5://127.0.0.1:40000"
+            "ALL_PROXY=socks5://127.0.0.1:40000"
+          ];
         };
         Install = {
           WantedBy = [ "default.target" ];
