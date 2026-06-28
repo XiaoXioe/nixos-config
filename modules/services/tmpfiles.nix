@@ -17,6 +17,10 @@ selfLib.mkModule {
       default = [
         ".cache/mozilla"
         ".cache/nix"
+        "/mnt/data_btrfs/flatpak-userdata"
+        "/mnt/data_btrfs/docker"
+        "/mnt/data_btrfs/waydroid_data"
+        "/var/lib/vnstat"
       ];
       description = ''
         List of directory paths to automatically migrate to Btrfs Copy-on-Write disabled (nocow, +C).
@@ -40,25 +44,32 @@ selfLib.mkModule {
       "H /mnt/data_btrfs/QEMU_Images - - - - +C"
       "h /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
       "H /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
-    ] ++ (lib.concatLists (map (dir:
-      let
-        isAbsolute = lib.hasPrefix "/" dir;
-        host_dir = if isAbsolute then dir else "/home/${config.my.user.name}/${dir}";
-        persist_dir = "/persist${host_dir}";
-      in
-      if isAbsolute then [
-        "h ${host_dir} - - - - +C"
-        "H ${host_dir} - - - - +C"
-      ] else [
-        # Buat direktori kosong terlebih dahulu dengan owner pengguna agar langsung nocow sejak awal
-        "d ${host_dir} 0700 ${config.my.user.name} users - -"
-        "d ${persist_dir} 0700 ${config.my.user.name} users - -"
-        "h ${host_dir} - - - - +C"
-        "H ${host_dir} - - - - +C"
-        "h ${persist_dir} - - - - +C"
-        "H ${persist_dir} - - - - +C"
-      ]
-    ) cfg.nocowDirectories));
+    ]
+    ++ (lib.concatLists (
+      map (
+        dir:
+        let
+          isAbsolute = lib.hasPrefix "/" dir;
+          host_dir = if isAbsolute then dir else "/home/${config.my.user.name}/${dir}";
+          persist_dir = "/persist${host_dir}";
+        in
+        if isAbsolute then
+          [
+            "h ${host_dir} - - - - +C"
+            "H ${host_dir} - - - - +C"
+          ]
+        else
+          [
+            # Buat direktori kosong terlebih dahulu dengan owner pengguna agar langsung nocow sejak awal
+            "d ${host_dir} 0700 ${config.my.user.name} users - -"
+            "d ${persist_dir} 0700 ${config.my.user.name} users - -"
+            "h ${host_dir} - - - - +C"
+            "H ${host_dir} - - - - +C"
+            "h ${persist_dir} - - - - +C"
+            "H ${persist_dir} - - - - +C"
+          ]
+      ) cfg.nocowDirectories
+    ));
 
     # Layanan otomatisasi migrasi direktori nocow pada saat boot (sebelum display manager aktif)
     systemd.services.btrfs-nocow-migration = lib.mkIf (cfg.nocowDirectories != [ ]) {
@@ -66,7 +77,7 @@ selfLib.mkModule {
       after = [ "local-fs.target" ];
       before = [ "display-manager.service" ];
       wantedBy = [ "multi-user.target" ];
-      
+
       # JANGAN jalankan/restart layanan ini saat rebuild (nh os switch) agar terminal tidak menggantung
       restartIfChanged = false;
       stopIfChanged = false;
