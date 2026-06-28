@@ -45,8 +45,8 @@ selfLib.mkModule {
 
         # ── Performance & stability ──────────────────────────────────
         max-substitution-jobs = 1;
-        http-connections = 128;
-        download-attempts = 128;
+        http-connections = 50;
+        download-attempts = 5;
         connect-timeout = 60;
         keep-outputs = true;
         keep-derivations = true;
