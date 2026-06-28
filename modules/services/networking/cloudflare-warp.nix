@@ -27,8 +27,14 @@ selfLib.mkModule {
       };
 
       script = ''
-        # Beri waktu sejenak agar daemon warp-svc benar-benar siap (listen)
-        sleep 5
+        # Tunggu hingga daemon warp-svc siap menerima koneksi (maksimal 30 detik)
+        echo "Menunggu daemon warp-svc..."
+        for i in {1..30}; do
+          if ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos status >/dev/null 2>&1; then
+            break
+          fi
+          sleep 1
+        done
 
         # Cek status saat ini
         STATUS=$(${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos status)
