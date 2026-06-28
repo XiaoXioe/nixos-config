@@ -149,7 +149,7 @@ selfLib.mkModule {
         sponsorblock-remove = "sponsor";
 
         # extractor-args = "youtube:player-client=web";
-        impersonate = "Chrome-142:Macos-26";
+        # impersonate = "Chrome-142:Macos-26";
       };
     };
   };
