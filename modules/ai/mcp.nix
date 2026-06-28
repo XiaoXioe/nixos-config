@@ -21,7 +21,6 @@ let
           ];
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          # Dummy hash to force Nix to evaluate and return the actual store hash
           outputHash = "sha256-MU6IiT+fDbx1smOBaLiAf4wEuh6c19coH5IPDK5zQ+Y=";
         }
         ''
