@@ -107,25 +107,26 @@ selfLib.mkModule {
         ]);
         serviceConfig = {
           Type = "oneshot";
+          RuntimeDirectory = "btrfs_cleanup";
           ExecStart = pkgs.writeShellScript "preservation-cleanup" ''
             set -euo pipefail
             echo "==> [preservation] Starting background cleanup..."
 
-            # Temporary mount point
-            mkdir -p /tmp/btrfs_cleanup
-            mount -t btrfs -o subvol=/ ${btrfsDevice} /tmp/btrfs_cleanup
+            # Mount point managed by RuntimeDirectory (auto-cleaned on exit)
+            MNTDIR="/run/btrfs_cleanup"
+            mount -t btrfs -o subvol=/ ${btrfsDevice} "$MNTDIR"
 
             delete_subvolume_recursively() {
               IFS=$'\n'
               for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
-                delete_subvolume_recursively "/tmp/btrfs_cleanup/$i"
+                delete_subvolume_recursively "$MNTDIR/$i"
               done
               btrfs subvolume delete "$1"
             }
 
             cleanup_old_backups() {
               prefix=$1
-              backups=$(ls -1d /tmp/btrfs_cleanup/@nixos-old-roots/$prefix-* 2>/dev/null | sort -r | tail -n +${toString (keepRoot + 1)})
+              backups=$(ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +${toString (keepRoot + 1)})
               for i in $backups; do
                 echo "Deleting old $prefix backup: $i"
                 delete_subvolume_recursively "$i"
@@ -133,7 +134,7 @@ selfLib.mkModule {
             }
 
             # Delete old home snapshots (keep last 10)
-            old_snaps=$(ls -1dt /tmp/btrfs_cleanup/@nixos-persist/home-snapshots/* 2>/dev/null | tail -n +${toString (keepHome + 1)})
+            old_snaps=$(ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)})
             for snap in $old_snaps; do
               echo "Deleting old home snapshot: $snap"
               btrfs subvolume delete "$snap"
@@ -142,8 +143,7 @@ selfLib.mkModule {
             cleanup_old_backups "root"
             cleanup_old_backups "home"
 
-            umount /tmp/btrfs_cleanup
-            rmdir /tmp/btrfs_cleanup
+            umount "$MNTDIR"
             echo "==> [preservation] Background cleanup finished."
           '';
         };
@@ -234,7 +234,6 @@ selfLib.mkModule {
             ".cache/DankMaterialShell"
             ".cache/mozilla"
             ".cache/rclone"
-            ".cache/fish"
             {
               directory = ".ssh";
               mode = "0700";

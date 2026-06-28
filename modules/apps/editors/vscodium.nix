@@ -66,13 +66,6 @@ let
       arch = "";
     })
     (mkExtension {
-      name = "vscode-scheme";
-      publisher = "sjhuangx";
-      version = "0.4.0";
-      hash = "sha256-BN+C64YQ2hUw5QMiKvC7PHz3II5lEVVy0Shtt6t3ch8=";
-      arch = "";
-    })
-    (mkExtension {
       name = "RunOnSave";
       publisher = "emeraldwalk";
       version = "1.1.5";
@@ -184,17 +177,6 @@ selfLib.mkModule {
           "update.mode" = "none";
           "extensions.autoUpdate" = false;
           "vsicons.dontShowNewVersionMessage" = true;
-
-          # --- (GUIX STYLE) ---
-          "emeraldwalk.runonsave" = {
-            "commands" = [
-              {
-                "match" = "\\.scm$";
-                "isAsync" = true;
-                "cmd" = "guix style -f \${file}";
-              }
-            ];
-          };
 
           # Nix
           "nix.serverPath" = "nixd";

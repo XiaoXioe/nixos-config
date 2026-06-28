@@ -62,8 +62,6 @@ selfLib.mkModule {
               "nix-collect-garbage"
               "compsize"
               "dmesg"
-              "pkill"
-              "systemctl"
             ]
           );
       };
