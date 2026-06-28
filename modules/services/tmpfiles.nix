@@ -36,14 +36,11 @@ selfLib.mkModule {
 
       # Sistem database Nix
       "h /nix/var/nix/db - - - - +C"
-      "H /nix/var/nix/db - - - - +C" # Gunakan 'H' besar agar file di dalamnya ikut terkena +C
       "h /nix/var/nix/temproots - - - - +C"
 
       # HDD / Virtualisasi
       "h /mnt/data_btrfs/QEMU_Images - - - - +C"
-      "H /mnt/data_btrfs/QEMU_Images - - - - +C"
       "h /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
-      "H /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
     ]
     ++ (lib.concatLists (
       map (
@@ -56,7 +53,6 @@ selfLib.mkModule {
         if isAbsolute then
           [
             "h ${host_dir} - - - - +C"
-            "H ${host_dir} - - - - +C"
           ]
         else
           [
@@ -64,9 +60,7 @@ selfLib.mkModule {
             "d ${host_dir} 0700 ${config.my.user.name} users - -"
             "d ${persist_dir} 0700 ${config.my.user.name} users - -"
             "h ${host_dir} - - - - +C"
-            "H ${host_dir} - - - - +C"
             "h ${persist_dir} - - - - +C"
-            "H ${persist_dir} - - - - +C"
           ]
       ) cfg.nocowDirectories
     ));
