@@ -15,6 +15,10 @@ selfLib.mkModule {
 
   nixosConfig = {
     networking.networkmanager.enable = true;
+
+    # ProtonVPN sebagai Flatpak — diinstal bersama modul VPN
+    services.flatpak.packages = [ "com.protonvpn.www" ];
+
     systemd.services.nm-import-proton = {
       description = "Auto import VPNs to NetworkManager";
       after = [

@@ -34,14 +34,7 @@ selfLib.mkModule {
         #   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TSmcZ9NcIxtLObnPMpRvM5Q4OPedQJ'
 
         [monitoring_ui]
-        enabled = true
-        listen_address = '127.0.0.1:8080'
-        username = ""
-        password = ""
-        tls_certificate = ""
-        tls_key = ""
-        enable_query_log = true
-        privacy_level = 0
+        enabled = false
 
         [static.'${config.sops.placeholder.nextdns_name}']
         stamp = '${config.sops.placeholder.nextdns_stamp}'

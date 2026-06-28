@@ -222,8 +222,7 @@ selfLib.mkModule {
           };
 
           "intelephense.format.enable" = true;
-        }
-        // {
+
           "[yaml]" = {
             "editor.defaultFormatter" = "esbenp.prettier-vscode";
           };

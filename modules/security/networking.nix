@@ -20,7 +20,7 @@ selfLib.mkModule {
       source = "${pkgs.bandwhich}/bin/bandwhich";
       owner = "root";
       group = "root";
-      capabilities = "cap_sys_ptrace,cap_dac_read_search,cap_net_raw,cap_net_admin+ep";
+      capabilities = "cap_net_raw,cap_net_admin+ep";
     };
 
     networking = {

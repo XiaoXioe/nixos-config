@@ -52,7 +52,6 @@ selfLib.mkModule {
               --log-file="${hmOpts.config.home.homeDirectory}/.config/rclone/rclone.log" \
               --log-level INFO
           ''}";
-          ExecStartPost = "-${pkgs.bash}/bin/bash -c '(${pkgs.coreutils}/bin/sleep 10 && ${pkgs.findutils}/bin/find ${mountPoint} -maxdepth 2 > /dev/null 2>&1) &'";
           Restart = "on-failure";
           RestartSec = "10s";
           TimeoutSec = "5m";

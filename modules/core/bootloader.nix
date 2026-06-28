@@ -52,6 +52,7 @@ selfLib.mkModule {
 
       extraEntries = ''
         menuentry "Grub2 File Manager" --class efi {
+          # UUID partisi EFI sistem ini — update jika disk diganti
           search --no-floppy --fs-uuid --set=root CF4A-0A6F
           chainloader /EFI/grubfm/grubfmx64.efi
         }
