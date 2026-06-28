@@ -9,7 +9,6 @@ selfLib.mkModule {
 
   nixosConfig = {
     services = {
-      guix.enable = true;
       thermald.enable = true;
       udisks2.enable = true;
       vnstat.enable = true;
