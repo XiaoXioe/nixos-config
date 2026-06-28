@@ -27,11 +27,6 @@ selfLib.mkModule {
       fuse.userAllowOther = true;
     };
 
-    services.flatpak = {
-      packages = [
-        "com.protonvpn.www"
-      ];
-    };
 
     environment.systemPackages = with pkgs; [
       android-tools
