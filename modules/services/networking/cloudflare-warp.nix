@@ -23,33 +23,41 @@ selfLib.mkModule {
       serviceConfig = {
         Type = "simple";
         DynamicUser = true;
-        # Buat direktori runtime sementara di RAM (tmpfs) yang aman (chmod 700)
-        RuntimeDirectory = "wireproxy-warp";
-        RuntimeDirectoryMode = "0700";
+        # Simpan konfigurasi secara persisten di var/lib/private/wireproxy-warp
+        StateDirectory = "wireproxy-warp";
+        StateDirectoryMode = "0700";
         
         # Sembunyikan log Info/Debug dari journalctl
         LogLevelMax = "err";
         
         ExecStartPre = pkgs.writeShellScript "generate-warp-config" ''
-          cd "$RUNTIME_DIRECTORY"
+          cd "$STATE_DIRECTORY"
           
-          # Hapus sisa konfigurasi jika ada dari restart sebelumnya
-          rm -f wgcf-account.toml wgcf-profile.conf
-          
-          # Coba registrasi dan generate secara berulang sampai keduanya sukses
-          while true; do
-            ${pkgs.wgcf}/bin/wgcf register --accept-tos >/dev/null 2>&1 || { sleep 2; continue; }
-            ${pkgs.wgcf}/bin/wgcf generate >/dev/null 2>&1 && break
-            sleep 2
-          done
-          
-          # Tambahkan konfigurasi SOCKS5 agar dikenali oleh wireproxy
-          echo "" >> wgcf-profile.conf
-          echo "[Socks5]" >> wgcf-profile.conf
-          echo "BindAddress = 127.0.0.1:40000" >> wgcf-profile.conf
+          if [[ ! -f wgcf-profile.conf ]]; then
+            echo "==> [wireproxy-warp] Berkas profil tidak ditemukan. Memulai pendaftaran akun baru..."
+            rm -f wgcf-profile.conf.tmp wgcf-account.toml
+            
+            while true; do
+              if [[ ! -f wgcf-account.toml ]]; then
+                ${pkgs.wgcf}/bin/wgcf register --accept-tos >/dev/null 2>&1 || { sleep 2; continue; }
+              fi
+              ${pkgs.wgcf}/bin/wgcf generate >/dev/null 2>&1 && break
+              sleep 2
+            done
+            
+            # Tambahkan konfigurasi SOCKS5 secara atomik menggunakan berkas sementara
+            mv wgcf-profile.conf wgcf-profile.conf.tmp
+            echo "" >> wgcf-profile.conf.tmp
+            echo "[Socks5]" >> wgcf-profile.conf.tmp
+            echo "BindAddress = 127.0.0.1:40000" >> wgcf-profile.conf.tmp
+            mv wgcf-profile.conf.tmp wgcf-profile.conf
+            echo "==> [wireproxy-warp] Pendaftaran dan pembuatan konfigurasi selesai."
+          else
+            echo "==> [wireproxy-warp] Profil ditemukan. Menggunakan konfigurasi yang ada."
+          fi
         '';
 
-        ExecStart = "${pkgs.wireproxy}/bin/wireproxy --silent -c \${RUNTIME_DIRECTORY}/wgcf-profile.conf";
+        ExecStart = "${pkgs.wireproxy}/bin/wireproxy --silent -c \${STATE_DIRECTORY}/wgcf-profile.conf";
         Restart = "always";
         RestartSec = "10s";
       };
