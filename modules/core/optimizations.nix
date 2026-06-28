@@ -29,12 +29,11 @@ selfLib.mkModule {
         "nmi_watchdog=0"
         "split_lock_mitigate=0"
         "transparent_hugepage=madvise"
-        "i915.enable_guc=0"
-        # "mitigations=off"
+        # FBC dan PSR dinonaktifkan karena menyebabkan rendering artifacts
+        # pada Intel Ivy Bridge (Gen 3) — bug hardware yang diketahui
         "i915.enable_fbc=0"
         "i915.enable_psr=0"
-        # "quiet"
-        "i915.modeset=1"
+        # "mitigations=off"
         "psi=1"
         # Disable USB autosuspend at kernel level
         # "usbcore.autosuspend=-1"
