@@ -226,6 +226,7 @@ selfLib.mkModule {
             ".local/state"
             ".steam"
             ".cache/nix"
+            ".cache/fish"
             ".cache/DankMaterialShell"
             ".cache/mozilla"
             ".cache/rclone"
