@@ -46,7 +46,7 @@ selfLib.mkModule {
           "net.core.default_qdisc" = "cake";
           "net.ipv4.tcp_congestion_control" = "bbr";
 
-          "vm.swappiness" = 100;
+          "vm.swappiness" = 180;
           "vm.page-cluster" = 0;
           "vm.vfs_cache_pressure" = 50; # Keep Btrfs inode cache in memory longer for faster file lookups
           "vm.dirty_ratio" = 10;
