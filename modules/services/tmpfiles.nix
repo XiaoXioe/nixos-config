@@ -5,9 +5,6 @@
   selfLib,
   ...
 }:
-let
-  cfg = config.my.services.tmpfiles;
-in
 selfLib.mkModule {
   name = "services.tmpfiles";
 
@@ -30,7 +27,11 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = {
+  nixosConfig =
+    let
+      cfg = config.my.services.tmpfiles;
+    in
+    {
     systemd.tmpfiles.rules = [
       # Format: Tipe | Path | Mode | User | Group | Atribut Tambahan
 
