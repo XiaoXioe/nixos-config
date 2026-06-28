@@ -6,56 +6,52 @@
 
 selfLib.mkModule {
   name = "services.networking.cloudflare-warp";
-  description = "Cloudflare WARP service and automated setup";
+  description = "Wireproxy based Cloudflare WARP service (In-Memory Generation)";
 
   nixosConfig = {
     environment.systemPackages = [
-      pkgs.cloudflare-warp
+      pkgs.wireproxy
+      pkgs.wgcf
     ];
 
-    services.cloudflare-warp.enable = true;
-
-    systemd.services.cloudflare-warp-setup = {
-      description = "Automate Cloudflare WARP Proxy Setup";
+    systemd.services.wireproxy-warp = {
+      description = "Wireproxy Cloudflare WARP SOCKS5 Proxy";
       wantedBy = [ "multi-user.target" ];
-      after = [ "cloudflare-warp.service" ];
-      requires = [ "cloudflare-warp.service" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
 
       serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
-
-      script = ''
-        # Tunggu hingga daemon warp-svc siap menerima koneksi (maksimal 30 detik)
-        echo "Menunggu daemon warp-svc..."
-        for i in {1..30}; do
-          if ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos status >/dev/null 2>&1; then
-            break
-          fi
-          sleep 1
-        done
-
-        # Cek status saat ini
-        STATUS=$(${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos status)
-
-        # Jika belum terdaftar, jalankan rangkaian perintah proxy
-        if echo "$STATUS" | grep -qi "Registration missing"; then
-          echo "Registrasi WARP belum ditemukan. Memulai konfigurasi otomatis..."
-          ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos registration new
-          ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos mode proxy
-          ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos proxy port 40000
-          ${pkgs.cloudflare-warp}/bin/warp-cli --accept-tos connect
-          echo "Konfigurasi WARP Proxy selesai!"
-        else
-          echo "WARP sudah terkonfigurasi. Melewati setup."
-        fi
-      '';
-    };
-
-    systemd.services.cloudflare-warp = {
-      serviceConfig = {
+        Type = "simple";
+        DynamicUser = true;
+        # Buat direktori runtime sementara di RAM (tmpfs) yang aman (chmod 700)
+        RuntimeDirectory = "wireproxy-warp";
+        RuntimeDirectoryMode = "0700";
+        
+        # Sembunyikan log Info/Debug dari journalctl
         LogLevelMax = "err";
+        
+        ExecStartPre = pkgs.writeShellScript "generate-warp-config" ''
+          cd "$RUNTIME_DIRECTORY"
+          
+          # Hapus sisa konfigurasi jika ada dari restart sebelumnya
+          rm -f wgcf-account.toml wgcf-profile.conf
+          
+          # Coba registrasi dan generate secara berulang sampai keduanya sukses
+          while true; do
+            ${pkgs.wgcf}/bin/wgcf register --accept-tos >/dev/null 2>&1 || { sleep 2; continue; }
+            ${pkgs.wgcf}/bin/wgcf generate >/dev/null 2>&1 && break
+            sleep 2
+          done
+          
+          # Tambahkan konfigurasi SOCKS5 agar dikenali oleh wireproxy
+          echo "" >> wgcf-profile.conf
+          echo "[Socks5]" >> wgcf-profile.conf
+          echo "BindAddress = 127.0.0.1:40000" >> wgcf-profile.conf
+        '';
+
+        ExecStart = "${pkgs.wireproxy}/bin/wireproxy --silent -c \${RUNTIME_DIRECTORY}/wgcf-profile.conf";
+        Restart = "always";
+        RestartSec = "10s";
       };
     };
   };
