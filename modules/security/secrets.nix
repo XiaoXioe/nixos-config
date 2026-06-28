@@ -106,6 +106,7 @@ selfLib.mkModule {
 
         "gemini-api-key" = {
           owner = userName;
+          mode = "0400";
         };
 
         "cachix-token" = {
@@ -158,7 +159,7 @@ selfLib.mkModule {
         sopsFile = ../../secrets/vpn-files/${fileName};
         format = "binary";
         owner = config.my.user.name;
-        mode = "600";
+        mode = "0600";
       }))
 
       # --- Per-user secrets (klein-moretti) ---
