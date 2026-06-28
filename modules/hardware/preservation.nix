@@ -162,6 +162,10 @@ selfLib.mkModule {
           "/var/lib/bluetooth"
           "/var/lib/waydroid"
           "/var/lib/cloudflare-warp"
+          {
+            directory = "/var/lib/private/wireproxy-warp";
+            mode = "0700";
+          }
           "/root"
           "/var/lib/libvirt"
           {
