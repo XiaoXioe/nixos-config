@@ -119,7 +119,7 @@ selfLib.mkModule {
           path = "/etc/wireguard/wg-lan.conf";
           owner = "root";
           group = "root";
-          mode = "600";
+          mode = "0600";
         };
 
         "wg-wifi.conf" = {
@@ -128,7 +128,7 @@ selfLib.mkModule {
           path = "/etc/wireguard/wg-wifi.conf";
           owner = "root";
           group = "root";
-          mode = "600";
+          mode = "0600";
         };
 
         "rclone.conf" = {
