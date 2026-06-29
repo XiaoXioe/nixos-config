@@ -109,6 +109,21 @@ selfLib.mkModule {
 }
 ```
 
+## 🌐 CLI Scripts & VPN Management
+
+The configuration provides a custom suite of terminal tools to manage WireGuard connections using SOCKS5 user-space proxies (`wireproxy`), featuring advanced privacy auditing and custom DNS routing:
+
+*   **`vpn-on`** — Displays a dynamic list of available encrypted VPN configuration profiles (decrypted on-the-fly from SOPS-Nix). Sets `ALL_PROXY` for the fish session, injects custom NextDNS resolvers inside the tunnel, and performs a paranoid security audit.
+*   **`vpn-switch`** — Instantly swaps the active VPN tunnel connection to a different location without manual proxy teardown, then re-verifies the security state.
+*   **`vpn-off`** — Safely terminates the background `wireproxy` daemon and clears all environment proxy variables.
+
+### Paranoid Auditing & Leak Detection
+To protect your privacy, `vpn-on` and `vpn-switch` run an automatic audit upon connection:
+1.  **IP Leak Audit** — Queries `ifconfig.me` to confirm the public terminal IP has successfully changed away from the original ISP IP.
+2.  **DNS Leak Audit (ASN-Based)** — Triggers DNS lookups through SOCKS5 via `curl` and queries `bash.ws` to inspect the ASN of the resolving nameservers.
+    -   **ISP Leak Protection**: If the audit detects your physical ISP's ASN (e.g., `AS58495`), it immediately kills the VPN process to prevent data leakage.
+    -   **Custom DNS Safe Bypass**: Acknowledges and allows custom DNS resolvers (e.g., NextDNS `AS23961 Misaka Network`) which normally trigger false positives in generic leak test sites due to ASN mismatches.
+
 ## 🔐 Secrets & Multi-User Passwords
 
 ```bash
