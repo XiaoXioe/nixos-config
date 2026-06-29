@@ -128,9 +128,24 @@ To protect your privacy, `vpn-on` and `vpn-switch` run an automatic audit upon c
 
 ```bash
 sops secrets/secrets.yaml           # edit
-sops secrets/binary/foto-profile.enc       # binary file
 ```
 The system uses the SSH host key for decryption, so no manual key management is needed on the target machine.
+
+### 🖼️ Encrypting & Decrypting Binary Secrets (e.g., Photos, VPN confs)
+For binary secrets (like profile photos or raw configuration files), SOPS must be run with the `--binary-output` flag to ensure safe encoding and decoding without corrupting the binary stream:
+
+*   **Encrypt a binary file:**
+    ```bash
+    sops -e --binary-output path/to/source.bin > secrets/binary/some-secret.enc
+    ```
+*   **Decrypt a binary file:**
+    ```bash
+    sops -d --binary-output secrets/binary/some-secret.enc > path/to/dest.bin
+    ```
+*   **Edit/View a binary file inline:**
+    ```bash
+    sops secrets/binary/some-secret.enc
+    ```
 
 **Adding New Users:**
 Because `mutableUsers = false` is active, every user declared in `hosts/nixos/users.nix` must have a corresponding password hash defined in `secrets.yaml` under the key `<userName>_password_hash` (e.g., `klein-moretti_password_hash`). 
