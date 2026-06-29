@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   selfLib,
   ...
 }:
@@ -32,6 +33,13 @@ selfLib.mkModule {
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
       '';
     };
+
+    systemd.services.vnstat.serviceConfig.ExecStartPre = [
+      "+${pkgs.coreutils}/bin/chown -R vnstatd:vnstatd /var/lib/vnstat"
+    ];
+
+    systemd.timers.fstrim.timerConfig.Persistent = false;
+    systemd.timers.flatpak-managed-install-timer.timerConfig.RandomizedDelaySec = "15min";
 
     services.flatpak = {
       enable = true;
