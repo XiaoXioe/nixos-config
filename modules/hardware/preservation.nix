@@ -249,6 +249,10 @@ selfLib.mkModule {
             "PersistentData"
             ".antigravity-ide"
             ".gemini"
+            {
+              directory = ".mcp-colab";
+              mode = "0700";
+            }
             ".npm"
             "nixos-config"
             "nix-custompkgs"
