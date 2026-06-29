@@ -87,6 +87,11 @@ selfLib.mkModule {
           mode = "0400";
         };
 
+        "huggingface-token" = {
+          owner = userName;
+          mode = "0400";
+        };
+
         "9router-env" = {
           # JWT_SECRET, INITIAL_PASSWORD — loaded as docker env-file
           mode = "0400";
