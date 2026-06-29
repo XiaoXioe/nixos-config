@@ -55,6 +55,7 @@ let
 
     nativeBuildInputs = [
       pkgs.autoPatchelfHook
+      pkgs.prelink
     ];
 
     buildInputs = [
@@ -66,6 +67,7 @@ let
       mkdir -p $out/bin
       cp codebase-memory-mcp $out/bin/
       chmod +x $out/bin/codebase-memory-mcp
+      execstack -c $out/bin/codebase-memory-mcp
     '';
   };
 
