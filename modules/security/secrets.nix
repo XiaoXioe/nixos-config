@@ -141,6 +141,13 @@ selfLib.mkModule {
 
         "nextdns_stamp" = { };
         "nextdns_name" = { };
+        "dnscrypt_monitoring_password" = { };
+        "nextdns_ip1" = {
+          owner = userName;
+        };
+        "nextdns_ip2" = {
+          owner = userName;
+        };
       }
 
       # --- Password hashes (root + klein-moretti) ---
