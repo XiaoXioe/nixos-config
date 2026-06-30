@@ -22,6 +22,71 @@
       '';
     };
 
+    agy-profile = {
+      body = ''
+        if not set -q argv[1]
+            echo "Penggunaan: agy-profile <nama_profile>"
+            return 1
+        end
+        set -l PROFILE_NAME $argv[1]
+        set -l PROFILE_HOME $HOME/.config/agy-profiles/$PROFILE_NAME
+
+        # Pastikan direktori tujuan ada
+        mkdir -p $PROFILE_HOME/.gemini/antigravity-cli
+
+        # Hubungkan config (berisi skills, rules, dan mcp_config.json) dari home asli
+        if not test -L $PROFILE_HOME/.gemini/config
+            rm -rf $PROFILE_HOME/.gemini/config
+            ln -sfn $HOME/.gemini/config $PROFILE_HOME/.gemini/config
+        end
+
+        # Hubungkan settings.json agar konfigurasi editor/cli sama
+        if not test -L $PROFILE_HOME/.gemini/antigravity-cli/settings.json
+            rm -f $PROFILE_HOME/.gemini/antigravity-cli/settings.json
+            ln -sfn $HOME/.gemini/antigravity-cli/settings.json $PROFILE_HOME/.gemini/antigravity-cli/settings.json
+        end
+
+        # Hubungkan data proyek/percakapan agar riwayat (brain, conversations, history, knowledge) terbagi
+        for item in brain conversations history.jsonl knowledge
+            if not test -L $PROFILE_HOME/.gemini/antigravity-cli/$item
+                rm -rf $PROFILE_HOME/.gemini/antigravity-cli/$item
+                ln -sfn $HOME/.gemini/antigravity-cli/$item $PROFILE_HOME/.gemini/antigravity-cli/$item
+            end
+        end
+
+        echo "Menjalankan agy untuk profile: $PROFILE_NAME"
+        env HOME=$PROFILE_HOME DBUS_SESSION_BUS_ADDRESS=unix:path=/dev/null agy
+      '';
+    };
+
+    agy-ide-profile = {
+      body = ''
+        if not set -q argv[1]
+            echo "Penggunaan: agy-ide-profile <nama_profile>"
+            return 1
+        end
+        set -l PROFILE_NAME $argv[1]
+        set -l PROFILE_DIR $HOME/.config/antigravity-ide-profiles/$PROFILE_NAME
+
+        # Pastikan direktori profil ada
+        mkdir -p $PROFILE_DIR
+
+        # Hubungkan konfigurasi penting dari home asli
+        if not test -L $PROFILE_DIR/.gemini
+            ln -sfn $HOME/.gemini $PROFILE_DIR/.gemini
+        end
+        if not test -L $PROFILE_DIR/.ssh
+            ln -sfn $HOME/.ssh $PROFILE_DIR/.ssh
+        end
+        if not test -L $PROFILE_DIR/.gitconfig
+            ln -sfn $HOME/.gitconfig $PROFILE_DIR/.gitconfig
+        end
+
+        echo "Menjalankan Antigravity IDE dengan profile: $PROFILE_NAME"
+        env HOME=$PROFILE_DIR antigravity-ide
+      '';
+    };
+
     fish_should_add_to_history = {
       body = ''
         # 1. Abaikan perintah yang diawali dengan spasi (perilaku default Fish)
