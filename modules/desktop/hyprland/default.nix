@@ -39,7 +39,8 @@ selfLib.mkModule {
     imports = [
       ./settings.nix
       ./keybind.nix
-    ] ++ lib.optionals (inputs ? caelestia-shell) [
+    ]
+    ++ lib.optionals (inputs ? caelestia-shell) [
       inputs.caelestia-shell.homeManagerModules.default
       ./caelestia.nix
     ];
