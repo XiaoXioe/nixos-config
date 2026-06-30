@@ -15,6 +15,7 @@
     scroll_amount: 1,
     enable_config_hot_reload: true,
     enable_lyrics_hot_reload: false,
+    lyrics_dir: Some("/home/klein-moretti/Music"),
     status_update_interval_ms: 250,
     rewind_to_start_sec: None,
     keep_state_on_song_change: true,
@@ -22,7 +23,7 @@
     select_current_song_on_change: true,
     on_exit: None,
     ignore_leading_the: true,
-    browser_song_sort: [Disc, Track, Artist, Title],
+    browser_song_sort: [File],
     directories_sort: SortFormat(group_by_type: true, reverse: false),
     auto_open_downloads: true,
     quit_closes_modal: false,
@@ -82,7 +83,7 @@
             "2":          SwitchToTab("Directories"),
             "3":          SwitchToTab("Artists"),
             "4":          SwitchToTab("Album Artists"),
-            "5":          SwitchToTab("Albums"),
+            "5":          SwitchToTab("Folders"),
             "6":          SwitchToTab("Playlists"),
             "7":          SwitchToTab("Search"),
             "u":          Update,
@@ -171,11 +172,27 @@
                 panes: [
                     (
                         size: "35%",
-                        borders: "ALL",
-                        border_symbols: Rounded,
-                        border_title: [(kind: Text(" 🎧 Now Playing "))],
-                        border_title_alignment: Center,
-                        pane: Pane(AlbumArt)
+                        pane: Split(
+                            direction: Vertical,
+                            panes: [
+                                (
+                                    size: "55%",
+                                    borders: "ALL",
+                                    border_symbols: Rounded,
+                                    border_title: [(kind: Text(" 🎧 Now Playing "))],
+                                    border_title_alignment: Center,
+                                    pane: Pane(AlbumArt)
+                                ),
+                                (
+                                    size: "45%",
+                                    borders: "ALL",
+                                    border_symbols: Rounded,
+                                    border_title: [(kind: Text(" 📜 Lyrics "))],
+                                    border_title_alignment: Center,
+                                    pane: Pane(Lyrics)
+                                ),
+                            ]
+                        )
                     ),
                     (
                         size: "65%",
@@ -259,10 +276,10 @@
             )
         ),
         (
-            name: "Albums",
+            name: "Folders",
             borders: "ALL",
             border_symbols: Rounded,
-            border_title: [(kind: Text(" 💿 Albums "))],
+            border_title: [(kind: Text(" 💿 Folders "))],
             border_title_alignment: Center,
             pane: Split(
                 size: "100%",
