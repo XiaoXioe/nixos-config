@@ -86,6 +86,12 @@ selfLib.mkModule {
         XCURSOR_SIZE = "24";
       };
 
+      systemd.user.services.xdg-desktop-portal = {
+        serviceConfig = {
+          StandardError = "null";
+        };
+      };
+
       hardware.i2c.enable = true;
 
       security = {
