@@ -16,7 +16,7 @@ let
     office = [ "org.onlyoffice.desktopeditors" ];
     pdf = [ "org.pwmt.zathura" ];
     terminal = [ "org.wezfurlong.wezterm.desktop" ];
-    archive = [ "org.kde.dolphin.desktop" ];
+    archive = [ "org.kde.ark.desktop" ];
     discord = [ "com.discordapp.Discord.desktop" ];
     link = [ "firefox.desktop" ];
   };
@@ -187,6 +187,7 @@ selfLib.mkModule {
           kdePackages.kservice
           kdePackages.breeze-icons
           kdePackages.qqc2-desktop-style
+          kdePackages.ark
 
           zip
           unzip
