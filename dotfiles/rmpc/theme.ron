@@ -108,9 +108,9 @@
         ),
         (
             prop: (kind: Property(Album), style: (fg: "white"),
-                default: (kind: Text("Unknown Album"), style: (fg: "white"))
+                default: (kind: Text("Unknown Folder"), style: (fg: "white"))
             ),
-            label_prop: (kind: Text("Album")),
+            label_prop: (kind: Text("Folder")),
             width: "25%",
         ),
         (
