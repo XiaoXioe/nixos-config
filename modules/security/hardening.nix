@@ -16,10 +16,6 @@ selfLib.mkModule {
       "net.ipv4.conf.default.rp_filter" = 1;
     };
 
-    environment.systemPackages = [
-      pkgs.doas-sudo-shim
-    ];
-
     programs.firejail.enable = true;
 
     services = {
@@ -33,43 +29,6 @@ selfLib.mkModule {
     };
 
     security = {
-
-      sudo.enable = false;
-
-      doas = {
-        enable = true;
-        extraRules =
-          let
-            adminUsers = [ config.my.user.name ];
-          in
-          [
-            {
-              users = adminUsers;
-              keepEnv = true;
-              persist = true;
-            }
-          ]
-          ++ (map
-            (cmd: {
-              users = adminUsers;
-              noPass = true;
-              keepEnv = true;
-              cmd = cmd;
-            })
-            [
-              "nix"
-              "nixos-rebuild"
-              "nix-collect-garbage"
-              "compsize"
-              "dmesg"
-            ]
-          );
-      };
-
-      rtkit = {
-        enable = true;
-      };
-
       apparmor = {
         enable = true;
         enableCache = true;
