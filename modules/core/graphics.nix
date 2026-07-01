@@ -34,5 +34,8 @@ selfLib.mkModule {
 
     services.xserver.videoDrivers = [ "modesetting" ];
 
+    # DDC/CI monitor control (for ddcutil brightness/input switching)
+    hardware.i2c.enable = true;
+
   };
 }

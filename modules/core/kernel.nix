@@ -1,18 +1,8 @@
 { selfLib, ... }:
 selfLib.mkModule {
-  name = "core.optimizations";
+  name = "core.kernel";
   nixosConfig = {
-    powerManagement = {
-      enable = true;
-      cpuFreqGovernor = "schedutil";
-    };
-
     boot = {
-      tmp = {
-        useTmpfs = true;
-        tmpfsSize = "60%";
-      };
-
       kernelModules = [
         "sch_cake"
         "tcp_bbr"
@@ -45,14 +35,6 @@ selfLib.mkModule {
           "net.core.default_qdisc" = "cake";
           "net.ipv4.tcp_congestion_control" = "bbr";
 
-          "vm.swappiness" = 180;
-          "vm.page-cluster" = 0;
-          "vm.vfs_cache_pressure" = 50; # Keep Btrfs inode cache in memory longer for faster file lookups
-          "vm.dirty_ratio" = 10;
-          "vm.dirty_background_ratio" = 5;
-          "vm.watermark_scale_factor" = 125;
-          "vm.watermark_boost_factor" = 0;
-
           "net.ipv6.conf.all.disable_ipv6" = 1;
           "net.ipv6.conf.default.disable_ipv6" = 1;
           "net.ipv6.conf.lo.disable_ipv6" = 1;
@@ -71,13 +53,6 @@ selfLib.mkModule {
           "fs.inotify.max_user_instances" = 8192;
         };
       };
-    };
-
-    zramSwap = {
-      enable = true;
-      algorithm = "zstd";
-      memoryPercent = 100;
-      priority = 50;
     };
   };
 }

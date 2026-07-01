@@ -14,7 +14,11 @@ let
       if builtins.isBool value then
         if name == "enable" then value else { enable = value; }
       else if builtins.isAttrs value then
-        if value ? flatpak then
+        if value ? flatpak && !(lib.elem name [
+          "services" "apps" "desktop" "hardware" "security" "virtualisation" "ai" "core" "settings"
+          "scripts" "specialization" "browsers" "dev" "editors" "gaming" "media" "packages" "terminal"
+          "networking" "scheduling"
+        ]) then
           let
             rest = mapFeatures (builtins.removeAttrs value [ "flatpak" "enable" ]);
             enableVal = if value ? enable then value.enable else true;

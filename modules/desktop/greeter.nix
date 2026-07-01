@@ -92,8 +92,6 @@ selfLib.mkModule {
         };
       };
 
-      hardware.i2c.enable = true;
-
       security = {
         polkit.enable = true;
         pam.services.sddm.enableGnomeKeyring = true;
