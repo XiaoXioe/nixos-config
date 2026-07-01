@@ -186,6 +186,7 @@ selfLib.mkModule {
     systemd.services."ssd-tracker" = {
       description = "SSD TBW Tracker Service";
       wantedBy = [ "multi-user.target" ];
+      restartIfChanged = false;
 
       path = with pkgs; [
         bash
