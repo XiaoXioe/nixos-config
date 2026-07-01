@@ -221,6 +221,7 @@ selfLib.mkModule {
             "Desktop"
             ".BurpSuite"
             ".agents"
+            ".telegram-mcp"
             ".config"
             ".claude"
             ".codex"
@@ -257,6 +258,7 @@ selfLib.mkModule {
             "nixos-config"
             "nix-custompkgs"
             "nix-custompkg-priv"
+            "nix-mcp"
             "pentest"
           ];
           files = [
