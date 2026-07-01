@@ -91,7 +91,10 @@ let
             return f"{b / (1024 * 1024 * 1024):.2f} GB"
 
     def main():
-        target_disk = sys.argv[1] if len(sys.argv) > 1 else "/dev/sdb"
+        if len(sys.argv) < 2:
+            print("Error: Disk target tidak ditentukan. Gunakan: script.py <disk_device_path>", file=sys.stderr)
+            sys.exit(1)
+        target_disk = sys.argv[1]
         try:
             s = os.stat(target_disk)
             target_major = os.major(s.st_rdev)
