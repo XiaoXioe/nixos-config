@@ -20,7 +20,7 @@ let
         except Exception:
             return ""
 
-    def get_cgroup_io():
+    def get_cgroup_io(target_prefix=None):
         cgroups = {}
         for root, dirs, files in os.walk("/sys/fs/cgroup"):
             if "io.stat" in files:
@@ -37,10 +37,14 @@ let
                 try:
                     with open(io_file, "r") as f:
                         for line in f:
-                            match = re.search(r"rbytes=(\d+)\s+wbytes=(\d+)", line)
-                            if match:
-                                rbytes += int(match.group(1))
-                                wbytes += int(match.group(2))
+                            parts = line.strip().split()
+                            if parts:
+                                # Jika target_prefix ditentukan, filter hanya cgroup dari disk tersebut
+                                if target_prefix is None or parts[0] == target_prefix:
+                                    match = re.search(r"rbytes=(\d+)\s+wbytes=(\d+)", line)
+                                    if match:
+                                        rbytes += int(match.group(1))
+                                        wbytes += int(match.group(2))
                 except Exception:
                     continue
                 if rbytes > 0 or wbytes > 0:
@@ -87,8 +91,18 @@ let
             return f"{b / (1024 * 1024 * 1024):.2f} GB"
 
     def main():
+        target_disk = sys.argv[1] if len(sys.argv) > 1 else "/dev/sdb"
+        try:
+            s = os.stat(target_disk)
+            target_major = os.major(s.st_rdev)
+            target_minor = os.minor(s.st_rdev)
+            target_prefix = f"{target_major}:{target_minor}"
+        except Exception as e:
+            print(f"Warning: Gagal mengakses disk target {target_disk}: {e}", file=sys.stderr)
+            target_prefix = None
+
         boot_id = get_boot_id()
-        current = get_cgroup_io()
+        current = get_cgroup_io(target_prefix)
         previous = {}
         if os.path.exists(STATE_FILE):
             try:
@@ -241,7 +255,7 @@ selfLib.mkModule {
 
         # Jalankan cgroup monitor dan masukkan hasilnya ke file log utama
         echo "=== Detail Penggunaan Per Apps/Service ===" >> "$LOG_FILE"
-        ${pkgs.python3}/bin/python3 ${cgroupMonitor} >> "$LOG_FILE" 2>&1
+        ${pkgs.python3}/bin/python3 ${cgroupMonitor} "$TARGET_DISK" >> "$LOG_FILE" 2>&1
         echo "----------------------------------------" >> "$LOG_FILE"
 
         echo "--- Riwayat Penggunaan SSD ($TARGET_DISK) ---"
