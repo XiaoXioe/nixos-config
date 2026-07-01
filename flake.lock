@@ -329,6 +329,23 @@
         "type": "github"
       }
     },
+    "nix-mcp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782880250,
+        "narHash": "sha256-KdnCcam3aogU8OT5wb4duN9vUcWghskDAZo3Us/Ue1k=",
+        "path": "/home/klein-moretti/nix-mcp",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/klein-moretti/nix-mcp",
+        "type": "path"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1782691344,
@@ -411,6 +428,7 @@
         "home-manager": "home-manager",
         "mcp-nixos": "mcp-nixos",
         "nix-flatpak": "nix-flatpak",
+        "nix-mcp": "nix-mcp",
         "nixpkgs": "nixpkgs",
         "nvf": "nvf",
         "preservation": "preservation",
