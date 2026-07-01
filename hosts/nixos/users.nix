@@ -34,6 +34,7 @@
         git = true;
         ssh = true;
         file-manager = true;
+        mime-associations = true;
         packages = true;
       };
 
@@ -91,7 +92,9 @@
       packages = true;
       graphics = true;
       bootloader = true;
-      optimizations = true;
+      kernel = true;
+      memory = true;
+      power = true;
     };
 
     desktop = {
@@ -118,8 +121,10 @@
 
     services = {
       core = true;
+      flatpak = true;
       rclone = true;
       tmpfiles = true;
+      btrfs-nocow-migration = true;
       networking = {
         dns = true;
         vpn = true;
@@ -139,6 +144,7 @@
       compat = false;
       secrets = true;
       hardening = true;
+      auth = true;
       networking = true;
     };
 
