@@ -17,16 +17,25 @@ selfLib.mkModule {
     environment.systemPackages = [ pkgs.rclone ];
 
     services.restic.backups."data-utama" = {
-      repository = "rclone:semua-drive:union-raid1-decrypted:NixOS-Backup";
+      repository = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
+
+      rcloneConfigFile = config.sops.secrets."rclone.conf".path;
 
       # Referensi ke file rahasia
       passwordFile = config.sops.secrets."restic-password".path;
 
       # Apa saja yang akan dicadangkan
       paths = [
-        "/persist/home/${config.my.user.name}/Documents"
+        "/home/${config.my.user.name}/Documents"
+        "/home/${config.my.user.name}/Pictures"
+        "/home/${config.my.user.name}/Music"
         "/persist/home/${config.my.user.name}/pentest"
         "/persist/home/${config.my.user.name}/PersistentData"
+      ];
+
+      exclude = [
+        ".cache"
+        "node_modules"
       ];
 
       # Menginisialisasi repositori jika belum ada
@@ -46,10 +55,10 @@ selfLib.mkModule {
     };
 
     systemd.services."restic-backups-data-utama".environment = {
-      RCLONE_CONFIG = config.sops.secrets."rclone.conf".path;
       HTTP_PROXY = "socks5://127.0.0.1:40000";
       HTTPS_PROXY = "socks5://127.0.0.1:40000";
       ALL_PROXY = "socks5://127.0.0.1:40000";
+      NO_PROXY = "localhost,127.0.0.1";
     };
   };
 }
