@@ -22,14 +22,6 @@ selfLib.mkModule {
       # Referensi ke file rahasia
       passwordFile = config.sops.secrets."restic-password".path;
 
-      # Rclone butuh path config dan proxy untuk bisa konek ke remote
-      environment = {
-        RCLONE_CONFIG = config.sops.secrets."rclone.conf".path;
-        HTTP_PROXY = "socks5://127.0.0.1:40000";
-        HTTPS_PROXY = "socks5://127.0.0.1:40000";
-        ALL_PROXY = "socks5://127.0.0.1:40000";
-      };
-
       # Apa saja yang akan dicadangkan
       paths = [
         "/persist/home/${config.my.user.name}/Documents"
@@ -51,6 +43,13 @@ selfLib.mkModule {
         "--keep-weekly 4"
         "--keep-monthly 6"
       ];
+    };
+
+    systemd.services."restic-backups-data-utama".environment = {
+      RCLONE_CONFIG = config.sops.secrets."rclone.conf".path;
+      HTTP_PROXY = "socks5://127.0.0.1:40000";
+      HTTPS_PROXY = "socks5://127.0.0.1:40000";
+      ALL_PROXY = "socks5://127.0.0.1:40000";
     };
   };
 }
