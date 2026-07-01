@@ -63,7 +63,7 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     nix-mcp = {
-      url = "path:/home/klein-moretti/nix-mcp";
+      url = "github:XiaoXioe/nix-mcp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
