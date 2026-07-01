@@ -258,11 +258,15 @@ selfLib.mkModule {
 
         # Jalankan cgroup monitor dan masukkan hasilnya ke file log utama
         echo "=== Detail Penggunaan Per Apps/Service ===" >> "$LOG_FILE"
-        ${pkgs.python3}/bin/python3 ${cgroupMonitor} "$TARGET_DISK" >> "$LOG_FILE" 2>&1
+        CG_OUT=$(${pkgs.python3}/bin/python3 ${cgroupMonitor} "$TARGET_DISK" 2>&1)
+        echo "$CG_OUT" >> "$LOG_FILE"
         echo "----------------------------------------" >> "$LOG_FILE"
 
         echo "--- Riwayat Penggunaan SSD ($TARGET_DISK) ---"
-        tail -n 25 "$LOG_FILE"
+        grep "Write:" "$LOG_FILE" | tail -n 5
+        echo ""
+        echo "=== Detail Penggunaan Per Apps/Service (1 Jam Terakhir) ==="
+        echo "$CG_OUT"
       '';
     };
   };
