@@ -178,6 +178,7 @@ selfLib.mkModule {
       wantedBy = [ "timers.target" ];
       description = "Timer untuk Laporan SSD TBW";
       timerConfig = {
+        OnBootSec = "2min";
         OnCalendar = "hourly";
         Persistent = true;
       };
@@ -185,8 +186,6 @@ selfLib.mkModule {
 
     systemd.services."ssd-tracker" = {
       description = "SSD TBW Tracker Service";
-      wantedBy = [ "multi-user.target" ];
-      restartIfChanged = false;
 
       path = with pkgs; [
         bash
