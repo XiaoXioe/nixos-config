@@ -44,7 +44,7 @@ selfLib.mkModule {
         always-allow-substitutes = true;
 
         # ── Performance & stability ──────────────────────────────────
-        max-substitution-jobs = 1;
+        max-substitution-jobs = 3;
         http-connections = 50;
         download-attempts = 5;
         connect-timeout = 60;
