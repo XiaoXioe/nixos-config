@@ -30,7 +30,14 @@ let
 
   # Import separated data files
   bookmarksList = import ./bookmarks.nix;
-  policyPreferences = import ./policies.nix { inherit lock lock-true lock-false lock-empty-string; };
+  policyPreferences = import ./policies.nix {
+    inherit
+      lock
+      lock-true
+      lock-false
+      lock-empty-string
+      ;
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -72,6 +79,12 @@ selfLib.mkModule {
         pname = "keplr";
         addonId = "keplr-extension@keplr.app";
         sha256 = "166ggld6b4lh1hvsm2bd0g8b7kp7y9ln2fhf7jfcmx0pbd9z4zzp";
+      };
+
+      solfware-wallet = buildAmoAddon {
+        pname = "solflare-wallet";
+        addonId = "{6d72262a-b243-4dc6-8f4f-be96c74e0a86}";
+        sha256 = "sha256-740OObxZUapauVbaESJMY1nt0F5tiNEaK32CGiMFgSA=";
       };
 
       baseSettings = {
@@ -184,11 +197,13 @@ selfLib.mkModule {
               ])
               ++ [
                 keplr
+                solfware-wallet
               ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
-              "privacy.fingerprintingProtection.overrides" = "+AllTargets,-CSSPrefersColorScheme";
+              "privacy.fingerprintingProtection.overrides" =
+                "+AllTargets,-CSSPrefersColorScheme,-ReduceTimerPrecision";
               "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
               "media.peerconnection.enabled" = true;
               "webgl.disabled" = false;

@@ -63,6 +63,9 @@ selfLib.mkModule {
             { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
             { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
             { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
+            { id = "nkbihfbeogaeaoehlefnkodbefgpgknn"; } # Metamask
+            { id = "bhhhlbepdkbapadjdnnojkbgioiodbic"; } # Solflare Wallet
+            { id = "dmkamcknogkgcdfhhbddcghachkejeap"; } # Keplr Wallet
           ];
         };
       };

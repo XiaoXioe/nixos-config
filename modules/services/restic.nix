@@ -11,27 +11,29 @@ selfLib.mkModule {
 
   nixosConfig = {
     # Deklarasi secret sops-nix untuk restic
-    # Anda harus menambahkan ini ke dalam berkas secrets/secrets.yaml Anda
     sops.secrets."restic-password" = { };
-    sops.secrets."restic-env" = { };
 
     # Pastikan rclone terinstal di sistem karena kita menggunakannya sebagai backend
     environment.systemPackages = [ pkgs.rclone ];
 
     services.restic.backups."data-utama" = {
-      # Ganti "semua-drive" dengan nama remote rclone Anda yang sebenarnya
-      repository = "rclone:semua-drive:NixOS-Backup";
-      
+      repository = "rclone:semua-drive:union-raid1-decrypted:NixOS-Backup";
+
       # Referensi ke file rahasia
       passwordFile = config.sops.secrets."restic-password".path;
-      
-      # Environment file digunakan untuk konfigurasi tambahan Rclone (opsional)
-      # environmentFile = config.sops.secrets."restic-env".path;
-      
+
+      # Rclone butuh path config dan proxy untuk bisa konek ke remote
+      environment = {
+        RCLONE_CONFIG = config.sops.secrets."rclone.conf".path;
+        HTTP_PROXY = "socks5://127.0.0.1:40000";
+        HTTPS_PROXY = "socks5://127.0.0.1:40000";
+        ALL_PROXY = "socks5://127.0.0.1:40000";
+      };
+
       # Apa saja yang akan dicadangkan
       paths = [
         "/persist/home/${config.my.user.name}/Documents"
-        "/persist/home/${config.my.user.name}/Pictures"
+        "/persist/home/${config.my.user.name}/pentest"
         "/persist/home/${config.my.user.name}/PersistentData"
       ];
 

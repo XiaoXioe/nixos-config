@@ -123,7 +123,7 @@
       core = true;
       flatpak = true;
       rclone = true;
-      restic = false; # Set ke true setelah setup secret selesai
+      restic = true;
       tmpfiles = true;
       btrfs-nocow-migration = true;
       networking = {
