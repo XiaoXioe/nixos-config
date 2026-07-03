@@ -27,6 +27,11 @@ let
       license = [ ];
     };
   });
+  tampermonkey = addons.tampermonkey.overrideAttrs (old: {
+    meta = (old.meta or { }) // {
+      license = [ ];
+    };
+  });
 
   # Import separated data files
   bookmarksList = import ./bookmarks.nix;
@@ -186,14 +191,11 @@ selfLib.mkModule {
                 ublock-origin
                 multi-account-containers
                 bitwarden
-                enhanced-h264ify
                 simple-tab-groups
-                darkreader
                 auto-tab-discard
                 metamask
-                consent-o-matic
                 container-proxy
-                video-downloadhelper
+                tampermonkey
               ])
               ++ [
                 keplr
@@ -221,15 +223,12 @@ selfLib.mkModule {
                 bitwarden
                 privacy-badger
                 canvasblocker
-                clearurls
                 localcdn
                 user-agent-string-switcher
                 proton-vpn
-                darkreader
                 auto-tab-discard
                 simple-tab-groups
-                consent-o-matic
-                video-downloadhelper
+                tampermonkey
               ]
             );
             # ++ [
