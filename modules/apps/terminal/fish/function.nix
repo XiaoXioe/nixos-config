@@ -24,14 +24,43 @@
 
     agy-profile = {
       body = ''
-        if not set -q argv[1]
-            echo "Penggunaan: agy-profile <nama_profile>"
-            return 1
-        end
-        set -l PROFILE_NAME $argv[1]
         set -l REAL_HOME (eval echo "~"(whoami))
         set -l AGY_DIR "$REAL_HOME/.gemini/antigravity-cli"
-        set -l CRED_DIR "$AGY_DIR/credentials/$PROFILE_NAME"
+        set -l CRED_DIR_BASE "$AGY_DIR/credentials"
+
+        if not set -q argv[1]
+            or string match -q -- "-l" $argv[1]
+            or string match -q -- "--list" $argv[1]
+            or string match -q -- "list" $argv[1]
+
+            set -l has_args 0
+            if set -q argv[1]
+                set has_args 1
+            else
+                echo "Penggunaan: agy-profile <nama_profile>"
+                echo ""
+            end
+
+            if test -d $CRED_DIR_BASE
+                echo "Daftar akun/profile yang tersedia:"
+                for d in $CRED_DIR_BASE/*
+                    if test -d $d
+                        echo "  - "(basename $d)
+                    end
+                end
+            else
+                echo "Belum ada akun/profile yang terdaftar."
+            end
+
+            if test $has_args -eq 1
+                return 0
+            else
+                return 1
+            end
+        end
+
+        set -l PROFILE_NAME $argv[1]
+        set -l CRED_DIR "$CRED_DIR_BASE/$PROFILE_NAME"
 
         # Pastikan direktori credentials ada
         if not test -d $CRED_DIR
