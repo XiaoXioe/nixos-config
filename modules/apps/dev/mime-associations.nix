@@ -37,6 +37,7 @@ let
       "text/x-shellscript"
       "application/javascript"
       "application/vnd.apple.keynote"
+      "application/x-wine-extension-mq5"
       "text/x-python"
       "text/x-python3"
       "text/x-go"
