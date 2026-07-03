@@ -25,6 +25,7 @@
         brave = true;
         chromium = true;
         librewolf = false;
+        tor-browser = true;
       };
 
       custompkgs = true;

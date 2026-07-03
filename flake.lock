@@ -435,7 +435,8 @@
         "nixpkgs": "nixpkgs",
         "nvf": "nvf",
         "preservation": "preservation",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "torlink": "torlink"
       }
     },
     "sops-nix": {
@@ -515,6 +516,26 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "torlink": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783040656,
+        "narHash": "sha256-ikdXOGQuMIGTFEJkbg0djJx+ePbRKSneYVrTCGckDaw=",
+        "owner": "baairon",
+        "repo": "torlink",
+        "rev": "b8f88728dbf9acc45605cc2ba9beb66123c3c5ae",
+        "type": "github"
+      },
+      "original": {
+        "owner": "baairon",
+        "repo": "torlink",
         "type": "github"
       }
     }
