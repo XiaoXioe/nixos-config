@@ -29,33 +29,27 @@
             return 1
         end
         set -l PROFILE_NAME $argv[1]
-        set -l PROFILE_HOME $HOME/.config/agy-profiles/$PROFILE_NAME
+        set -l REAL_HOME (eval echo "~"(whoami))
+        set -l AGY_DIR "$REAL_HOME/.gemini/antigravity-cli"
+        set -l CRED_DIR "$AGY_DIR/credentials/$PROFILE_NAME"
 
-        # Pastikan direktori tujuan ada
-        mkdir -p $PROFILE_HOME/.gemini/antigravity-cli
-
-        # Hubungkan config (berisi skills, rules, dan mcp_config.json) dari home asli
-        if not test -L $PROFILE_HOME/.gemini/config
-            rm -rf $PROFILE_HOME/.gemini/config
-            ln -sfn $HOME/.gemini/config $PROFILE_HOME/.gemini/config
+        # Pastikan direktori credentials ada
+        if not test -d $CRED_DIR
+            echo "Profile '$PROFILE_NAME' belum ada. Membuat direktori credentials..."
+            mkdir -p $CRED_DIR
+            echo "Jalankan ulang setelah login pertama untuk menyimpan token."
         end
 
-        # Hubungkan settings.json agar konfigurasi editor/cli sama
-        if not test -L $PROFILE_HOME/.gemini/antigravity-cli/settings.json
-            rm -f $PROFILE_HOME/.gemini/antigravity-cli/settings.json
-            ln -sfn $HOME/.gemini/antigravity-cli/settings.json $PROFILE_HOME/.gemini/antigravity-cli/settings.json
-        end
-
-        # Hubungkan data proyek/percakapan agar riwayat (brain, conversations, history, knowledge) terbagi
-        for item in brain conversations history.jsonl knowledge
-            if not test -L $PROFILE_HOME/.gemini/antigravity-cli/$item
-                rm -rf $PROFILE_HOME/.gemini/antigravity-cli/$item
-                ln -sfn $HOME/.gemini/antigravity-cli/$item $PROFILE_HOME/.gemini/antigravity-cli/$item
+        # Pastikan file credentials placeholder ada (agar bind mount bisa bekerja)
+        for f in antigravity-oauth-token installation_id jetski_state.pbtxt
+            if not test -f "$CRED_DIR/$f"
+                touch "$CRED_DIR/$f"
             end
         end
 
-        echo "Menjalankan agy untuk profile: $PROFILE_NAME"
-        env HOME=$PROFILE_HOME DBUS_SESSION_BUS_ADDRESS=unix:path=/dev/null agy
+        echo "Menjalankan agy untuk profile: $PROFILE_NAME (namespace mode)"
+        set -l MOUNT_SCRIPT "mount --bind '$CRED_DIR/antigravity-oauth-token' '$AGY_DIR/antigravity-oauth-token' && mount --bind '$CRED_DIR/installation_id' '$AGY_DIR/installation_id' && mount --bind '$CRED_DIR/jetski_state.pbtxt' '$AGY_DIR/jetski_state.pbtxt' && export DBUS_SESSION_BUS_ADDRESS=unix:path=/dev/null && exec agy"
+        unshare --user --mount --map-root-user bash -c "$MOUNT_SCRIPT"
       '';
     };
 
