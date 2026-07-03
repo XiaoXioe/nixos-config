@@ -11,6 +11,7 @@ let
   codebase-memory-mcp-pkg = inputs.nix-mcp.packages.${system}.codebase-memory-mcp;
   google-colab-mcp-pkg = inputs.nix-mcp.packages.${system}.google-colab-mcp;
   telegram-mcp-pkg = inputs.nix-mcp.packages.${system}.telegram-mcp;
+  github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
 
   makeSshMcp =
     {
@@ -42,8 +43,7 @@ selfLib.mkModule {
         codebase-memory-mcp-pkg
         google-colab-mcp-pkg
         telegram-mcp-pkg
-        pkgs.github-mcp-server
-        pkgs.mcp-server-memory
+        github-mcp-server-pkg
         inputs.mcp-nixos.packages.${system}.default
       ];
 
@@ -108,16 +108,8 @@ selfLib.mkModule {
             "-c"
             "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${
               hmOpts.osConfig.sops.secrets."github-access-token".path
-            }) ${pkgs.github-mcp-server}/bin/github-mcp-server stdio"
+            }) ${github-mcp-server-pkg}/bin/github-mcp-server stdio"
           ];
-        };
-
-        memory = {
-          command = "${pkgs.mcp-server-memory}/bin/mcp-server-memory";
-          args = [ ];
-          env = {
-            MEMORY_FILE_PATH = "${hmOpts.config.home.homeDirectory}/.gemini/memory.json";
-          };
         };
 
         "codebase-memory-mcp" = {
