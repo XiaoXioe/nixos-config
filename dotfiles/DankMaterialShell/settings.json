@@ -360,7 +360,40 @@
   "notificationHistorySaveLow": true,
   "notificationHistorySaveNormal": true,
   "notificationHistorySaveCritical": true,
-  "notificationRules": [],
+  "notificationRules": [
+    {
+      "enabled": true,
+      "field": "appName",
+      "pattern": "",
+      "matchType": "contains",
+      "action": "default",
+      "urgency": "default"
+    },
+    {
+      "enabled": true,
+      "field": "desktopEntry",
+      "pattern": "com.ayugram.desktop",
+      "matchType": "exact",
+      "action": "mute",
+      "urgency": "default"
+    },
+    {
+      "enabled": true,
+      "field": "appName",
+      "pattern": "wezterm",
+      "matchType": "contains",
+      "action": "default",
+      "urgency": "low"
+    },
+    {
+      "enabled": true,
+      "field": "appName",
+      "pattern": "WezTerm",
+      "matchType": "contains",
+      "action": "default",
+      "urgency": "low"
+    }
+  ],
   "osdAlwaysShowValue": false,
   "osdPosition": 5,
   "osdVolumeEnabled": true,
