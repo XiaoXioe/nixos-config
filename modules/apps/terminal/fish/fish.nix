@@ -94,7 +94,7 @@
         # --- NIXOS REBUILD & MAINTENANCE ---
         rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
         cln = "nh clean all --keep 3 --ask --optimise";
-        nfu = "nix flake update --flake";
+        nfu = "nix flake update";
         osbuild = "nh os switch --no-nom --show-trace --diff auto --ask -L";
         ostest = "nh os test --no-nom --show-trace --diff auto --ask -L";
         osboot = "nh os boot --no-nom --show-trace --diff auto --ask -L";
