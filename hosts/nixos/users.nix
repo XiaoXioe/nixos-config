@@ -151,6 +151,8 @@
     };
 
     scripts = {
+      agy-profile = true;
+      agy-ide-profile = true;
       cek-cache = true;
       git-commits = true;
       dl-lagu = true;
