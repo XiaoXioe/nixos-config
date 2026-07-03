@@ -72,6 +72,13 @@ let
       hash = "sha256-kN7oQPeLJyK9GXxnSchKcUF4XIXQ+Yd7dsSHwT/ua6k=";
       arch = "";
     })
+    (mkExtension {
+      name = "mql-clangd";
+      publisher = "ngSoftware";
+      version = "1.1.62";
+      hash = "sha256-ss22ZnBmYkRkid8lYuNGVcbZFM6mp3RnbjonKAeN3ns=";
+      arch = "";
+    })
   ];
 
   builtinExts = with pkgs.vscode-extensions; [
@@ -79,6 +86,7 @@ let
     ms-python.python
     jnoortheen.nix-ide
     yzhang.markdown-all-in-one
+    llvm-vs-code-extensions.vscode-clangd
 
     # Formatters
     bmalehorn.vscode-fish
@@ -119,6 +127,7 @@ selfLib.mkModule {
       sqlite
       sqlfluff
       php
+      clang-tools
     ];
     programs.vscodium = {
       enable = true;
@@ -237,6 +246,11 @@ selfLib.mkModule {
           };
           "[jsonc]" = {
             "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+
+          # MQL5
+          "[mql5]" = {
+            "editor.defaultFormatter" = "ngSoftware.mql-clangd";
           };
 
           # Error Lens
