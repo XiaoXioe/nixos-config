@@ -363,14 +363,6 @@
   "notificationRules": [
     {
       "enabled": true,
-      "field": "appName",
-      "pattern": "",
-      "matchType": "contains",
-      "action": "default",
-      "urgency": "default"
-    },
-    {
-      "enabled": true,
       "field": "desktopEntry",
       "pattern": "com.ayugram.desktop",
       "matchType": "exact",
@@ -381,15 +373,7 @@
       "enabled": true,
       "field": "appName",
       "pattern": "wezterm",
-      "matchType": "contains",
-      "action": "default",
-      "urgency": "low"
-    },
-    {
-      "enabled": true,
-      "field": "appName",
-      "pattern": "WezTerm",
-      "matchType": "contains",
+      "matchType": "exact",
       "action": "default",
       "urgency": "low"
     }
