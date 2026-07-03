@@ -67,6 +67,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    torlink = {
+      url = "github:baairon/torlink";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
