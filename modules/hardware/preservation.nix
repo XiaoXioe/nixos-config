@@ -222,6 +222,7 @@ selfLib.mkModule {
             ".BurpSuite"
             ".agents"
             ".telegram-mcp"
+            ".thunderbird"
             ".config"
             ".claude"
             ".codex"
