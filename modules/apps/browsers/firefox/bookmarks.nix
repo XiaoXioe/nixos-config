@@ -47,4 +47,21 @@
       }
     ];
   }
+  {
+    name = "Userscripts";
+    bookmarks = [
+      {
+        name = "Greasy Fork";
+        url = "https://greasyfork.org/";
+      }
+      {
+        name = "Sleazy Fork";
+        url = "https://sleazyfork.org/";
+      }
+      {
+        name = "OpenUserJS";
+        url = "https://openuserjs.org/";
+      }
+    ];
+  }
 ]
