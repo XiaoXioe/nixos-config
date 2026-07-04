@@ -97,8 +97,9 @@ selfLib.mkModule {
           # 6. Terapkan proxy ke sesi terminal saat ini
           set -gx ALL_PROXY "socks5h://127.0.0.1:1080"
 
-          set -l vpn_active_name (basename $secret_conf .conf)
-          echo "✅ Wireproxy aktif di latar belakang menggunakan $vpn_active_name (PID: $WIREPROXY_PID)."
+          # Simpan nama profil aktif secara global agar bisa dibaca vpn-switch
+          set -g _vpn_active_name (basename $secret_conf .conf)
+          echo "✅ Wireproxy aktif di latar belakang menggunakan $_vpn_active_name (PID: $WIREPROXY_PID)."
           echo "✅ ALL_PROXY diarahkan ke 127.0.0.1:1080."
 
           # Beri waktu 2 detik agar handshake WireGuard selesai sebelum cek IP
@@ -189,8 +190,7 @@ selfLib.mkModule {
               return 1
           end
 
-          set -l vpn_active_name (basename $secret_conf .conf)
-          echo "🔄 Berhasil beralih ke VPN baru."
+          echo "🔄 Berhasil beralih ke $_vpn_active_name."
         '';
       };
 
