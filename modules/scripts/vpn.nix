@@ -77,7 +77,7 @@ selfLib.mkModule {
 
           # 4. Eksekusi wireproxy di latar belakang, buang output debug yang berisik
           ${pkgs.wireproxy}/bin/wireproxy -c $temp_conf > /dev/null 2>&1 &
-          
+
           # Simpan PID dari proses wireproxy agar mudah dimatikan nanti
           set -gx WIREPROXY_PID $last_pid
 
@@ -100,10 +100,10 @@ selfLib.mkModule {
           set -l vpn_active_name (basename $secret_conf .conf)
           echo "✅ Wireproxy aktif di latar belakang menggunakan $vpn_active_name (PID: $WIREPROXY_PID)."
           echo "✅ ALL_PROXY diarahkan ke 127.0.0.1:1080."
-          
+
           # Beri waktu 2 detik agar handshake WireGuard selesai sebelum cek IP
           sleep 2
-          
+
           # Verifikasi keamanan koneksi (paranoid mode)
           if not _vpn-verify $pre_ip $pre_asn
               return 1
@@ -159,7 +159,7 @@ selfLib.mkModule {
 
           # Bersihkan variabel environment
           set -e ALL_PROXY
-          
+
           echo "❌ Wireproxy dimatikan. Terminal kembali ke IP asli."
         '';
       };
@@ -200,9 +200,9 @@ selfLib.mkModule {
         body = ''
           set -l pre_ip $argv[1]
           set -l pre_asn $argv[2]
-          
+
           echo "🔍 Memverifikasi keamanan koneksi (paranoid mode)..."
-          
+
           # 1. Cek IP pasca-VPN
           set -l post_ip ""
           for attempt in (seq 1 3)
