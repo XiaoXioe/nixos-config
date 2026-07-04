@@ -1,6 +1,11 @@
 # Firefox policies Preferences — imported by firefox/default.nix
 # Returns: { lock, lock-true, lock-false, lock-empty-string } → Preferences attrset
-{ lock, lock-true, lock-false, lock-empty-string }:
+{
+  lock,
+  lock-true,
+  lock-false,
+  lock-empty-string,
+}:
 {
   # ==========================================
   # 1. Dark Mode & Tampilan (Appearance)
@@ -52,6 +57,7 @@
   "network.http.speculative-parallel-limit" = lock 0; # Batasi pre-koneksi paralel HTTP spekulatif menjadi nol
   "browser.places.speculativeConnect.enabled" = lock-false; # Matikan koneksi spekulatif saat mengarahkan kursor ke link
   "browser.preferences.defaultPerformanceSettings.enabled" = lock-true; # Aktifkan pengaturan performa bawaan
+  "browser.sessionhistory.max_entries" = lock 10;
 
   # ==========================================
   # 6. Pencarian, Rekomendasi & Iklan (Search & Recommendations)
