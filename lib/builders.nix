@@ -17,9 +17,7 @@ let
     ${hostName} = lib.nixosSystem {
       inherit pkgs;
       inherit specialArgs;
-      modules = commonModules ++ [
-        { boot.kernelPackages = pkgs.linuxPackages_zen; }
-      ];
+      modules = commonModules;
     };
   };
 in
