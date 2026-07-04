@@ -1,8 +1,10 @@
-{ selfLib, ... }:
+{ pkgs, selfLib, ... }:
 selfLib.mkModule {
   name = "core.kernel";
   nixosConfig = {
     boot = {
+      kernelPackages = pkgs.linuxPackages_zen;
+
       kernelModules = [
         "sch_cake"
         "tcp_bbr"
