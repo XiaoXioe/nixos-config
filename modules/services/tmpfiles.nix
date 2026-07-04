@@ -31,38 +31,38 @@ selfLib.mkModule {
       cfg = config.my.services.tmpfiles;
     in
     {
-    systemd.tmpfiles.rules = [
-      # Format: Tipe | Path | Mode | User | Group | Atribut Tambahan
+      systemd.tmpfiles.rules = [
+        # Format: Tipe | Path | Mode | User | Group | Atribut Tambahan
 
-      # Sistem database Nix
-      "h /nix/var/nix/db - - - - +C"
-      "h /nix/var/nix/temproots - - - - +C"
+        # Sistem database Nix
+        "h /nix/var/nix/db - - - - +C"
+        "h /nix/var/nix/temproots - - - - +C"
 
-      # HDD / Virtualisasi
-      "h /mnt/data_btrfs/QEMU_Images - - - - +C"
-      "h /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
-    ]
-    ++ (lib.concatLists (
-      map (
-        dir:
-        let
-          isAbsolute = lib.hasPrefix "/" dir;
-          host_dir = if isAbsolute then dir else "/home/${config.my.user.name}/${dir}";
-          persist_dir = "/persist${host_dir}";
-        in
-        if isAbsolute then
-          [
-            "h ${host_dir} - - - - +C"
-          ]
-        else
-          [
-            # Buat direktori kosong terlebih dahulu dengan owner pengguna agar langsung nocow sejak awal
-            "d ${host_dir} 0700 ${config.my.user.name} users - -"
-            "d ${persist_dir} 0700 ${config.my.user.name} users - -"
-            "h ${host_dir} - - - - +C"
-            "h ${persist_dir} - - - - +C"
-          ]
-      ) cfg.nocowDirectories
-    ));
-  };
+        # HDD / Virtualisasi
+        "h /mnt/data_btrfs/QEMU_Images - - - - +C"
+        "h /mnt/data_btrfs/waydroid_images/images13 - - - - +C"
+      ]
+      ++ (lib.concatLists (
+        map (
+          dir:
+          let
+            isAbsolute = lib.hasPrefix "/" dir;
+            host_dir = if isAbsolute then dir else "/home/${config.my.user.name}/${dir}";
+            persist_dir = "/persist${host_dir}";
+          in
+          if isAbsolute then
+            [
+              "h ${host_dir} - - - - +C"
+            ]
+          else
+            [
+              # Buat direktori kosong terlebih dahulu dengan owner pengguna agar langsung nocow sejak awal
+              "d ${host_dir} 0700 ${config.my.user.name} users - -"
+              "d ${persist_dir} 0700 ${config.my.user.name} users - -"
+              "h ${host_dir} - - - - +C"
+              "h ${persist_dir} - - - - +C"
+            ]
+        ) cfg.nocowDirectories
+      ));
+    };
 }

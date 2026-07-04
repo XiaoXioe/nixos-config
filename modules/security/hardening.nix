@@ -14,6 +14,14 @@ selfLib.mkModule {
       "kernel.unprivileged_bpf_disabled" = 1;
       "net.ipv4.conf.all.rp_filter" = 1;
       "net.ipv4.conf.default.rp_filter" = 1;
+
+      # Batasi ptrace ke proses admin saja (cegah proses non-root mengintip
+      # memori proses lain). Turunkan ke 1 bila perlu attach gdb lintas-proses.
+      "kernel.yama.ptrace_scope" = 2;
+      # Lindungi dari SYN flood.
+      "net.ipv4.tcp_syncookies" = 1;
+      # Nonaktifkan pemuatan kernel baru via kexec (perkecil permukaan serangan).
+      "kernel.kexec_load_disabled" = 1;
     };
 
     programs.firejail.enable = true;

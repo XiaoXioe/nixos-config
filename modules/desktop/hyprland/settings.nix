@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   # Configure Hyprland general settings
   wayland.windowManager.hyprland = {
     enable = true;

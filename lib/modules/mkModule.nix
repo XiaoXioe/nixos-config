@@ -14,7 +14,12 @@
 {
   imports = imports ++ [
     (
-      { config, lib, pkgs, ... }:
+      {
+        config,
+        lib,
+        pkgs,
+        ...
+      }:
       let
         optionPath = lib.splitString "." name;
         cfg = lib.getAttrFromPath (optionPath ++ [ "enable" ]) config.my;
@@ -28,12 +33,24 @@
         singleAppInfo = { inherit isSingleApp singleAppId; };
 
         flatpakConfigs = flatpakHelper.mkFlatpakConfigs {
-          inherit name flatpakCfg options config pkgs;
+          inherit
+            name
+            flatpakCfg
+            options
+            config
+            pkgs
+            ;
           enableState = cfg;
         };
 
         flatpakOptions = flatpakHelper.mkFlatpakOptions {
-          inherit name flatpakCfg options config singleAppInfo;
+          inherit
+            name
+            flatpakCfg
+            options
+            config
+            singleAppInfo
+            ;
         };
       in
       {
@@ -60,14 +77,16 @@
             })
             # Flatpak/Native Home Manager configuration
             (lib.mkIf (hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) {
-              home-manager.users.${config.my.user.name} = hmArgs@{ lib, ... }:
+              home-manager.users.${config.my.user.name} =
+                { lib, ... }:
                 let
                   programsConfig = flatpakConfigs.hmProgramsConfig pkgs;
                 in
                 {
                   home.activation = flatpakConfigs.flatpakActivationScripts lib;
                   home.packages = flatpakConfigs.nativePackagesList;
-                } // (lib.optionalAttrs (programsConfig != { }) {
+                }
+                // (lib.optionalAttrs (programsConfig != { }) {
                   programs = programsConfig;
                 });
             })

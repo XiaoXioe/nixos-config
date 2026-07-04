@@ -1,4 +1,4 @@
-{ ... }: {
+_: {
   programs.fish.functions = {
     "," = {
       wraps = "nix run";

@@ -7,9 +7,13 @@ before_script:
   - nix-env -iA nixpkgs.cachix
   - cachix use cachixix
 
+flake_check:
+  script:
+    - nix flake check -L
+
 build_packages:
   script:
     - cachix watch-exec cachixix -- nix build \
-      ".#dank-shell" \
+      ".#caelestia" \
       ".#llama" \
       -L

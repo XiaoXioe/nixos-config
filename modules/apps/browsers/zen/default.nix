@@ -14,6 +14,25 @@ selfLib.mkModule {
     "app.zen_browser.zen" = {
       enable = true;
 
+      # VA-API hardware video decoding: the Flatpak GL extension only bundles Mesa's
+      # built-in VAAPI drivers (radeonsi, nouveau, etc.) but NOT the separate
+      # intel-vaapi-driver (i965) needed for Ivy Bridge. Mount the host's graphics
+      # driver directory and point libva to it.
+      overrides = {
+        Context = {
+          filesystems = [
+            "/run/opengl-driver/lib/dri:ro" # Host's VA-API drivers (i965, iHD)
+          ];
+        };
+        Environment = {
+          LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
+          LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri"; # Tell libva where to find i965_drv_video.so
+          LIBVA_DRIVER_NAME = "i965"; # Intel Ivy Bridge VA-API driver
+          MOZ_DISABLE_RDD_SANDBOX = "1"; # Allow RDD process to access /dev/dri for VA-API
+          MOZ_ENABLE_WAYLAND = "1"; # Ensure Wayland backend for DMABUF/VA-API
+        };
+      };
+
       # Symlink only the profile subdirectory inside .zen to bypass Flatpak's sandbox escape restriction on root dotfiles
       symlinks = [
         {
@@ -121,24 +140,53 @@ selfLib.mkModule {
 
       # Declarative extensions list for modular mapping (DRY)
       extensionsList = [
-        { name = "uBlock0@raymondhill.net"; pkg = addons.ublock-origin; }
-        { name = "{446900e4-71c2-419f-a6a7-df9c091e268b}"; pkg = addons.bitwarden; }
-        { name = "firefox@tampermonkey.net"; pkg = tampermonkey; }
-        { name = "simple-tab-groups@drive4ik"; pkg = addons.simple-tab-groups; }
-        { name = "{c2c003ee-bd69-42a2-b0e9-6f34222cb046}"; pkg = addons.auto-tab-discard; }
-        { name = "webextension@metamask.io"; pkg = addons.metamask; }
-        { name = "contaner-proxy@bekh-ivanov.me"; pkg = addons.container-proxy; }
-        { name = "keplr-extension@keplr.app"; pkg = keplr; }
-        { name = "{6d72262a-b243-4dc6-8f4f-be96c74e0a86}"; pkg = solflare-wallet; }
+        {
+          name = "uBlock0@raymondhill.net";
+          pkg = addons.ublock-origin;
+        }
+        {
+          name = "{446900e4-71c2-419f-a6a7-df9c091e268b}";
+          pkg = addons.bitwarden;
+        }
+        {
+          name = "firefox@tampermonkey.net";
+          pkg = tampermonkey;
+        }
+        {
+          name = "simple-tab-groups@drive4ik";
+          pkg = addons.simple-tab-groups;
+        }
+        {
+          name = "{c2c003ee-bd69-42a2-b0e9-6f34222cb046}";
+          pkg = addons.auto-tab-discard;
+        }
+        {
+          name = "webextension@metamask.io";
+          pkg = addons.metamask;
+        }
+        {
+          name = "contaner-proxy@bekh-ivanov.me";
+          pkg = addons.container-proxy;
+        }
+        {
+          name = "keplr-extension@keplr.app";
+          pkg = keplr;
+        }
+        {
+          name = "{6d72262a-b243-4dc6-8f4f-be96c74e0a86}";
+          pkg = solflare-wallet;
+        }
       ];
 
       # Dynamically map the extensions list into Home Manager file configurations
-      extensionsConfig = builtins.listToAttrs (map (ext: {
-        name = ".config/zen/${profileName}/extensions/${ext.name}.xpi";
-        value = {
-          source = "${ext.pkg}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${ext.name}.xpi";
-        };
-      }) extensionsList);
+      extensionsConfig = builtins.listToAttrs (
+        map (ext: {
+          name = ".config/zen/${profileName}/extensions/${ext.name}.xpi";
+          value = {
+            source = "${ext.pkg}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${ext.name}.xpi";
+          };
+        }) extensionsList
+      );
     in
     {
       # Clean up old real .zen directory once to avoid conflicts with our profiles.ini setup
@@ -176,20 +224,7 @@ selfLib.mkModule {
           builtins.toJSON {
             policies = {
               Preferences = lib.filterAttrs (
-                name: value:
-                builtins.isAttrs value
-                && value ? Status
-                && value.Status == "locked"
-                && !(lib.any (prefix: lib.hasPrefix prefix name) [
-                  "identity.fxaccounts"
-                  "datareporting"
-                  "experiments"
-                  "toolkit.telemetry"
-                  "privacy.clearOnShutdown"
-                  "privacy.resistFingerprinting"
-                  "trailhead"
-                  "zen."
-                ])
+                name: value: builtins.isAttrs value && value ? Status && value.Status == "locked"
               ) zenPolicies;
 
               DisableFirefoxAccounts = true;
@@ -253,6 +288,7 @@ selfLib.mkModule {
               };
             };
           };
-      } // extensionsConfig;
+      }
+      // extensionsConfig;
     };
 }

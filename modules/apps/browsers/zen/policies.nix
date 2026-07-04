@@ -1,6 +1,11 @@
 # Zen Browser policies Preferences — imported by zen/default.nix
 # Returns: { lock, lock-true, lock-false, lock-empty-string } → Preferences attrset
-{ lock, lock-true, lock-false, lock-empty-string }:
+{
+  lock,
+  lock-true,
+  lock-false,
+  lock-empty-string,
+}:
 {
   # ==========================================
   # 1. Telemetri & Pengumpulan Data (Telemetry)
@@ -82,6 +87,8 @@
   # ==========================================
   "widget.dmabuf.force-enabled" = lock-true;
   "webgl.disabled" = lock-false;
+  "browser.sessionhistory.max_entries" = lock 5;
+  "browser.preferences.defaultPerformanceSettings.enabled" = lock-true;
 
   # ==========================================
   # 8. Privasi & Kredensial (Privacy & Credentials)
@@ -99,4 +106,13 @@
   "signon.rememberSignons" = lock-false;
   "extensions.formautofill.addresses.enabled" = lock-false;
   "extensions.formautofill.creditCards.enabled" = lock-false;
+
+  # ==========================================
+  # 9. Akselerasi Video Hardware (VA-API)
+  # ==========================================
+  "media.ffmpeg.vaapi.enabled" = lock-true;
+  "gfx.webrender.all" = lock-true;
+  "media.rdd-ffmpeg.enabled" = lock-true;
+  "media.navigator.mediadatadecoder_vpx_enabled" = lock-true;
+  "media.hardware-video-decoding.force-enabled" = lock-true;
 }

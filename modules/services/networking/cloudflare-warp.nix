@@ -26,13 +26,13 @@ selfLib.mkModule {
         # Simpan konfigurasi secara persisten di var/lib/private/wireproxy-warp
         StateDirectory = "wireproxy-warp";
         StateDirectoryMode = "0700";
-        
+
         # Sembunyikan log Info/Debug dari journalctl
         LogLevelMax = "err";
-        
+
         ExecStartPre = pkgs.writeShellScript "generate-warp-config" ''
           cd "$STATE_DIRECTORY"
-          
+
           if [[ ! -f wgcf-profile.conf ]]; then
             echo "==> [wireproxy-warp] Berkas profil tidak ditemukan. Memulai pendaftaran akun baru..."
             rm -f wgcf-profile.conf.tmp wgcf-account.toml

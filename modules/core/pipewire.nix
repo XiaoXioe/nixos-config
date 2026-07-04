@@ -12,7 +12,9 @@ selfLib.mkModule {
       (final: prev: {
         pkgsi686Linux = prev.pkgsi686Linux // {
           pipewire = prev.pkgsi686Linux.pipewire.override {
-            libcamera = { meta.platforms = [ ]; };
+            libcamera = {
+              meta.platforms = [ ];
+            };
             ffadoSupport = false;
             rocSupport = false;
           };

@@ -72,6 +72,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
@@ -144,9 +149,29 @@
         mkNixosConfigurations
         ;
 
+      # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt) + dead
+      # code (deadnix). Lambda arg diabaikan karena pola `hmConfig = hmOpts:`
+      # sengaja menyisakan argumen tak terpakai (cegah shadowing, lihat skill
+      # nix-module-authoring). statix tetap tersedia di devShell sebagai advisory.
+      preCommitCheck = inputs.git-hooks.lib.${system}.run {
+        src = ./.;
+        hooks = {
+          nixfmt.enable = true;
+          deadnix = {
+            enable = true;
+            settings = {
+              noLambdaArg = true;
+              noLambdaPatternNames = true;
+            };
+          };
+        };
+      };
+
     in
     {
       formatter.${system} = pkgs.nixfmt;
+
+      checks.${system}.pre-commit = preCommitCheck;
 
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
@@ -157,11 +182,12 @@
           nvd
         ];
 
-        shellHook = ''
+        shellHook = preCommitCheck.shellHook + ''
           echo "❄️ NixOS Config DevShell"
           echo "  Tools: nixfmt, statix, deadnix, nom, nvd"
+          echo "  Gate:  nixfmt + deadnix (pre-commit hook aktif)"
           echo "  Usage: nixfmt <file>     # format .nix files"
-          echo "         statix .          # lint Nix code"
+          echo "         statix .          # lint Nix code (advisory)"
           echo "         deadnix .         # find dead code"
         '';
       };
