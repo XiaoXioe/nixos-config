@@ -12,3 +12,9 @@ window-rule {
     match app-id="^codium$"
     open-maximized true
 }
+
+// @id=wr_1783168054182206859 @name=app.zen_browser.zen
+window-rule {
+    match app-id="^app.zen_browser.zen$"
+    open-maximized true
+}
