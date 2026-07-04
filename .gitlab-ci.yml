@@ -14,6 +14,5 @@ flake_check:
 build_packages:
   script:
     - cachix watch-exec cachixix -- nix build \
-      ".#caelestia" \
       ".#llama" \
       -L
