@@ -30,7 +30,7 @@ selfLib.mkModule {
             "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
             "${pkgs.coreutils}/bin/cp ${hmOpts.osConfig.sops.secrets."rclone.conf".path} %t/rclone.conf"
             "${pkgs.coreutils}/bin/chmod 600 %t/rclone.conf"
-            "${pkgs.bash}/bin/bash -c 'for i in {1..30}; do if echo > /dev/tcp/127.0.0.1/40000; then exit 0; fi; sleep 1; done; exit 1'"
+            "${pkgs.bash}/bin/bash -c 'for i in {1..30}; do if echo > /dev/tcp/127.0.0.1/40000; then exit 0; fi; ${pkgs.coreutils}/bin/sleep 1; done; exit 1'"
           ];
           ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \

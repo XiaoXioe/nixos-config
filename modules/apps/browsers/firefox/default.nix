@@ -22,11 +22,6 @@ let
     Status = "locked";
   };
   addons = inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
-  video-downloadhelper = addons.video-downloadhelper.overrideAttrs (old: {
-    meta = (old.meta or { }) // {
-      license = [ ];
-    };
-  });
   tampermonkey = addons.tampermonkey.overrideAttrs (old: {
     meta = (old.meta or { }) // {
       license = [ ];
