@@ -27,7 +27,6 @@ selfLib.mkModule {
       fuse.userAllowOther = true;
     };
 
-
     environment.systemPackages = with pkgs; [
       android-tools
       exiftool
