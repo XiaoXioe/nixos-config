@@ -24,14 +24,17 @@ selfLib.mkModule {
         block_undelegated = true
         reject_ttl = 10
 
-        # [sources]
-        #   [sources.'public-resolvers']
-        #   urls = [
-        #     'https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md',
-        #     'https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md'
-        #   ]
-        #   cache_file = 'public-resolvers.md'
-        #   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TSmcZ9NcIxtLObnPMpRvM5Q4OPedQJ'
+        # Daftar resolver publik — wajib aktif agar 'cloudflare' dan
+        # 'quad9-dnscrypt-ip4-filter-pri' bisa di-resolve sebagai fallback
+        # ketika NextDNS (entry [static]) down.
+        [sources]
+          [sources.'public-resolvers']
+          urls = [
+            'https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md',
+            'https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md'
+          ]
+          cache_file = 'public-resolvers.md'
+          minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TSmcZ9NcIxtLObnPMpRvM5Q4OPedQJ'
 
         [monitoring_ui]
         enabled = true
