@@ -126,7 +126,8 @@ selfLib.mkModule {
 
             cleanup_old_backups() {
               prefix=$1
-              backups=$(ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +${toString (keepRoot + 1)})
+              keep=$2
+              backups=$(ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)))
               for i in $backups; do
                 echo "Deleting old $prefix backup: $i"
                 delete_subvolume_recursively "$i"
@@ -140,8 +141,8 @@ selfLib.mkModule {
               btrfs subvolume delete "$snap"
             done
 
-            cleanup_old_backups "root"
-            cleanup_old_backups "home"
+            cleanup_old_backups "root" ${toString keepRoot}
+            cleanup_old_backups "home" ${toString keepHome}
 
             umount "$MNTDIR"
             echo "==> [preservation] Background cleanup finished."
