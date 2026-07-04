@@ -9,25 +9,54 @@ let
   # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
   # If the key name is already "enable" (e.g. `{ feat = { enable = true; option = 1; }; }`),
   # it leaves the boolean value as-is to avoid nested wrapping (e.g. `{ enable = { enable = true; }; }`).
-  mapFeatures = attrs:
-    lib.mapAttrs (name: value:
+  mapFeatures =
+    attrs:
+    lib.mapAttrs (
+      name: value:
       if builtins.isBool value then
         if name == "enable" then value else { enable = value; }
       else if builtins.isAttrs value then
-        if value ? flatpak && !(lib.elem name [
-          "services" "apps" "desktop" "hardware" "security" "virtualisation" "ai" "core" "settings"
-          "scripts" "specialization" "browsers" "dev" "editors" "gaming" "media" "packages" "terminal"
-          "networking" "scheduling"
-        ]) then
+        if
+          value ? flatpak
+          && !(lib.elem name [
+            "services"
+            "apps"
+            "desktop"
+            "hardware"
+            "security"
+            "virtualisation"
+            "ai"
+            "core"
+            "settings"
+            "scripts"
+            "specialization"
+            "browsers"
+            "dev"
+            "editors"
+            "gaming"
+            "media"
+            "packages"
+            "terminal"
+            "networking"
+            "scheduling"
+          ])
+        then
           let
-            rest = mapFeatures (builtins.removeAttrs value [ "flatpak" "enable" ]);
-            enableVal = if value ? enable then value.enable else true;
-            flatpakVal = if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
+            rest = mapFeatures (
+              builtins.removeAttrs value [
+                "flatpak"
+                "enable"
+              ]
+            );
+            enableVal = value.enable or true;
+            flatpakVal =
+              if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
           in
           {
             enable = enableVal;
             flatpak = flatpakVal;
-          } // rest
+          }
+          // rest
         else
           mapFeatures value
       else
