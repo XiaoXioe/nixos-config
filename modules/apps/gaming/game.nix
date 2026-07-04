@@ -52,7 +52,7 @@ selfLib.mkModule {
             lib.mkForce (
               (pkgs.runCommand "empty-retroarch" { } "mkdir -p $out")
               // {
-                wrapper = { ... }: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
+                wrapper = _: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
               }
             )
           );
