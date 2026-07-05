@@ -102,9 +102,6 @@
     };
   };
 
-  xdg.configFile."fish/functions/custom".source =
-    config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/functions";
-
   xdg.configFile."fish/history_blacklist".source =
     config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/history_blacklist";
 }
