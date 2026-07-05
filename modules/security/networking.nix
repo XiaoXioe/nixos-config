@@ -55,7 +55,7 @@ selfLib.mkModule {
               INTERFACE=$1
               ACTION=$2
 
-              if [[ "$INTERFACE" =~ ^proton- ]]; then
+              if [[ "$INTERFACE" =~ ^proton- || "$INTERFACE" == "wg-warp" ]]; then
                 case "$ACTION" in
                   up|vpn-up)
                     # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
