@@ -1,6 +1,7 @@
 {
   pkgs,
   selfLib,
+  flakePath,
   ...
 }:
 
@@ -124,6 +125,8 @@ selfLib.mkModule {
       ruff
       shellcheck
       nixd
+      statix
+      deadnix
       sqlite
       sqlfluff
       php
@@ -190,7 +193,28 @@ selfLib.mkModule {
           # Nix
           "nix.serverPath" = "nixd";
           "nix.enableLanguageServer" = true;
-          "nix.serverSettings.nixd.formatting.command" = [ "nixfmt" ];
+          "nix.formatterPath" = "nixfmt";
+          "nix.serverSettings" = {
+            "nixd" = {
+              "formatting" = {
+                "command" = [ "nixfmt" ];
+              };
+              "options" = {
+                "nixos" = {
+                  "expr" = "(builtins.getFlake \"${flakePath}\").nixosConfigurations.KleinMoretti.options";
+                };
+                "home-manager" = {
+                  "expr" =
+                    "(builtins.getFlake \"${flakePath}\").nixosConfigurations.KleinMoretti.options.home-manager.users.type.functor.wrapped.value.options";
+                };
+              };
+            };
+          };
+
+          "[nix]" = {
+            "editor.defaultFormatter" = "jnoortheen.nix-ide";
+            "editor.formatOnSave" = true;
+          };
 
           # Per-language formatters
           "[python]" = {
