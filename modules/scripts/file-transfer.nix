@@ -291,5 +291,45 @@ selfLib.mkModule {
     xdg.configFile."fish/completions/kirim.fish".text = ''
       complete -c kirim -a "(grep '^Host ' ~/.ssh/config_raw | awk '{print \$2}')"
     '';
+
+    xdg.configFile."bash/completions/ambil".text = ''
+      _ambil_completions() {
+        local hosts
+        hosts=$(grep '^Host ' ~/.ssh/config_raw 2>/dev/null | awk '{print $2}')
+        COMPREPLY=( $(compgen -W "$hosts" -- "''${COMP_WORDS[COMP_CWORD]}") )
+      }
+      complete -F _ambil_completions ambil
+    '';
+
+    xdg.configFile."bash/completions/kirim".text = ''
+      _kirim_completions() {
+        local hosts
+        hosts=$(grep '^Host ' ~/.ssh/config_raw 2>/dev/null | awk '{print $2}')
+        COMPREPLY=( $(compgen -W "$hosts" -- "''${COMP_WORDS[COMP_CWORD]}") )
+      }
+      complete -F _kirim_completions kirim
+    '';
+
+    xdg.configFile."zsh/completions/_ambil".text = ''
+      #compdef ambil
+      _ambil() {
+        local -a hosts
+        hosts=($(grep '^Host ' ~/.ssh/config_raw 2>/dev/null | awk '{print $2}'))
+        _describe 'hosts' hosts
+      }
+    '';
+
+    xdg.configFile."zsh/completions/_kirim".text = ''
+      #compdef kirim
+      _kirim() {
+        local -a hosts
+        hosts=($(grep '^Host ' ~/.ssh/config_raw 2>/dev/null | awk '{print $2}'))
+        _describe 'hosts' hosts
+      }
+    '';
+
+    programs.zsh.initExtra = ''
+      fpath+=($HOME/.config/zsh/completions)
+    '';
   };
 }
