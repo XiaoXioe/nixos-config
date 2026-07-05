@@ -87,6 +87,9 @@ selfLib.mkModule {
       };
 
       systemd.user.services.xdg-desktop-portal = {
+        environment = {
+          PATH = lib.mkForce "/run/wrappers/bin:/home/${config.my.user.name}/.nix-profile/bin:/etc/profiles/per-user/${config.my.user.name}/bin:/run/current-system/sw/bin";
+        };
         serviceConfig = {
           StandardError = "null";
         };
