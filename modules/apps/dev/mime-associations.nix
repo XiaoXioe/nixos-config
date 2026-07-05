@@ -16,7 +16,7 @@ let
     terminal = [ "org.wezfurlong.wezterm.desktop" ];
     archive = [ "org.kde.ark.desktop" ];
     discord = [ "com.discordapp.Discord.desktop" ];
-    link = [ "firefox.desktop" ];
+    link = [ "app.zen_browser.zen.desktop" "firefox.desktop" ];
   };
   mimeMap = {
     link = [
@@ -112,6 +112,14 @@ let
       ) mimeMap
     )
   );
+
+  defaultAssociations = lib.listToAttrs (
+    lib.flatten (
+      lib.mapAttrsToList (
+        key: mimeTypes: map (type: lib.nameValuePair type (builtins.head defaultApps."${key}")) mimeTypes
+      ) mimeMap
+    )
+  );
 in
 
 selfLib.mkModule {
@@ -122,7 +130,7 @@ selfLib.mkModule {
     xdg.mimeApps = {
       enable = true;
       associations.added = associations;
-      defaultApplications = associations;
+      defaultApplications = defaultAssociations;
     };
   };
 }
