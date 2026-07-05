@@ -44,7 +44,7 @@ selfLib.mkModule {
         google-colab-mcp-pkg
         telegram-mcp-pkg
         github-mcp-server-pkg
-        inputs.mcp-nixos.packages.${system}.default
+        pkgs.mcp-nixos
       ];
 
       activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -121,7 +121,7 @@ selfLib.mkModule {
         };
 
         nixos = {
-          command = "${inputs.mcp-nixos.packages.${system}.default}/bin/mcp-nixos";
+          command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
           args = [ ];
         };
 
