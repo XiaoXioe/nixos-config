@@ -55,19 +55,22 @@ selfLib.mkModule {
               INTERFACE=$1
               ACTION=$2
 
-              if [[ "$INTERFACE" =~ ^proton- || "$INTERFACE" == "wg-warp" ]]; then
-                case "$ACTION" in
-                  up|vpn-up)
-                    # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
-                    ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname eth* drop
-                    ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlan* drop
-                    ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlp* drop
-                    ;;
-                  down|vpn-down)
-                    # Matikan killswitch: hapus aturan blokir
-                    ${pkgs.nftables}/bin/nft flush chain inet filter vpn_killswitch
-                    ;;
-                esac
+              if [[ -n "$CONNECTION_UUID" ]]; then
+                CONN_TYPE=$(${pkgs.networkmanager}/bin/nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null || echo "")
+                if [[ "$CONN_TYPE" == "wireguard" || "$CONN_TYPE" == "vpn" ]]; then
+                  case "$ACTION" in
+                    up|vpn-up)
+                      # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
+                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname eth* drop
+                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlan* drop
+                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlp* drop
+                      ;;
+                    down|vpn-down)
+                      # Matikan killswitch: hapus aturan blokir
+                      ${pkgs.nftables}/bin/nft flush chain inet filter vpn_killswitch
+                      ;;
+                  esac
+                fi
               fi
             '';
             type = "basic";
