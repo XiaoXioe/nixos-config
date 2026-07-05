@@ -4,6 +4,11 @@
   ...
 }:
 let
+  vpnDir = ../../secrets/vpn-files;
+  vpnFiles = builtins.attrNames (builtins.readDir vpnDir);
+  protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") vpnFiles;
+  vpnPaths = pkgs.lib.concatMapStringsSep " " (f: "\"/run/secrets/${f}\"") protonVpnFiles;
+
   vpn-off-bin = pkgs.writeShellScriptBin "vpn-off-bin" ''
     if [ -f ~/.cache/vpn/pid ]; then
         WIREPROXY_PID=$(cat ~/.cache/vpn/pid)
@@ -30,18 +35,8 @@ let
         exec vpn-verify-bin "$_vpn_pre_ip" "$_vpn_pre_asn"
     fi
 
-    # List file konfigurasi VPN yang tersedia (dideteksi secara dinamis saat runtime)
-    configs=()
-    if [ -d /run/secrets ]; then
-        for f in /run/secrets/*.conf; do
-            if [ -e "$f" ]; then
-                name=$(basename "$f")
-                if [ "$name" != "wg-warp.conf" ]; then
-                    configs+=("$f")
-                fi
-            fi
-        done
-    fi
+    # List file konfigurasi VPN yang tersedia (dibuat secara dinamis oleh Nix dari secrets/vpn-files)
+    configs=(${vpnPaths})
 
     if [ ''${#configs[@]} -eq 0 ]; then
         echo "❌ Error: Tidak ada berkas konfigurasi VPN yang terdaftar."
