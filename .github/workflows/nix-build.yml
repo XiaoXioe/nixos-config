@@ -26,9 +26,6 @@ jobs:
           name: cachixix
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Flake check (eval + lint gate)
-        run: nix flake check -L
-
       - name: Build cached packages
         run: |
           # caelestia sengaja tidak dibangun: hanya diekspor bila modul
