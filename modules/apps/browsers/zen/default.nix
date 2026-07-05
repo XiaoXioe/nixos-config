@@ -152,10 +152,10 @@ selfLib.mkModule {
           name = "firefox@tampermonkey.net";
           pkg = tampermonkey;
         }
-        {
-          name = "simple-tab-groups@drive4ik";
-          pkg = addons.simple-tab-groups;
-        }
+        # {
+        #   name = "simple-tab-groups@drive4ik";
+        #   pkg = addons.simple-tab-groups;
+        # }
         {
           name = "{c2c003ee-bd69-42a2-b0e9-6f34222cb046}";
           pkg = addons.auto-tab-discard;
