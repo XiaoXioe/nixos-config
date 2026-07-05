@@ -47,7 +47,10 @@ selfLib.mkModule {
           };
         };
 
-        "cookies" = [ "zen" "${hmOpts.config.home.homeDirectory}/.config/zen/${hmOpts.config.home.username}" ];
+        "cookies" = [
+          "zen"
+          "${hmOpts.config.home.homeDirectory}/.config/zen/${hmOpts.config.home.username}"
+        ];
 
         "cache" = {
           "file" = "~/.local/share/gallery-dl/cache.sqlite3";
