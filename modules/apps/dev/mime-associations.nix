@@ -16,7 +16,10 @@ let
     terminal = [ "org.wezfurlong.wezterm.desktop" ];
     archive = [ "org.kde.ark.desktop" ];
     discord = [ "com.discordapp.Discord.desktop" ];
-    link = [ "app.zen_browser.zen.desktop" "firefox.desktop" ];
+    link = [
+      "app.zen_browser.zen.desktop"
+      "firefox.desktop"
+    ];
   };
   mimeMap = {
     link = [
