@@ -67,6 +67,11 @@ in
   inherit (modules) mkModule;
   inherit mapFeatures;
 
+  # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
+  # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix
+  # only has `lib` in scope, not pkgs/inputs.
+  browserAddons = import ./browser-addons.nix;
+
   # Auto-import all .nix files (except default.nix) and directories
   # containing a default.nix from the given path.
   scanPaths =
