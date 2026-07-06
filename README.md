@@ -1,5 +1,12 @@
 # ❄️ Klein Moretti's NixOS Configuration
 
+![NixOS](https://img.shields.io/badge/NixOS-30343f?style=flat&logo=nixos&logoColor=7eb3e6)
+![nixpkgs](https://img.shields.io/badge/nixpkgs-unstable-7eb3e6?style=flat&logo=nixos&logoColor=7eb3e6&labelColor=30343f)
+![kernel](https://img.shields.io/badge/kernel-zen-a2a7f5?style=flat&logo=linux&logoColor=a2a7f5&labelColor=30343f)
+![desktop](https://img.shields.io/badge/desktop-niri-86d1fc?style=flat&logo=wayland&logoColor=86d1fc&labelColor=30343f)
+![browser](https://img.shields.io/badge/browser-zen-fca3a7?style=flat&logo=firefox-browser&logoColor=fca3a7&labelColor=30343f)
+![shell](https://img.shields.io/badge/shell-fish-f7ca94?style=flat&logo=fishshell&logoColor=f7ca94&labelColor=30343f)
+
 Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gaming/desktop support.
 
 ## 🏗️ Architecture
@@ -11,6 +18,7 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 ├── lib/
 │   ├── default.nix              # Public API for custom library functions
 │   ├── builders.nix             # NixOS + Home Manager configuration builders
+│   ├── browser-addons.nix       # Shared Firefox/Zen addon builders and policy locks
 │   └── modules/                 # Module helper engine (mkModule & flatpak-helper)
 │
 ├── hosts/
@@ -45,6 +53,8 @@ Modular NixOS flake with Home Manager, impermanence, sops-nix, and full AI/gamin
 
 - **Unified Module Builder (`mkModule`)** — Simplified syntax that handles options and config merging for both NixOS and Home Manager.
 - **Single Source of Truth** — Per-user features (`hosts/nixos/users.nix`) automatically drive and map to system-wide configurations using recursive feature mapping (`mapFeatures`) in `hosts/nixos/default.nix`.
+- **Shared Browser Addons Helper (`browser-addons.nix`)** — Centralized builder for AMO extensions (`buildAmoAddon`), custom wallet derivations, and Firefox/Zen policies to guarantee DRY (Don't Repeat Yourself) compliance.
+- **Declarative Flatpak Extensions via `buildEnv`** — Zen Browser Flatpak merges extensions into a single store path and links them recursively, avoiding manual ID mapping while keeping the directory writeable for in-app extension updates.
 - **Nix Flakes** — Pinned inputs and reproducible builds.
 - **Auto-import modules** — `scanPaths` discovers and imports new `.nix` files automatically.
 - **Impermanence** — Ephemeral root with Btrfs snapshots + bind-mount persistence.
