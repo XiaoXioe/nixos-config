@@ -140,8 +140,8 @@ selfLib.mkModule {
         "rclone.conf" = {
           format = "binary";
           sopsFile = ../../secrets/binary/rclone.enc.conf;
-          group = "users";
-          mode = "0440";
+          owner = userName;
+          mode = "0400";
         };
 
         "nextdns_stamp" = { };
