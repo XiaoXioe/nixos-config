@@ -164,6 +164,10 @@ selfLib.mkModule {
   nixosConfig = {
     environment.systemPackages = [ pkgs.smartmontools ];
 
+    my.hardware.preservation.extraDirectories = [
+      "/var/lib/ssd-tracker"
+    ];
+
     systemd.services."user@" = {
       serviceConfig = {
         Delegate = "pids memory cpu io";
@@ -176,7 +180,6 @@ selfLib.mkModule {
       wantedBy = [ "timers.target" ];
       description = "Timer untuk Laporan SSD TBW";
       timerConfig = {
-        OnBootSec = "2min";
         OnCalendar = "hourly";
         Persistent = true;
       };
