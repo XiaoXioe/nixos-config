@@ -20,7 +20,6 @@ selfLib.mkModule {
           SendEnv = "LANG LC_*";
         };
         "github.com" = {
-          Host = "github.com";
           User = "git";
           IdentityFile = "~/.ssh/id_ed25519";
           IdentitiesOnly = "yes";
