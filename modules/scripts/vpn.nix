@@ -5,8 +5,7 @@
 }:
 let
   vpnDir = ../../secrets/vpn-files;
-  vpnFiles = builtins.attrNames (builtins.readDir vpnDir);
-  protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") vpnFiles;
+  protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") (selfLib.getVpnFiles vpnDir);
   vpnPaths = pkgs.lib.concatMapStringsSep " " (f: "\"/run/secrets/${f}\"") protonVpnFiles;
 
   vpn-off-bin = pkgs.writeShellScriptBin "vpn-off-bin" ''
