@@ -10,7 +10,7 @@ selfLib.mkModule {
   nixosConfig = {
     services.ollama = {
       enable = true;
-      models = "/mnt/data_btrfs/ollama_storage/models";
+      modelsDir = "/mnt/data_btrfs/ollama_storage/models";
     };
 
     systemd.services.ollama = {
