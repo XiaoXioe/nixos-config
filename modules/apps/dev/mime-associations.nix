@@ -103,8 +103,9 @@ let
     archive = [
       "application/zip"
       "application/rar"
-      "application/7z"
-      "application/*tar"
+      "application/x-7z-compressed"
+      "application/x-tar"
+      "application/x-compressed-tar"
     ];
     discord = [ "x-scheme-handler/discord" ];
   };
