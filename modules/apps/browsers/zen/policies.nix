@@ -81,6 +81,7 @@
   "browser.aboutConfig.showWarning" = lock-false;
   "browser.preferences.config_warning.warningPasswordManager.dismissed" = lock-true;
   "intl.accept_languages" = lock "id,en-us";
+  "zen.tab-unloader.enabled" = lock-false;
 
   # ==========================================
   # 7. Grafis & Performa (Graphics & Performance)
@@ -89,6 +90,17 @@
   "webgl.disabled" = lock-false;
   "browser.sessionhistory.max_entries" = lock 5;
   "browser.preferences.defaultPerformanceSettings.enabled" = lock-true;
+  "browser.tabs.min_inactive_duration_before_unload" = lock 3600000; # 1 jam
+
+  # ==========================================
+  # 7.1. Jaringan & Performa (Network & Performance - Aligned with Firefox)
+  # ==========================================
+  "browser.sessionstore.restore_on_demand" = lock-true;
+  "browser.sessionstore.restore_pinned_tabs_on_demand" = lock-true;
+  "network.dns.disablePrefetch" = lock-true;
+  "network.predictor.enabled" = lock-false;
+  "network.http.speculative-parallel-limit" = lock 0;
+  "browser.places.speculativeConnect.enabled" = lock-false;
 
   # ==========================================
   # 8. Privasi & Kredensial (Privacy & Credentials)
