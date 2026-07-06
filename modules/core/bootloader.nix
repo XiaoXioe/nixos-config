@@ -28,6 +28,8 @@ let
     '';
   };
 
+  efiDevice = config.fileSystems."/boot/efi".device or "";
+  efiUuid = lib.removePrefix "/dev/disk/by-uuid/" efiDevice;
 in
 selfLib.mkModule {
   name = "core.bootloader";
@@ -36,6 +38,10 @@ selfLib.mkModule {
       {
         assertion = config.fileSystems ? "/boot/efi";
         message = "Partisi /boot/efi harus dikonfigurasi dalam fileSystems agar bootloader dapat diinisialisasi.";
+      }
+      {
+        assertion = lib.hasPrefix "/dev/disk/by-uuid/" efiDevice;
+        message = "fileSystems.\"/boot/efi\".device harus berformat /dev/disk/by-uuid/<UUID> agar grubfm bisa menemukan partisi EFI.";
       }
     ];
 
@@ -52,8 +58,8 @@ selfLib.mkModule {
 
       extraEntries = ''
         menuentry "Grub2 File Manager" --class efi {
-          # UUID partisi EFI sistem ini — update jika disk diganti
-          search --no-floppy --fs-uuid --set=root CF4A-0A6F
+          # UUID partisi EFI diambil otomatis dari fileSystems."/boot/efi".device
+          search --no-floppy --fs-uuid --set=root ${efiUuid}
           chainloader /EFI/grubfm/grubfmx64.efi
         }
       '';
