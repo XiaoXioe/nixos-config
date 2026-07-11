@@ -224,6 +224,8 @@ selfLib.mkModule {
         users.${config.my.user.name} = {
           directories = [
             "Desktop"
+            "xanylabeling_data"
+            ".xanylabelingrc"
             ".BurpSuite"
             ".agents"
             ".telegram-mcp"
