@@ -18,6 +18,9 @@ selfLib.mkModule {
     environment.systemPackages = with pkgs; [
       sops
     ];
+    systemd.tmpfiles.rules = [
+      "z /run/secrets/rclone.conf 0400 ${userName} users -"
+    ];
     sops = {
       defaultSopsFile = ../../secrets/secrets.yaml;
       defaultSopsFormat = "yaml";
