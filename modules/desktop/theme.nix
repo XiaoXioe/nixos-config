@@ -9,6 +9,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.pointerCursor = {
+      enable = true;
       name = "Vimix-white-cursors";
       package = pkgs.vimix-cursors;
       size = 24;
