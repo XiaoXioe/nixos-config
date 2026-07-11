@@ -47,7 +47,10 @@ selfLib.mkModule {
 
       exclude = [
         ".cache"
+        "venv"
+        ".venv"
         "node_modules"
+        "dataset"
       ];
 
       # Menginisialisasi repositori jika belum ada
