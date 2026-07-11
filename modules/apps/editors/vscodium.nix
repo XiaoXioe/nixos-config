@@ -263,6 +263,9 @@ selfLib.mkModule {
           # Built-in linters
           "json.validate.enable" = true;
           "shellcheck.executablePath" = "${pkgs.shellcheck}/bin/shellcheck";
+
+          # Disable workspace trust prompt
+          "security.workspace.trust.enabled" = false;
         };
       };
     };
