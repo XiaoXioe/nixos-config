@@ -144,52 +144,56 @@ let
     fi
   '';
 
-  mpv-wrapper = pkgs.writeShellScriptBin "mpv" ''
-    custom_res=0
-    mpv_args=()
-    skip_next=0
-    args=("$@")
-    for ((i=0; i<''${#args[@]}; i++)); do
-        if [ $skip_next -eq 1 ]; then
-            skip_next=0
-            continue
-        fi
-        if [ "''${args[i]}" = "-r" ]; then
-            next_idx=$((i + 1))
-            if [ $next_idx -lt ''${#args[@]} ]; then
-                custom_res="''${args[next_idx]}"
-                skip_next=1
-            else
-                echo "Error: -r butuh nilai (contoh: 1080, 480, best)"
-                exit 1
-            fi
-        else
-            mpv_args+=("''${args[i]}")
-        fi
-    done
-
-    if [ "$custom_res" != "0" ]; then
-        echo "Override Resolusi ke: $custom_res [Prioritas Codec: AVC/H.264]"
-        if [ "$custom_res" = "best" ]; then
-            exec ${pkgs.mpv}/bin/mpv --ytdl-format="bestvideo[vcodec^=avc]+bestaudio/bestvideo+bestaudio/best" "''${mpv_args[@]}"
-        else
-            exec ${pkgs.mpv}/bin/mpv --ytdl-format="bestvideo[height<=$custom_res][vcodec^=avc]+bestaudio/bestvideo[height<=$custom_res]+bestaudio/best" "''${mpv_args[@]}"
-        fi
-    else
-        exec ${pkgs.mpv}/bin/mpv "''${mpv_args[@]}"
-    fi
-  '';
 in
 selfLib.mkModule {
   name = "scripts.custom-functions";
   description = "Migrated custom bash scripts (cek_ip, wayres, softsub, mpv-wrapper)";
 
-  hmConfig = hmOpts: {
-    home.packages = [
-      cek_ip
-      wayres
-      softsub
-      mpv-wrapper
-    ];
-  };
+  hmConfig =
+    hmOpts:
+    let
+      mpv-wrapper = pkgs.writeShellScriptBin "mpv-wrapper" ''
+        custom_res=0
+        mpv_args=()
+        skip_next=0
+        args=("$@")
+        for ((i=0; i<''${#args[@]}; i++)); do
+            if [ $skip_next -eq 1 ]; then
+                skip_next=0
+                continue
+            fi
+            if [ "''${args[i]}" = "-r" ]; then
+                next_idx=$((i + 1))
+                if [ $next_idx -lt ''${#args[@]} ]; then
+                    custom_res="''${args[next_idx]}"
+                    skip_next=1
+                else
+                    echo "Error: -r butuh nilai (contoh: 1080, 480, best)"
+                    exit 1
+                fi
+            else
+                mpv_args+=("''${args[i]}")
+            fi
+        done
+
+        if [ "$custom_res" != "0" ]; then
+            echo "Override Resolusi ke: $custom_res [Prioritas Codec: AVC/H.264]"
+            if [ "$custom_res" = "best" ]; then
+                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[vcodec^=avc]+bestaudio/bestvideo+bestaudio/best" "''${mpv_args[@]}"
+            else
+                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[height<=$custom_res][vcodec^=avc]+bestaudio/bestvideo[height<=$custom_res]+bestaudio/best" "''${mpv_args[@]}"
+            fi
+        else
+            exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv "''${mpv_args[@]}"
+        fi
+      '';
+    in
+    {
+      home.packages = [
+        cek_ip
+        wayres
+        softsub
+        mpv-wrapper
+      ];
+    };
 }

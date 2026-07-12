@@ -14,5 +14,7 @@
     sz = "sudo compsize -x";
 
     squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
+
+    mpv = "mpv-wrapper";
   };
 }
