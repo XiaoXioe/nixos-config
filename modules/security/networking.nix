@@ -96,6 +96,9 @@ selfLib.mkModule {
 
               # 4. Lompat ke chain killswitch dinamis
               jump vpn_killswitch
+
+              # 5. Redirect traffic HTTP/HTTPS ke Zapret (bypassed jika service mati)
+              meta mark and 0x40000000 == 0 tcp dport { 80, 443 } ct original packets 1-6 queue num 200 bypass
             }
 
             chain vpn_killswitch {
