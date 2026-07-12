@@ -18,7 +18,6 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     home = {
       packages = [
-        pkgs.google-chrome
         antigravity-cli
         antigravity-ide
         claude-code
