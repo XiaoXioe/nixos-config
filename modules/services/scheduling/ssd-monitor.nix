@@ -174,7 +174,9 @@ selfLib.mkModule {
       };
     };
 
-    systemd.user.settings.Manager.DefaultIOAccounting = true;
+    systemd.user.extraConfig = ''
+      DefaultIOAccounting=yes
+    '';
 
     systemd.timers."ssd-tracker" = {
       wantedBy = [ "timers.target" ];
