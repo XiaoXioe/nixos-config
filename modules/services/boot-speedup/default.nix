@@ -29,7 +29,9 @@ selfLib.mkModule {
 
     # systemd-timeout
     systemd.settings.Manager.DefaultTimeoutStopSec = "10s";
-    systemd.user.settings.Manager.DefaultTimeoutStopSec = "10s";
+    systemd.user.extraConfig = ''
+      DefaultTimeoutStopSec=10s
+    '';
     systemd.services."user@" = {
       serviceConfig = {
         TimeoutStopSec = "10s";
