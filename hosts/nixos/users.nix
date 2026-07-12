@@ -133,6 +133,7 @@
         vpn = true;
         openssh = true;
         "cloudflare-warp" = true;
+        zapret = true;
       };
       scheduling = {
         ananicy = true;
@@ -152,6 +153,7 @@
     };
 
     scripts = {
+      custom-functions = true;
       agy-profile = true;
       agy-ide-profile = true;
       cek-cache = true;
