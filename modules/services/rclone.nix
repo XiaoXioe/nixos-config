@@ -30,9 +30,16 @@ selfLib.mkModule {
             "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
             "${pkgs.coreutils}/bin/cp ${hmOpts.osConfig.sops.secrets."rclone.conf".path} %t/rclone.conf"
             "${pkgs.coreutils}/bin/chmod 600 %t/rclone.conf"
-            "${pkgs.bash}/bin/bash -c 'for i in {1..30}; do if echo > /dev/tcp/127.0.0.1/40000; then exit 0; fi; ${pkgs.coreutils}/bin/sleep 1; done; exit 1'"
           ];
           ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
+            # Wait for proxy port 40000 to be open to avoid startup failure
+            for i in {1..30}; do
+              if echo 2>/dev/null > /dev/tcp/127.0.0.1/40000; then
+                break
+              fi
+              ${pkgs.coreutils}/bin/sleep 1
+            done
+
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "$XDG_RUNTIME_DIR/rclone.conf" \
               --vfs-cache-mode full \
