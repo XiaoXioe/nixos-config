@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   selfLib,
   ...
@@ -69,7 +70,17 @@ selfLib.mkModule {
       ];
     };
 
-    systemd.services."restic-backups-data-utama".environment = proxyEnv;
+    systemd.services."restic-backups-data-utama" = {
+      environment = proxyEnv // {
+        RCLONE_CONFIG = lib.mkForce "/run/restic-backups-data-utama/rclone.conf";
+      };
+      serviceConfig.ExecStartPre = lib.mkBefore [
+        (pkgs.writeShellScript "restic-backups-data-utama-copy-rclone-config" ''
+          ${pkgs.coreutils}/bin/cp ${config.sops.secrets."rclone.conf".path} /run/restic-backups-data-utama/rclone.conf
+          ${pkgs.coreutils}/bin/chmod 600 /run/restic-backups-data-utama/rclone.conf
+        '')
+      ];
+    };
 
     # ── Restic Mount (on-demand) ──────────────────────────────────────
     # Akses cadangan sebagai filesystem FUSE di ~/ResticBackup
@@ -82,7 +93,7 @@ selfLib.mkModule {
       # Tidak ada wantedBy — layanan ini hanya dijalankan secara manual
 
       environment = proxyEnv // {
-        RCLONE_CONFIG = config.sops.secrets."rclone.conf".path;
+        RCLONE_CONFIG = "/run/restic-mount/rclone.conf";
         RESTIC_REPOSITORY = resticRepo;
         RESTIC_PASSWORD_FILE = config.sops.secrets."restic-password".path;
       };
@@ -94,9 +105,14 @@ selfLib.mkModule {
 
       serviceConfig = {
         Type = "simple";
+        RuntimeDirectory = "restic-mount";
         ExecStartPre = [
           "-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
+          (pkgs.writeShellScript "restic-mount-copy-rclone-config" ''
+            ${pkgs.coreutils}/bin/cp ${config.sops.secrets."rclone.conf".path} /run/restic-mount/rclone.conf
+            ${pkgs.coreutils}/bin/chmod 600 /run/restic-mount/rclone.conf
+          '')
         ];
         ExecStart = "${pkgs.restic}/bin/restic mount ${mountPoint} --allow-other --no-lock";
         ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
