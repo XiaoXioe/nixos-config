@@ -61,10 +61,7 @@ selfLib.mkModule {
       };
 
       gc = {
-        automatic = true;
-        # Runs every Monday at 10:00 AM
-        dates = "Mon 10:00";
-        options = "--delete-older-than 7d";
+        automatic = false;
       };
 
       extraOptions = ''
