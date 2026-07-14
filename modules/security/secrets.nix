@@ -114,6 +114,11 @@ selfLib.mkModule {
           mode = "0400";
         };
 
+        "doas-password" = {
+          owner = userName;
+          mode = "0400";
+        };
+
         "cachix-token" = {
           owner = userName;
           group = "users";
