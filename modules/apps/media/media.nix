@@ -13,7 +13,7 @@ selfLib.mkModule {
     home.packages = with pkgs; [
       ffmpeg
       zbar
-      inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default
+      # inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
     programs.gallery-dl = {
       enable = true;

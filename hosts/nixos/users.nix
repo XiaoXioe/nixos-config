@@ -41,7 +41,7 @@
       };
 
       editors = {
-        neovim = true;
+        neovim = false;
         vscodium = true;
         zeditor = false;
       };

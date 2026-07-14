@@ -10,6 +10,25 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
+      # doas-agent: wrapper yang agent panggil untuk menjalankan doas tanpa TTY interaktif.
+      # Masuk ke ~/.nix-profile/bin/ sehingga otomatis tersedia di dalam bwrap (via --dev-bind / /).
+      (pkgs.writeShellApplication {
+        name = "doas-agent";
+        runtimeInputs = [
+          pkgs.util-linux # script(1)
+        ];
+        text = ''
+          DOAS_PASS_FILE="/run/secrets/doas-password"
+          if [ ! -f "$DOAS_PASS_FILE" ]; then
+            echo "doas-agent: secret file tidak ditemukan: $DOAS_PASS_FILE" >&2
+            exit 1
+          fi
+          PASS="$(cat "$DOAS_PASS_FILE")"
+          # Gunakan script(1) untuk alokasi PTY — doas membutuhkan TTY untuk auth
+          (sleep 0.3; printf '%s\n' "$PASS") | script -q -c "doas $*" /dev/null
+        '';
+      })
+
       (pkgs.writeShellApplication {
         name = "agy-profile";
         runtimeInputs = [
