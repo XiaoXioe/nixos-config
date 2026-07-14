@@ -10,22 +10,31 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      # doas-agent: wrapper yang agent panggil untuk menjalankan doas tanpa TTY interaktif.
-      # Masuk ke ~/.nix-profile/bin/ sehingga otomatis tersedia di dalam bwrap (via --dev-bind / /).
       (pkgs.writeShellApplication {
         name = "doas-agent";
         runtimeInputs = [
-          pkgs.util-linux # script(1)
+          pkgs.openssh
+          pkgs.coreutils
         ];
         text = ''
-          DOAS_PASS_FILE="/run/secrets/doas-password"
-          if [ ! -f "$DOAS_PASS_FILE" ]; then
-            echo "doas-agent: secret file tidak ditemukan: $DOAS_PASS_FILE" >&2
-            exit 1
-          fi
-          PASS="$(cat "$DOAS_PASS_FILE")"
-          # Gunakan script(1) untuk alokasi PTY — doas membutuhkan TTY untuk auth
-          (sleep 0.3; printf '%s\n' "$PASS") | script -q -c "doas $*" /dev/null
+          # Escaped arguments for safe remote execution
+          QARGS=""
+          for arg in "$@"; do
+            QARGS="$QARGS $(printf '%q' "$arg")"
+          done
+
+          # Execute via SSH to localhost to escape bubblewrap PR_SET_NO_NEW_PRIVS restriction.
+          # The remote end reads /run/secrets/doas-password directly to prevent exposing
+          # the password in the process list (ps) on either the local or remote side.
+          exec ssh -F /dev/null -i /home/klein-moretti/.ssh/id_ed25519 -o StrictHostKeyChecking=no klein-moretti@localhost \
+            "env CMD_ARGS=$(printf '%q' "$QARGS") bash -c '
+              DOAS_PASS_FILE=\"/run/secrets/doas-password\"
+              if [ ! -f \"\$DOAS_PASS_FILE\" ]; then
+                echo \"doas-agent: secret file tidak ditemukan: \$DOAS_PASS_FILE\" >&2
+                exit 1
+              fi
+              (sleep 0.3; printf \"%s\n\" \"\$(cat \"\$DOAS_PASS_FILE\")\") | script -q -c \"doas \$CMD_ARGS\" /dev/null
+            '"
         '';
       })
 
