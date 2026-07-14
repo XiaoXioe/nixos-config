@@ -76,7 +76,9 @@ selfLib.mkModule {
       };
       serviceConfig.ExecStartPre = lib.mkBefore [
         (pkgs.writeShellScript "restic-backups-data-utama-copy-rclone-config" ''
-          ${pkgs.coreutils}/bin/cp ${config.sops.secrets."rclone.conf".path} /run/restic-backups-data-utama/rclone.conf
+          ${pkgs.coreutils}/bin/cp ${
+            config.sops.secrets."rclone.conf".path
+          } /run/restic-backups-data-utama/rclone.conf
           ${pkgs.coreutils}/bin/chmod 600 /run/restic-backups-data-utama/rclone.conf
         '')
       ];
