@@ -38,9 +38,10 @@ selfLib.mkModule {
 
       # Apa saja yang akan dicadangkan
       paths = [
-        "/home/${config.my.user.name}/Documents"
-        "/home/${config.my.user.name}/Pictures"
-        "/home/${config.my.user.name}/Music"
+        "/home/${config.my.user.name}/.gemini"
+        "/mnt/data/Documents"
+        "/mnt/data/Pictures"
+        "/mnt/data/Music"
         "/persist/home/${config.my.user.name}/pentest"
         "/persist/home/${config.my.user.name}/PersistentData"
         "/mnt/data/backup-cloud"
@@ -52,6 +53,7 @@ selfLib.mkModule {
         ".venv"
         "node_modules"
         "dataset"
+        "ml"
       ];
 
       # Menginisialisasi repositori jika belum ada
@@ -73,6 +75,7 @@ selfLib.mkModule {
     systemd.services."restic-backups-data-utama" = {
       environment = proxyEnv // {
         RCLONE_CONFIG = lib.mkForce "/run/restic-backups-data-utama/rclone.conf";
+        RESTIC_PROGRESS_FPS = "0.016666";
       };
       serviceConfig.ExecStartPre = lib.mkBefore [
         (pkgs.writeShellScript "restic-backups-data-utama-copy-rclone-config" ''
