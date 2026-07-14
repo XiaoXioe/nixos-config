@@ -17,6 +17,7 @@
   ];
   openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZ9JzZzktDyRcOpqMyit78cS0xx7NRj7Mak89HjsRLR u0_a185@localhost"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEcEPafkivvHuS2FPHTQrlXvs/AEVkKE82V6hnIpAtRU klein-moretti@KleinMoretti"
   ];
   userFeatures = {
     apps = {
