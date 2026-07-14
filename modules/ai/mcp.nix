@@ -12,6 +12,7 @@ let
   google-colab-mcp-pkg = inputs.nix-mcp.packages.${system}.google-colab-mcp;
   telegram-mcp-pkg = inputs.nix-mcp.packages.${system}.telegram-mcp;
   github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
+  tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
 
   makeSshMcp =
     {
@@ -44,6 +45,7 @@ selfLib.mkModule {
         google-colab-mcp-pkg
         telegram-mcp-pkg
         github-mcp-server-pkg
+        tavily-mcp-pkg
         pkgs.mcp-nixos
       ];
 
@@ -133,6 +135,16 @@ selfLib.mkModule {
         "telegram-mcp" = {
           command = "${telegram-mcp-pkg}/bin/telegram-mcp";
           args = [ "serve" ];
+        };
+
+        "tavily-mcp" = {
+          command = "${pkgs.bash}/bin/bash";
+          args = [
+            "-c"
+            "TAVILY_API_KEY=$(cat ${
+              hmOpts.osConfig.sops.secrets."tavily-api-key".path
+            }) ${tavily-mcp-pkg}/bin/tavily-mcp"
+          ];
         };
       };
     };
