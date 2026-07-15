@@ -14,6 +14,7 @@ selfLib.mkModule {
       noto-fonts-color-emoji
       nerd-fonts.jetbrains-mono
       nerd-fonts.fira-code
+      material-symbols
     ];
   };
 }
