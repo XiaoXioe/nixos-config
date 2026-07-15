@@ -106,7 +106,10 @@
         enable = true;
         dms = true;
       };
-      hyprland = false;
+      hyprland = {
+        enable = true;
+        nandoroid = true;
+      };
       xfce = false;
       theme = true;
       gnome = true;
