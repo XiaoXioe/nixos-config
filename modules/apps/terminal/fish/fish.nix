@@ -52,6 +52,9 @@
             set -gx CLOUDFLARE_TOKEN (cat /run/secrets/cloudflare-token)
         end
 
+        # GPG SSH Agent Integration
+        set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
+
         set -g fish_color_command cdd6f4
         set -g fish_color_param 89b4fa
         set -g fish_color_quote f9e2af
