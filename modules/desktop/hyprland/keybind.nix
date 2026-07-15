@@ -1,4 +1,9 @@
-{ ... }:
+{
+  config,
+  osConfig,
+  lib,
+  ...
+}:
 {
   # Configure Hyprland keybindings - aligned with Niri's hotkeys
   wayland.windowManager.hyprland.settings = {
@@ -12,11 +17,43 @@
       "$mod SHIFT, E, exit,"
       "$mod SHIFT, T, togglefloating,"
       "$mod, F, fullscreen, 0"
+    ]
+    ++ (
+      if osConfig.my.desktop.hyprland.nandoroid.enable then
+        [
+          # Nandoroid binds
+          "$mod, Space, exec, quickshell -c nandoroid ipc call launcher toggle"
+          "$mod, V, exec, quickshell -c nandoroid ipc call spotlight toggle clipboard"
+          "CTRL SUPER, T, exec, quickshell -c nandoroid ipc call quickwallpaper toggle"
+          "$mod, A, exec, quickshell -c nandoroid ipc call notifications toggle"
+          "$mod, N, exec, quickshell -c nandoroid ipc call quicksettings toggle"
+          "$mod, G, exec, quickshell -c nandoroid ipc call quickactions toggle"
+          "$mod, D, exec, quickshell -c nandoroid ipc call dashboard toggle"
+          "$mod, I, exec, quickshell -c nandoroid ipc call settings toggle"
+          "$mod, Tab, exec, quickshell -c nandoroid ipc call overview toggle"
+          "$mod, L, exec, quickshell -c nandoroid ipc call lock activate"
+          "CTRL ALT, Delete, exec, quickshell -c nandoroid ipc call systemmonitor toggle"
 
-      # Caelestia Shell IPC Drawer Toggles (Aligned with spotlight/dashboard/utilities in DMS)
-      "$mod, Space, exec, caelestia shell drawers toggle launcher"
-      "$mod, D, exec, caelestia shell drawers toggle dashboard"
-      "$mod ALT, U, exec, caelestia shell drawers toggle utilities"
+          # Region Tools (Screenshots & Recording)
+          "$mod SHIFT, S, exec, quickshell -c nandoroid ipc call quickshell:regionScreenshot"
+          "$mod SHIFT, R, exec, quickshell -c nandoroid ipc call quickshell:regionRecord"
+          "$mod SHIFT, X, exec, quickshell -c nandoroid ipc call quickshell:regionOcr"
+
+          # Spotlight Specifics
+          "$mod, Period, exec, quickshell -c nandoroid ipc call quickshell:spotlightEmoji"
+
+          # Restart shell
+          "CTRL SUPER, R, exec, ~/.config/quickshell/nandoroid/scripts/restartshell.sh"
+        ]
+      else
+        [
+          # Caelestia Shell IPC Drawer Toggles (Aligned with spotlight/dashboard/utilities in DMS)
+          "$mod, Space, exec, caelestia shell drawers toggle launcher"
+          "$mod, D, exec, caelestia shell drawers toggle dashboard"
+          "$mod ALT, U, exec, caelestia shell drawers toggle utilities"
+        ]
+    )
+    ++ [
 
       # Window Focus Movement (Niri: Arrow Keys)
       "$mod, left, movefocus, l"
@@ -93,6 +130,11 @@
     bindm = [
       "$mod, mouse:272, movewindow"
       "$mod, mouse:273, resizewindow"
+    ];
+
+    bindr = lib.optionals osConfig.my.desktop.hyprland.nandoroid.enable [
+      # Tapping Super opens Spotlight
+      "SUPER, Super_L, exec, quickshell -c nandoroid ipc call spotlight toggle"
     ];
   };
 }
