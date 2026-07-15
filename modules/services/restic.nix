@@ -39,6 +39,9 @@ selfLib.mkModule {
       # Apa saja yang akan dicadangkan
       paths = [
         "/home/${config.my.user.name}/.gemini"
+        "/home/${config.my.user.name}/.ssh"
+        "/home/${config.my.user.name}/.gnupg"
+        "/home/${config.my.user.name}/.thunderbird"
         "/mnt/data/Documents"
         "/mnt/data/Pictures"
         "/mnt/data/Music"
