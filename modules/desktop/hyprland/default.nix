@@ -10,10 +10,15 @@ selfLib.mkModule {
   name = "desktop.hyprland";
   description = "Hyprland window manager with Caelestia Shell";
 
+  imports = [
+    ./nandoroid.nix
+  ];
+
   nixosConfig = {
     # Enable Hyprland in NixOS
     programs.hyprland = {
       enable = true;
+      withUWSM = true;
     };
 
     # System-level dependencies for Wayland/Hyprland
@@ -40,7 +45,7 @@ selfLib.mkModule {
       ./settings.nix
       ./keybind.nix
     ]
-    ++ lib.optionals (inputs ? caelestia-shell) [
+    ++ lib.optionals (inputs ? caelestia-shell && !hmOpts.config.my.desktop.hyprland.nandoroid.enable) [
       inputs.caelestia-shell.homeManagerModules.default
       ./caelestia.nix
     ];

@@ -1,4 +1,10 @@
-_: {
+{
+  config,
+  osConfig,
+  lib,
+  ...
+}:
+{
   # Configure Hyprland general settings
   wayland.windowManager.hyprland = {
     enable = true;
@@ -6,7 +12,15 @@ _: {
     configType = "hyprlang";
 
     settings = {
-      source = [ "~/.config/hypr/dms/colors.conf" ];
+      source =
+        if osConfig.my.desktop.hyprland.nandoroid.enable then
+          [
+            "~/.config/hypr/hyprland/colors.conf"
+          ]
+        else
+          [
+            "~/.config/hypr/dms/colors.conf"
+          ];
 
       # Monitors
       monitor = [
@@ -14,9 +28,49 @@ _: {
       ];
 
       # Exec once (startup scripts/apps)
-      "exec-once" = [
-        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
-        "caelestia shell -d"
+      "exec-once" =
+        (lib.optionals (!osConfig.programs.hyprland.withUWSM) [
+          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+        ])
+        ++ (
+          if osConfig.my.desktop.hyprland.nandoroid.enable then
+            [
+              (
+                if osConfig.programs.hyprland.withUWSM then
+                  "uwsm app -- quickshell -c nandoroid"
+                else
+                  "quickshell -c nandoroid"
+              )
+            ]
+          else
+            [
+              (
+                if osConfig.programs.hyprland.withUWSM then
+                  "uwsm app -- caelestia shell -d"
+                else
+                  "caelestia shell -d"
+              )
+            ]
+        );
+
+      layerrule = lib.optionals osConfig.my.desktop.hyprland.nandoroid.enable [
+        "blur on, match:namespace quickshell:.*"
+        "ignore_alpha 0.79, match:namespace quickshell:.*"
+        "blur on, match:namespace notifications"
+        "ignore_alpha 0.69, match:namespace notifications"
+        "blur on, match:namespace launcher"
+        "ignore_alpha 0.5, match:namespace launcher"
+        "no_anim on, match:namespace overview"
+        "blur on, match:namespace session"
+        "blur off, match:namespace quickshell:regionSelector"
+        "no_anim on, match:namespace quickshell:regionSelector"
+        "blur off, match:namespace quickshell:recordingMarker"
+        "no_anim on, match:namespace quickshell:recordingMarker"
+      ];
+
+      windowrule = [
+        "opaque on, match:class ^org\\.quickshell$"
+        "no_blur on, match:class ^org\\.quickshell$"
       ];
 
       # Input configuration
@@ -64,7 +118,7 @@ _: {
 
       # Animations (Smooth, fluid modern animations)
       animations = {
-        enabled = true;
+        enabled = false;
         bezier = [
           # "wind, 0.05, 0.9, 0.1, 1.05"
           # "winIn, 0.1, 1.1, 0.1, 1.1"
