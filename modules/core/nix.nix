@@ -52,6 +52,7 @@ selfLib.mkModule {
         keep-derivations = true;
         eval-cache = true;
         log-lines = 50;
+        narinfo-cache-negative-ttl = 60;
 
         experimental-features = [
           "nix-command"
