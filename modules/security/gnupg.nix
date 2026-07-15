@@ -12,6 +12,10 @@ selfLib.mkModule {
       enable = true;
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-gnome3;
+      settings = {
+        default-cache-ttl = 86400; # Cache selama 24 jam sejak terakhir aktif
+        max-cache-ttl = 86400; # Maksimum cache 24 jam
+      };
     };
 
   };
