@@ -2,6 +2,7 @@
 keys:
   - &host_key "age1gktsu9vrr3avnt4pnu0zhjsy6ld6d02r3jqk8cs0333zsch7jpds5uas6h"
   - &user_key "age1yrd6y870g6g87r8xf3svhtxctmsv2kt4fnxzkmxkcf4as7vzgqyslq7j0d"
+  - &my_gpg "79F1B7C136E4B15B39997036DABD05C1D9C1FD2A"
 creation_rules:
   # Ubah regex agar mencakup semua file di dalam folder secrets
   - path_regex: secrets/.*$
@@ -9,3 +10,5 @@ creation_rules:
       - age:
           - *host_key
           - *user_key
+        pgp:
+          - *my_gpg
