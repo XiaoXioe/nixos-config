@@ -199,6 +199,11 @@ selfLib.mkModule {
           path = "/home/${userName}/.android/adbkey.pub";
           mode = "0444";
         };
+
+        "gpg-private-key" = {
+          owner = userName;
+          mode = "0600";
+        };
       }
     ];
 
