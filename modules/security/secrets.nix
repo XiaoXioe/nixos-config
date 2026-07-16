@@ -18,6 +18,10 @@ selfLib.mkModule {
     environment.systemPackages = with pkgs; [
       sops
     ];
+
+    systemd.tmpfiles.rules = [
+      "d /home/${userName}/.kaggle 0700 ${userName} users - -"
+    ];
     sops = {
       defaultSopsFile = ../../secrets/secrets.yaml;
       defaultSopsFormat = "yaml";
@@ -31,6 +35,15 @@ selfLib.mkModule {
         mode = "0600";
         content = ''
           { authToken = "${config.sops.placeholder.cachix-token}" }
+        '';
+      };
+
+      templates."access_token" = {
+        path = "/home/${userName}/.kaggle/access_token";
+        owner = userName;
+        mode = "0600";
+        content = ''
+          ${config.sops.placeholder.kaggle-token}
         '';
       };
     };
@@ -115,6 +128,11 @@ selfLib.mkModule {
         };
 
         "tavily-api-key" = {
+          owner = userName;
+          mode = "0400";
+        };
+
+        "kaggle-token" = {
           owner = userName;
           mode = "0400";
         };
