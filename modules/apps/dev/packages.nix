@@ -16,6 +16,7 @@ selfLib.mkModule {
       nix-init
       python3
       cachix
+      kaggle
     ];
   };
 }
