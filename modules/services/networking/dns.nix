@@ -10,9 +10,10 @@ selfLib.mkModule {
   nixosConfig = {
     # 1. Configuration template
     sops.templates."dnscrypt-proxy.toml" = {
-      # Use root as owner to avoid missing-user evaluation errors
+      # Use root:keys to avoid missing-user evaluation errors while restricting read access
       owner = "root";
-      mode = "0444";
+      group = "keys";
+      mode = "0440";
       content = ''
         server_names = ['cloudflare', '${config.sops.placeholder.nextdns_name}', 'quad9-dnscrypt-ip4-filter-pri']
         listen_addresses = ['127.0.0.1:53']
@@ -55,6 +56,8 @@ selfLib.mkModule {
       enable = true;
       configFile = config.sops.templates."dnscrypt-proxy.toml".path;
     };
+
+    systemd.services.dnscrypt-proxy.serviceConfig.SupplementaryGroups = [ "keys" ];
 
     services.resolved.enable = false;
     networking = {
