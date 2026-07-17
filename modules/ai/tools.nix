@@ -11,40 +11,33 @@ let
   codex-cli = inputs.codex-cli.packages.${system}.default;
   claude-code = inputs.claude-code.packages.${system}.default;
 
-  opencode = pkgs.stdenv.mkDerivation {
+  opencode = pkgs.stdenv.mkDerivation rec {
     pname = "opencode";
     version = "1.18.3";
 
-    src =
-      let
-        platformMap = {
-          "x86_64-linux" = "linux-x64";
-          "aarch64-linux" = "linux-arm64";
-        };
-        platform = platformMap.${system} or (throw "Unsupported platform: ${system}");
-        hashes = {
-          "linux-x64" = "60f27b2679f00a511b6539f97e02448afaf58d9c66e2448285ea0c517ca84583";
-          "linux-arm64" = "da0a631174eba380b2a1d51f9d364fa3812da433e72743c72471d4b5da59c69d";
-        };
-      in
-      pkgs.fetchurl {
-        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.3/opencode-${platform}.tar.gz";
-        sha256 = hashes.${platform};
-      };
+    src = pkgs.fetchurl {
+      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-${platform}.tar.gz";
+      inherit hash;
+    };
+
+    platform =
+      if system == "x86_64-linux" then "linux-x64" else throw "opencode: unsupported platform ${system}";
+
+    hash = "sha256-YPJ7JnnwClEbZTn5fgJEivr1jZxm4kSCheoMUXyoRYM=";
 
     dontUnpack = true;
     dontStrip = true;
 
-    nativeBuildInputs = [
-      pkgs.makeBinaryWrapper
-      pkgs.autoPatchelfHook
+    nativeBuildInputs = with pkgs; [
+      makeBinaryWrapper
+      autoPatchelfHook
     ];
 
-    buildInputs = [
-      pkgs.zlib
-      pkgs.openssl
-      pkgs.icu
-      pkgs.stdenv.cc.cc.lib
+    buildInputs = with pkgs; [
+      zlib
+      openssl
+      icu
+      stdenv.cc.cc.lib
     ];
 
     installPhase = ''
@@ -59,14 +52,11 @@ let
       runHook postInstall
     '';
 
-    meta = {
+    meta = with pkgs.lib; {
       description = "OpenCode - the open source AI coding agent";
       homepage = "https://opencode.ai";
-      license = pkgs.lib.licenses.mit;
-      platforms = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
+      license = licenses.mit;
+      platforms = [ "x86_64-linux" ];
       mainProgram = "opencode";
     };
   };
