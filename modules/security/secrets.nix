@@ -21,6 +21,7 @@ selfLib.mkModule {
 
     systemd.tmpfiles.rules = [
       "d /home/${userName}/.kaggle 0700 ${userName} users - -"
+      "d /home/${userName}/.config/cachix 0700 ${userName} users - -"
     ];
     sops = {
       defaultSopsFile = ../../secrets/secrets.yaml;
