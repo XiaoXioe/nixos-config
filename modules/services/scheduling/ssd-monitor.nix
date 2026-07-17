@@ -130,8 +130,18 @@ let
         deltas = []
         for path, cur_val in current.items():
             prev_val = previous.get(path, {"r": 0, "w": 0})
-            delta_r = max(0, cur_val["r"] - prev_val["r"])
-            delta_w = max(0, cur_val["w"] - prev_val["w"])
+            
+            # If cur_val < prev_val, the cgroup restarted and reset to 0
+            if cur_val["r"] < prev_val["r"]:
+                delta_r = cur_val["r"]
+            else:
+                delta_r = cur_val["r"] - prev_val["r"]
+
+            if cur_val["w"] < prev_val["w"]:
+                delta_w = cur_val["w"]
+            else:
+                delta_w = cur_val["w"] - prev_val["w"]
+
             if delta_r > 0 or delta_w > 0:
                 deltas.append({
                     "path": path,
@@ -209,7 +219,7 @@ selfLib.mkModule {
       script = ''
         #!/usr/bin/env bash
 
-        LOG_FILE="/var/log/ssd_history.log"
+        LOG_FILE="/var/lib/ssd-tracker/ssd_history.log"
         DATE=$(date '+%Y-%m-%d %H:%M')
 
         # Auto-detect SSD
@@ -220,18 +230,36 @@ selfLib.mkModule {
             exit 1
         fi
 
-        # Menarik raw data Write dan Read
-        RAW_W=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Written" | awk '{print $NF}')
-        RAW_R=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Read" | awk '{print $NF}')
+        # Check if drive is NVMe or SATA
+        if smartctl -a "$TARGET_DISK" | grep -q "Data Units Written"; then
+            # NVMe drive
+            RAW_W=$(smartctl -a "$TARGET_DISK" | grep -i "Data Units Written" | awk '{print $4}' | tr -d ',')
+            RAW_R=$(smartctl -a "$TARGET_DISK" | grep -i "Data Units Read" | awk '{print $4}' | tr -d ',')
 
-        if ! [[ "$RAW_W" =~ ^[0-9]+$ ]] || ! [[ "$RAW_R" =~ ^[0-9]+$ ]]; then
-            echo "Error: Gagal mengambil data smartctl dari $TARGET_DISK. Pastikan SSD mendukung atribut tersebut."
-            exit 1
+            if ! [[ "$RAW_W" =~ ^[0-9]+$ ]] || ! [[ "$RAW_R" =~ ^[0-9]+$ ]]; then
+                echo "Error: Gagal mengambil data SMART NVMe dari $TARGET_DISK."
+                exit 1
+            fi
+            
+            # NVMe reports Data Units Written in 1000s of 512-byte units (512,000 bytes).
+            # GB (base 2 GiB) = RAW_W * 1000 * 512 / 1024^3 = RAW_W * 500000 / 1073741824
+            GB_W=$(printf "%.2f" $(echo "scale=4; $RAW_W * 500000 / 1073741824" | bc))
+            GB_R=$(printf "%.2f" $(echo "scale=4; $RAW_R * 500000 / 1073741824" | bc))
+        else
+            # SATA drive
+            RAW_W=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Written" | awk '{print $NF}')
+            RAW_R=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Read" | awk '{print $NF}')
+
+            if ! [[ "$RAW_W" =~ ^[0-9]+$ ]] || ! [[ "$RAW_R" =~ ^[0-9]+$ ]]; then
+                echo "Error: Gagal mengambil data SMART SATA dari $TARGET_DISK."
+                exit 1
+            fi
+
+            # Keep user SATA calculation for MidasForce SSD (reports in 32MB blocks)
+            # GB_W = RAW_W * 32 / 1024
+            GB_W=$(printf "%.2f" $(echo "scale=2; ($RAW_W * 32) / 1024" | bc))
+            GB_R=$(printf "%.2f" $(echo "scale=2; ($RAW_R * 32) / 1024" | bc))
         fi
-
-        # Konversi ke GB
-        GB_W=$(printf "%.2f" $(echo "scale=2; ($RAW_W * 32) / 1024" | bc))
-        GB_R=$(printf "%.2f" $(echo "scale=2; ($RAW_R * 32) / 1024" | bc))
 
         if [ -s "$LOG_FILE" ]; then
             # Ambil baris terakhir yang memuat statistik 'Write:' agar tidak bentrok dengan detail per aplikasi
@@ -242,14 +270,23 @@ selfLib.mkModule {
 
             # Kalkulasi selisih Penulisan (Write)
             if [[ "$LAST_GB_W" =~ ^[0-9.]+$ ]]; then
-                DIFF_W=$(echo "scale=2; $GB_W - $LAST_GB_W" | bc)
+                # Tangani kemungkinan disk diganti atau counter wrap-around
+                if (( $(echo "$GB_W < $LAST_GB_W" | bc -l) )); then
+                    DIFF_W="$GB_W"
+                else
+                    DIFF_W=$(echo "scale=2; $GB_W - $LAST_GB_W" | bc)
+                fi
             else
                 DIFF_W="0.00"
             fi
 
             # Kalkulasi selisih Pembacaan (Read)
             if [[ "$LAST_GB_R" =~ ^[0-9.]+$ ]]; then
-                DIFF_R=$(echo "scale=2; $GB_R - $LAST_GB_R" | bc)
+                if (( $(echo "$GB_R < $LAST_GB_R" | bc -l) )); then
+                    DIFF_R="$GB_R"
+                else
+                    DIFF_R=$(echo "scale=2; $GB_R - $LAST_GB_R" | bc)
+                fi
             else
                 DIFF_R="0.00"
             fi
