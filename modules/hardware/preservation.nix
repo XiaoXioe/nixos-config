@@ -117,11 +117,13 @@ selfLib.mkModule {
             mount -t btrfs -o subvol=/ ${btrfsDevice} "$MNTDIR"
 
             delete_subvolume_recursively() {
-              IFS=$'\n'
+              local IFS=$'\n'
               for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
                 delete_subvolume_recursively "$MNTDIR/$i"
               done
-              btrfs subvolume delete "$1"
+              if [ -e "$1" ]; then
+                btrfs subvolume delete "$1" || true
+              fi
             }
 
             cleanup_old_backups() {
