@@ -10,8 +10,11 @@ selfLib.mkModule {
   nixosConfig = {
     # drkonqi
     systemd.services."drkonqi-coredump-processor@".enable = false;
-    systemd.user.sockets."drkonqi-coredump-launcher".enable = false;
     systemd.user.services."drkonqi-coredump-launcher".enable = false;
+    systemd.user.sockets."drkonqi-coredump-launcher" = {
+      enable = false;
+      wantedBy = lib.mkForce [ ];
+    };
 
     # fwupd
     services.fwupd.enable = lib.mkForce false;
