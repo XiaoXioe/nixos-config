@@ -11,8 +11,8 @@ let
     audio = [ "mpv.desktop" ];
     video = [ "mpv.desktop" ];
     directory = [ "org.kde.dolphin.desktop" ];
-    office = [ "org.onlyoffice.desktopeditors" ];
-    pdf = [ "org.pwmt.zathura" ];
+    office = [ "org.onlyoffice.desktopeditors.desktop" ];
+    pdf = [ "org.pwmt.zathura.desktop" ];
     terminal = [ "org.wezfurlong.wezterm.desktop" ];
     archive = [ "org.kde.ark.desktop" ];
     discord = [ "com.discordapp.Discord.desktop" ];
@@ -23,13 +23,14 @@ let
   };
   mimeMap = {
     link = [
+      "text/html"
+      "application/xhtml+xml"
       "x-scheme-handler/http"
       "x-scheme-handler/https"
       "x-scheme-handler/about"
       "x-scheme-handler/unknown"
     ];
     text = [
-      "text/html"
       "text/plain"
       "text/x-log"
       "text/x-csrc"
@@ -99,7 +100,7 @@ let
       "application/rtf"
     ];
     pdf = [ "application/pdf" ];
-    terminal = [ "terminal" ];
+    terminal = [ "x-scheme-handler/terminal" ];
     archive = [
       "application/zip"
       "application/rar"
@@ -116,14 +117,6 @@ let
       ) mimeMap
     )
   );
-
-  defaultAssociations = lib.listToAttrs (
-    lib.flatten (
-      lib.mapAttrsToList (
-        key: mimeTypes: map (type: lib.nameValuePair type (builtins.head defaultApps."${key}")) mimeTypes
-      ) mimeMap
-    )
-  );
 in
 
 selfLib.mkModule {
@@ -134,7 +127,7 @@ selfLib.mkModule {
     xdg.mimeApps = {
       enable = true;
       associations.added = associations;
-      defaultApplications = defaultAssociations;
+      defaultApplications = associations;
     };
   };
 }
