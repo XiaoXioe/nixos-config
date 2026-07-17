@@ -65,9 +65,9 @@ selfLib.mkModule {
           TimeoutSec = "5m";
           Environment = [
             "PATH=/run/wrappers/bin:$PATH"
-            "HTTP_PROXY=socks5://127.0.0.1:40000"
-            "HTTPS_PROXY=socks5://127.0.0.1:40000"
-            "ALL_PROXY=socks5://127.0.0.1:40000"
+            "HTTP_PROXY=socks5h://127.0.0.1:40000"
+            "HTTPS_PROXY=socks5h://127.0.0.1:40000"
+            "ALL_PROXY=socks5h://127.0.0.1:40000"
           ];
         };
         Install = {
