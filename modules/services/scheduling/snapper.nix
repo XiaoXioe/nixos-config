@@ -81,6 +81,16 @@ selfLib.mkModule {
       "Q /persist/.home-snapshots 0750 root root - -"
     ];
 
+    # Prevent system activation switches from hanging while snapper deletes snapshots
+    systemd.services.snapper-timeline = {
+      restartIfChanged = false;
+      stopIfChanged = false;
+    };
+    systemd.services.snapper-cleanup = {
+      restartIfChanged = false;
+      stopIfChanged = false;
+    };
+
     # Bind-mount so ephemeral home snapshots are stored in persist
     fileSystems."/home/.snapshots" = {
       device = "/persist/.home-snapshots";
