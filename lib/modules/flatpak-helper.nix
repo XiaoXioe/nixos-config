@@ -169,33 +169,43 @@ in
                 flatpakIdSafe = lib.replaceStrings [ "." ] [ "-" ] appId;
                 flatpakSymlinks = appVal.symlinks or (appVal.dataDir or [ ]);
 
-                pruneCmds = ''
-                  # Clean up stale symlinks that are no longer defined in flatpakCfg
-                  if [ -d "$HOME/.var/app/${appId}" ]; then
-                    find "$HOME/.var/app/${appId}" -type l | while read -r symlink; do
-                      relpath="''${symlink#"$HOME/.var/app/${appId}/"}"
-                      is_active=0
-                      for active_guest in ${lib.concatStringsSep " " (map (s: ''"${s.guest}"'') flatpakSymlinks)}; do
-                        if [ "$relpath" = "$active_guest" ]; then
-                          is_active=1
-                          break
-                        fi
-                      done
-                      if [ "$is_active" -eq 0 ]; then
-                        echo "Pruning stale Flatpak symlink: $relpath"
-                        rm -f "$symlink"
+                pruneCmds =
+                  if flatpakSymlinks == [ ] then
+                    ""
+                  else
+                    ''
+                      # Clean up stale symlinks that are no longer defined in flatpakCfg
+                      if [ -d "$HOME/.var/app/${appId}" ]; then
+                        find "$HOME/.var/app/${appId}" -type l | while read -r symlink; do
+                          # Only prune symlinks pointing to the host home directory to avoid breaking sandbox-internal symlinks
+                          target=$(readlink "$symlink" || true)
+                          if [[ "$target" == "$HOME/"* ]]; then
+                            relpath="''${symlink#"$HOME/.var/app/${appId}/"}"
+                            is_active=0
+                            for active_guest in ${
+                              lib.concatStringsSep " " (map (s: ''"${s.guest}"'') flatpakSymlinks)
+                            }; do
+                              if [ "$relpath" = "$active_guest" ]; then
+                                is_active=1
+                                break
+                              fi
+                            done
+                            if [ "$is_active" -eq 0 ]; then
+                              echo "Pruning stale Flatpak symlink: $relpath"
+                              rm -f "$symlink"
+                            fi
+                          fi
+                        done
                       fi
-                    done
-                  fi
-                '';
+                    '';
 
                 symlinkCmds = lib.concatMapStringsSep "\n" (s: ''
                   # Ensure target directories exist on host
                   mkdir -p "$(dirname "$HOME/${s.host}")"
                   mkdir -p "$HOME/${s.host}"
 
-                  # If guest target exists and is a directory (not a symlink), remove it to prevent nested symlinks
-                  if [ -d "$HOME/.var/app/${appId}/${s.guest}" ] && [ ! -L "$HOME/.var/app/${appId}/${s.guest}" ]; then
+                  # If guest target exists (file or directory) and is not a symlink, remove it to prevent nesting/conflicts
+                  if [ -e "$HOME/.var/app/${appId}/${s.guest}" ] && [ ! -L "$HOME/.var/app/${appId}/${s.guest}" ]; then
                     rm -rf "$HOME/.var/app/${appId}/${s.guest}"
                   fi
 
