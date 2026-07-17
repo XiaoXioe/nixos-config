@@ -10,9 +10,9 @@ let
   resticRepo = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
   mountPoint = "/home/${config.my.user.name}/ResticBackup";
   proxyEnv = {
-    HTTP_PROXY = "socks5://127.0.0.1:40000";
-    HTTPS_PROXY = "socks5://127.0.0.1:40000";
-    ALL_PROXY = "socks5://127.0.0.1:40000";
+    HTTP_PROXY = "socks5h://127.0.0.1:40000";
+    HTTPS_PROXY = "socks5h://127.0.0.1:40000";
+    ALL_PROXY = "socks5h://127.0.0.1:40000";
     NO_PROXY = "localhost,127.0.0.1";
   };
 in
