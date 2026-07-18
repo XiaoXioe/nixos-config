@@ -68,6 +68,7 @@ in
       "commit=120"
       "ssd"
     ];
+    neededForBoot = true;
   };
 
   fileSystems."/persist" = {
