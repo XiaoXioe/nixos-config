@@ -106,6 +106,7 @@ selfLib.mkModule {
       # custom.disbox
       # custom.binance
       custom.streambert
+      custom.ghost-downloader-3
 
       priv.anichin-scraper
       priv.lk21-scraper
