@@ -229,8 +229,6 @@ selfLib.mkModule {
             ".telegram-mcp"
             ".thunderbird"
             ".config"
-            ".claude"
-            ".codex"
             ".java"
             ".tdl"
             ".local/share"
@@ -270,7 +268,6 @@ selfLib.mkModule {
           files = [
             "link.txt"
             ".bash_history"
-            ".claude.json"
           ];
         };
       };
