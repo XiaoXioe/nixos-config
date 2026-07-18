@@ -19,6 +19,9 @@ in
 
   # Pipewire 64-bit host system (agar di-cache oleh CI)
   pipewire = pkgs.pipewire;
+
+  # Torlink package
+  torlink = inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default;
 }
 # Caelestia hanya diekspor bila modulnya benar-benar aktif (butuh input
 # caelestia-shell yang saat ini tidak ada di flake.nix).
