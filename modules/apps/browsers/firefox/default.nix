@@ -49,6 +49,7 @@ selfLib.mkModule {
         }
       ];
       nativePkgs = pkgs.firefox;
+      skipNativeWrapper = true;
     };
   };
 
@@ -109,8 +110,8 @@ selfLib.mkModule {
           cp "$real_file" "$HOME/.config/mozilla/firefox/profiles.ini"
           chmod 644 "$HOME/.config/mozilla/firefox/profiles.ini"
           
-          # Reset Default ke 'default'
-          sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.config/mozilla/firefox/profiles.ini"
+          # Reset Default di section [Install] ke 'default'
+          sed -i '/^\[Install\]/,/^\[/s/^Default=.*/Default=default/' "$HOME/.config/mozilla/firefox/profiles.ini"
         fi
       '';
 
