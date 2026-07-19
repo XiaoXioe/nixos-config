@@ -85,6 +85,9 @@ selfLib.mkModule {
               fi
             fi
 
+            # Delete old cached flatpak file to prevent curl resume errors if remote size changed
+            rm -f "$filename"
+
             success=false
             attempt=0
             
