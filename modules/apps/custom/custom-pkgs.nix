@@ -14,7 +14,10 @@ selfLib.mkModule {
   description = "Custom packages";
 
   hmConfig = hmOpts: {
-    imports = [ inputs.custompkgs.homeModules.freqtrade-setup ];
+    imports = [
+      inputs.custompkgs.homeModules.freqtrade-setup
+      ./custom-flatpaks-service.nix
+    ];
     programs.freqtrade-setup = {
       enable = true;
       configDir = "/mnt/data_btrfs/freqtrade-dev";
@@ -106,11 +109,12 @@ selfLib.mkModule {
       # custom.disbox
       # custom.binance
       custom.streambert
-      custom.ghost-downloader-3
+      # Migrated to flatpak (custom-flatpaks-service.nix)
+      # custom.ghost-downloader-3
+      # priv.burpsuitepro
 
       priv.anichin-scraper
       priv.lk21-scraper
-      # priv.burpsuitepro
     ];
   };
 }
