@@ -54,12 +54,29 @@ selfLib.mkModule {
 
           mkdir -p "$HOME/.local/state/custom-flatpaks"
 
+          # Wait for network connectivity and gh to be able to authenticate/query
+          echo "Verifying network and GitHub authentication..."
+          network_ready=false
+          for i in {1..15}; do
+            if ${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages >/dev/null 2>&1; then
+              network_ready=true
+              break
+            fi
+            echo "Network or GitHub CLI not ready yet, retrying in 3 seconds (attempt $i/15)..."
+            sleep 3
+          done
+
+          if [ "$network_ready" = false ]; then
+            echo "ERROR: GitHub CLI authentication or network is not available. Skipping Flatpak installation/update."
+            exit 0
+          fi
+
           for app in "''${apps[@]}"; do
             filename="''${app}.flatpak"
             state_file="$HOME/.local/state/custom-flatpaks/''${filename}.state"
             
             echo "Checking if $app needs an update..."
-            current_updatedAt=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .updatedAt")
+            current_updatedAt=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .updatedAt" 2>/dev/null || true)
             
             if [ -n "$current_updatedAt" ] && [ -f "$state_file" ] && [ "$(cat "$state_file")" = "$current_updatedAt" ]; then
               if ${pkgs.flatpak}/bin/flatpak list --app | grep -q "$app"; then
@@ -75,10 +92,11 @@ selfLib.mkModule {
               echo "Downloading $filename (Attempt $((attempt+1))/$MAX_RETRIES)..."
               
               # Gunakan gh untuk mengambil URL S3/Azure, lalu unduh dengan curl agar lebih stabil dan cepat
-              apiUrl=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .apiUrl")
+              apiUrl=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .apiUrl" 2>/dev/null || true)
               
               if [ -n "$apiUrl" ]; then
-                if ${pkgs.curl}/bin/curl -L --fail -C - -H "Authorization: Bearer $(${pkgs.gh}/bin/gh auth token)" -H "Accept: application/octet-stream" "$apiUrl" -o "$filename"; then
+                token=$(${pkgs.gh}/bin/gh auth token 2>/dev/null || true)
+                if [ -n "$token" ] && ${pkgs.curl}/bin/curl -L --fail -C - -H "Authorization: Bearer $token" -H "Accept: application/octet-stream" "$apiUrl" -o "$filename"; then
                   success=true
                   break
                 else

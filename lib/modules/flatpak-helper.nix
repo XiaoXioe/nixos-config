@@ -181,35 +181,29 @@ in
                 flatpakIdSafe = lib.replaceStrings [ "." ] [ "-" ] appId;
                 flatpakSymlinks = appVal.symlinks or (appVal.dataDir or [ ]);
 
-                pruneCmds =
-                  if flatpakSymlinks == [ ] then
-                    ""
-                  else
-                    ''
-                      # Clean up stale symlinks that are no longer defined in flatpakCfg
-                      if [ -d "$HOME/.var/app/${appId}" ]; then
-                        find "$HOME/.var/app/${appId}" -type l | while read -r symlink; do
-                          # Only prune symlinks pointing to the host home directory to avoid breaking sandbox-internal symlinks
-                          target=$(readlink "$symlink" || true)
-                          if [[ "$target" == "$HOME/"* ]]; then
-                            relpath="''${symlink#"$HOME/.var/app/${appId}/"}"
-                            is_active=0
-                            for active_guest in ${
-                              lib.concatStringsSep " " (map (s: ''"${s.guest}"'') flatpakSymlinks)
-                            }; do
-                              if [ "$relpath" = "$active_guest" ]; then
-                                is_active=1
-                                break
-                              fi
-                            done
-                            if [ "$is_active" -eq 0 ]; then
-                              echo "Pruning stale Flatpak symlink: $relpath"
-                              rm -f "$symlink"
-                            fi
-                          fi
-                        done
+                pruneCmds = ''
+                  # Prune old symlinks using manifest to avoid collateral damage
+                  manifest="$HOME/.var/app/${appId}/.nix-managed-symlinks"
+                  if [ -f "$manifest" ]; then
+                    while IFS= read -r old_guest; do
+                      is_active=0
+                      ${lib.concatMapStringsSep "\n                      " (s: ''
+                        if [ "$old_guest" = "${s.guest}" ]; then is_active=1; fi
+                      '') flatpakSymlinks}
+                      if [ "$is_active" -eq 0 ] && [ -n "$old_guest" ]; then
+                        echo "Pruning stale Flatpak symlink: $old_guest"
+                        rm -f "$HOME/.var/app/${appId}/$old_guest"
                       fi
-                    '';
+                    done < "$manifest"
+                  fi
+
+                  # Update manifest
+                  mkdir -p "$HOME/.var/app/${appId}"
+                  > "$manifest"
+                  ${lib.concatMapStringsSep "\n                  " (s: ''
+                    echo "${s.guest}" >> "$manifest"
+                  '') flatpakSymlinks}
+                '';
 
                 symlinkCmds = lib.concatMapStringsSep "\n" (
                   s:
@@ -248,7 +242,7 @@ in
                   else
                     "";
               in
-              lib.optionals (useFlatpak appId && (flatpakSymlinks != [ ] || flagsCmds != "")) [
+              lib.optionals (useFlatpak appId) [
                 (lib.nameValuePair "setup-flatpak-${flatpakIdSafe}" (
                   hmLib.hm.dag.entryAfter [ "writeBoundary" ] ''
                     ${pruneCmds}
