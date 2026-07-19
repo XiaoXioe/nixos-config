@@ -67,6 +67,7 @@ selfLib.mkModule {
 
     system.activationScripts.setupGrubFM = {
       text = ''
+        set -eu
         mkdir -p /boot/efi/EFI/grubfm
         cp -f ${grubfm-efi}/grubfmx64.efi /boot/efi/EFI/grubfm/grubfmx64.efi
       '';

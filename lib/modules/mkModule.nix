@@ -39,6 +39,7 @@
             options
             config
             pkgs
+            singleAppInfo
             ;
           enableState = cfg;
         };

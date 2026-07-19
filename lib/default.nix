@@ -58,7 +58,7 @@ in
           name: type:
           let
             isNixFile = lib.hasSuffix ".nix" name && name != "default.nix";
-            isModuleDir = type == "directory" && builtins.pathExists (path + "/${name}/default.nix");
+            isModuleDir = type == "directory";
           in
           isNixFile || isModuleDir
         ) (builtins.readDir path)

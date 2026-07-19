@@ -107,6 +107,7 @@ selfLib.mkModule {
         ]);
         serviceConfig = {
           Type = "oneshot";
+          PrivateMounts = true;
           RuntimeDirectory = "btrfs_cleanup";
           ExecStart = pkgs.writeShellScript "preservation-cleanup" ''
             set -euo pipefail
@@ -129,16 +130,16 @@ selfLib.mkModule {
             cleanup_old_backups() {
               prefix=$1
               keep=$2
-              backups=$(ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)))
-              for i in $backups; do
+              ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)) | while read -r i; do
+                [ -n "$i" ] || continue
                 echo "Deleting old $prefix backup: $i"
                 delete_subvolume_recursively "$i"
               done
             }
 
             # Delete old home snapshots (keep last 10)
-            old_snaps=$(ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)})
-            for snap in $old_snaps; do
+            ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)} | while read -r snap; do
+              [ -n "$snap" ] || continue
               echo "Deleting old home snapshot: $snap"
               btrfs subvolume delete "$snap"
             done

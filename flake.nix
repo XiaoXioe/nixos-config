@@ -123,15 +123,14 @@
         inherit
           lib
           pkgs
-          hostName
           baseArgs
           commonModules
           ;
       };
 
-      inherit (builders)
-        mkNixosConfigurations
-        ;
+      mkNixosConfigurations = {
+        ${hostName} = builders.mkNixosConfiguration hostName;
+      };
 
       # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt) + dead
       # code (deadnix). Lambda arg diabaikan karena pola `hmConfig = hmOpts:`

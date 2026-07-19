@@ -17,7 +17,9 @@ selfLib.mkModule {
 
   nixosConfig = {
     # Deklarasi secret sops-nix untuk restic
-    sops.secrets."restic-password" = { };
+    sops.secrets."restic-password" = {
+      owner = config.my.user.name;
+    };
 
     # Pastikan rclone terinstal di sistem karena kita menggunakannya sebagai backend,
     # dan bungkus (wrap) rclone agar menggunakan proxy, tanpa mencemari environment Restic
@@ -120,16 +122,19 @@ selfLib.mkModule {
 
       serviceConfig = {
         Type = "simple";
+        User = config.my.user.name;
         RuntimeDirectory = "restic-mount";
         ExecStartPre = [
-          "-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}"
-          "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
-          (pkgs.writeShellScript "restic-mount-copy-rclone-config" ''
+          "+-${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}"
+          "+${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
+          "+${pkgs.coreutils}/bin/chown ${config.my.user.name} ${mountPoint}"
+          "+${pkgs.writeShellScript "restic-mount-copy-rclone-config" ''
             ${pkgs.coreutils}/bin/cp ${config.sops.secrets."rclone.conf".path} /run/restic-mount/rclone.conf
             ${pkgs.coreutils}/bin/chmod 600 /run/restic-mount/rclone.conf
-          '')
+            ${pkgs.coreutils}/bin/chown ${config.my.user.name} /run/restic-mount/rclone.conf
+          ''}"
         ];
-        ExecStart = "${pkgs.restic}/bin/restic mount ${mountPoint} --allow-other --no-lock";
+        ExecStart = "${pkgs.restic}/bin/restic mount ${mountPoint} --no-lock";
         ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
         CacheDirectory = "restic-mount";
         Restart = "on-failure";
