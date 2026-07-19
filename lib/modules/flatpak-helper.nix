@@ -131,7 +131,7 @@ in
       flatpakPackages = lib.flatten (
         lib.mapAttrsToList (
           appId: appVal:
-          lib.optionals (useFlatpak appId) [
+          lib.optionals (useFlatpak appId && !(appVal.skipInstall or false)) [
             (
               if appVal ? bundle then
                 {
