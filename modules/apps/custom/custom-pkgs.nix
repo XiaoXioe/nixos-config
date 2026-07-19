@@ -16,13 +16,13 @@ selfLib.mkModule {
   flatpakCfg = {
     "com.portswigger.BurpSuitePro" = {
       enable = true;
-      skipInstall = true;
+      origin = "xiaoxioe-flatpak";
       binName = "burpsuitepro";
       nativePkgs = priv.burpsuitepro;
     };
     "io.github.xiaoyouchr.GhostDownloader" = {
       enable = true;
-      skipInstall = true;
+      origin = "xiaoxioe-flatpak";
       binName = "ghost-downloader";
       nativePkgs = custom.ghost-downloader-3;
     };
@@ -33,116 +33,51 @@ selfLib.mkModule {
       inputs.custompkgs.homeModules.freqtrade-setup
     ];
 
-    systemd.user.services.install-custom-flatpaks = {
+    systemd.user.services.sync-flatpak-repo = {
       Unit = {
-        Description = "Download and install custom private flatpaks";
-        After = [ "network-online.target" ];
-        Wants = [ "network-online.target" ];
+        Description = "Update private Flatpaks from Google Drive mount";
+        X-SwitchMethod = "keep-old";
+        After = [
+          "network-online.target"
+          "rclone-mount.service"
+        ];
+        Wants = [
+          "network-online.target"
+          "rclone-mount.service"
+        ];
       };
 
       Service = {
-        Type = "simple";
-        ExecStart = "${pkgs.writeShellScript "install-custom-flatpaks" ''
+        Type = "oneshot";
+        ExecStart = "${pkgs.writeShellScript "sync-flatpak-repo" ''
           set -eu
-          mkdir -p $HOME/.cache/custom-flatpaks
-          cd $HOME/.cache/custom-flatpaks
+          REPO_PATH="$HOME/CloudStorage/union-raid1-decrypted/custom-flatpaks/repo"
 
-          echo "Downloading flatpak bundles from private release..."
-
-          MAX_RETRIES=10
-          apps=("com.portswigger.BurpSuitePro" "io.github.xiaoyouchr.GhostDownloader")
-
-          mkdir -p "$HOME/.local/state/custom-flatpaks"
-
-          # Wait for network connectivity and gh to be able to authenticate/query
-          echo "Verifying network and GitHub authentication..."
-          network_ready=false
-          for i in {1..15}; do
-            if ${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages >/dev/null 2>&1; then
-              network_ready=true
+          echo "Waiting for Google Drive FUSE mount and repository directory..."
+          mounted=false
+          for i in {1..60}; do
+            if [ -d "$REPO_PATH" ]; then
+              mounted=true
               break
             fi
-            echo "Network or GitHub CLI not ready yet, retrying in 3 seconds (attempt $i/15)..."
-            sleep 3
+            echo "Repository directory not found yet, waiting 5 seconds (attempt $i/60)..."
+            sleep 5
           done
 
-          if [ "$network_ready" = false ]; then
-            echo "ERROR: GitHub CLI authentication or network is not available. Skipping Flatpak installation/update."
+          if [ "$mounted" = false ]; then
+            echo "ERROR: Google Drive mount or repository directory is not available. Skipping Flatpak update."
             exit 0
           fi
 
-          for app in "''${apps[@]}"; do
-            filename="''${app}.flatpak"
-            state_file="$HOME/.local/state/custom-flatpaks/''${filename}.state"
-            
-            echo "Checking if $app needs an update..."
-            current_updatedAt=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .updatedAt" 2>/dev/null || true)
-            
-            if [ -n "$current_updatedAt" ] && [ -f "$state_file" ] && [ "$(cat "$state_file")" = "$current_updatedAt" ]; then
-              if ${pkgs.flatpak}/bin/flatpak list --app | grep -q "$app"; then
-                echo "$app is already installed and up-to-date. Skipping download."
-                continue
-              fi
-            fi
-
-            # Delete old cached flatpak file to prevent curl resume errors if remote size changed
-            rm -f "$filename"
-
-            success=false
-            attempt=0
-            
-            while [ $attempt -lt $MAX_RETRIES ]; do
-              echo "Downloading $filename (Attempt $((attempt+1))/$MAX_RETRIES)..."
-              
-              # Gunakan gh untuk mengambil URL S3/Azure, lalu unduh dengan curl agar lebih stabil dan cepat
-              apiUrl=$(${pkgs.gh}/bin/gh release view v1.0.0 -R XiaoXioe/flatpak-packages --json assets --jq ".assets[] | select(.name == \"$filename\") | .apiUrl" 2>/dev/null || true)
-              
-              if [ -n "$apiUrl" ]; then
-                token=$(${pkgs.gh}/bin/gh auth token 2>/dev/null || true)
-                if [ -n "$token" ] && ${pkgs.curl}/bin/curl -L --fail -C - -H "Authorization: Bearer $token" -H "Accept: application/octet-stream" "$apiUrl" -o "$filename"; then
-                  success=true
-                  break
-                else
-                  echo "Download failed. Retrying in 3 seconds..."
-                  sleep 3
-                fi
-              else
-                echo "Failed to get API URL for $filename. Retrying in 3 seconds..."
-                sleep 3
-              fi
-              
-              attempt=$((attempt+1))
-            done
-            
-            if [ "$success" = true ] && [ -s "$filename" ]; then
-              echo "Installing $app..."
-              if ${pkgs.flatpak}/bin/flatpak list --app | grep -q "$app"; then
-                if ${pkgs.flatpak}/bin/flatpak install --user --reinstall -y "$filename"; then
-                  if [ -n "$current_updatedAt" ]; then
-                    echo "$current_updatedAt" > "$state_file"
-                  fi
-                else
-                  echo "Warning: Update of $app failed."
-                fi
-              else
-                if ${pkgs.flatpak}/bin/flatpak install --user -y "$filename"; then
-                  if [ -n "$current_updatedAt" ]; then
-                    echo "$current_updatedAt" > "$state_file"
-                  fi
-                else
-                  echo "Warning: Installation of $app failed."
-                fi
-              fi
-            else
-              echo "ERROR: Failed to download $filename after $MAX_RETRIES attempts or file is corrupted."
-            fi
-          done
+          echo "Repository directory found. Running Flatpak update..."
+          ${pkgs.flatpak}/bin/flatpak update --user -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro
         ''}";
       };
       Install = {
         WantedBy = [ "default.target" ];
       };
     };
+
     programs.freqtrade-setup = {
       enable = true;
       configDir = "/mnt/data_btrfs/freqtrade-dev";
