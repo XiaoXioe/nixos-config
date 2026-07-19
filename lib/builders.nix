@@ -3,27 +3,23 @@
 {
   lib,
   pkgs,
-  hostName,
   baseArgs,
   commonModules,
   ...
 }:
 
 let
-  specialArgs = baseArgs;
-
-  # NixOS configurations (one per host)
-  mkNixosConfigurations = {
-    ${hostName} = lib.nixosSystem {
+  # NixOS configurations builder
+  mkNixosConfiguration =
+    hostName:
+    lib.nixosSystem {
       inherit pkgs;
-      inherit specialArgs;
+      specialArgs = baseArgs // {
+        inherit hostName;
+      };
       modules = commonModules;
     };
-  };
 in
 {
-  inherit
-    mkNixosConfigurations
-    hostName
-    ;
+  inherit mkNixosConfiguration;
 }
