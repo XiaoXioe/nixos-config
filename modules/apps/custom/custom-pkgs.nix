@@ -113,12 +113,22 @@ selfLib.mkModule {
             
             if [ "$success" = true ] && [ -s "$filename" ]; then
               echo "Installing $app..."
-              if ${pkgs.flatpak}/bin/flatpak install --user -y "$filename"; then
-                if [ -n "$current_updatedAt" ]; then
-                  echo "$current_updatedAt" > "$state_file"
+              if ${pkgs.flatpak}/bin/flatpak list --app | grep -q "$app"; then
+                if ${pkgs.flatpak}/bin/flatpak install --user --reinstall -y "$filename"; then
+                  if [ -n "$current_updatedAt" ]; then
+                    echo "$current_updatedAt" > "$state_file"
+                  fi
+                else
+                  echo "Warning: Update of $app failed."
                 fi
               else
-                echo "Warning: Installation of $app failed."
+                if ${pkgs.flatpak}/bin/flatpak install --user -y "$filename"; then
+                  if [ -n "$current_updatedAt" ]; then
+                    echo "$current_updatedAt" > "$state_file"
+                  fi
+                else
+                  echo "Warning: Installation of $app failed."
+                fi
               fi
             else
               echo "ERROR: Failed to download $filename after $MAX_RETRIES attempts or file is corrupted."
