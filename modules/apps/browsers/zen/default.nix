@@ -14,6 +14,7 @@ selfLib.mkModule {
   flatpakCfg = {
     "app.zen_browser.zen" = {
       enable = true;
+      binName = "zen";
 
       # VA-API hardware video decoding: the Flatpak GL extension only bundles Mesa's
       # built-in VAAPI drivers (radeonsi, nouveau, etc.) but NOT the separate
