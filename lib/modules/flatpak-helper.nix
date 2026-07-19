@@ -262,6 +262,7 @@ in
         );
 
       # Collect native packages for disabled flatpaks, and wrappers for enabled ones
+      # Apps with skipNativeWrapper = true are skipped (they handle their own package override in hmConfig)
       nativePackagesList = lib.flatten (
         lib.mapAttrsToList (
           appId: appVal:
@@ -269,6 +270,7 @@ in
             appEnabled = isAppEnabled appId;
             useFlatpakApp = useFlatpak appId;
             hmProgram = appVal.hmProgram or null;
+            skipWrapper = appVal.skipNativeWrapper or false;
             nativeInfo = getNativePkg appVal;
             nativePackages = nativeInfo.nativePackages;
             realNativePkg = nativeInfo.realNativePkg;
@@ -276,13 +278,20 @@ in
               appVal.binName
                 or (if realNativePkg != null && realNativePkg ? pname then realNativePkg.pname else null);
           in
-          lib.optionals (appEnabled && (hmProgram == null || hmProgram.name == null)) (
+          lib.optionals (appEnabled && !skipWrapper && (hmProgram == null || hmProgram.name == null)) (
             if useFlatpakApp then
-              (lib.optionals (binName != null) [
-                (pkgs.writeShellScriptBin binName ''
-                  exec flatpak run ${appId} "$@"
-                '')
-              ])
+              (
+                if binName != null then
+                  [
+                    (pkgs.writeShellScriptBin binName ''
+                      exec flatpak run ${appId} "$@"
+                    '')
+                  ]
+                else
+                  lib.warn
+                    "flatpak-helper: ${appId} has no binName or nativePkgs.pname — skipping CLI wrapper generation"
+                    [ ]
+              )
             else
               nativePackages
           )
