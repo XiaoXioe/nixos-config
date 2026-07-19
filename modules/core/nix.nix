@@ -70,7 +70,7 @@ selfLib.mkModule {
       '';
 
       registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
-      nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+      nixPath = lib.mapAttrsToList (key: value: "${key}=${value}") inputs;
       channel.enable = false;
     };
   };
