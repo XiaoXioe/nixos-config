@@ -64,12 +64,24 @@ in
       config,
       pkgs,
       enableState,
+      singleAppInfo,
     }:
     let
       optionPath = splitName name;
-      hasFlatpaks = flatpakCfg != { };
-      isSingleApp = hasFlatpaks && (lib.length (builtins.attrNames flatpakCfg) == 1);
-      singleAppId = if isSingleApp then builtins.elemAt (builtins.attrNames flatpakCfg) 0 else null;
+      isSingleApp = singleAppInfo.isSingleApp;
+      singleAppId = singleAppInfo.singleAppId;
+
+      getNativePkg =
+        appVal:
+        let
+          nativePkg = appVal.nativePkgs or (appVal.native.package or (appVal.package or null));
+          nativePackages =
+            if nativePkg == null then [ ] else (if builtins.isList nativePkg then nativePkg else [ nativePkg ]);
+          realNativePkg = if nativePackages != [ ] then builtins.elemAt nativePackages 0 else null;
+        in
+        {
+          inherit nativePackages realNativePkg;
+        };
 
       # Helper to check if a specific app is enabled
       isAppEnabled =
@@ -199,20 +211,28 @@ in
                       fi
                     '';
 
-                symlinkCmds = lib.concatMapStringsSep "\n" (s: ''
-                  # Ensure target directories exist on host
-                  mkdir -p "$(dirname "$HOME/${s.host}")"
-                  mkdir -p "$HOME/${s.host}"
+                symlinkCmds = lib.concatMapStringsSep "\n" (
+                  s:
+                  if s.guest == ".zen" || s.guest == ".mozilla" then
+                    builtins.abort "Sandbox escape: guest path cannot be ${s.guest}"
+                  else
+                    ''
+                      # Ensure target directories exist on host
+                      mkdir -p "$(dirname "$HOME/${s.host}")"
+                      if [ ! -e "$HOME/${s.host}" ]; then
+                        mkdir -p "$HOME/${s.host}"
+                      fi
 
-                  # If guest target exists (file or directory) and is not a symlink, remove it to prevent nesting/conflicts
-                  if [ -e "$HOME/.var/app/${appId}/${s.guest}" ] && [ ! -L "$HOME/.var/app/${appId}/${s.guest}" ]; then
-                    rm -rf "$HOME/.var/app/${appId}/${s.guest}"
-                  fi
+                      # If guest target exists (file or directory) and is not a symlink, backup it to prevent nesting/conflicts
+                      if [ -e "$HOME/.var/app/${appId}/${s.guest}" ] && [ ! -L "$HOME/.var/app/${appId}/${s.guest}" ]; then
+                        mv "$HOME/.var/app/${appId}/${s.guest}" "$HOME/.var/app/${appId}/${s.guest}.bak"
+                      fi
 
-                  mkdir -p "$(dirname "$HOME/.var/app/${appId}/${s.guest}")"
-                  # Create direct out-of-store symlink
-                  ln -sfn "$HOME/${s.host}" "$HOME/.var/app/${appId}/${s.guest}"
-                '') flatpakSymlinks;
+                      mkdir -p "$(dirname "$HOME/.var/app/${appId}/${s.guest}")"
+                      # Create direct out-of-store symlink
+                      ln -sfn "$HOME/${s.host}" "$HOME/.var/app/${appId}/${s.guest}"
+                    ''
+                ) flatpakSymlinks;
 
                 flatpakFlags = appVal.flags or { };
                 flagsCmds =
@@ -249,10 +269,9 @@ in
             appEnabled = isAppEnabled appId;
             useFlatpakApp = useFlatpak appId;
             hmProgram = appVal.hmProgram or null;
-            nativePkg = appVal.nativePkgs or (appVal.native.package or (appVal.package or null));
-            nativePackages =
-              if nativePkg == null then [ ] else (if builtins.isList nativePkg then nativePkg else [ nativePkg ]);
-            realNativePkg = if nativePackages != [ ] then builtins.elemAt nativePackages 0 else null;
+            nativeInfo = getNativePkg appVal;
+            nativePackages = nativeInfo.nativePackages;
+            realNativePkg = nativeInfo.realNativePkg;
             binName =
               appVal.binName
                 or (if realNativePkg != null && realNativePkg ? pname then realNativePkg.pname else null);
@@ -281,10 +300,8 @@ in
                 appEnabled = isAppEnabled appId;
                 useFlatpakApp = useFlatpak appId;
                 hmProgram = appVal.hmProgram or null;
-                nativePkg = appVal.nativePkgs or (appVal.native.package or (appVal.package or null));
-                nativePackages =
-                  if nativePkg == null then [ ] else (if builtins.isList nativePkg then nativePkg else [ nativePkg ]);
-                realNativePkg = if nativePackages != [ ] then builtins.elemAt nativePackages 0 else null;
+                nativeInfo = getNativePkg appVal;
+                realNativePkg = nativeInfo.realNativePkg;
               in
               lib.optionals (appEnabled && hmProgram != null && hmProgram ? name && hmProgram.name != null) [
                 (lib.nameValuePair hmProgram.name (
