@@ -8,6 +8,10 @@ selfLib.mkModule {
   name = "services.rclone";
   description = "rclone mount service";
 
+  nixosConfig = {
+    programs.fuse.userAllowOther = true;
+  };
+
   hmConfig =
     hmOpts:
     let
@@ -42,6 +46,7 @@ selfLib.mkModule {
 
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "$XDG_RUNTIME_DIR/rclone.conf" \
+              --allow-other \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
               --vfs-cache-max-size 5G \
