@@ -32,6 +32,7 @@ selfLib.mkModule {
           LIBVA_DRIVER_NAME = "i965"; # Intel Ivy Bridge VA-API driver
           MOZ_DISABLE_RDD_SANDBOX = "1"; # Allow RDD process to access /dev/dri for VA-API
           MOZ_ENABLE_WAYLAND = "1"; # Ensure Wayland backend for DMABUF/VA-API
+          MOZ_LEGACY_PROFILES = "1";
         };
       };
 
@@ -109,12 +110,9 @@ selfLib.mkModule {
       };
     in
     {
-      # Clean up old real .zen directory once to avoid conflicts with our profiles.ini setup
-      home.activation.cleanLegacyZen = hmOpts.lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-        if [ -d "$HOME/.var/app/app.zen_browser.zen/.zen" ] && [ ! -L "$HOME/.var/app/app.zen_browser.zen/.zen" ]; then
-          rm -rf "$HOME/.var/app/app.zen_browser.zen/.zen"
-        fi
-      '';
+      home.sessionVariables = {
+        MOZ_LEGACY_PROFILES = "1";
+      };
 
       # Write profiles.ini as a physical, writeable file rather than a read-only Nix store symlink.
       # Gecko browsers (Firefox/Zen) require write access to profiles.ini on startup and will revert
