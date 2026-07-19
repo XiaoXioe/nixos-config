@@ -9,12 +9,6 @@
 let
   resticRepo = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
   mountPoint = "/home/${config.my.user.name}/ResticBackup";
-  proxyEnv = {
-    HTTP_PROXY = "socks5h://127.0.0.1:40000";
-    HTTPS_PROXY = "socks5h://127.0.0.1:40000";
-    ALL_PROXY = "socks5h://127.0.0.1:40000";
-    NO_PROXY = "localhost,127.0.0.1";
-  };
 in
 
 selfLib.mkModule {
@@ -25,8 +19,21 @@ selfLib.mkModule {
     # Deklarasi secret sops-nix untuk restic
     sops.secrets."restic-password" = { };
 
-    # Pastikan rclone terinstal di sistem karena kita menggunakannya sebagai backend
-    environment.systemPackages = [ pkgs.rclone ];
+    # Pastikan rclone terinstal di sistem karena kita menggunakannya sebagai backend,
+    # dan bungkus (wrap) rclone agar menggunakan proxy, tanpa mencemari environment Restic
+    environment.systemPackages = [
+      (pkgs.symlinkJoin {
+        name = "rclone-proxy-wrapper";
+        paths = [ pkgs.rclone ];
+        buildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/rclone \
+            --set HTTP_PROXY "socks5h://127.0.0.1:40000" \
+            --set HTTPS_PROXY "socks5h://127.0.0.1:40000" \
+            --set ALL_PROXY "socks5h://127.0.0.1:40000"
+        '';
+      })
+    ];
 
     services.restic.backups."data-utama" = {
       repository = resticRepo;
@@ -76,7 +83,7 @@ selfLib.mkModule {
     };
 
     systemd.services."restic-backups-data-utama" = {
-      environment = proxyEnv // {
+      environment = {
         RCLONE_CONFIG = lib.mkForce "/run/restic-backups-data-utama/rclone.conf";
         RESTIC_PROGRESS_FPS = "0.016666";
       };
@@ -100,7 +107,7 @@ selfLib.mkModule {
       wants = [ "network-online.target" ];
       # Tidak ada wantedBy — layanan ini hanya dijalankan secara manual
 
-      environment = proxyEnv // {
+      environment = {
         RCLONE_CONFIG = "/run/restic-mount/rclone.conf";
         RESTIC_REPOSITORY = resticRepo;
         RESTIC_PASSWORD_FILE = config.sops.secrets."restic-password".path;
