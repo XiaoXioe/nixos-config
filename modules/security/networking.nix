@@ -91,13 +91,16 @@ selfLib.mkModule {
               # 2. Izinkan akses LAN lokal
               ip daddr { 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } accept
 
-              # 3. Izinkan handshake WireGuard ke luar
-              udp dport { 500, 4500, 51820, 50820 } accept
+              # 3. Izinkan traffic VPN bertanda (fwmark) ke luar
+              meta mark 51820 accept
 
               # 4. Lompat ke chain killswitch dinamis
               jump vpn_killswitch
 
-              # 5. Redirect traffic HTTP/HTTPS ke Zapret (bypassed jika service mati)
+              # 5. Skip DPI untuk traffic di dalam tunnel VPN
+              oifname "wg-*" accept
+
+              # 6. Redirect traffic HTTP/HTTPS ke Zapret (bypassed jika service mati)
               meta mark and 0x40000000 == 0 tcp dport { 80, 443 } ct original packets 1-6 queue num 200 bypass
             }
 
