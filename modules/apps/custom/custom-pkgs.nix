@@ -110,7 +110,7 @@ selfLib.mkModule {
 
       priv.anichin-scraper
       priv.lk21-scraper
-      priv.burpsuitepro
+      # priv.burpsuitepro
     ];
   };
 }

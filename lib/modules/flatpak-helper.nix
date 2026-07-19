@@ -241,7 +241,7 @@ in
           )
         );
 
-      # Collect native packages for disabled flatpaks (only if no hmProgram is defined)
+      # Collect native packages for disabled flatpaks, and wrappers for enabled ones
       nativePackagesList = lib.flatten (
         lib.mapAttrsToList (
           appId: appVal:
@@ -252,10 +252,21 @@ in
             nativePkg = appVal.nativePkgs or (appVal.native.package or (appVal.package or null));
             nativePackages =
               if nativePkg == null then [ ] else (if builtins.isList nativePkg then nativePkg else [ nativePkg ]);
+            realNativePkg = if nativePackages != [ ] then builtins.elemAt nativePackages 0 else null;
+            binName =
+              appVal.binName
+                or (if realNativePkg != null && realNativePkg ? pname then realNativePkg.pname else null);
           in
-          lib.optionals (
-            appEnabled && !useFlatpakApp && (hmProgram == null || hmProgram.name == null)
-          ) nativePackages
+          lib.optionals (appEnabled && (hmProgram == null || hmProgram.name == null)) (
+            if useFlatpakApp then
+              (lib.optionals (binName != null) [
+                (pkgs.writeShellScriptBin binName ''
+                  exec flatpak run ${appId} "$@"
+                '')
+              ])
+            else
+              nativePackages
+          )
         ) flatpakCfg
       );
 
@@ -281,7 +292,12 @@ in
                     enable = true;
                     ${hmProgram.packagePath or "package"} =
                       if useFlatpakApp then
-                        lib.makeOverridable (args: hmPkgs.runCommand "empty-${hmProgram.name}" { } "mkdir -p $out") { }
+                        lib.makeOverridable (
+                          args:
+                          hmPkgs.writeShellScriptBin (hmProgram.binName or hmProgram.name) ''
+                            exec flatpak run ${appId} "$@"
+                          ''
+                        ) { }
                       else
                         realNativePkg;
                   } (hmProgram.extraConfig or { })

@@ -116,6 +116,26 @@ selfLib.mkModule {
   name = "apps.editors.vscodium";
   description = "Vscodium configuration";
 
+  flatpakCfg = {
+    "com.vscodium.codium" = {
+      enable = true;
+      overrides = {
+        Context.filesystems = [ "host" ];
+      };
+      symlinks = [
+        {
+          host = ".config/VSCodium";
+          guest = "config/VSCodium";
+        }
+        {
+          host = ".vscode-oss";
+          guest = "data/codium";
+        }
+      ];
+      nativePkgs = pkgs.vscodium;
+    };
+  };
+
   hmConfig = hmOpts: {
     home.packages = with pkgs; [
       black
@@ -131,6 +151,12 @@ selfLib.mkModule {
     ];
     programs.vscodium = {
       enable = true;
+      package = pkgs.lib.makeOverridable (
+        args:
+        pkgs.writeShellScriptBin "codium" ''
+          exec flatpak run com.vscodium.codium "$@"
+        ''
+      ) { };
       argvSettings = {
         ignore-gpu-blocklist = true;
         enable-crash-reporter = false;
@@ -187,8 +213,16 @@ selfLib.mkModule {
           "extensions.autoUpdate" = false;
           "vsicons.dontShowNewVersionMessage" = true;
 
-          "nix.serverPath" = "nixd";
+          "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
           "nix.enableLanguageServer" = true;
+          "nix.formatterPath" = "${pkgs.nixfmt}/bin/nixfmt";
+          "nix.serverSettings" = {
+            "nixd" = {
+              "formatting" = {
+                "command" = [ "${pkgs.nixfmt}/bin/nixfmt" ];
+              };
+            };
+          };
 
           # Per-language formatters
           "[python]" = {
@@ -213,7 +247,7 @@ selfLib.mkModule {
 
           # Konfigurasi SQLFluff (Dialek SQLite)
           "sqlfluff.dialect" = "sqlite";
-          "sqlfluff.executablePath" = "sqlfluff";
+          "sqlfluff.executablePath" = "${pkgs.sqlfluff}/bin/sqlfluff";
           "sqlfluff.format.enabled" = true;
           "sqlfluff.linter.run" = "onType";
           "sqlfluff.linter.diagnosticSeverity" = "error";
@@ -263,6 +297,9 @@ selfLib.mkModule {
           # Built-in linters
           "json.validate.enable" = true;
           "shellcheck.executablePath" = "${pkgs.shellcheck}/bin/shellcheck";
+          "shellformat.path" = "${pkgs.shfmt}/bin/shfmt";
+          "black-formatter.path" = [ "${pkgs.black}/bin/black" ];
+          "ruff.path" = [ "${pkgs.ruff}/bin/ruff" ];
 
           # Disable workspace trust prompt
           "security.workspace.trust.enabled" = false;

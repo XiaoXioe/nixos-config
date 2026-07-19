@@ -31,6 +31,27 @@ selfLib.mkModule {
   name = "apps.browsers.firefox";
   description = "Firefox configuration for user";
 
+  flatpakCfg = {
+    "org.mozilla.firefox" = {
+      enable = true;
+      overrides = {
+        Context.filesystems = [ "/run/opengl-driver/lib/dri:ro" ];
+        Environment = {
+          LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
+          LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
+          MOZ_LEGACY_PROFILES = "1";
+        };
+      };
+      symlinks = [
+        {
+          host = ".config/mozilla/firefox";
+          guest = ".mozilla/firefox";
+        }
+      ];
+      nativePkgs = pkgs.firefox;
+    };
+  };
+
   nixosConfig = {
     environment.sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
@@ -40,6 +61,7 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
+      lib = hmOpts.lib;
       baseSettings = {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
@@ -66,8 +88,39 @@ selfLib.mkModule {
       '';
     in
     {
+      home.sessionVariables = {
+        MOZ_LEGACY_PROFILES = "1";
+      };
+
+      home.activation.prepareFirefoxProfiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        # Hapus file backup lama agar tidak memicu error clobber
+        rm -f "$HOME/.config/mozilla/firefox/profiles.ini.hm-bak"
+
+        # Hapus profiles.ini jika berupa file biasa (bukan symlink) agar linkGeneration bisa membuat symlink baru tanpa backup
+        if [ -f "$HOME/.config/mozilla/firefox/profiles.ini" ] && [ ! -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
+          rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
+        fi
+      '';
+
+      home.activation.copyFirefoxProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        if [ -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
+          real_file=$(readlink -f "$HOME/.config/mozilla/firefox/profiles.ini")
+          rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
+          cp "$real_file" "$HOME/.config/mozilla/firefox/profiles.ini"
+          chmod 644 "$HOME/.config/mozilla/firefox/profiles.ini"
+          
+          # Reset Default ke 'default'
+          sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.config/mozilla/firefox/profiles.ini"
+        fi
+      '';
+
       programs.firefox = {
-        package = pkgs.firefox;
+        package = lib.makeOverridable (
+          args:
+          pkgs.writeShellScriptBin "firefox" ''
+            exec flatpak run org.mozilla.firefox "$@"
+          ''
+        ) { };
         configPath = "${hmOpts.config.xdg.configHome}/mozilla/firefox";
         enable = true;
         languagePacks = [

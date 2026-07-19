@@ -6,7 +6,7 @@
 
 let
   defaultApps = {
-    text = [ "codium.desktop" ];
+    text = [ "com.vscodium.codium.desktop" ];
     image = [ "org.gnome.gThumb.desktop" ];
     audio = [ "mpv.desktop" ];
     video = [ "mpv.desktop" ];
@@ -18,7 +18,7 @@ let
     discord = [ "com.discordapp.Discord.desktop" ];
     link = [
       "app.zen_browser.zen.desktop"
-      "firefox.desktop"
+      "org.mozilla.firefox.desktop"
     ];
   };
   mimeMap = {

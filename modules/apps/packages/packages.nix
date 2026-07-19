@@ -11,6 +11,7 @@ selfLib.mkModule {
   flatpakCfg = {
     "com.bitwarden.desktop" = {
       enable = true;
+      binName = "bitwarden";
       symlinks = [
         {
           host = ".config/Bitwarden";
@@ -21,7 +22,7 @@ selfLib.mkModule {
     };
 
     "org.gnome.gThumb" = {
-      enable = false;
+      enable = true;
       nativePkgs = pkgs.gthumb;
     };
   };
