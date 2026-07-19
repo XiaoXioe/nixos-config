@@ -217,7 +217,7 @@ selfLib.mkModule {
       };
 
       script = ''
-        #!/usr/bin/env bash
+        set -euo pipefail
 
         LOG_FILE="/var/lib/ssd-tracker/ssd_history.log"
         DATE=$(date '+%Y-%m-%d %H:%M')
@@ -243,8 +243,8 @@ selfLib.mkModule {
             
             # NVMe reports Data Units Written in 1000s of 512-byte units (512,000 bytes).
             # GB (base 2 GiB) = RAW_W * 1000 * 512 / 1024^3 = RAW_W * 500000 / 1073741824
-            GB_W=$(printf "%.2f" $(echo "scale=4; $RAW_W * 500000 / 1073741824" | bc))
-            GB_R=$(printf "%.2f" $(echo "scale=4; $RAW_R * 500000 / 1073741824" | bc))
+            GB_W=$(printf "%.2f" "$(echo "scale=4; $RAW_W * 500000 / 1073741824" | bc)")
+            GB_R=$(printf "%.2f" "$(echo "scale=4; $RAW_R * 500000 / 1073741824" | bc)")
         else
             # SATA drive
             RAW_W=$(smartctl -A "$TARGET_DISK" | grep -i "Total_LBAs_Written" | awk '{print $NF}')
@@ -257,8 +257,8 @@ selfLib.mkModule {
 
             # Keep user SATA calculation for MidasForce SSD (reports in 32MB blocks)
             # GB_W = RAW_W * 32 / 1024
-            GB_W=$(printf "%.2f" $(echo "scale=2; ($RAW_W * 32) / 1024" | bc))
-            GB_R=$(printf "%.2f" $(echo "scale=2; ($RAW_R * 32) / 1024" | bc))
+            GB_W=$(printf "%.2f" "$(echo "scale=2; ($RAW_W * 32) / 1024" | bc)")
+            GB_R=$(printf "%.2f" "$(echo "scale=2; ($RAW_R * 32) / 1024" | bc)")
         fi
 
         if [ -s "$LOG_FILE" ]; then
