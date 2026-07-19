@@ -167,6 +167,7 @@
       ollama-to-llama = true;
       file-transfer = true;
       vpn = true;
+      flake-update-interactive = true;
     };
 
     specialization = {
