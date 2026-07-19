@@ -23,6 +23,7 @@ selfLib.mkModule {
   flatpakCfg = {
     "org.vinegarhq.Sober" = {
       enable = true;
+      binName = "sober";
     };
 
     "org.libretro.RetroArch" = {
