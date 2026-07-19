@@ -138,6 +138,11 @@ in
                   inherit appId;
                   inherit (appVal) bundle sha256;
                 }
+              else if appVal ? origin then
+                {
+                  inherit appId;
+                  inherit (appVal) origin;
+                }
               else
                 appId
             )
@@ -181,6 +186,13 @@ in
                 flatpakIdSafe = lib.replaceStrings [ "." ] [ "-" ] appId;
                 flatpakSymlinks = appVal.symlinks or (appVal.dataDir or [ ]);
 
+                sanitizePath =
+                  p:
+                  if (builtins.match ".*\\.\\..*" p != null || lib.hasPrefix "/" p) then
+                    builtins.abort "Security Violation: Path traversal or absolute path detected in Flatpak guest configuration: ${p}"
+                  else
+                    p;
+
                 pruneCmds = ''
                   # Prune old symlinks using manifest to avoid collateral damage
                   manifest="$HOME/.var/app/${appId}/.nix-managed-symlinks"
@@ -188,7 +200,7 @@ in
                     while IFS= read -r old_guest; do
                       is_active=0
                       ${lib.concatMapStringsSep "\n                      " (s: ''
-                        if [ "$old_guest" = "${s.guest}" ]; then is_active=1; fi
+                        if [ "$old_guest" = "${sanitizePath s.guest}" ]; then is_active=1; fi
                       '') flatpakSymlinks}
                       if [ "$is_active" -eq 0 ] && [ -n "$old_guest" ]; then
                         echo "Pruning stale Flatpak symlink: $old_guest"
@@ -201,13 +213,16 @@ in
                   mkdir -p "$HOME/.var/app/${appId}"
                   > "$manifest"
                   ${lib.concatMapStringsSep "\n                  " (s: ''
-                    echo "${s.guest}" >> "$manifest"
+                    echo "${sanitizePath s.guest}" >> "$manifest"
                   '') flatpakSymlinks}
                 '';
 
                 symlinkCmds = lib.concatMapStringsSep "\n" (
                   s:
-                  if s.guest == ".zen" || s.guest == ".mozilla" then
+                  let
+                    guestPath = sanitizePath s.guest;
+                  in
+                  if guestPath == ".zen" || guestPath == ".mozilla" then
                     builtins.abort "Sandbox escape: guest path cannot be ${s.guest}"
                   else
                     ''
@@ -218,24 +233,24 @@ in
                       fi
 
                       # If guest target exists (file or directory) and is not a symlink, backup it to prevent nesting/conflicts
-                      if [ -e "$HOME/.var/app/${appId}/${s.guest}" ] && [ ! -L "$HOME/.var/app/${appId}/${s.guest}" ]; then
-                        mv "$HOME/.var/app/${appId}/${s.guest}" "$HOME/.var/app/${appId}/${s.guest}.bak"
+                      if [ -e "$HOME/.var/app/${appId}/${guestPath}" ] && [ ! -L "$HOME/.var/app/${appId}/${guestPath}" ]; then
+                        mv "$HOME/.var/app/${appId}/${guestPath}" "$HOME/.var/app/${appId}/${guestPath}.bak"
                       fi
 
-                      mkdir -p "$(dirname "$HOME/.var/app/${appId}/${s.guest}")"
+                      mkdir -p "$(dirname "$HOME/.var/app/${appId}/${guestPath}")"
                       # Create direct out-of-store symlink
-                      ln -sfn "$HOME/${s.host}" "$HOME/.var/app/${appId}/${s.guest}"
+                      ln -sfn "$HOME/${s.host}" "$HOME/.var/app/${appId}/${guestPath}"
                     ''
                 ) flatpakSymlinks;
 
                 flatpakFlags = appVal.flags or { };
+                flagsFile =
+                  if flatpakFlags ? file && flatpakFlags.file != null then sanitizePath flatpakFlags.file else null;
                 flagsCmds =
-                  if
-                    flatpakFlags ? file && flatpakFlags.file != null && flatpakFlags ? text && flatpakFlags.text != ""
-                  then
+                  if flagsFile != null && flatpakFlags ? text && flatpakFlags.text != "" then
                     ''
-                      mkdir -p "$(dirname "$HOME/.var/app/${appId}/${flatpakFlags.file}")"
-                      cat << 'EOF' > "$HOME/.var/app/${appId}/${flatpakFlags.file}"
+                      mkdir -p "$(dirname "$HOME/.var/app/${appId}/${flagsFile}")"
+                      cat << 'EOF' > "$HOME/.var/app/${appId}/${flagsFile}"
                       ${flatpakFlags.text}
                       EOF
                     ''
