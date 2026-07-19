@@ -1,6 +1,7 @@
 {
   lib,
   selfLib,
+  config,
   ...
 }:
 
@@ -31,6 +32,11 @@ selfLib.mkModule {
         {
           name = "flathub";
           location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+        }
+        {
+          name = "xiaoxioe-flatpak";
+          location = "file:///home/${config.my.user.name}/CloudStorage/union-raid1-decrypted/custom-flatpaks/repo";
+          args = "--no-gpg-verify";
         }
       ];
     };
