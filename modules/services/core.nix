@@ -39,6 +39,8 @@ selfLib.mkModule {
     ];
 
     systemd.timers.fstrim.timerConfig.Persistent = false;
+    systemd.timers.btrfs-scrub--.timerConfig.Persistent = false;
+    systemd.timers.btrfs-scrub-mnt-data_btrfs.timerConfig.Persistent = false;
 
     systemd.coredump.enable = false;
   };
