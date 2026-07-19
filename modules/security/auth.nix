@@ -36,8 +36,6 @@ selfLib.mkModule {
               cmd = cmd;
             })
             [
-              "nix"
-              "nixos-rebuild"
               "nix-collect-garbage"
               "compsize"
               "dmesg"
