@@ -35,20 +35,13 @@ selfLib.mkModule {
         ${lib.concatMapStringsSep "\n" (fileName: ''
           VPN_ID="${lib.removeSuffix ".conf" fileName}"
 
-          for i in {1..10}; do
-            if [ -f ${config.sops.secrets.${fileName}.path} ]; then
-              break
-            fi
-            sleep 1
-          done
-
           if ! ${pkgs.networkmanager}/bin/nmcli connection show "$VPN_ID" > /dev/null 2>&1; then
             ${pkgs.networkmanager}/bin/nmcli connection import type wireguard file ${
               config.sops.secrets.${fileName}.path
             }
 
             # nmcli assigns connection ID based on the file basename
-            ${pkgs.networkmanager}/bin/nmcli connection modify "$VPN_ID" connection.autoconnect no || true
+            ${pkgs.networkmanager}/bin/nmcli connection modify "$VPN_ID" connection.autoconnect no wireguard.fwmark 51820 || true
           fi
         '') vpnFiles}
       '';
