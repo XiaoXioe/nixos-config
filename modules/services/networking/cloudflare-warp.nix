@@ -55,6 +55,11 @@ selfLib.mkModule {
           else
             echo "==> [wireproxy-warp] Profil ditemukan. Menggunakan konfigurasi yang ada."
           fi
+
+          # Ensure KeepAlive = 15 is set under [Peer] to auto-reconnect WireGuard on boot network fluctuations
+          if [[ -f wgcf-profile.conf ]] && ! grep -q "KeepAlive" wgcf-profile.conf; then
+            ${pkgs.gnused}/bin/sed -i '/\[Peer\]/a KeepAlive = 15' wgcf-profile.conf
+          fi
         '';
 
         ExecStart = "${pkgs.wireproxy}/bin/wireproxy --silent -c \${STATE_DIRECTORY}/wgcf-profile.conf";
