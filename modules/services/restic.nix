@@ -85,11 +85,34 @@ selfLib.mkModule {
     };
 
     systemd.services."restic-backups-data-utama" = {
+      after = [
+        "network-online.target"
+        "wireproxy-warp.service"
+      ];
+      wants = [
+        "network-online.target"
+        "wireproxy-warp.service"
+      ];
       environment = {
         RCLONE_CONFIG = lib.mkForce "/run/restic-backups-data-utama/rclone.conf";
         RESTIC_PROGRESS_FPS = "0.016666";
+        HTTP_PROXY = "socks5h://127.0.0.1:40000";
+        HTTPS_PROXY = "socks5h://127.0.0.1:40000";
+        ALL_PROXY = "socks5h://127.0.0.1:40000";
+        NO_PROXY = "localhost,127.0.0.1,::1";
       };
       serviceConfig.ExecStartPre = lib.mkBefore [
+        (pkgs.writeShellScript "restic-backups-data-utama-wait-proxy" ''
+          # Wait for SOCKS5 proxy port 40000 to be online and working
+          for i in {1..30}; do
+            if ${pkgs.curl}/bin/curl -s --max-time 3 -o /dev/null --proxy socks5h://127.0.0.1:40000 https://www.google.com; then
+              echo "Proxy 40000 is online."
+              exit 0
+            fi
+            ${pkgs.coreutils}/bin/sleep 2
+          done
+          echo "WARNING: Proxy 40000 not responsive after 60s, proceeding anyway..."
+        '')
         (pkgs.writeShellScript "restic-backups-data-utama-copy-rclone-config" ''
           ${pkgs.coreutils}/bin/cp ${
             config.sops.secrets."rclone.conf".path
@@ -113,6 +136,10 @@ selfLib.mkModule {
         RCLONE_CONFIG = "/run/restic-mount/rclone.conf";
         RESTIC_REPOSITORY = resticRepo;
         RESTIC_PASSWORD_FILE = config.sops.secrets."restic-password".path;
+        HTTP_PROXY = "socks5h://127.0.0.1:40000";
+        HTTPS_PROXY = "socks5h://127.0.0.1:40000";
+        ALL_PROXY = "socks5h://127.0.0.1:40000";
+        NO_PROXY = "localhost,127.0.0.1,::1";
       };
 
       path = [
