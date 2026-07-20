@@ -28,6 +28,7 @@
         librewolf = false;
         tor-browser = true;
         zen = true;
+        psd = true;
       };
 
       custompkgs = true;
