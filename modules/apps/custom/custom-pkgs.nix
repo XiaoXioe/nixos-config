@@ -55,12 +55,11 @@ selfLib.mkModule {
 
           echo "Waiting for Google Drive FUSE mount and repository directory..."
           mounted=false
-          for i in {1..60}; do
+          for i in {1..120}; do
             if [ -d "$REPO_PATH" ]; then
               mounted=true
               break
             fi
-            echo "Repository directory not found yet, waiting 5 seconds (attempt $i/60)..."
             sleep 5
           done
 
@@ -73,8 +72,19 @@ selfLib.mkModule {
           ${pkgs.flatpak}/bin/flatpak update --user -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro
         ''}";
       };
+    };
+
+    systemd.user.timers.sync-flatpak-repo = {
+      Unit = {
+        Description = "Timer for updating private Flatpaks from Google Drive mount";
+      };
+      Timer = {
+        OnStartupSec = "4m";
+        RandomizedDelaySec = "30s";
+        Persistent = false;
+      };
       Install = {
-        WantedBy = [ "default.target" ];
+        WantedBy = [ "timers.target" ];
       };
     };
 
