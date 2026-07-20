@@ -27,7 +27,7 @@ let
     dontStrip = true;
 
     nativeBuildInputs = with pkgs; [
-      makeBinaryWrapper
+      makeWrapper
       autoPatchelfHook
     ];
 
@@ -45,7 +45,7 @@ let
       tar -xzf $src -C $out/bin
 
       mv $out/bin/opencode $out/bin/.opencode-unwrapped
-      makeBinaryWrapper $out/bin/.opencode-unwrapped $out/bin/opencode
+      makeWrapper $out/bin/.opencode-unwrapped $out/bin/opencode
 
       runHook postInstall
     '';
@@ -70,6 +70,10 @@ selfLib.mkModule {
         antigravity-ide
         opencode
       ];
+
+      sessionVariables = {
+        NINEROUTER_URL = "http://192.168.5.207:20128";
+      };
     };
   };
 }
