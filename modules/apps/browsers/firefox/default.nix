@@ -49,7 +49,9 @@ selfLib.mkModule {
         }
       ];
       nativePkgs = pkgs.firefox;
-      skipNativeWrapper = true;
+      hmProgram = {
+        name = "firefox";
+      };
     };
   };
 
@@ -116,12 +118,6 @@ selfLib.mkModule {
       '';
 
       programs.firefox = {
-        package = lib.makeOverridable (
-          args:
-          pkgs.writeShellScriptBin "firefox" ''
-            exec flatpak run org.mozilla.firefox "$@"
-          ''
-        ) { };
         configPath = "${hmOpts.config.xdg.configHome}/mozilla/firefox";
         enable = true;
         languagePacks = [
