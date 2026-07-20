@@ -36,12 +36,12 @@ selfLib.mkModule {
             "${pkgs.coreutils}/bin/chmod 600 %t/rclone.conf"
           ];
           ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
-            # Wait for proxy port 40000 to be open to avoid startup failure
+            # Wait for SOCKS5 proxy port 40000 and verify actual internet connectivity
             for i in {1..30}; do
-              if echo 2>/dev/null > /dev/tcp/127.0.0.1/40000; then
+              if ${pkgs.curl}/bin/curl -s --max-time 3 -o /dev/null --proxy socks5h://127.0.0.1:40000 https://www.google.com; then
                 break
               fi
-              ${pkgs.coreutils}/bin/sleep 1
+              ${pkgs.coreutils}/bin/sleep 2
             done
 
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
