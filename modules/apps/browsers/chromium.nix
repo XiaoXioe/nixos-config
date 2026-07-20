@@ -16,6 +16,7 @@ selfLib.mkModule {
         Context = {
           filesystems = [
             "/etc/chromium:ro"
+            "xdg-run/psd" # Profile Sync Daemon tmpfs
           ];
         };
       };
