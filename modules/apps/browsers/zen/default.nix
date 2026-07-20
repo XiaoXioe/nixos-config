@@ -24,6 +24,7 @@ selfLib.mkModule {
         Context = {
           filesystems = [
             "/run/opengl-driver/lib/dri:ro" # Host's VA-API drivers (i965, iHD)
+            "xdg-run/psd" # Profile Sync Daemon tmpfs
           ];
         };
         Environment = {
