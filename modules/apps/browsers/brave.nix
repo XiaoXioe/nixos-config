@@ -17,6 +17,7 @@ selfLib.mkModule {
         Context = {
           filesystems = [
             "/etc/brave:ro" # Diperlukan untuk membaca policies.json di /etc
+            "xdg-run/psd" # Profile Sync Daemon tmpfs
           ];
         };
       };
