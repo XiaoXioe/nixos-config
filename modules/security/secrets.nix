@@ -25,6 +25,7 @@ selfLib.mkModule {
       "d /home/${userName}/.ssh 0700 ${userName} users - -"
       "d /home/${userName}/.android 0700 ${userName} users - -"
       "d /home/${userName}/.config/gh 0700 ${userName} users - -"
+      "d /home/${userName}/.local/share/opencode 0700 ${userName} users - -"
     ];
     sops = {
       defaultSopsFile = ../../secrets/secrets.yaml;
@@ -48,6 +49,25 @@ selfLib.mkModule {
         mode = "0600";
         content = ''
           ${config.sops.placeholder.kaggle-token}
+        '';
+      };
+
+      templates."gh-hosts.yml" = {
+        path = "/home/${userName}/.config/gh/hosts.yml";
+        owner = userName;
+        mode = "0600";
+        content = ''
+          github.com:
+              user: ${config.sops.placeholder.github-user-primary}
+              users:
+                  ${config.sops.placeholder.github-user-primary}:
+                      oauth_token: ${config.sops.placeholder.github-access-token-primary}
+                      git_protocol: ssh
+                  ${config.sops.placeholder.github-user-secondary}:
+                      oauth_token: ${config.sops.placeholder.github-access-token-secondary}
+                      git_protocol: ssh
+              oauth_token: ${config.sops.placeholder.github-access-token-primary}
+              git_protocol: ssh
         '';
       };
     };
@@ -79,22 +99,31 @@ selfLib.mkModule {
           sopsFile = ../../secrets/binary/foto-profile.enc;
         };
 
-        "github-token" = {
+        "github-nix" = {
           owner = userName;
           # Restart nix-daemon to reload the token on change
           restartUnits = [ "nix-daemon.service" ];
           mode = "0400";
         };
 
-        "github-access-token" = {
+        "github-user-primary" = {
           owner = userName;
           mode = "0400";
         };
 
-        "gh_hosts_yml" = {
+        "github-access-token-primary" = {
           owner = userName;
-          path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
-          mode = "0600";
+          mode = "0400";
+        };
+
+        "github-user-secondary" = {
+          owner = userName;
+          mode = "0400";
+        };
+
+        "github-access-token-secondary" = {
+          owner = userName;
+          mode = "0400";
         };
 
         "ollama-env" = { };
