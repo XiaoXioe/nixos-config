@@ -28,7 +28,7 @@ selfLib.mkModule {
         # "mitigations=off"
         "psi=1"
         # Disable USB autosuspend at kernel level
-        # "usbcore.autosuspend=-1"
+        "usbcore.autosuspend=-1"
         # Batasi C-state untuk mengatasi masalah mati mendadak saat idle/browsing
         # "intel_idle.max_cstate=1"
       ];
