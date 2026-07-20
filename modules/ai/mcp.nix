@@ -14,6 +14,7 @@ let
   telegram-mcp-pkg = inputs.nix-mcp.packages.${system}.telegram-mcp;
   github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
+  server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
 
   makeSshMcp =
     {
@@ -34,31 +35,26 @@ let
       ];
     };
 
-  # Adapter: Gemini → OpenCode format, tanpa duplikasi parameter
-  makeOpenCodeSshMcp =
-    args:
-    let
-      m = makeSshMcp args;
-    in
-    {
-      type = "local";
-      command = [ m.command ] ++ m.args;
-      enabled = true;
-    };
 in
 selfLib.mkModule {
   name = "ai.mcp";
   description = "Nix-native Model Context Protocol (MCP) servers and configuration";
 
   hmConfig =
-    hmOpts:
+    {
+      config,
+      pkgs,
+      lib,
+      osConfig,
+      ...
+    }:
     let
-      homeDir = hmOpts.config.home.homeDirectory;
+      homeDir = config.home.homeDirectory;
 
       # Secret paths (defined sekali, dipakai kedua format)
-      githubTokenPath = hmOpts.osConfig.sops.secrets."github-access-token".path;
-      tavilyKeyPath = hmOpts.osConfig.sops.secrets."tavily-api-key".path;
-      cloudflareTokenPath = hmOpts.osConfig.sops.secrets."cloudflare-token".path;
+      githubTokenPath = osConfig.sops.secrets."github-access-token-primary".path;
+      tavilyKeyPath = osConfig.sops.secrets."tavily-api-key".path;
+      cloudflareTokenPath = osConfig.sops.secrets."cloudflare-token".path;
 
       # ─── Single source of truth ───
       sshServers = {
@@ -105,7 +101,6 @@ selfLib.mkModule {
         telegram-mcp = {
           pkg = telegram-mcp-pkg;
           bin = "telegram-mcp";
-          args = [ "serve" ];
         };
         tavily = {
           pkg = tavily-mcp-pkg;
@@ -115,7 +110,38 @@ selfLib.mkModule {
             TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
           };
         };
+        server-memory = {
+          pkg = server-memory-pkg;
+          bin = "mcp-server-memory";
+          env = {
+            MEMORY_FILE_PATH = "${homeDir}/.config/antigravity/memory.json";
+          };
+        };
       };
+
+      opencodeExec = lib.mapAttrs (
+        name: cfg:
+        let
+          base = {
+            type = "local";
+            command = [ "${cfg.pkg}/bin/${cfg.bin}" ] ++ (cfg.args or [ ]);
+          };
+        in
+        if cfg ? env then base // { environment = cfg.env; } else base
+      ) execServers;
+
+      opencodeSsh = lib.mapAttrs (
+        name: cfg:
+        let
+          mcp = makeSshMcp (cfg // { inherit homeDir; });
+        in
+        {
+          type = "local";
+          command = [ mcp.command ] ++ mcp.args;
+        }
+      ) sshServers;
+
+      opencodeMcpConfig = opencodeExec // opencodeSsh;
 
       cloudflareCfg = {
         url = "https://mcp.cloudflare.com/mcp";
@@ -144,15 +170,6 @@ selfLib.mkModule {
             env = cfg.env or { };
           }
       ) execServers;
-
-      opencodeSsh = lib.mapAttrs (name: cfg: makeOpenCodeSshMcp (cfg // { inherit homeDir; })) sshServers;
-
-      opencodeExec = lib.mapAttrs (name: cfg: {
-        type = "local";
-        command = [ "${cfg.pkg}/bin/${cfg.bin}" ] ++ (cfg.args or [ ]);
-        enabled = true;
-        environment = cfg.env or { };
-      }) execServers;
     in
     {
       home = {
@@ -163,17 +180,20 @@ selfLib.mkModule {
           telegram-mcp-pkg
           github-mcp-server-pkg
           tavily-mcp-pkg
+          server-memory-pkg
           pkgs.mcp-nixos
         ];
 
-        activation.setupMcpConfig = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           TOKEN_PATH="${cloudflareTokenPath}"
           BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
           FINAL_CONF="$HOME/.gemini/config/mcp_config.json"
+          OPENCODE_CONF="$HOME/.config/opencode/opencode.json"
 
           mkdir -p "$HOME/.gemini/config"
+          mkdir -p "$HOME/.config/opencode"
 
-          if [ -f "$TOKEN_PATH" ]; then
+          if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
             CF_TOKEN=$(cat "$TOKEN_PATH")
             ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
               '.mcpServers += {
@@ -189,25 +209,27 @@ selfLib.mkModule {
             cp "$BASE_CONF" "$FINAL_CONF"
             chmod 600 "$FINAL_CONF"
           fi
+
+          # ─── Mutable opencode.json handling ───
+          MCP_JSON='${builtins.toJSON opencodeMcpConfig}'
+
+          if [ -L "$OPENCODE_CONF" ]; then
+            rm -f "$OPENCODE_CONF"
+          fi
+
+          if [ ! -f "$OPENCODE_CONF" ]; then
+            ${pkgs.jq}/bin/jq -n --argjson mcp "$MCP_JSON" \
+              '{ "$schema": "https://opencode.ai/config.json", "mcp": $mcp }' > "$OPENCODE_CONF"
+          else
+            TMP_JSON=$(${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF")
+            echo "$TMP_JSON" > "$OPENCODE_CONF"
+          fi
+          chmod 600 "$OPENCODE_CONF"
         '';
       };
 
       home.file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
         mcpServers = geminiSsh // geminiExec;
-      };
-
-      home.file.".config/opencode/opencode.json".text = builtins.toJSON {
-        "$schema" = "https://opencode.ai/config.json";
-        mcp =
-          opencodeSsh
-          // opencodeExec
-          // {
-            "cloudflare-api" = {
-              type = "remote";
-              url = cloudflareCfg.url;
-              headers = cloudflareCfg.opencodeHeaders;
-            };
-          };
       };
     };
 }
