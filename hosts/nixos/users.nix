@@ -70,7 +70,9 @@
         fish = true;
         starship = true;
         tmux = true;
-        wezterm = true;
+        wezterm = false;
+        foot = true;
+        zellij = true;
       };
     };
 
