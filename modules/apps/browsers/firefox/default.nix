@@ -35,7 +35,10 @@ selfLib.mkModule {
     "org.mozilla.firefox" = {
       enable = true;
       overrides = {
-        Context.filesystems = [ "/run/opengl-driver/lib/dri:ro" ];
+        Context.filesystems = [
+          "/run/opengl-driver/lib/dri:ro"
+          "xdg-run/psd" # Profile Sync Daemon tmpfs
+        ];
         Environment = {
           LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
           LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
