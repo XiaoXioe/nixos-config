@@ -53,6 +53,9 @@
             singleAppInfo
             ;
         };
+
+        resolvedNixosConfig =
+          if builtins.isFunction nixosConfig then nixosConfig { inherit config lib pkgs; } else nixosConfig;
       in
       {
         options.my = lib.setAttrByPath optionPath (
@@ -65,7 +68,7 @@
 
         config = lib.mkIf cfg (
           lib.mkMerge [
-            nixosConfig
+            resolvedNixosConfig
             (lib.mkIf (hmConfig != null && hmConfig != { }) {
               home-manager.users.${config.my.user.name} = hmConfig;
             })
