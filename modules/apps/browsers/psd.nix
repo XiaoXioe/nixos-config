@@ -29,6 +29,7 @@ selfLib.mkModule {
             DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
             DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
             PSNAME="firefox"
+            check_suffix="yes"
             EOF
           '';
         });
