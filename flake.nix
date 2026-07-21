@@ -61,6 +61,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
@@ -98,6 +103,7 @@
 
       homeModules = [
         ./hosts/nixos/home.nix
+        inputs.nix-index-database.homeModules.nix-index
       ];
 
       commonModules = [
