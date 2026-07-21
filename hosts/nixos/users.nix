@@ -63,9 +63,6 @@
       packages = {
         general = {
           enable = true;
-          flatpaks = {
-            "com.bitwarden.desktop".enable = false;
-          };
         };
       };
 
