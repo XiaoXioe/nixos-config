@@ -41,6 +41,11 @@ selfLib.mkModule {
       ];
     };
 
+    systemd.services.flatpak-managed-install = {
+      restartIfChanged = false;
+      stopIfChanged = false;
+    };
+
     systemd.timers.flatpak-managed-install-timer.timerConfig.RandomizedDelaySec = "15min";
   };
 }
