@@ -1,6 +1,6 @@
 {
-  lib,
   pkgs,
+  config,
   selfLib,
   ...
 }:
@@ -9,84 +9,144 @@ selfLib.mkModule {
   name = "apps.browsers.psd";
   description = "Profile Sync Daemon (PSD) for syncing browser profiles to RAM (tmpfs)";
 
-  nixosConfig = {
-    # Override profile-sync-daemon globally so systemd services pick it up natively
-    nixpkgs.overlays = [
-      (final: prev: {
-        profile-sync-daemon = prev.profile-sync-daemon.overrideAttrs (oldAttrs: {
-          installPhase = (oldAttrs.installPhase or "") + ''
-            cat << 'EOF' > $out/share/psd/browsers/brave
-            DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
-            PSNAME="brave"
-            EOF
+  nixosConfig =
+    let
+      psdOverlayHelperRules = [
+        {
+          users = [ config.my.user.name ];
+          commands = [
+            {
+              command = "${pkgs.profile-sync-daemon}/bin/psd-overlay-helper";
+              options = [ "NOPASSWD" ];
+            }
+            {
+              command = "/run/current-system/sw/bin/psd-overlay-helper";
+              options = [ "NOPASSWD" ];
+            }
+          ];
+        }
+      ];
+    in
+    {
+      # Allow passwordless execution of psd-overlay-helper for sudo-rs
+      security.sudo-rs.extraRules = psdOverlayHelperRules;
 
-            cat << 'EOF' > $out/share/psd/browsers/zen
-            DIRArr[0]="$HOME/.config/zen/$USER"
-            PSNAME="zen"
-            EOF
+      # Override profile-sync-daemon globally so systemd services pick it up natively
+      nixpkgs.overlays = [
+        (final: prev: {
+          profile-sync-daemon = prev.profile-sync-daemon.overrideAttrs (oldAttrs: {
+            postPatch = (oldAttrs.postPatch or "") + ''
+              if [ -f common/profile-sync-daemon.in ]; then
+                substituteInPlace common/profile-sync-daemon.in \
+                  --replace-fail 'sudo -kn' 'sudo -n'
+              fi
+              if [ -f common/psd-overlay-helper ]; then
+                substituteInPlace common/psd-overlay-helper \
+                  --replace-fail 'sudo -u' 'runuser -u'
+              fi
+            '';
 
-            cat << 'EOF' > $out/share/psd/browsers/firefox
-            DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
-            DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
-            PSNAME="firefox"
-            check_suffix="yes"
-            EOF
-          '';
-        });
-      })
-    ];
+            installPhase = (oldAttrs.installPhase or "") + ''
+              cat << 'EOF' > $out/share/psd/browsers/brave
+              DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
+              PSNAME="brave"
+              EOF
 
-    # Enable systemd user service for Profile Sync Daemon
-    services.psd = {
-      enable = true;
-      resyncTimer = "1h";
+              cat << 'EOF' > $out/share/psd/browsers/zen
+              DIRArr[0]="$HOME/.config/zen/$USER"
+              PSNAME="zen"
+              EOF
+
+              cat << 'EOF' > $out/share/psd/browsers/firefox
+              DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
+              DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
+              PSNAME="firefox"
+              check_suffix="yes"
+              EOF
+            '';
+          });
+        })
+      ];
+
+      # Enable systemd user service for Profile Sync Daemon
+      services.psd = {
+        enable = true;
+        resyncTimer = "1h";
+      };
+
+      # Increase XDG_RUNTIME_DIR (/run/user/1000) size to accommodate browser tmpfs profiles
+      services.logind.settings.Login.RuntimeDirectorySize = "4G";
+
+      # Install the (overlaid) profile-sync-daemon package so the CLI command is available
+      environment.systemPackages = [ pkgs.profile-sync-daemon ];
     };
 
-    # Increase XDG_RUNTIME_DIR (/run/user/1000) size to accommodate browser tmpfs profiles
-    services.logind.settings.Login.RuntimeDirectorySize = "4G";
+  hmConfig =
+    hmOpts:
+    let
+      user = hmOpts.config.home.username;
+    in
+    {
+      # Custom browser definition files for user config directory
+      xdg.configFile."psd/browsers/brave".text = ''
+        DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
+        PSNAME="brave"
+      '';
 
-    # Install the (overlaid) profile-sync-daemon package so the CLI command is available
-    environment.systemPackages = [ pkgs.profile-sync-daemon ];
-  };
+      xdg.configFile."psd/browsers/firefox".text = ''
+        DIRArr=()
+        PSNAME="firefox"
+        user="${user}"
+        check_suffix="yes"
 
-  hmConfig = _hmOpts: {
-    # Custom browser definition files for user config directory
-    xdg.configFile."psd/browsers/brave".text = ''
-      DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
-      PSNAME="brave"
-    '';
+        if [[ -d "$HOME/.config/mozilla/firefox/$user" ]]; then
+          DIRArr+=("$HOME/.config/mozilla/firefox/$user")
+        fi
+        if [[ -d "$HOME/.config/mozilla/firefox/$user-hardened" ]]; then
+          DIRArr+=("$HOME/.config/mozilla/firefox/$user-hardened")
+        fi
+      '';
 
-    xdg.configFile."psd/browsers/zen".text = ''
-      DIRArr=()
-      PSNAME="zen"
+      xdg.configFile."psd/browsers/zen".text = ''
+        DIRArr=()
+        PSNAME="zen"
+        user="${user}"
 
-      if [[ -f "$HOME/.zen/profiles.ini" ]]; then
-        while read -r line; do
-          if [[ "$line" =~ ^[Pp]ath=(.*)$ ]]; then
-            path="''${BASH_REMATCH[1]}"
-            if [[ "$path" =~ ^/ ]]; then
-              DIRArr+=("$path")
-            else
-              DIRArr+=("$HOME/.zen/$path")
+        if [[ -d "$HOME/.config/zen/$user" ]]; then
+          DIRArr+=("$HOME/.config/zen/$user")
+        fi
+
+        if [[ -f "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" ]]; then
+          while read -r line; do
+            if [[ "$line" =~ ^[Pp]ath=(.*)$ ]]; then
+              path="''${BASH_REMATCH[1]}"
+              if [[ -d "$HOME/.config/zen/$path" ]]; then
+                DIRArr+=("$HOME/.config/zen/$path")
+              elif [[ -d "$HOME/.var/app/app.zen_browser.zen/.zen/$path" ]]; then
+                DIRArr+=("$HOME/.var/app/app.zen_browser.zen/.zen/$path")
+              fi
             fi
-          fi
-        done < "$HOME/.zen/profiles.ini"
-      fi
-    '';
+          done < "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
+        fi
 
-    # Declarative configuration file for Profile Sync Daemon
-    xdg.configFile."psd/psd.conf".text = ''
-      # Profile Sync Daemon (psd) configuration file
-      # Managed declaratively via NixOS / Home Manager
+        if [[ ''${#DIRArr[@]} -gt 0 ]]; then
+          readarray -t DIRArr < <(printf "%s\n" "''${DIRArr[@]}" | sort -u)
+        fi
+      '';
 
-      # Target browsers to sync to RAM (tmpfs)
-      BROWSERS=(firefox chromium google-chrome brave zen)
+      # Declarative configuration file for Profile Sync Daemon
+      xdg.configFile."psd/psd.conf".text = ''
+        # Profile Sync Daemon (psd) configuration file
+        # Managed declaratively via NixOS / Home Manager
 
-      # Use standard tmpfs sync (no sudo/doas root requirement, 100% compatible with doas)
-      USE_OVERLAYFS="no"
+        # Target browsers to sync to RAM (tmpfs)
+        BROWSERS=(firefox brave zen)
 
-      # Keep backup copy of browser profiles before sync
-      USE_BACKUPS="yes"
-    '';
-  };
+        # Use OverlayFS sync so RAM tmpfs only stores delta changes (saving ~3GB of RAM)
+        USE_OVERLAYFS="yes"
+
+        # Keep backup copy of browser profiles before sync
+        USE_BACKUPS="yes"
+      '';
+    };
 }
