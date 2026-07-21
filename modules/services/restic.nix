@@ -90,6 +90,7 @@ selfLib.mkModule {
     };
 
     systemd.services."restic-backups-data-utama" = {
+      restartIfChanged = false;
       after = [
         "network-online.target"
         "wireproxy-warp.service"
@@ -135,6 +136,7 @@ selfLib.mkModule {
       description = "Mount Restic Backup Repository (on-demand)";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
+      restartIfChanged = false;
       # Tidak ada wantedBy — layanan ini hanya dijalankan secara manual
 
       environment = {
