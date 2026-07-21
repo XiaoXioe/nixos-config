@@ -10,7 +10,7 @@ let
 
   rootSubvol = "@nixos-root";
   homeSubvol = "@nixos-home";
-  keepHome = 10;
+  keepHome = 20;
   keepRoot = 20;
 in
 selfLib.mkModule {
