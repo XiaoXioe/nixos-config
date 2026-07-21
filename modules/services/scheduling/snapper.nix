@@ -13,7 +13,6 @@ selfLib.mkModule {
     # SNAPPER — BTRFS auto-snapshots for /persist and /home
     #
     # /persist = @nixos-persist subvolume — all persistent data
-    # /home    = @nixos-home subvolume (ephemeral, pre-wipe snapshot)
     #
     # Restore: snapper -c persist rollback <N>
     #   or manual copy from /persist/.snapshots/<N>/snapshot/
@@ -38,31 +37,12 @@ selfLib.mkModule {
           TIMELINE_CREATE = true;
           TIMELINE_CLEANUP = true;
 
-          # Simpan 3 snapshot per jam (setiap ~20 menit)
+          # Simpan 3 snapshot per jam
           # so recently deleted files can be restored
-          TIMELINE_LIMIT_HOURLY = "3";
-          TIMELINE_LIMIT_DAILY = "7"; # 1 minggu harian
-          TIMELINE_LIMIT_WEEKLY = "4";
-          TIMELINE_LIMIT_MONTHLY = "0";
-          TIMELINE_LIMIT_YEARLY = "0";
-        };
-
-        # Config tambahan: snapshot ephemeral home (/home)
-        # Snapshot ini sekarang DI-PERSIST. Anda tidak bisa melakukan
-        # rollback penuh pada subvolume home yang di-wipe tiap boot,
-        # TAPI Anda bisa meng-copy file yang terhapus dari snapshot lama.
-        home = {
-          SUBVOLUME = "/home";
-          ALLOW_USERS = [ config.my.user.name ];
-          SYNC_ACL = "yes";
-
-          TIMELINE_CREATE = true;
-          TIMELINE_CLEANUP = true;
-
           TIMELINE_LIMIT_HOURLY = "5";
           TIMELINE_LIMIT_DAILY = "7"; # 1 minggu harian
-          TIMELINE_LIMIT_WEEKLY = "4"; # 1 bulan mingguan
-          TIMELINE_LIMIT_MONTHLY = "0";
+          TIMELINE_LIMIT_WEEKLY = "4";
+          TIMELINE_LIMIT_MONTHLY = "1";
           TIMELINE_LIMIT_YEARLY = "0";
         };
       };
@@ -78,7 +58,6 @@ selfLib.mkModule {
     # MUST use "Q" (not "v") — snapper requires .snapshots to be a BTRFS subvolume
     systemd.tmpfiles.rules = [
       "Q /persist/.snapshots 0750 root root - -"
-      "Q /persist/.home-snapshots 0750 root root - -"
     ];
 
     # Prevent system activation switches from hanging while snapper deletes snapshots
@@ -89,14 +68,6 @@ selfLib.mkModule {
     systemd.services.snapper-cleanup = {
       restartIfChanged = false;
       stopIfChanged = false;
-    };
-
-    # Bind-mount so ephemeral home snapshots are stored in persist
-    fileSystems."/home/.snapshots" = {
-      device = "/persist/.home-snapshots";
-      fsType = "none";
-      options = [ "bind" ];
-      depends = [ "/persist" ];
     };
   };
 }
