@@ -235,7 +235,6 @@ selfLib.mkModule {
             ".local/share"
             ".local/state"
             ".steam"
-            ".cache/nix"
             ".cache/fish"
             ".cache/DankMaterialShell"
             ".cache/mozilla"
