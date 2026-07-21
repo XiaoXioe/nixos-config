@@ -24,6 +24,7 @@ selfLib.mkModule {
     # User can start/stop manually using: sudo systemctl start zapret
     systemd.services.zapret = {
       wantedBy = lib.mkForce [ ];
+      restartIfChanged = false;
     };
   };
 }
