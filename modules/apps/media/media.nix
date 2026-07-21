@@ -1,13 +1,20 @@
 {
   pkgs,
   selfLib,
-  inputs,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.media.media";
   description = "user media configuration (mpv, yt-dlp, obs)";
+
+  flatpakCfg = {
+    "org.gnome.gThumb" = {
+      enable = true;
+      flatpak = false;
+      nativePkgs = pkgs.gthumb;
+    };
+  };
 
   hmConfig = hmOpts: {
     home.packages = with pkgs; [
