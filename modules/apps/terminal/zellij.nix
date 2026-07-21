@@ -21,12 +21,20 @@ selfLib.mkModule {
 
         keybinds = {
           "shared_except \"locked\"" = {
+            unbind = [ "Ctrl o" ];
+
             # Tab Management
             "bind \"Ctrl PageDown\"" = {
               GoToNextTab = { };
             };
             "bind \"Ctrl PageUp\"" = {
               GoToPreviousTab = { };
+            };
+            "bind \"Ctrl Shift PageDown\"" = {
+              MoveTab = [ "Right" ];
+            };
+            "bind \"Ctrl Shift PageUp\"" = {
+              MoveTab = [ "Left" ];
             };
             "bind \"Ctrl n\"" = {
               NewTab = { };
