@@ -12,6 +12,25 @@ selfLib.mkModule {
     "com.bitwarden.desktop" = {
       enable = true;
       binName = "bitwarden";
+      overrides = {
+        Context = {
+          sockets = [
+            "wayland"
+            "fallback-x11"
+          ];
+          shares = [ "ipc" ];
+        };
+        Environment = {
+          ELECTRON_OZONE_PLATFORM_HINT = "auto";
+        };
+        SessionBus = {
+          talk = [
+            "org.freedesktop.portal.Failsafe"
+            "org.freedesktop.portal.Secret"
+            "org.freedesktop.portal.Desktop"
+          ];
+        };
+      };
       symlinks = [
         {
           host = ".config/Bitwarden";
