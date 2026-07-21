@@ -25,6 +25,7 @@ selfLib.mkModule {
           Description = "Mount Rclone Remote (${rcloneRemote})";
           After = [ "network-online.target" ];
           Wants = [ "network-online.target" ];
+          "X-SwitchMethod" = "keep-old";
         };
         Service = {
           Type = "simple";
