@@ -10,7 +10,7 @@ selfLib.mkModule {
 
   flatpakCfg = {
     "com.bitwarden.desktop" = {
-      enable = true;
+      enable = false;
       binName = "bitwarden";
       overrides = {
         Context = {
@@ -38,11 +38,6 @@ selfLib.mkModule {
         }
       ];
       nativePkgs = pkgs.bitwarden-desktop;
-    };
-
-    "org.gnome.gThumb" = {
-      enable = true;
-      nativePkgs = pkgs.gthumb;
     };
   };
 
