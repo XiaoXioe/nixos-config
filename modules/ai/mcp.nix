@@ -160,7 +160,7 @@ selfLib.mkModule {
             command = "${pkgs.bash}/bin/bash";
             args = [
               "-c"
-              "${cfg.geminiWrap} ${cfg.pkg}/bin/${cfg.bin} ${lib.escapeShellArgs (cfg.args or [ ])}"
+              "${cfg.geminiWrap} exec ${cfg.pkg}/bin/${cfg.bin} ${lib.escapeShellArgs (cfg.args or [ ])}"
             ];
           }
         else
