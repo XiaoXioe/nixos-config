@@ -2,6 +2,7 @@
   pkgs,
   config,
   flakePath,
+  inputs,
   ...
 }:
 {
@@ -26,7 +27,22 @@
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+      stdlib = ''
+        declare -A direnv_layout_dirs
+        direnv_layout_dir() {
+          echo "''${direnv_layout_dirs[$PWD]:=/run/user/$(id -u)/direnv/layouts/$(echo -n "$PWD" | sha1sum | cut -d ' ' -f 1)}"
+        }
+      '';
     };
+
+    nix-index = {
+      enable = true;
+      enableFishIntegration = true;
+      package =
+        inputs.nix-index-database.packages.${pkgs.stdenv.hostPlatform.system}.nix-index-with-small-db;
+    };
+
+    nix-index-database.comma.enable = true;
 
     zoxide = {
       enable = true;
