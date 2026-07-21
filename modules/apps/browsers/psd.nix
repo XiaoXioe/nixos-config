@@ -74,6 +74,16 @@ selfLib.mkModule {
         resyncTimer = "1h";
       };
 
+      # Prevent PSD from restarting during nixos rebuild/activation
+      systemd.user.services.psd = {
+        restartIfChanged = false;
+        stopIfChanged = false;
+      };
+      systemd.user.services.psd-resync = {
+        restartIfChanged = false;
+        stopIfChanged = false;
+      };
+
       # Increase XDG_RUNTIME_DIR (/run/user/1000) size to accommodate browser tmpfs profiles
       services.logind.settings.Login.RuntimeDirectorySize = "4G";
 
