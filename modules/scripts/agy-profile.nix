@@ -28,12 +28,16 @@ selfLib.mkModule {
           # the password in the process list (ps) on either the local or remote side.
           exec ssh -F /dev/null -i /home/klein-moretti/.ssh/id_ed25519 -o StrictHostKeyChecking=no klein-moretti@localhost \
             "env CMD_ARGS=$(printf '%q' "$QARGS") bash -c '
-              DOAS_PASS_FILE=\"/run/secrets/doas-password\"
+              DOAS_PASS_FILE=/run/secrets/doas-password
               if [ ! -f \"\$DOAS_PASS_FILE\" ]; then
                 echo \"doas-agent: secret file tidak ditemukan: \$DOAS_PASS_FILE\" >&2
                 exit 1
               fi
-              (sleep 0.3; printf \"%s\n\" \"\$(cat \"\$DOAS_PASS_FILE\")\") | script -q -c \"doas \$CMD_ARGS\" /dev/null
+              if command -v doas >/dev/null 2>&1; then
+                (sleep 0.3; cat \"\$DOAS_PASS_FILE\") | script -q -c \"doas \$CMD_ARGS\" /dev/null
+              else
+                cat \"\$DOAS_PASS_FILE\" | sudo -S -p \"\" \$CMD_ARGS
+              fi
             '"
         '';
       })
