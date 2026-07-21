@@ -61,7 +61,12 @@
       };
 
       packages = {
-        general = true;
+        general = {
+          enable = true;
+          flatpaks = {
+            "com.bitwarden.desktop".enable = false;
+          };
+        };
       };
 
       terminal = {
@@ -155,7 +160,12 @@
       compat = false;
       secrets = true;
       hardening = true;
-      auth = true;
+      auth = {
+        enable = true;
+        doas.enable = false;
+        sudo.enable = false;
+        sudo-rs.enable = true;
+      };
       networking = true;
     };
 
