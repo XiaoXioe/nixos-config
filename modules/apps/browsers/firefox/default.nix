@@ -106,6 +106,23 @@ selfLib.mkModule {
         if [ -f "$HOME/.config/mozilla/firefox/profiles.ini" ] && [ ! -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
           rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
         fi
+
+        # Penanganan dangling symlink akibat Profile Sync Daemon (PSD) saat boot
+        if [ -d "$HOME/.config/mozilla/firefox" ]; then
+          for prof in "$HOME/.config/mozilla/firefox/"*; do
+            if [ -L "$prof" ] && [ ! -e "$prof" ]; then
+              backup="''${prof}-backup"
+              if [ -d "$backup" ]; then
+                echo "PSD cleanup: restoring $(basename "$prof") from backup"
+                rm -f "$prof"
+                mv "$backup" "$prof"
+              else
+                echo "PSD cleanup: removing dangling symlink $(basename "$prof")"
+                rm -f "$prof"
+              fi
+            fi
+          done
+        fi
       '';
 
       home.activation.copyFirefoxProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
