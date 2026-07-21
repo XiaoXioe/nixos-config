@@ -12,7 +12,6 @@ selfLib.mkModule {
       type = lib.types.listOf lib.types.str;
       default = [
         ".cache/mozilla"
-        ".cache/nix"
         ".config/zen"
         ".local/share/AyuGramDesktop/tdata"
         "/persist/home/klein-moretti/PersistentData/projects/ml/models"
