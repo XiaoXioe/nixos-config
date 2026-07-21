@@ -39,7 +39,7 @@ in
                   ]
                 ) config.my
               else
-                appVal.enable or true;
+                appVal.flatpak or true;
             description = "Whether to use Flatpak for ${appId} instead of the native package.";
           };
         };
@@ -49,7 +49,7 @@ in
       flatpak = {
         enable = lib.mkOption {
           type = lib.types.bool;
-          default = flatpakCfg.${singleAppId}.enable or true;
+          default = flatpakCfg.${singleAppId}.flatpak or true;
           description = "Whether to use Flatpak for ${singleAppId} instead of the native package.";
         };
       };
@@ -86,7 +86,12 @@ in
       # Helper to check if a specific app is enabled
       isAppEnabled =
         appId:
-        if isSingleApp && appId == singleAppId then
+        let
+          appVal = flatpakCfg.${appId};
+        in
+        if !(appVal.enable or true) then
+          false
+        else if isSingleApp && appId == singleAppId then
           enableState
         else
           let
@@ -124,7 +129,7 @@ in
           if lib.hasAttrByPath appOptPath config.my then
             lib.getAttrFromPath appOptPath config.my
           else
-            appVal.enable or true
+            appVal.flatpak or true
         );
 
       # Collect all flatpaks to install
