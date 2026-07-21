@@ -15,6 +15,7 @@ selfLib.mkModule {
 
     systemd.services.ollama = {
       wantedBy = lib.mkForce [ ];
+      restartIfChanged = false;
       serviceConfig = {
         EnvironmentFile = [ config.sops.secrets."ollama-env".path ];
       };
