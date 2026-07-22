@@ -1,5 +1,8 @@
 { lib, ... }:
 
+let
+  flatpakHelper = import ./flatpak-helper.nix { inherit lib; };
+in
 # Unified module builder for NixOS and Home Manager.
 # Automatically creates 'options.my.${name}.enable' for global NixOS state.
 {
@@ -23,8 +26,6 @@
       let
         optionPath = lib.splitString "." name;
         cfg = lib.getAttrFromPath (optionPath ++ [ "enable" ]) config.my;
-
-        flatpakHelper = import ./flatpak-helper.nix { inherit lib; };
 
         # Flatpak configuration processing
         hasFlatpaks = flatpakCfg != { };
@@ -59,11 +60,19 @@
       in
       {
         options.my = lib.setAttrByPath optionPath (
-          {
-            enable = lib.mkEnableOption (if description != "" then description else name);
-          }
-          // flatpakOptions
-          // options
+          let
+            baseOptions = {
+              enable = lib.mkEnableOption (if description != "" then description else name);
+            };
+          in
+          if flatpakOptions == { } && options == { } then
+            baseOptions
+          else if flatpakOptions == { } then
+            baseOptions // options
+          else if options == { } then
+            baseOptions // flatpakOptions
+          else
+            baseOptions // flatpakOptions // options
         );
 
         config = lib.mkIf cfg (
