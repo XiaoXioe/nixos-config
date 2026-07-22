@@ -6,26 +6,15 @@
 }:
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
-    lock-false
-    lock-true
-    lock-empty-string
-    lock
     addons
     tampermonkey
     keplr
     solflare-wallet
+    mkExtensionSettings
     ;
 
   # Import separated data files
   bookmarksList = import ./bookmarks.nix;
-  policyPreferences = import ./policies.nix {
-    inherit
-      lock
-      lock-true
-      lock-false
-      lock-empty-string
-      ;
-  };
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -68,6 +57,75 @@ selfLib.mkModule {
     hmOpts:
     let
       lib = hmOpts.lib;
+
+      # Extension packages per profile
+      defaultProfileExtensions =
+        (with addons; [
+          ublock-origin
+          multi-account-containers
+          bitwarden
+          simple-tab-groups
+          auto-tab-discard
+          metamask
+          container-proxy
+          tampermonkey
+        ])
+        ++ [
+          keplr
+          solflare-wallet
+        ];
+
+      hardenedProfileExtensions = with addons; [
+        ublock-origin
+        bitwarden
+        privacy-badger
+        canvasblocker
+        localcdn
+        user-agent-string-switcher
+        proton-vpn
+        auto-tab-discard
+        simple-tab-groups
+        tampermonkey
+      ];
+
+      allFirefoxExtensions = lib.unique (defaultProfileExtensions ++ hardenedProfileExtensions);
+
+      # Native Home Manager extension environments via buildEnv
+      defaultExtensionsEnv = pkgs.buildEnv {
+        name = "firefox-default-extensions";
+        paths = defaultProfileExtensions;
+        pathsToLink = [ "/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}" ];
+      };
+
+      hardenedExtensionsEnv = pkgs.buildEnv {
+        name = "firefox-hardened-extensions";
+        paths = hardenedProfileExtensions;
+        pathsToLink = [ "/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}" ];
+      };
+
+      # Common enterprise policies for both Native and Flatpak Firefox
+      commonPolicies = {
+        ExtensionSettings = mkExtensionSettings allFirefoxExtensions;
+        DisableTelemetry = true;
+        SearchSuggestEnabled = false;
+        DisableFirefoxStudies = true;
+        PasswordManagerEnabled = false;
+        DisableFirefoxAccounts = true;
+        DontCheckDefaultBrowser = true;
+        EnableTrackingProtection = {
+          Value = true;
+          Locked = true;
+          Cryptomining = true;
+          Fingerprinting = true;
+        };
+        PopupBlocking = {
+          Default = true;
+          Locked = true;
+        };
+        DisablePocket = true;
+        NetworkPrediction = false;
+      };
+
       baseSettings = {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
@@ -137,6 +195,22 @@ selfLib.mkModule {
         fi
       '';
 
+      home.file = {
+        # Declarative per-profile extension directories linked via Home Manager buildEnv
+        ".config/mozilla/firefox/${hmOpts.config.home.username}/extensions" = {
+          source = "${defaultExtensionsEnv}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+        };
+        ".config/mozilla/firefox/${hmOpts.config.home.username}-hardened/extensions" = {
+          source = "${hardenedExtensionsEnv}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+        };
+
+        # Flatpak systemconfig extension policies for org.mozilla.firefox
+        ".local/share/flatpak/extension/org.mozilla.firefox.systemconfig/x86_64/stable/policies/policies.json".text =
+          builtins.toJSON {
+            policies = commonPolicies;
+          };
+      };
+
       programs.firefox = {
         configPath = "${hmOpts.config.xdg.configHome}/mozilla/firefox";
         enable = true;
@@ -144,13 +218,7 @@ selfLib.mkModule {
           "en-US"
           "id"
         ];
-        policies = {
-          DisableTelemetry = true;
-          SearchSuggestEnabled = false;
-          DisableFirefoxStudies = true;
-          PasswordManagerEnabled = false;
-          DisableFirefoxAccounts = true;
-          DontCheckDefaultBrowser = true;
+        policies = commonPolicies // {
           SearchEngines = {
             Remove = [
               "eBay"
@@ -184,19 +252,6 @@ selfLib.mkModule {
             ];
             Default = "DuckDuckGo";
           };
-          EnableTrackingProtection = {
-            Value = true;
-            Locked = true;
-            Cryptomining = true;
-            Fingerprinting = true;
-          };
-          PopupBlocking = {
-            Default = true;
-            Locked = true;
-          };
-          DisablePocket = true;
-          NetworkPrediction = false;
-          Preferences = policyPreferences;
         };
 
         profiles = {
@@ -204,21 +259,6 @@ selfLib.mkModule {
             isDefault = true;
             id = 0;
             inherit bookmarks userChrome;
-            extensions.packages =
-              (with addons; [
-                ublock-origin
-                multi-account-containers
-                bitwarden
-                simple-tab-groups
-                auto-tab-discard
-                metamask
-                container-proxy
-                tampermonkey
-              ])
-              ++ [
-                keplr
-                solflare-wallet
-              ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
@@ -234,23 +274,6 @@ selfLib.mkModule {
             isDefault = false;
             id = 1;
             inherit bookmarks userChrome;
-            extensions.packages = (
-              with addons;
-              [
-                ublock-origin
-                bitwarden
-                privacy-badger
-                canvasblocker
-                localcdn
-                user-agent-string-switcher
-                proton-vpn
-                auto-tab-discard
-                simple-tab-groups
-                tampermonkey
-              ]
-            );
-            # ++ [
-            # ];
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
