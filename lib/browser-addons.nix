@@ -21,12 +21,45 @@ let
       };
       preferLocalBuild = true;
       allowSubstitutes = false;
+      passthru = {
+        inherit addonId;
+      };
       buildCommand = ''
         dst="$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
         mkdir -p "$dst"
         ln -s "$src" "$dst/${addonId}.xpi"
       '';
     };
+
+  mkExtensionSettings =
+    extensionsList:
+    let
+      base = {
+        "*" = {
+          installation_mode = "blocked";
+          blocked_install_message = "Ekstensi dikunci oleh sistem deklaratif NixOS. Tambahkan ekstensi baru di konfigurasi Nix Anda.";
+        };
+      };
+      allowedAddons = pkgs.lib.listToAttrs (
+        pkgs.lib.flatten (
+          map (
+            addon:
+            let
+              extId = addon.addonId or (addon.passthru.addonId or null);
+            in
+            if extId != null then
+              [
+                (pkgs.lib.nameValuePair extId {
+                  installation_mode = "allowed";
+                })
+              ]
+            else
+              [ ]
+          ) extensionsList
+        )
+      );
+    in
+    base // allowedAddons;
 in
 {
   lock-false = {
@@ -46,7 +79,7 @@ in
     Status = "locked";
   };
 
-  inherit addons buildAmoAddon;
+  inherit addons buildAmoAddon mkExtensionSettings;
 
   keplr = buildAmoAddon {
     pname = "keplr";
@@ -63,6 +96,9 @@ in
   tampermonkey = addons.tampermonkey.overrideAttrs (old: {
     meta = (old.meta or { }) // {
       license = [ ];
+    };
+    passthru = (old.passthru or { }) // {
+      addonId = old.addonId or "firefox@tampermonkey.net";
     };
   });
 }
