@@ -74,21 +74,8 @@ selfLib.mkModule {
         owner = config.my.user.name;
         mode = "0400";
       };
-      "kaggle-token" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-    };
-    sops.templates."access_token" = {
-      path = "/home/${config.my.user.name}/.kaggle/access_token";
-      owner = config.my.user.name;
-      mode = "0600";
-      content = ''
-        ${config.sops.placeholder.kaggle-token}
-      '';
     };
     systemd.tmpfiles.rules = [
-      "d /home/${config.my.user.name}/.kaggle 0700 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.local/share/opencode 0700 ${config.my.user.name} users - -"
     ];
   };

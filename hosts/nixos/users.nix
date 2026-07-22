@@ -84,6 +84,7 @@
       open-webui = false;
       tools = true;
       mcp = true;
+      kaggle = true;
     };
 
     core = {

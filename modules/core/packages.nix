@@ -28,20 +28,16 @@ selfLib.mkModule {
     };
 
     environment.systemPackages = with pkgs; [
-      android-tools
       exiftool
       oniux
       wget
       iotop-c
-      intel-gpu-tools
-      compsize
 
       ddcutil
-      scrcpy
       rsync
-      go
       usbutils
       pciutils
+      compsize
 
       killall
       inetutils

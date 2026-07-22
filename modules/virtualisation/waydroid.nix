@@ -9,6 +9,8 @@ selfLib.mkModule {
   name = "virtualisation.waydroid";
 
   nixosConfig = {
+    my.services.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/waydroid_data" ];
+
     virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
     environment.systemPackages = with pkgs; [

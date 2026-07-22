@@ -15,9 +15,6 @@ selfLib.mkModule {
         ".config/zen"
         ".local/share/AyuGramDesktop/tdata"
         "/persist/home/klein-moretti/PersistentData/projects/ml/models"
-        "/mnt/data_btrfs/flatpak-userdata"
-        "/mnt/data_btrfs/docker"
-        "/mnt/data_btrfs/waydroid_data"
         "/var/lib/vnstat"
         "/nix/var/nix/db"
       ];

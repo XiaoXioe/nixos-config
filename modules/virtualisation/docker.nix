@@ -18,6 +18,8 @@ selfLib.mkModule {
       cfg = config.my.virtualisation.docker;
     in
     {
+      my.services.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/docker" ];
+
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
       sops.secrets = {

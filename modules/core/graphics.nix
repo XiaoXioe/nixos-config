@@ -30,6 +30,7 @@ selfLib.mkModule {
 
     environment.systemPackages = with pkgs; [
       libva-utils
+      intel-gpu-tools
     ];
 
     services.xserver.videoDrivers = [ "modesetting" ];
