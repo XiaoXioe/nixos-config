@@ -29,8 +29,15 @@
                 finalFilesystems = lib.unique (baseFilesystems ++ configuredFilesystems);
               in
               lib.nameValuePair appId (
-                lib.recursiveUpdate (appVal.overrides or { }) {
-                  Context.filesystems = finalFilesystems;
+                let
+                  ovr = appVal.overrides or { };
+                  ctx = ovr.Context or { };
+                in
+                ovr
+                // {
+                  Context = ctx // {
+                    filesystems = finalFilesystems;
+                  };
                 }
               )
             )
