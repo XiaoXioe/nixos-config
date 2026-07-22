@@ -21,12 +21,12 @@ selfLib.mkModule {
       hmOpts.config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/dotfiles/matugen";
 
     home.activation.createNandoroidDirs = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p $HOME/.config/hypr/hyprland $HOME/.config/hypr/hyprlock
+      ${pkgs.coreutils}/bin/mkdir -p $HOME/.config/hypr/hyprland $HOME/.config/hypr/hyprlock
       if [ ! -f $HOME/.config/hypr/hyprland/colors.conf ]; then
-        echo "# placeholder for matugen colors" > $HOME/.config/hypr/hyprland/colors.conf
+        ${pkgs.coreutils}/bin/echo "# placeholder for matugen colors" > $HOME/.config/hypr/hyprland/colors.conf
       fi
       if [ ! -f $HOME/.config/hypr/hyprlock/colors.conf ]; then
-        echo "# placeholder for matugen colors" > $HOME/.config/hypr/hyprlock/colors.conf
+        ${pkgs.coreutils}/bin/echo "# placeholder for matugen colors" > $HOME/.config/hypr/hyprlock/colors.conf
       fi
     '';
 
