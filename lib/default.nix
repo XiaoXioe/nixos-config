@@ -28,11 +28,17 @@ let
             flatpakVal =
               if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
           in
-          {
-            enable = enableVal;
-            flatpak = flatpakVal;
-          }
-          // rest
+          if rest == { } then
+            {
+              enable = enableVal;
+              flatpak = flatpakVal;
+            }
+          else
+            {
+              enable = enableVal;
+              flatpak = flatpakVal;
+            }
+            // rest
         else
           mapFeatures value
       else
