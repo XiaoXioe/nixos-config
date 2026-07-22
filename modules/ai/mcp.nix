@@ -190,11 +190,11 @@ selfLib.mkModule {
           FINAL_CONF="$HOME/.gemini/config/mcp_config.json"
           OPENCODE_CONF="$HOME/.config/opencode/opencode.json"
 
-          mkdir -p "$HOME/.gemini/config"
-          mkdir -p "$HOME/.config/opencode"
+          ${pkgs.coreutils}/bin/mkdir -p "$HOME/.gemini/config"
+          ${pkgs.coreutils}/bin/mkdir -p "$HOME/.config/opencode"
 
           if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
-            CF_TOKEN=$(cat "$TOKEN_PATH")
+            CF_TOKEN=$(${pkgs.coreutils}/bin/cat "$TOKEN_PATH")
             ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
               '.mcpServers += {
                 "cloudflare-api": {
@@ -204,17 +204,17 @@ selfLib.mkModule {
                   }
                 }
               }' "$BASE_CONF" > "$FINAL_CONF"
-            chmod 600 "$FINAL_CONF"
+            ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
           else
-            cp "$BASE_CONF" "$FINAL_CONF"
-            chmod 600 "$FINAL_CONF"
+            ${pkgs.coreutils}/bin/cp "$BASE_CONF" "$FINAL_CONF"
+            ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
           fi
 
           # ─── Mutable opencode.json handling ───
           MCP_JSON='${builtins.toJSON opencodeMcpConfig}'
 
           if [ -L "$OPENCODE_CONF" ]; then
-            rm -f "$OPENCODE_CONF"
+            ${pkgs.coreutils}/bin/rm -f "$OPENCODE_CONF"
           fi
 
           if [ ! -f "$OPENCODE_CONF" ]; then
@@ -222,9 +222,9 @@ selfLib.mkModule {
               '{ "$schema": "https://opencode.ai/config.json", "mcp": $mcp }' > "$OPENCODE_CONF"
           else
             TMP_JSON=$(${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF")
-            echo "$TMP_JSON" > "$OPENCODE_CONF"
+            ${pkgs.coreutils}/bin/echo "$TMP_JSON" > "$OPENCODE_CONF"
           fi
-          chmod 600 "$OPENCODE_CONF"
+          ${pkgs.coreutils}/bin/chmod 600 "$OPENCODE_CONF"
         '';
       };
 
