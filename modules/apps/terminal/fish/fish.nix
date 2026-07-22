@@ -1,6 +1,8 @@
 {
   pkgs,
+  lib,
   config,
+  osConfig,
   flakePath,
   inputs,
   ...
@@ -61,22 +63,26 @@
       interactiveShellInit = ''
         set -g fish_greeting
         set -p fish_function_path $HOME/.config/fish/functions/custom
-        if test -r /run/secrets/ninerouter-key
-            set -lx NINEROUTER_KEY (cat /run/secrets/ninerouter-key)
-        end
-        if test -r /run/secrets/cloudflare-token
-            set -gx CLOUDFLARE_TOKEN (cat /run/secrets/cloudflare-token)
-        end
+        ${lib.optionalString (osConfig.sops.secrets ? "ninerouter-key") ''
+          if test -r ${osConfig.sops.secrets."ninerouter-key".path}
+              set -lx NINEROUTER_KEY (cat ${osConfig.sops.secrets."ninerouter-key".path})
+          end
+        ''}
+        ${lib.optionalString (osConfig.sops.secrets ? "cloudflare-token") ''
+          if test -r ${osConfig.sops.secrets."cloudflare-token".path}
+              set -gx CLOUDFLARE_TOKEN (cat ${osConfig.sops.secrets."cloudflare-token".path})
+          end
+        ''}
 
-        # GPG SSH Agent Integration
-        set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
+          # GPG SSH Agent Integration
+          set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
 
-        set -g fish_color_command cdd6f4
-        set -g fish_color_param 89b4fa
-        set -g fish_color_quote f9e2af
-        set -g fish_color_error f38ba8
-        set -g fish_color_escape f5c2e7
-        set -g fish_color_operator 94e2d5
+          set -g fish_color_command cdd6f4
+          set -g fish_color_param 89b4fa
+          set -g fish_color_quote f9e2af
+          set -g fish_color_error f38ba8
+          set -g fish_color_escape f5c2e7
+          set -g fish_color_operator 94e2d5
       '';
 
       plugins = with pkgs.fishPlugins; [

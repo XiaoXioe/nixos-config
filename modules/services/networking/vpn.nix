@@ -16,6 +16,33 @@ selfLib.mkModule {
   nixosConfig = {
     networking.networkmanager.enable = true;
 
+    sops.secrets = lib.mkMerge [
+      {
+        "wg-lan.conf" = {
+          sopsFile = ../../../secrets/binary/wg-lan.enc.conf;
+          format = "binary";
+          path = "/etc/wireguard/wg-lan.conf";
+          owner = "root";
+          group = "root";
+          mode = "0600";
+        };
+        "wg-wifi.conf" = {
+          sopsFile = ../../../secrets/binary/wg-wifi.enc.conf;
+          format = "binary";
+          path = "/etc/wireguard/wg-wifi.conf";
+          owner = "root";
+          group = "root";
+          mode = "0600";
+        };
+      }
+      (lib.genAttrs vpnFiles (fileName: {
+        sopsFile = ../../../secrets/vpn-files/${fileName};
+        format = "binary";
+        owner = config.my.user.name;
+        mode = "0600";
+      }))
+    ];
+
     # ProtonVPN sebagai Flatpak — diinstal bersama modul VPN
     services.flatpak.packages = [ "com.protonvpn.www" ];
 

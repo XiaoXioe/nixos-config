@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
@@ -39,6 +40,19 @@ in
 selfLib.mkModule {
   name = "ai.mcp";
   description = "Nix-native Model Context Protocol (MCP) servers and configuration";
+
+  nixosConfig = {
+    sops.secrets = {
+      "tavily-api-key" = {
+        owner = config.my.user.name;
+        mode = "0400";
+      };
+      "cloudflare-token" = {
+        owner = config.my.user.name;
+        mode = "0400";
+      };
+    };
+  };
 
   hmConfig =
     {

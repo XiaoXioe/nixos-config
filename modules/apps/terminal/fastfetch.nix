@@ -1,4 +1,5 @@
 {
+  config,
   selfLib,
   ...
 }:
@@ -7,13 +8,22 @@ selfLib.mkModule {
   name = "apps.terminal.fastfetch";
   description = "Fastfetch configuration";
 
+  nixosConfig = {
+    sops.secrets."fastfetch-logo" = {
+      format = "binary";
+      sopsFile = ../../../secrets/binary/fastfetch-logo.enc;
+      owner = config.my.user.name;
+      mode = "0444";
+    };
+  };
+
   hmConfig = hmOpts: {
     programs.fastfetch = {
       enable = true;
 
       settings = {
         logo = {
-          source = "/run/secrets/fastfetch-logo";
+          source = hmOpts.osConfig.sops.secrets."fastfetch-logo".path;
           type = "kitty";
           height = 15;
           padding = {

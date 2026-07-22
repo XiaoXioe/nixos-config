@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   selfLib,
   ...
@@ -18,5 +19,9 @@ selfLib.mkModule {
       };
     };
 
+    sops.secrets."gpg-private-key" = {
+      owner = config.my.user.name;
+      mode = "0600";
+    };
   };
 }

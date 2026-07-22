@@ -8,6 +8,19 @@ selfLib.mkModule {
   name = "services.networking.dns";
 
   nixosConfig = {
+    sops.secrets = {
+      "rethinkdns_stamp" = { };
+      "nextdns_stamp" = { };
+      "nextdns_name" = { };
+      "dnscrypt_monitoring_password" = { };
+      "nextdns_ip1" = {
+        owner = config.my.user.name;
+      };
+      "nextdns_ip2" = {
+        owner = config.my.user.name;
+      };
+    };
+
     # 1. Configuration template
     sops.templates."dnscrypt-proxy.toml" = {
       # Use root:keys to avoid missing-user evaluation errors while restricting read access
@@ -15,7 +28,8 @@ selfLib.mkModule {
       group = "keys";
       mode = "0440";
       content = ''
-        server_names = ['cloudflare', '${config.sops.placeholder.nextdns_name}', 'quad9-dnscrypt-ip4-filter-pri']
+        server_names = ['${config.sops.placeholder.nextdns_name}', 'rethinkdns', 'quad9-dnscrypt-ip4-filter-pri']
+        lb_strategy = 'first'
         listen_addresses = ['127.0.0.1:53']
         require_dnssec = true
         ipv4_servers = true
@@ -24,10 +38,10 @@ selfLib.mkModule {
         block_unqualified = true
         block_undelegated = true
         reject_ttl = 10
+        timeout = 5000
 
-        # Daftar resolver publik — wajib aktif agar 'cloudflare' dan
-        # 'quad9-dnscrypt-ip4-filter-pri' bisa di-resolve sebagai fallback
-        # ketika NextDNS (entry [static]) down.
+        # Daftar resolver publik — wajib aktif agar 'quad9-dnscrypt-ip4-filter-pri'
+        # bisa di-resolve sebagai fallback ketika NextDNS (entry [static]) down.
         [sources]
           [sources.'public-resolvers']
           urls = [
@@ -49,6 +63,10 @@ selfLib.mkModule {
 
         [static.'${config.sops.placeholder.nextdns_name}']
         stamp = '${config.sops.placeholder.nextdns_stamp}'
+
+        # RethinkDNS via SOPS secret placeholder
+        [static.'rethinkdns']
+        stamp = '${config.sops.placeholder.rethinkdns_stamp}'
       '';
     };
 

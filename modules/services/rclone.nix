@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   selfLib,
   ...
@@ -10,6 +11,13 @@ selfLib.mkModule {
 
   nixosConfig = {
     programs.fuse.userAllowOther = true;
+
+    sops.secrets."rclone.conf" = {
+      format = "binary";
+      sopsFile = ../../secrets/binary/rclone.enc.conf;
+      owner = config.my.user.name;
+      mode = "0400";
+    };
   };
 
   hmConfig =

@@ -15,6 +15,12 @@ selfLib.mkModule {
       "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
       "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
     ];
+
+    sops.secrets."foto-profile" = {
+      format = "binary";
+      owner = config.my.user.name;
+      sopsFile = ../../secrets/binary/foto-profile.enc;
+    };
   };
 
   hmConfig = hmOpts: {
@@ -47,8 +53,12 @@ selfLib.mkModule {
     home.file."Music".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Music";
 
     home.file = {
-      ".face.icon".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/run/secrets/foto-profile";
-      ".face".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/run/secrets/foto-profile";
+      ".face.icon".source =
+        hmOpts.config.lib.file.mkOutOfStoreSymlink
+          hmOpts.osConfig.sops.secrets."foto-profile".path;
+      ".face".source =
+        hmOpts.config.lib.file.mkOutOfStoreSymlink
+          hmOpts.osConfig.sops.secrets."foto-profile".path;
     };
   };
 }

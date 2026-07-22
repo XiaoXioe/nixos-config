@@ -82,5 +82,30 @@ selfLib.mkModule {
       NO_PROXY = "localhost,127.0.0.1,::1";
       no_proxy = "localhost,127.0.0.1,::1";
     };
+
+    systemd.tmpfiles.rules = [
+      "d /home/${config.my.user.name}/.config/cachix 0700 ${config.my.user.name} users - -"
+    ];
+    sops = {
+      templates."cachix.dhall" = {
+        path = "/home/${config.my.user.name}/.config/cachix/cachix.dhall";
+        owner = config.my.user.name;
+        mode = "0600";
+        content = ''
+          { authToken = "${config.sops.placeholder.cachix-token}" }
+        '';
+      };
+      secrets = {
+        "github-nix" = {
+          owner = config.my.user.name;
+          restartUnits = [ "nix-daemon.service" ];
+          mode = "0400";
+        };
+        "cachix-token" = {
+          owner = config.my.user.name;
+          group = "users";
+        };
+      };
+    };
   };
 }

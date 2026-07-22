@@ -20,6 +20,19 @@ selfLib.mkModule {
     {
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
+      sops.secrets = {
+        "9router-env" = {
+          mode = "0400";
+        };
+        "ninerouter-key" = {
+          owner = config.my.user.name;
+          mode = "0400";
+        };
+        "mt5-vnc-env" = {
+          mode = "0400";
+        };
+      };
+
       environment.variables = {
 
         # 9Router AI gateway

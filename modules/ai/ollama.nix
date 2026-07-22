@@ -8,6 +8,8 @@ selfLib.mkModule {
   name = "ai.ollama";
 
   nixosConfig = {
+    sops.secrets."ollama-env" = { };
+
     services.ollama = {
       enable = true;
       models = "/mnt/data_btrfs/ollama_storage/models";
