@@ -79,6 +79,8 @@ selfLib.mkModule {
       http_proxy = "socks5://127.0.0.1:40000";
       https_proxy = "socks5://127.0.0.1:40000";
       all_proxy = "socks5://127.0.0.1:40000";
+      NO_PROXY = "localhost,127.0.0.1,::1";
+      no_proxy = "localhost,127.0.0.1,::1";
     };
   };
 }
