@@ -158,11 +158,11 @@ selfLib.mkModule {
 
       home.activation.prepareFirefoxProfiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
         # Hapus file backup lama agar tidak memicu error clobber
-        rm -f "$HOME/.config/mozilla/firefox/profiles.ini.hm-bak"
+        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini.hm-bak"
 
         # Hapus profiles.ini jika berupa file biasa (bukan symlink) agar linkGeneration bisa membuat symlink baru tanpa backup
         if [ -f "$HOME/.config/mozilla/firefox/profiles.ini" ] && [ ! -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
-          rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
+          ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
         fi
 
         # Penanganan dangling symlink akibat Profile Sync Daemon (PSD) saat boot
@@ -171,12 +171,12 @@ selfLib.mkModule {
             if [ -L "$prof" ] && [ ! -e "$prof" ]; then
               backup="''${prof}-backup"
               if [ -d "$backup" ]; then
-                echo "PSD cleanup: restoring $(basename "$prof") from backup"
-                rm -f "$prof"
-                mv "$backup" "$prof"
+                echo "PSD cleanup: restoring $(${pkgs.coreutils}/bin/basename "$prof") from backup"
+                ${pkgs.coreutils}/bin/rm -f "$prof"
+                ${pkgs.coreutils}/bin/mv "$backup" "$prof"
               else
-                echo "PSD cleanup: removing dangling symlink $(basename "$prof")"
-                rm -f "$prof"
+                echo "PSD cleanup: removing dangling symlink $(${pkgs.coreutils}/bin/basename "$prof")"
+                ${pkgs.coreutils}/bin/rm -f "$prof"
               fi
             fi
           done
