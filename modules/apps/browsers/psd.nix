@@ -38,7 +38,8 @@ selfLib.mkModule {
             postPatch = (oldAttrs.postPatch or "") + ''
               if [ -f common/profile-sync-daemon.in ]; then
                 substituteInPlace common/profile-sync-daemon.in \
-                  --replace-fail 'sudo -kn' 'sudo -n'
+                  --replace-fail 'sudo -kn' 'sudo -n' \
+                  --replace-fail 'find "''${DIR%/*}"' 'find "''${DIR%/*}" 2>/dev/null'
               fi
               if [ -f common/psd-overlay-helper ]; then
                 substituteInPlace common/psd-overlay-helper \
@@ -50,6 +51,16 @@ selfLib.mkModule {
               cat << 'EOF' > $out/share/psd/browsers/brave
               DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
               PSNAME="brave"
+              EOF
+
+              cat << 'EOF' > $out/share/psd/browsers/chromium
+              DIRArr[0]="$HOME/.config/chromium"
+              PSNAME="chromium"
+              EOF
+
+              cat << 'EOF' > $out/share/psd/browsers/torbrowser
+              DIRArr[0]="$HOME/.local/share/torbrowser"
+              PSNAME="firefox"
               EOF
 
               cat << 'EOF' > $out/share/psd/browsers/zen
@@ -144,13 +155,30 @@ selfLib.mkModule {
         fi
       '';
 
+      xdg.configFile."psd/browsers/chromium".text = ''
+        DIRArr[0]="$HOME/.config/chromium"
+        PSNAME="chromium"
+      '';
+
+      xdg.configFile."psd/browsers/torbrowser".text = ''
+        DIRArr=()
+        PSNAME="firefox"
+        user="${user}"
+
+        if [[ -d "$HOME/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default" ]]; then
+          DIRArr+=("$HOME/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default")
+        elif [[ -d "$HOME/.local/share/torbrowser" ]]; then
+          DIRArr+=("$HOME/.local/share/torbrowser")
+        fi
+      '';
+
       # Declarative configuration file for Profile Sync Daemon
       xdg.configFile."psd/psd.conf".text = ''
         # Profile Sync Daemon (psd) configuration file
         # Managed declaratively via NixOS / Home Manager
 
         # Target browsers to sync to RAM (tmpfs)
-        BROWSERS=(firefox brave zen)
+        BROWSERS=(firefox brave zen chromium torbrowser)
 
         # Use OverlayFS sync so RAM tmpfs only stores delta changes (saving ~3GB of RAM)
         USE_OVERLAYFS="yes"
