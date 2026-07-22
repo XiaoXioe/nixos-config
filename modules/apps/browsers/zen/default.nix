@@ -59,6 +59,7 @@ selfLib.mkModule {
         tampermonkey
         keplr
         solflare-wallet
+        mkExtensionSettings
         ;
 
       # Import Zen-specific policies from local policies.nix (modular)
@@ -132,6 +133,7 @@ selfLib.mkModule {
         Default=1
         EOF
         chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
+        rm -f "$HOME/.config/zen/${profileName}/extensions.json"
       '';
 
       home.file = {
@@ -148,9 +150,7 @@ selfLib.mkModule {
         ".local/share/flatpak/extension/app.zen_browser.zen.systemconfig/x86_64/stable/policies/policies.json".text =
           builtins.toJSON {
             policies = {
-              Preferences = lib.filterAttrs (
-                name: value: builtins.isAttrs value && value ? Status && value.Status == "locked"
-              ) zenPolicies;
+              ExtensionSettings = mkExtensionSettings extensionsList;
 
               DisableFirefoxAccounts = true;
               DisableTelemetry = true;
