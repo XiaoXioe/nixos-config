@@ -47,11 +47,11 @@ selfLib.mkModule {
 
     home.activation.setupBottlesSymlinks = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [ -d "$HOME/.local/share/bottles" ] && [ ! -L "$HOME/.local/share/bottles" ]; then
-        rm -rf "$HOME/.local/share/bottles"
+        ${pkgs.coreutils}/bin/rm -rf "$HOME/.local/share/bottles"
       fi
-      mkdir -p "$HOME/.local/share"
-      mkdir -p "/mnt/data_btrfs/bottles"
-      ln -sfn "/mnt/data_btrfs/bottles" "$HOME/.local/share/bottles"
+      ${pkgs.coreutils}/bin/mkdir -p "$HOME/.local/share"
+      ${pkgs.coreutils}/bin/mkdir -p "/mnt/data_btrfs/bottles"
+      ${pkgs.coreutils}/bin/ln -sfn "/mnt/data_btrfs/bottles" "$HOME/.local/share/bottles"
     '';
   };
 }
