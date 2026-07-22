@@ -19,6 +19,7 @@ selfLib.mkModule {
         "/mnt/data_btrfs/docker"
         "/mnt/data_btrfs/waydroid_data"
         "/var/lib/vnstat"
+        "/nix/var/nix/db"
       ];
       description = ''
         List of directory paths to automatically migrate to Btrfs Copy-on-Write disabled (nocow, +C).
