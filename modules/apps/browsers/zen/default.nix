@@ -120,8 +120,8 @@ selfLib.mkModule {
       # Gecko browsers (Firefox/Zen) require write access to profiles.ini on startup and will revert
       # to creating a random profile if the file is write-locked.
       home.activation.writeZenProfiles = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen"
-        cat << 'EOF' > "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
+        ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen"
+        ${pkgs.coreutils}/bin/cat << 'EOF' > "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
         [General]
         StartWithLastProfile=1
         Version=2
@@ -132,8 +132,8 @@ selfLib.mkModule {
         Path=${profileName}
         Default=1
         EOF
-        chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
-        rm -f "$HOME/.config/zen/${profileName}/extensions.json"
+        ${pkgs.coreutils}/bin/chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
+        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/zen/${profileName}/extensions.json"
       '';
 
       home.file = {
