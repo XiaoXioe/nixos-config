@@ -10,15 +10,17 @@ selfLib.mkModule {
   nixosConfig = {
     nixpkgs.overlays = [
       (final: prev: {
-        pkgsi686Linux = prev.pkgsi686Linux // {
-          pipewire = prev.pkgsi686Linux.pipewire.override {
-            libcamera = {
-              meta.platforms = [ ];
+        pkgsi686Linux = prev.pkgsi686Linux.extend (
+          self32: super32: {
+            pipewire = super32.pipewire.override {
+              libcamera = {
+                meta.platforms = [ ];
+              };
+              ffadoSupport = false;
+              rocSupport = false;
             };
-            ffadoSupport = false;
-            rocSupport = false;
-          };
-        };
+          }
+        );
       })
     ];
 
