@@ -12,6 +12,14 @@ selfLib.mkModule {
     "org.torproject.torbrowser-launcher" = {
       enable = true;
 
+      overrides = {
+        Context = {
+          filesystems = [
+            "xdg-run/psd" # Profile Sync Daemon tmpfs
+          ];
+        };
+      };
+
       # Symlinks to keep data persistent and synced between native and Flatpak
       symlinks = [
         {
