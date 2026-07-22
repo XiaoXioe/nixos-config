@@ -29,13 +29,13 @@ selfLib.mkModule {
       };
       home.activation.copyThunderbirdProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
         if [ -L "$HOME/.thunderbird/profiles.ini" ]; then
-          real_file=$(readlink -f "$HOME/.thunderbird/profiles.ini")
-          rm -f "$HOME/.thunderbird/profiles.ini"
-          cp "$real_file" "$HOME/.thunderbird/profiles.ini"
-          chmod 644 "$HOME/.thunderbird/profiles.ini"
+          real_file=$(${pkgs.coreutils}/bin/readlink -f "$HOME/.thunderbird/profiles.ini")
+          ${pkgs.coreutils}/bin/rm -f "$HOME/.thunderbird/profiles.ini"
+          ${pkgs.coreutils}/bin/cp "$real_file" "$HOME/.thunderbird/profiles.ini"
+          ${pkgs.coreutils}/bin/chmod 644 "$HOME/.thunderbird/profiles.ini"
           
           # Paksa agar asosiasi instalasi ([Install...]) di profiles.ini selalu mengarah ke profil 'default'
-          sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.thunderbird/profiles.ini"
+          ${pkgs.gnused}/bin/sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.thunderbird/profiles.ini"
         fi
       '';
     };
