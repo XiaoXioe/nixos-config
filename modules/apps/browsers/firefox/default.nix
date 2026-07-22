@@ -185,13 +185,13 @@ selfLib.mkModule {
 
       home.activation.copyFirefoxProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
         if [ -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
-          real_file=$(readlink -f "$HOME/.config/mozilla/firefox/profiles.ini")
-          rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
-          cp "$real_file" "$HOME/.config/mozilla/firefox/profiles.ini"
-          chmod 644 "$HOME/.config/mozilla/firefox/profiles.ini"
-          
+          real_file=$(${pkgs.coreutils}/bin/readlink -f "$HOME/.config/mozilla/firefox/profiles.ini")
+          ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
+          ${pkgs.coreutils}/bin/cp "$real_file" "$HOME/.config/mozilla/firefox/profiles.ini"
+          ${pkgs.coreutils}/bin/chmod 644 "$HOME/.config/mozilla/firefox/profiles.ini"
+
           # Reset Default di section [Install] ke 'default'
-          sed -i '/^\[Install\]/,/^\[/s/^Default=.*/Default=default/' "$HOME/.config/mozilla/firefox/profiles.ini"
+          ${pkgs.gnused}/bin/sed -i '/^\[Install\]/,/^\[/s/^Default=.*/Default=default/' "$HOME/.config/mozilla/firefox/profiles.ini"
         fi
       '';
 

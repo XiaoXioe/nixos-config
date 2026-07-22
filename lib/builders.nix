@@ -13,11 +13,15 @@ let
   mkNixosConfiguration =
     hostName:
     lib.nixosSystem {
-      inherit pkgs;
+      system = "x86_64-linux";
       specialArgs = baseArgs // {
         inherit hostName;
       };
-      modules = commonModules;
+      modules = commonModules ++ [
+        {
+          nixpkgs.config.allowUnfree = true;
+        }
+      ];
     };
 in
 {

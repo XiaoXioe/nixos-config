@@ -12,12 +12,17 @@ let
       sha256,
       slug ? pname,
       version ? "latest",
+      url ? (
+        if version == "latest" then
+          "https://addons.mozilla.org/firefox/downloads/latest/${slug}/latest.xpi"
+        else
+          "https://addons.mozilla.org/firefox/downloads/file/${slug}/${version}/${slug}-${version}.xpi"
+      ),
     }:
     pkgs.stdenv.mkDerivation {
       name = "${pname}-${version}";
       src = pkgs.fetchurl {
-        url = "https://addons.mozilla.org/firefox/downloads/latest/${slug}/latest.xpi";
-        inherit sha256;
+        inherit url sha256;
       };
       preferLocalBuild = true;
       allowSubstitutes = false;
