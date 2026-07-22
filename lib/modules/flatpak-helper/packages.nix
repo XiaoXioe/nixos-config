@@ -101,21 +101,22 @@ in
             nativeInfo = utils.getNativePkg appVal;
             realNativePkg = nativeInfo.realNativePkg;
           in
+          let
+            flatpakBin = hmPkgs.writeShellScriptBin (hmProgram.binName or hmProgram.name) ''
+              exec flatpak run ${appId} "$@"
+            '';
+            flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
+              wrapper = _: flatpakBin;
+            };
+            defaultPkg = if useFlatpakApp then flatpakPkg else realNativePkg;
+          in
           lib.optionals (appEnabled && hmProgram != null && hmProgram ? name && hmProgram.name != null) [
             (lib.nameValuePair hmProgram.name (
-              lib.recursiveUpdate {
+              {
                 enable = true;
-                ${hmProgram.packagePath or "package"} =
-                  if useFlatpakApp then
-                    lib.makeOverridable (
-                      args:
-                      hmPkgs.writeShellScriptBin (hmProgram.binName or hmProgram.name) ''
-                        exec flatpak run ${appId} "$@"
-                      ''
-                    ) { }
-                  else
-                    realNativePkg;
-              } (hmProgram.extraConfig or { })
+                ${hmProgram.packagePath or "package"} = defaultPkg;
+              }
+              // (hmProgram.extraConfig or { })
             ))
           ]
         ) flatpakCfg
