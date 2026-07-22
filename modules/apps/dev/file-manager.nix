@@ -61,7 +61,6 @@ selfLib.mkModule {
         '';
         sessionVariables = {
           XDG_DATA_DIRS = "/run/current-system/sw/share:/etc/profiles/per-user/${userName}/share:$XDG_DATA_DIRS";
-          QT_STYLE_OVERRIDE = "breeze";
           XCURSOR_THEME = "breeze_cursors";
         };
 
