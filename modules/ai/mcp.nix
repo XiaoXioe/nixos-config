@@ -128,7 +128,7 @@ selfLib.mkModule {
           pkg = server-memory-pkg;
           bin = "mcp-server-memory";
           env = {
-            MEMORY_FILE_PATH = "${homeDir}/.config/antigravity/memory.json";
+            MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
           };
         };
       };

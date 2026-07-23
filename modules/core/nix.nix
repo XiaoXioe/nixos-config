@@ -52,10 +52,11 @@ selfLib.mkModule {
         always-allow-substitutes = true;
 
         # ── Performance & stability ──────────────────────────────────
-        max-substitution-jobs = 3;
-        http-connections = 50;
-        download-attempts = 5;
-        connect-timeout = 60;
+        max-substitution-jobs = 4;
+        http-connections = 16;
+        download-attempts = 3;
+        connect-timeout = 10;
+        stalled-download-timeout = 300;
         keep-outputs = true;
         keep-derivations = true;
         eval-cache = true;
@@ -89,6 +90,7 @@ selfLib.mkModule {
       all_proxy = "socks5://127.0.0.1:40000";
       NO_PROXY = "localhost,127.0.0.1,::1";
       no_proxy = "localhost,127.0.0.1,::1";
+      TMPDIR = "/var/tmp";
     };
 
     systemd.tmpfiles.rules = [
