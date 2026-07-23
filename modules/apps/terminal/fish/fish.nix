@@ -77,6 +77,16 @@
           # GPG SSH Agent Integration
           set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
 
+          # Auto-rename tab Zellij ke nama proses yang sedang berjalan (ping, nvim, agy, btop, dll)
+          function zellij_tab_name_update --on-event fish_preexec
+              if set -q ZELLIJ
+                  set -l cmd (string match -r '^[^ ]+' -- $argv[1])
+                  if test -n "$cmd"
+                      command nohup zellij action rename-tab "$cmd" >/dev/null 2>&1 &
+                  end
+              end
+          end
+
           set -g fish_color_command cdd6f4
           set -g fish_color_param 89b4fa
           set -g fish_color_quote f9e2af

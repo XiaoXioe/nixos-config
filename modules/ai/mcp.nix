@@ -92,7 +92,7 @@ selfLib.mkModule {
           pkg = github-mcp-server-pkg;
           bin = "github-mcp-server";
           args = [ "stdio" ];
-          geminiWrap = "GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${githubTokenPath})";
+          geminiWrap = "export GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${githubTokenPath});";
           env = {
             GITHUB_PERSONAL_ACCESS_TOKEN = "{file:${githubTokenPath}}";
           };
@@ -119,7 +119,7 @@ selfLib.mkModule {
         tavily = {
           pkg = tavily-mcp-pkg;
           bin = "tavily-mcp";
-          geminiWrap = "TAVILY_API_KEY=$(cat ${tavilyKeyPath})";
+          geminiWrap = "export TAVILY_API_KEY=$(cat ${tavilyKeyPath});";
           env = {
             TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
           };
@@ -155,14 +155,14 @@ selfLib.mkModule {
         }
       ) sshServers;
 
-      opencodeMcpConfig = opencodeExec // opencodeSsh;
-
       cloudflareCfg = {
         url = "https://mcp.cloudflare.com/mcp";
         opencodeHeaders = {
           Authorization = "Bearer {file:${cloudflareTokenPath}}";
         };
       };
+
+      opencodeMcpConfig = opencodeExec // opencodeSsh;
 
       # ─── Renderers ───
       geminiSsh = lib.mapAttrs (name: cfg: makeSshMcp (cfg // { inherit homeDir; })) sshServers;
