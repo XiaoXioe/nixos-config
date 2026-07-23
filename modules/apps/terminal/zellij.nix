@@ -4,11 +4,27 @@
   ...
 }:
 
+let
+  zjstatus = pkgs.fetchurl {
+    url = "https://github.com/dj95/zjstatus/releases/download/v0.24.0/zjstatus.wasm";
+    sha256 = "16v6ascpyl7na6lp3v98haggp9lwsg6r1rlv40zcyqpd3p7dxkhw";
+  };
+in
 selfLib.mkModule {
   name = "apps.terminal.zellij";
   description = "Zellij multiplexer configuration";
 
   hmConfig = hmOpts: {
+    home.activation.zellijPermissions = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      $DRY_RUN_CMD mkdir -p $HOME/.cache/zellij
+      $DRY_RUN_CMD rm -f $HOME/.cache/zellij/permissions.kdl
+      $DRY_RUN_CMD cp -f $HOME/.config/zellij/permissions.kdl $HOME/.cache/zellij/permissions.kdl 2>/dev/null || true
+      $DRY_RUN_CMD chmod 644 $HOME/.cache/zellij/permissions.kdl 2>/dev/null || true
+    '';
+
+    # Stable symlink: path tetap konsisten meskipun hash Nix Store berubah setelah flake update
+    xdg.configFile."zellij/plugins/zjstatus.wasm".source = zjstatus;
+
     programs.zellij = {
       enable = true;
       enableFishIntegration = true;
@@ -20,6 +36,9 @@ selfLib.mkModule {
         default_layout = "default";
         show_startup_tips = false;
 
+        attach_to_session = true;
+        on_force_close = "quit";
+
         hide_session_name = true;
         ui = {
           pane_frames = {
@@ -28,6 +47,7 @@ selfLib.mkModule {
         };
 
         plugins = {
+          zjstatus.location = "file:${zjstatus}";
           zjframes.location = "file:${pkgs.zellijPlugins.zjframes}";
           vim-zellij-navigator.location = "file:${pkgs.zellijPlugins.vim-zellij-navigator}";
         };
@@ -148,13 +168,21 @@ selfLib.mkModule {
       };
     };
 
+    xdg.configFile."zellij/permissions.kdl".text = ''
+      "${zjstatus}" {
+          ChangeApplicationState
+          ReadApplicationState
+          RunCommands
+      }
+    '';
+
     xdg.configFile."zellij/layouts/default.kdl".text = ''
       layout {
           default_tab_template {
               children
               pane size=1 borderless=true {
-                  plugin location="https://github.com/dj95/zjstatus/releases/download/v0.24.0/zjstatus.wasm" {
-                      format_left   "{mode}"
+                  plugin location="file:${zjstatus}" {
+                      format_left   "{mode} #[fg=#89B4FA,bold]{session}"
                       format_center "{tabs}"
                       format_right  "{command_git_branch} {datetime}"
                       format_space  ""
