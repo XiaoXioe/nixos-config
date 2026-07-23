@@ -25,6 +25,7 @@ selfLib.mkModule {
       in
       [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
+        "d /persist/home/${userName}/.local/share/waydroid/data/media/0/Download 0755 ${userName} users -"
         "d /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
         "z /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
         "d /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"

@@ -43,7 +43,7 @@ selfLib.mkModule {
               fi
               if [ -f common/psd-overlay-helper ]; then
                 substituteInPlace common/psd-overlay-helper \
-                  --replace-fail 'sudo -u' 'runuser -u'
+                  --replace-fail 'sudo -u "$user"' 'runuser -u "$user" --'
               fi
             '';
 

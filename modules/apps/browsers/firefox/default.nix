@@ -165,18 +165,21 @@ selfLib.mkModule {
           ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
         fi
 
-        # Penanganan dangling symlink akibat Profile Sync Daemon (PSD) saat boot
+        # Penanganan dangling atau invalid symlink (seperti /dev/null atau /run/user/...) akibat Profile Sync Daemon (PSD) saat boot
         if [ -d "$HOME/.config/mozilla/firefox" ]; then
           for prof in "$HOME/.config/mozilla/firefox/"*; do
-            if [ -L "$prof" ] && [ ! -e "$prof" ]; then
-              backup="''${prof}-backup"
-              if [ -d "$backup" ]; then
-                echo "PSD cleanup: restoring $(${pkgs.coreutils}/bin/basename "$prof") from backup"
-                ${pkgs.coreutils}/bin/rm -f "$prof"
-                ${pkgs.coreutils}/bin/mv "$backup" "$prof"
-              else
-                echo "PSD cleanup: removing dangling symlink $(${pkgs.coreutils}/bin/basename "$prof")"
-                ${pkgs.coreutils}/bin/rm -f "$prof"
+            if [ -L "$prof" ]; then
+              target=$(${pkgs.coreutils}/bin/readlink "$prof" || true)
+              if [ ! -e "$prof" ] || [ "$target" = "/dev/null" ] || [[ "$target" == /run/user/* ]]; then
+                backup="''${prof}-backup"
+                if [ -d "$backup" ]; then
+                  echo "PSD cleanup: restoring $(${pkgs.coreutils}/bin/basename "$prof") from backup"
+                  ${pkgs.coreutils}/bin/rm -f "$prof"
+                  ${pkgs.coreutils}/bin/mv "$backup" "$prof"
+                else
+                  echo "PSD cleanup: removing invalid symlink $(${pkgs.coreutils}/bin/basename "$prof")"
+                  ${pkgs.coreutils}/bin/rm -f "$prof"
+                fi
               fi
             fi
           done

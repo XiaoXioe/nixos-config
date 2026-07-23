@@ -28,6 +28,13 @@ selfLib.mkModule {
 
     "org.libretro.RetroArch" = {
       enable = true;
+      overrides = {
+        Context = {
+          filesystems = [
+            "/mnt/data"
+          ];
+        };
+      };
       symlinks = [
         {
           host = ".config/retroarch";
@@ -76,6 +83,13 @@ selfLib.mkModule {
 
     "org.ppsspp.PPSSPP" = {
       enable = true;
+      overrides = {
+        Context = {
+          filesystems = [
+            "/mnt/data"
+          ];
+        };
+      };
       symlinks = [
         {
           host = ".config/ppsspp";
@@ -87,6 +101,13 @@ selfLib.mkModule {
 
     "net.pcsx2.PCSX2" = {
       enable = true;
+      overrides = {
+        Context = {
+          filesystems = [
+            "/mnt/data"
+          ];
+        };
+      };
       symlinks = [
         {
           host = ".config/PCSX2";
