@@ -12,7 +12,7 @@ let
 in
 
 selfLib.mkModule {
-  name = "services.restic";
+  name = "services.storage.restic";
   description = "Restic Backup Service via Rclone";
 
   nixosConfig = {

@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.show-zombie-parents";
+  name = "apps.terminal.functions.show-zombie-parents";
   description = "Identify zombie/defunct processes";
 
   hmConfig = hmOpts: {

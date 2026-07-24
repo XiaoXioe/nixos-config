@@ -6,7 +6,7 @@
 }:
 
 selfLib.mkModule {
-  name = "services.rclone";
+  name = "services.storage.rclone";
   description = "rclone mount service";
 
   nixosConfig = {
@@ -14,7 +14,7 @@ selfLib.mkModule {
 
     sops.secrets."rclone.conf" = {
       format = "binary";
-      sopsFile = ../../secrets/binary/rclone.enc.conf;
+      sopsFile = ../../../secrets/binary/rclone.enc.conf;
       owner = config.my.user.name;
       mode = "0400";
     };

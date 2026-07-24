@@ -6,11 +6,11 @@
   ...
 }:
 selfLib.mkModule {
-  name = "services.btrfs-nocow-migration";
+  name = "services.storage.btrfs-nocow-migration";
 
   nixosConfig =
     let
-      cfg = config.my.services.tmpfiles;
+      cfg = config.my.services.system.tmpfiles;
     in
     {
       # Layanan otomatisasi migrasi direktori nocow pada saat boot (sebelum display manager aktif)

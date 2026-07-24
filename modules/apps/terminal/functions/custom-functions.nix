@@ -146,7 +146,7 @@ let
 
 in
 selfLib.mkModule {
-  name = "scripts.custom-functions";
+  name = "apps.terminal.functions.custom-functions";
   description = "Migrated custom bash scripts (cek_ip, wayres, softsub, mpv-wrapper)";
 
   hmConfig =

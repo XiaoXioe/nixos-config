@@ -5,8 +5,8 @@
 }:
 
 selfLib.mkModule {
-  name = "apps.social.sosmed";
-  description = "Social Media and Messaging applications";
+  name = "apps.social.ayugram";
+  description = "AyuGram Desktop Messaging application";
 
   flatpakCfg = {
     "com.ayugram.desktop" = {
@@ -23,28 +23,6 @@ selfLib.mkModule {
         }
       ];
       nativePkgs = pkgs.ayugram-desktop;
-    };
-
-    "com.discordapp.Discord" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".config/discord";
-          guest = "config/discord";
-        }
-      ];
-      nativePkgs = pkgs.discord;
-    };
-
-    "org.signal.Signal" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".config/Signal";
-          guest = "config/Signal";
-        }
-      ];
-      nativePkgs = pkgs.signal-desktop;
     };
   };
 }

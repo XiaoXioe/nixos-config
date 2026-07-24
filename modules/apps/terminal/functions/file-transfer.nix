@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.file-transfer";
+  name = "apps.terminal.functions.file-transfer";
   description = "File transfer scripts (ambil & kirim)";
 
   hmConfig = hmOpts: {

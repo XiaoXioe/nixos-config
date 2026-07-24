@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.dl-lagu";
+  name = "apps.media.dl-lagu";
   description = "YouTube audio downloader script";
 
   hmConfig = hmOpts: {

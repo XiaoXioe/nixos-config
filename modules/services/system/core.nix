@@ -6,7 +6,7 @@
 }:
 
 selfLib.mkModule {
-  name = "services.core";
+  name = "services.system.core";
 
   nixosConfig = {
     services = {

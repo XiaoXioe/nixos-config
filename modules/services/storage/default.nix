@@ -1,7 +1,4 @@
-{
-  selfLib,
-  ...
-}:
+{ selfLib, ... }:
 {
   imports = selfLib.scanPaths ./.;
 }

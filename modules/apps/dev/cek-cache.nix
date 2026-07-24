@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.cek-cache";
+  name = "apps.dev.cek-cache";
   description = "Check package in /nix/store";
 
   hmConfig = hmOpts: {

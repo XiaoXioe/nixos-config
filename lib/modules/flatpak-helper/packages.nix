@@ -65,6 +65,11 @@ in
               if binName != null then
                 [
                   (pkgs.writeShellScriptBin binName ''
+                    if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
+                      if [ -S "/run/user/$(id -u)/bus" ]; then
+                        export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+                      fi
+                    fi
                     exec flatpak run ${appId} "$@"
                   '')
                 ]
@@ -103,6 +108,11 @@ in
           in
           let
             flatpakBin = hmPkgs.writeShellScriptBin (hmProgram.binName or hmProgram.name) ''
+              if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
+                if [ -S "/run/user/$(id -u)/bus" ]; then
+                  export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+                fi
+              fi
               exec flatpak run ${appId} "$@"
             '';
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {

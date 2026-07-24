@@ -5,7 +5,7 @@
   ...
 }:
 selfLib.mkModule {
-  name = "services.tmpfiles";
+  name = "services.system.tmpfiles";
 
   options = {
     nocowDirectories = lib.mkOption {
@@ -28,7 +28,7 @@ selfLib.mkModule {
 
   nixosConfig =
     let
-      cfg = config.my.services.tmpfiles;
+      cfg = config.my.services.system.tmpfiles;
     in
     {
       systemd.tmpfiles.rules = [

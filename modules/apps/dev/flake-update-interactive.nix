@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.flake-update-interactive";
+  name = "apps.dev.flake-update-interactive";
   description = "Interactive flake input updater using fzf and jq (nfui)";
 
   hmConfig = hmOpts: {

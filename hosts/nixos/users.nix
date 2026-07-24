@@ -41,7 +41,9 @@
         office = true;
       };
       social = {
-        sosmed = true;
+        ayugram = true;
+        discord = true;
+        signal = true;
       };
 
       dev = {
@@ -55,6 +57,8 @@
         android = true;
         direnv = true;
         git-commits = true;
+        flake-update-interactive = true;
+        cek-cache = true;
       };
 
       editors = {
@@ -72,6 +76,7 @@
         video = true;
         downloader = true;
         music = true;
+        dl-lagu = true;
       };
 
       terminal = {
@@ -87,6 +92,11 @@
         fzf = true;
         zoxide = true;
         eza = true;
+        functions = {
+          file-transfer = true;
+          show-zombie-parents = true;
+          custom-functions = true;
+        };
       };
     };
 
@@ -147,16 +157,18 @@
     };
 
     services = {
-      core = true;
-      flatpak = true;
-      rclone = true;
-      restic = true;
-      tmpfiles = true;
-      btrfs-nocow-migration = true;
+      system = {
+        core = true;
+        tmpfiles = true;
+      };
+      storage = {
+        rclone = true;
+        restic = true;
+        btrfs-nocow-migration = true;
+      };
       networking = {
         dns = true;
         vpn = true;
-        vpn-script = true;
         openssh = true;
         "cloudflare-warp" = true;
         zapret = true;
@@ -173,7 +185,7 @@
       password-manager = true;
       ente-auth = true;
       gnupg = true;
-      compat = false;
+      compat = true;
       secrets = true;
       hardening = true;
       auth = {
@@ -183,15 +195,6 @@
         sudo-rs.enable = true;
       };
       networking = true;
-    };
-
-    scripts = {
-      custom-functions = true;
-      cek-cache = true;
-      dl-lagu = true;
-      show-zombie-parents = true;
-      file-transfer = true;
-      flake-update-interactive = true;
     };
 
     specialization = {
