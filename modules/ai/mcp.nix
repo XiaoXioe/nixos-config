@@ -16,6 +16,7 @@ let
   github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
   server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
+  sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
 
   makeSshMcp =
     {
@@ -131,6 +132,10 @@ selfLib.mkModule {
             MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
           };
         };
+        sequential-thinking = {
+          pkg = sequential-thinking-pkg;
+          bin = "mcp-server-sequential-thinking";
+        };
       };
 
       opencodeExec = lib.mapAttrs (
@@ -195,6 +200,7 @@ selfLib.mkModule {
           github-mcp-server-pkg
           tavily-mcp-pkg
           server-memory-pkg
+          sequential-thinking-pkg
           pkgs.mcp-nixos
         ];
 
