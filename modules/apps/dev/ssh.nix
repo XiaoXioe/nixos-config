@@ -1,6 +1,8 @@
 {
   config,
   flakePath,
+  lib,
+  pkgs,
   selfLib,
   ...
 }:
@@ -10,6 +12,13 @@ selfLib.mkModule {
   description = "Ssh configuration";
 
   nixosConfig = {
+    environment.etc."ssh/ssh_config".text = lib.mkForce ''
+      Match host * exec "${pkgs.bashInteractive}/bin/bash -c '${pkgs.gnupg}/bin/gpg-connect-agent --quiet updatestartuptty /bye >/dev/null 2>&1'"
+      Host *
+      GlobalKnownHostsFile /etc/ssh/ssh_known_hosts
+      AddressFamily inet
+      ForwardX11 no
+    '';
     systemd.tmpfiles.rules = [
       "d /home/${config.my.user.name}/.ssh 0700 ${config.my.user.name} users - -"
     ];
