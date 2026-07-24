@@ -5,21 +5,19 @@
 }:
 
 selfLib.mkModule {
-  name = "core.packages";
+  name = "core.system-tools";
+  description = "Essential system-level CLI administration tools and base program settings";
 
   nixosConfig = {
     programs = {
       nano = {
-        # Enable syntax highlighting
         syntaxHighlight = true;
-
         nanorc = ''
           set linenumbers
           set tabsize 4
           set tabstospaces
           set autoindent
           set mouse
-          # set smooth
         '';
       };
 

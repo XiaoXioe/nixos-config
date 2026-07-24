@@ -67,7 +67,7 @@ selfLib.mkModule {
         }
         {
           "/var/lib/waydroid/images" = {
-            device = "/mnt/data_btrfs/waydroid_images/images13";
+            device = "/mnt/data_btrfs/waydroid_images/halcyon-os";
             fsType = "none";
             options = [
               "bind"

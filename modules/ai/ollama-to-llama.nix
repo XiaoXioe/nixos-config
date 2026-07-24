@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.ollama-to-llama";
+  name = "ai.ollama-to-llama";
   description = "Llama.cpp wrapper from Ollama Modelfiles";
 
   hmConfig = hmOpts: {

@@ -5,7 +5,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.agy-ide-profile";
+  name = "ai.agy-ide-profile";
   description = "Multi-account profile launcher for Antigravity IDE";
 
   hmConfig = hmOpts: {

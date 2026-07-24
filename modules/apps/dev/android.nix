@@ -6,8 +6,8 @@
 }:
 
 selfLib.mkModule {
-  name = "apps.dev.packages";
-  description = "Packages for development";
+  name = "apps.dev.android";
+  description = "Android development tools and ADB keys configuration";
 
   nixosConfig = {
     systemd.tmpfiles.rules = [
@@ -31,15 +31,8 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = with pkgs; [
-      # nodejs_22
-      uv
-      nix-tree
-      nix-init
-      python3
-      cachix
       android-tools
       scrcpy
-      # go
     ];
   };
 }

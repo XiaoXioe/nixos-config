@@ -17,7 +17,7 @@ let
     };
 in
 selfLib.mkModule {
-  name = "scripts.git-commits";
+  name = "apps.dev.git-commits";
   description = "Git Conventional Commits helper scripts";
 
   hmConfig = hmOpts: {

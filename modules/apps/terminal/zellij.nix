@@ -29,11 +29,12 @@ selfLib.mkModule {
       enable = true;
       enableFishIntegration = true;
       enableBashIntegration = true;
+      enableZshIntegration = true;
 
       settings = {
         theme = "catppuccin-mocha";
         pane_frames = false;
-        default_layout = "default";
+        default_layout = "compact";
         show_startup_tips = false;
 
         attach_to_session = true;
@@ -48,8 +49,6 @@ selfLib.mkModule {
 
         plugins = {
           zjstatus.location = "file:${zjstatus}";
-          zjframes.location = "file:${pkgs.zellijPlugins.zjframes}";
-          vim-zellij-navigator.location = "file:${pkgs.zellijPlugins.vim-zellij-navigator}";
         };
 
         copy_command = "wl-copy";
@@ -183,7 +182,7 @@ selfLib.mkModule {
               pane size=1 borderless=true {
                   plugin location="file:${zjstatus}" {
                       format_left   "{mode} #[fg=#89B4FA,bold]{session}"
-                      format_center "{tabs}"
+                      format_center "#[fg=#181825]#[bg=#181825]{tabs}#[fg=#181825]"
                       format_right  "{command_git_branch} {datetime}"
                       format_space  ""
 
@@ -192,7 +191,7 @@ selfLib.mkModule {
                       border_format   "#[fg=#6C7086]{char}"
                       border_position "top"
 
-                      hide_frame_for_single_pane "true"
+                      hide_frame_for_single_pane "false"
 
                       mode_normal        "#[bg=#89B4FA,fg=#1E1E2E,bold] NORMAL "
                       mode_locked        "#[bg=#F38BA8,fg=#1E1E2E,bold] LOCKED "
@@ -204,25 +203,19 @@ selfLib.mkModule {
                       mode_move          "#[bg=#F5C2E7,fg=#1E1E2E,bold] MOVE "
                       mode_tmux          "#[bg=#FAB387,fg=#1E1E2E,bold] TMUX "
 
-                      tab_normal             "#[fg=#6C7086,bg=#181825] {name} "
-                      tab_active             "#[fg=#1E1E2E,bg=#89B4FA,bold] {name} "
-                      tab_active_fullscreen  "#[fg=#1E1E2E,bg=#A6E3A1,bold] {name} [Z] "
-                      tab_active_sync        "#[fg=#1E1E2E,bg=#F9E2AF,bold] {name} [S] "
+                      tab_normal             "#[fg=#89B4FA,bg=#181825,bold] {index} #[fg=#CDD6F4,bg=#181825]{name} "
+                      tab_active             "#[fg=#1E1E2E,bg=#89B4FA,bold] {index} #[fg=#1E1E2E,bg=#89B4FA,bold]{name} "
+                      tab_active_fullscreen  "#[fg=#1E1E2E,bg=#A6E3A1,bold] {index} #[fg=#1E1E2E,bg=#A6E3A1,bold]{name} [Z] "
+                      tab_active_sync        "#[fg=#1E1E2E,bg=#F9E2AF,bold] {index} #[fg=#1E1E2E,bg=#F9E2AF,bold]{name} [S] "
 
-                      tab_display_count         "10"
+                      tab_display_count         "5"
                       tab_truncate_start_format "#[fg=#1E1E2E,bg=#FAB387,bold] < +{count} "
                       tab_truncate_end_format   "#[fg=#1E1E2E,bg=#FAB387,bold] +{count} > "
-
-                      command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
-                      command_git_branch_format      "#[fg=blue] {stdout} "
-                      command_git_branch_interval    "10"
-                      command_git_branch_rendermode  "static"
-                      command_git_branch_cwd         "{focused_pane_cwd}"
 
                       datetime        "#[fg=#6C7086,bold] {format} "
                       datetime_format "%A, %d %b %Y %H:%M"
                       datetime_timezone "Asia/Jakarta"
-                  }
+                   }
               }
           }
       }

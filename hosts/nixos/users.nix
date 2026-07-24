@@ -31,7 +31,18 @@
         psd = true;
       };
 
-      custompkgs = true;
+      custom = {
+        flatpak-repo = true;
+        freqtrade = true;
+        scrapers = true;
+        tradingview = true;
+      };
+      office = {
+        office = true;
+      };
+      social = {
+        sosmed = true;
+      };
 
       dev = {
         nh = true;
@@ -39,7 +50,11 @@
         ssh = true;
         file-manager = true;
         mime-associations = true;
-        packages = true;
+        languages = true;
+        nix-tools = true;
+        android = true;
+        direnv = true;
+        git-commits = true;
       };
 
       editors = {
@@ -54,16 +69,9 @@
       };
 
       media = {
-        media = true;
+        video = true;
+        downloader = true;
         music = true;
-        office = true;
-        sosmed = true;
-      };
-
-      packages = {
-        general = {
-          enable = true;
-        };
       };
 
       terminal = {
@@ -75,6 +83,10 @@
         wezterm = false;
         foot = true;
         zellij = true;
+        tools = true;
+        fzf = true;
+        zoxide = true;
+        eza = true;
       };
     };
 
@@ -85,6 +97,9 @@
       tools = true;
       mcp = true;
       kaggle = true;
+      agy-profile = true;
+      agy-ide-profile = true;
+      ollama-to-llama = true;
     };
 
     core = {
@@ -98,7 +113,7 @@
       };
       fonts = true;
       locale = true;
-      packages = true;
+      system-tools = true;
       graphics = true;
       bootloader = true;
       kernel = true;
@@ -141,6 +156,7 @@
       networking = {
         dns = true;
         vpn = true;
+        vpn-script = true;
         openssh = true;
         "cloudflare-warp" = true;
         zapret = true;
@@ -154,6 +170,8 @@
     };
 
     security = {
+      password-manager = true;
+      ente-auth = true;
       gnupg = true;
       compat = false;
       secrets = true;
@@ -169,15 +187,10 @@
 
     scripts = {
       custom-functions = true;
-      agy-profile = true;
-      agy-ide-profile = true;
       cek-cache = true;
-      git-commits = true;
       dl-lagu = true;
       show-zombie-parents = true;
-      ollama-to-llama = true;
       file-transfer = true;
-      vpn = true;
       flake-update-interactive = true;
     };
 
@@ -194,7 +207,6 @@
       };
       libvirt = false;
       waydroid = true;
-      packages = false;
     };
   };
 }

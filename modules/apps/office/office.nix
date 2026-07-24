@@ -6,7 +6,7 @@
 }:
 
 selfLib.mkModule {
-  name = "apps.media.office";
+  name = "apps.office.office";
   description = "Office applications bundle";
   # options = {
   #   flatpak = {

@@ -4,11 +4,11 @@
   ...
 }:
 let
-  vpnDir = ../../secrets/vpn-files;
+  vpnDir = ../../../secrets/vpn-files;
   protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") (selfLib.getVpnFiles vpnDir);
 in
 selfLib.mkModule {
-  name = "scripts.vpn";
+  name = "services.networking.vpn-script";
   description = "VPN control scripts (wireproxy)";
 
   hmConfig =

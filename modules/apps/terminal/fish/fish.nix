@@ -4,136 +4,74 @@
   config,
   osConfig,
   flakePath,
-  inputs,
   ...
 }:
 {
-  # --- FZF: Fuzzy Finder ---
-  programs = {
-    fzf = {
-      enable = true;
-      enableFishIntegration = true;
-      colors = {
-        "bg+" = "#3b4252";
-        "fg+" = "#e5e9f0";
-        "hl+" = "#81a1c1";
-        "pointer" = "#b48ead";
-        "marker" = "#a3be8c";
-      };
-      defaultOptions = [
-        "--preview 'echo {}'"
-        "--preview-window down:3:wrap"
-      ];
-    };
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = ''
+      set -g fish_greeting
+      set -p fish_function_path $HOME/.config/fish/functions/custom
+      ${lib.optionalString (osConfig.sops.secrets ? "ninerouter-key") ''
+        if test -r ${osConfig.sops.secrets."ninerouter-key".path}
+            set -lx NINEROUTER_KEY (cat ${osConfig.sops.secrets."ninerouter-key".path})
+        end
+      ''}
+      ${lib.optionalString (osConfig.sops.secrets ? "cloudflare-token") ''
+        if test -r ${osConfig.sops.secrets."cloudflare-token".path}
+            set -gx CLOUDFLARE_TOKEN (cat ${osConfig.sops.secrets."cloudflare-token".path})
+        end
+      ''}
 
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-      stdlib = ''
-        declare -A direnv_layout_dirs
-        direnv_layout_dir() {
-          echo "''${direnv_layout_dirs[$PWD]:=/run/user/$(id -u)/direnv/layouts/$(echo -n "$PWD" | sha1sum | cut -d ' ' -f 1)}"
-        }
-      '';
-    };
+        # GPG SSH Agent Integration
+        set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
 
-    nix-index = {
-      enable = true;
-      enableFishIntegration = true;
-      package =
-        inputs.nix-index-database.packages.${pkgs.stdenv.hostPlatform.system}.nix-index-with-small-db;
-    };
+        set -g fish_color_command cdd6f4
+        set -g fish_color_param 89b4fa
+        set -g fish_color_quote f9e2af
+        set -g fish_color_error f38ba8
+        set -g fish_color_escape f5c2e7
+        set -g fish_color_operator 94e2d5
+    '';
 
-    nix-index-database.comma.enable = true;
+    plugins = with pkgs.fishPlugins; [
+      {
+        name = "async-prompt";
+        src = async-prompt;
+      }
+      {
+        name = "autopair";
+        src = autopair;
+      }
+    ];
 
-    zoxide = {
-      enable = true;
-      enableFishIntegration = true;
-    };
+    shellAbbrs = {
+      gl = "gallery-dl";
 
-    eza = {
-      enable = true;
-      enableFishIntegration = true;
-      icons = "auto";
-      git = true;
-    };
+      # --- SYSTEMD & JOURNALCTL ---
+      sc = "sudo systemctl";
+      scu = "systemctl --user";
+      scstart = "sudo systemctl start";
+      scstop = "sudo systemctl stop";
+      screstart = "sudo systemctl restart";
+      scstatus = "systemctl status";
+      scfailed = "systemctl --failed";
 
-    fish = {
-      enable = true;
-      interactiveShellInit = ''
-        set -g fish_greeting
-        set -p fish_function_path $HOME/.config/fish/functions/custom
-        ${lib.optionalString (osConfig.sops.secrets ? "ninerouter-key") ''
-          if test -r ${osConfig.sops.secrets."ninerouter-key".path}
-              set -lx NINEROUTER_KEY (cat ${osConfig.sops.secrets."ninerouter-key".path})
-          end
-        ''}
-        ${lib.optionalString (osConfig.sops.secrets ? "cloudflare-token") ''
-          if test -r ${osConfig.sops.secrets."cloudflare-token".path}
-              set -gx CLOUDFLARE_TOKEN (cat ${osConfig.sops.secrets."cloudflare-token".path})
-          end
-        ''}
+      jc = "journalctl -xe";
+      jcf = "journalctl -f";
+      jcu = "journalctl --user -xe";
+      jceu = "sudo journalctl -xeu";
 
-          # GPG SSH Agent Integration
-          set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
+      # --- GIT ---
+      gcp = "git add . && git commit -m 'update' && git push";
 
-          # Auto-rename tab Zellij ke nama proses yang sedang berjalan (ping, nvim, agy, btop, dll)
-          function zellij_tab_name_update --on-event fish_preexec
-              if set -q ZELLIJ
-                  set -l cmd (string match -r '^[^ ]+' -- $argv[1])
-                  if test -n "$cmd"
-                      command nohup zellij action rename-tab "$cmd" >/dev/null 2>&1 &
-                  end
-              end
-          end
-
-          set -g fish_color_command cdd6f4
-          set -g fish_color_param 89b4fa
-          set -g fish_color_quote f9e2af
-          set -g fish_color_error f38ba8
-          set -g fish_color_escape f5c2e7
-          set -g fish_color_operator 94e2d5
-      '';
-
-      plugins = with pkgs.fishPlugins; [
-        {
-          name = "async-prompt";
-          src = async-prompt;
-        }
-        {
-          name = "autopair";
-          src = autopair;
-        }
-      ];
-
-      shellAbbrs = {
-        gl = "gallery-dl";
-
-        # --- SYSTEMD & JOURNALCTL ---
-        sc = "sudo systemctl";
-        scu = "systemctl --user";
-        scstart = "sudo systemctl start";
-        scstop = "sudo systemctl stop";
-        screstart = "sudo systemctl restart";
-        scstatus = "systemctl status";
-        scfailed = "systemctl --failed";
-
-        jc = "journalctl -xe";
-        jcf = "journalctl -f";
-        jcu = "journalctl --user -xe";
-        jceu = "sudo journalctl -xeu";
-
-        # --- GIT ---
-        gcp = "git add . && git commit -m 'update' && git push";
-
-        # --- NIXOS REBUILD & MAINTENANCE ---
-        rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
-        cln = "nh clean all --keep 3 --ask --optimise";
-        nfu = "nix flake update";
-        osbuild = "nh os switch --no-nom --show-trace --diff auto --ask -L";
-        ostest = "nh os test --no-nom --show-trace --diff auto --ask -L";
-        osboot = "nh os boot --no-nom --show-trace --diff auto --ask -L";
-      };
+      # --- NIXOS REBUILD & MAINTENANCE ---
+      rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
+      cln = "nh clean all --keep 3 --ask --optimise";
+      nfu = "nix flake update";
+      osbuild = "nh os switch --no-nom --show-trace --diff auto --ask -L";
+      ostest = "nh os test --no-nom --show-trace --diff auto --ask -L";
+      osboot = "nh os boot --no-nom --show-trace --diff auto --ask -L";
     };
   };
 

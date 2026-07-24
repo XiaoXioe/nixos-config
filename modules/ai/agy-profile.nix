@@ -6,7 +6,7 @@
 }:
 
 selfLib.mkModule {
-  name = "scripts.agy-profile";
+  name = "ai.agy-profile";
   description = "Multi-account profile launcher for Antigravity CLI";
 
   nixosConfig = {

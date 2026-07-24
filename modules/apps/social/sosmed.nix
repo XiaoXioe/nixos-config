@@ -5,8 +5,8 @@
 }:
 
 selfLib.mkModule {
-  name = "apps.media.sosmed";
-  description = "Social Media applications bundle";
+  name = "apps.social.sosmed";
+  description = "Social Media and Messaging applications";
 
   flatpakCfg = {
     "com.ayugram.desktop" = {
@@ -45,28 +45,6 @@ selfLib.mkModule {
         }
       ];
       nativePkgs = pkgs.signal-desktop;
-    };
-
-    "com.tradingview.tradingview" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".config/TradingView";
-          guest = "config/TradingView";
-        }
-      ];
-      nativePkgs = pkgs.tradingview;
-    };
-
-    "io.ente.auth" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".local/share/io.ente.auth";
-          guest = "data/enteauth";
-        }
-      ];
-      nativePkgs = pkgs.ente-auth;
     };
   };
 }
