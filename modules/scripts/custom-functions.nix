@@ -179,9 +179,9 @@ selfLib.mkModule {
         if [ "$custom_res" != "0" ]; then
             echo "Override Resolusi ke: $custom_res [Prioritas Codec: AVC/H.264]"
             if [ "$custom_res" = "best" ]; then
-                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[vcodec^=avc]+bestaudio/bestvideo+bestaudio/best" "''${mpv_args[@]}"
+                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[vcodec^=avc]+(bestaudio[language=id]/bestaudio[language=ind]/bestaudio)/bestvideo+bestaudio/best" "''${mpv_args[@]}"
             else
-                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[height<=$custom_res][vcodec^=avc]+bestaudio/bestvideo[height<=$custom_res]+bestaudio/best" "''${mpv_args[@]}"
+                exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv --ytdl-format="bestvideo[height<=$custom_res][vcodec^=avc]+(bestaudio[language=id]/bestaudio[language=ind]/bestaudio)/bestvideo[height<=$custom_res]+bestaudio/best" "''${mpv_args[@]}"
             fi
         else
             exec ${hmOpts.config.programs.mpv.finalPackage}/bin/mpv "''${mpv_args[@]}"
