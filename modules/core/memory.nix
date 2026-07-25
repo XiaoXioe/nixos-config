@@ -14,10 +14,17 @@ selfLib.mkModule {
         "vm.vfs_cache_pressure" = 50; # Keep Btrfs inode cache in memory longer for faster file lookups
         "vm.dirty_ratio" = 10;
         "vm.dirty_background_ratio" = 5;
+        "vm.dirty_writeback_centisecs" = 1500; # Flush dirty pages every 15s (reduces SSD write spikes)
+        "vm.dirty_expire_centisecs" = 3000; # Allow dirty pages to remain in RAM cache up to 30s
         "vm.watermark_scale_factor" = 125;
         "vm.watermark_boost_factor" = 0;
       };
     };
+
+    # Optimize I/O queue scheduler for SATA SSDs (non-rotational drives) to reduce I/O latency
+    services.udev.extraRules = ''
+      ACTION=="add|change", KERNEL=="sd[a-z]*|mmcblk[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="kyber"
+    '';
 
     fileSystems."/home/${config.my.user.name}/.cache/nix" = {
       device = "tmpfs";
