@@ -30,7 +30,7 @@ selfLib.mkModule {
         tab_bar_align = "center";
         tab_bar_style = "powerline";
         tab_powerline_style = "slanted";
-        tab_title_template = " {index}: {title} ";
+        tab_title_template = " {title} ";
         active_tab_font_style = "bold";
         inactive_tab_font_style = "normal";
 
