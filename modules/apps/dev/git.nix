@@ -19,32 +19,43 @@ selfLib.mkModule {
       mode = "0600";
       content = ''
         github.com:
-            user: ${config.sops.placeholder.github-user-primary}
+            user: ${config.sops.placeholder.github-user-1}
             users:
-                ${config.sops.placeholder.github-user-primary}:
-                    oauth_token: ${config.sops.placeholder.github-access-token-primary}
+                ${config.sops.placeholder.github-user-1}:
+                    oauth_token: ${config.sops.placeholder.github-access-token-1}
                     git_protocol: ssh
-                ${config.sops.placeholder.github-user-secondary}:
-                    oauth_token: ${config.sops.placeholder.github-access-token-secondary}
+                ${config.sops.placeholder.github-user-2}:
+                    oauth_token: ${config.sops.placeholder.github-access-token-2}
                     git_protocol: ssh
-            oauth_token: ${config.sops.placeholder.github-access-token-primary}
+                ${config.sops.placeholder.github-user-3}:
+                    oauth_token: ${config.sops.placeholder.github-access-token-3}
+                    git_protocol: ssh
+            oauth_token: ${config.sops.placeholder.github-access-token-1}
             git_protocol: ssh
       '';
     };
     sops.secrets = {
-      "github-user-primary" = {
+      "github-user-1" = {
         owner = config.my.user.name;
         mode = "0400";
       };
-      "github-access-token-primary" = {
+      "github-access-token-1" = {
         owner = config.my.user.name;
         mode = "0400";
       };
-      "github-user-secondary" = {
+      "github-user-2" = {
         owner = config.my.user.name;
         mode = "0400";
       };
-      "github-access-token-secondary" = {
+      "github-access-token-2" = {
+        owner = config.my.user.name;
+        mode = "0400";
+      };
+      "github-user-3" = {
+        owner = config.my.user.name;
+        mode = "0400";
+      };
+      "github-access-token-3" = {
         owner = config.my.user.name;
         mode = "0400";
       };
@@ -67,20 +78,6 @@ selfLib.mkModule {
         editor = "codium -w";
       };
     };
-    programs.gpg = {
-      enable = true;
-      publicKeys = [
-        {
-          source = ./public-key.asc;
-          trust = "ultimate";
-        }
-      ];
-    };
-    home.file.".gnupg/public-key.asc".source = ./public-key.asc;
-    home.file.".gnupg/sshcontrol".text = ''
-      # Managed by Home Manager
-      05C43456D409B53584AE76A4EA71B1A8128E5E37
-    '';
     programs.git = {
       enable = true;
       package = pkgs.git;
@@ -102,13 +99,5 @@ selfLib.mkModule {
         pull.rebase = true;
       };
     };
-    home.activation.importGpg = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [ -f ${hmOpts.osConfig.sops.secrets."gpg-private-key".path} ]; then
-        if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "DABD05C1D9C1FD2A"; then
-          echo "Importing GPG private key..."
-          ${pkgs.gnupg}/bin/gpg --import ${hmOpts.osConfig.sops.secrets."gpg-private-key".path}
-        fi
-      fi
-    '';
   };
 }

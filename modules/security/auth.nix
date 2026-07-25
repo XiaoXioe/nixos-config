@@ -22,6 +22,7 @@ selfLib.mkModule {
         "nix-collect-garbage"
         "compsize"
         "dmesg"
+        "ncdu"
       ];
     in
     {

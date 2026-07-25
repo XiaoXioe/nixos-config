@@ -24,11 +24,15 @@ selfLib.mkModule {
     ];
     sops.secrets = {
       "ssh-user-klein" = {
+        format = "binary";
+        sopsFile = selfLib.secretBinary "ssh-user-klein.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_ed25519";
         mode = "0600";
       };
       "ssh-rsa-user-klein" = {
+        format = "binary";
+        sopsFile = selfLib.secretBinary "ssh-rsa-user-klein.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_rsa_compat";
         mode = "0600";
