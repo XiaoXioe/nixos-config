@@ -6,10 +6,58 @@
   lib,
   ...
 }:
+let
+  inherit (selfLib.browserAddons { inherit pkgs inputs; })
+    addons
+    tampermonkey
+    keplr
+    solflare-wallet
+    mkExtensionSettings
+    commonPrivacyPolicies
+    commonSearchEngines
+    geckoExtPath
+    mkCopyPoliciesScript
+    mkBookmarkPoliciesTemplate
+    mkBookmarkSecret
+    lock-false
+    lock-true
+    lock-empty-string
+    lock
+    ;
 
+  # Clean list of extension packages (shared between nixosConfig and hmConfig)
+  extensionsList = [
+    addons.ublock-origin
+    addons.bitwarden
+    tampermonkey
+    addons.auto-tab-discard
+    addons.metamask
+    addons.container-proxy
+    keplr
+    solflare-wallet
+  ];
+
+  # Shared policies for Zen (used by both nixosConfig SOPS template and hmConfig)
+  zenBrowserPolicies = commonPrivacyPolicies // {
+    ExtensionSettings = mkExtensionSettings extensionsList;
+    SearchEngines = commonSearchEngines;
+  };
+in
 selfLib.mkModule {
   name = "apps.browsers.zen";
   description = "Zen Browser Flatpak configuration with dedicated profile directory";
+
+  nixosConfig = {
+    environment.etc."zen/policies/policies.json".source =
+      config.sops.templates."zen-policies.json".path;
+
+    sops.secrets."zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "zen-bookmarks.enc");
+    sops.templates."zen-policies.json" = mkBookmarkPoliciesTemplate {
+      ownerName = config.my.user.name;
+      basePolicies = zenBrowserPolicies;
+      bookmarkPlaceholder = config.sops.placeholder."zen-bookmarks";
+    };
+  };
 
   flatpakCfg = {
     "app.zen_browser.zen" = {
@@ -31,8 +79,6 @@ selfLib.mkModule {
           LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
           LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri"; # Tell libva where to find i965_drv_video.so
           LIBVA_DRIVER_NAME = "i965"; # Intel Ivy Bridge VA-API driver
-          MOZ_DISABLE_RDD_SANDBOX = "1"; # Allow RDD process to access /dev/dri for VA-API
-          MOZ_DISABLE_CONTENT_SANDBOX = "1"; # Prevent tab process clone() EPERM crashes inside Flatpak
           MOZ_ENABLE_WAYLAND = "1"; # Ensure Wayland backend for DMABUF/VA-API
           MOZ_LEGACY_PROFILES = "1";
         };
@@ -51,18 +97,6 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
-      inherit (selfLib.browserAddons { inherit pkgs inputs; })
-        lock-false
-        lock-true
-        lock-empty-string
-        lock
-        addons
-        tampermonkey
-        keplr
-        solflare-wallet
-        mkExtensionSettings
-        ;
-
       # Import Zen-specific policies from local policies.nix (modular)
       zenPolicies = import ./policies.nix {
         inherit
@@ -94,22 +128,10 @@ selfLib.mkModule {
 
       profileName = hmOpts.config.home.username;
 
-      # Clean list of extension packages (same as Firefox)
-      extensionsList = [
-        addons.ublock-origin
-        addons.bitwarden
-        tampermonkey
-        addons.auto-tab-discard
-        addons.metamask
-        addons.container-proxy
-        keplr
-        solflare-wallet
-      ];
-
       extensionsEnv = pkgs.buildEnv {
         name = "zen-extensions";
         paths = extensionsList;
-        pathsToLink = [ "/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}" ];
+        pathsToLink = [ geckoExtPath ];
       };
     in
     {
@@ -140,87 +162,30 @@ selfLib.mkModule {
         EOF
         ${pkgs.coreutils}/bin/cp "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
         ${pkgs.coreutils}/bin/chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
-        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/zen/${profileName}/extensions.json" "$HOME/.config/zen/${profileName}/addonStartup.json.lz4"
         ${pkgs.coreutils}/bin/rm -f "$HOME/.var/app/app.zen_browser.zen/config/zen/installs.ini" "$HOME/.var/app/app.zen_browser.zen/.zen/installs.ini"
       '';
 
+      home.activation.copyZenPolicies =
+        hmOpts.config.lib.dag.entryAfter [ "writeBoundary" ]
+          (mkCopyPoliciesScript {
+            etcPath = "/etc/zen/policies/policies.json";
+            destinations = [
+              "$HOME/.config/zen/distribution"
+              "$HOME/.var/app/app.zen_browser.zen/config/zen/distribution"
+              "$HOME/.var/app/app.zen_browser.zen/.zen/distribution"
+            ];
+          });
+
       home.file = {
+
         # Store user.js and extensions in the persisted host directory (~/.config/zen/...)
         ".config/zen/${profileName}/user.js".text = toUserJs zenPolicies;
 
         # Declarative extensions (dynamically linked using buildEnv)
         ".config/zen/${profileName}/extensions" = {
-          source = "${extensionsEnv}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+          source = "${extensionsEnv}${geckoExtPath}";
           recursive = true;
         };
-
-        # System policies for Zen Flatpak using the official systemconfig extension
-        ".local/share/flatpak/extension/app.zen_browser.zen.systemconfig/x86_64/stable/policies/policies.json".text =
-          builtins.toJSON {
-            policies = {
-              ExtensionSettings = mkExtensionSettings extensionsList;
-
-              DisableFirefoxAccounts = true;
-              DisableTelemetry = true;
-              SearchSuggestEnabled = false;
-              DisableFirefoxStudies = true;
-              PasswordManagerEnabled = false;
-              DontCheckDefaultBrowser = true;
-              EnableTrackingProtection = {
-                Value = true;
-                Locked = true;
-                Cryptomining = true;
-                Fingerprinting = true;
-              };
-              PopupBlocking = {
-                Default = true;
-                Locked = true;
-              };
-              DisablePocket = true;
-              NetworkPrediction = false;
-              SearchEngines = {
-                Remove = [
-                  "google"
-                  "Google"
-                  "ebay"
-                  "eBay"
-                  "bing"
-                  "Bing"
-                  "ecosia"
-                  "Ecosia"
-                  "wikipedia"
-                  "Wikipedia"
-                  "perplexity"
-                  "Perplexity"
-                  "amazondotcom-us"
-                  "Amazon.com"
-                ];
-                Add = [
-                  {
-                    "Name" = "Brave Search";
-                    "URLTemplate" = "https://search.brave.com/search?q={searchTerms}&summary=0";
-                    "IconURL" =
-                      "https://cdn.search.brave.com/serp/v1/static/brand/eebf5f2ce06b0b0ee6bbd72d7e18621d4618b9663471d42463c692d019068072-brave-lion-favicon.png";
-                    "Alias" = "brave";
-                  }
-                  {
-                    "Name" = "DuckDuckGo";
-                    "URLTemplate" = "https://duckduckgo.com/?q={searchTerms}&ia=web&assist=false";
-                    "IconURL" = "https://duckduckgo.com/favicon.ico";
-                    "Alias" = "ddg";
-                    "Description" = "Duckduckgo without AI integrations";
-                  }
-                  {
-                    "Name" = "Wikipedia";
-                    "URLTemplate" = "https://en.wikipedia.org/wiki/Special:Search?go=Go&search={searchTerms}";
-                    "IconURL" = "https://en.wikipedia.org/favicon.ico";
-                    "Alias" = "wiki";
-                  }
-                ];
-                Default = "DuckDuckGo";
-              };
-            };
-          };
       };
     };
 }

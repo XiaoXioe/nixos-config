@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   selfLib,
   inputs,
@@ -11,10 +12,52 @@ let
     keplr
     solflare-wallet
     mkExtensionSettings
+    commonPrivacyPolicies
+    commonSearchEngines
+    geckoExtPath
+    mkCopyPoliciesScript
+    mkBookmarkPoliciesTemplate
+    mkBookmarkSecret
     ;
 
-  # Import separated data files
-  bookmarksList = import ./bookmarks.nix;
+  # Extension packages per profile
+  defaultProfileExtensions =
+    (with addons; [
+      ublock-origin
+      multi-account-containers
+      bitwarden
+      simple-tab-groups
+      auto-tab-discard
+      metamask
+      container-proxy
+      tampermonkey
+    ])
+    ++ [
+      keplr
+      solflare-wallet
+    ];
+
+  hardenedProfileExtensions = with addons; [
+    ublock-origin
+    bitwarden
+    privacy-badger
+    canvasblocker
+    localcdn
+    user-agent-string-switcher
+    proton-vpn
+    auto-tab-discard
+    simple-tab-groups
+    tampermonkey
+  ];
+
+  allFirefoxExtensions = pkgs.lib.unique (defaultProfileExtensions ++ hardenedProfileExtensions);
+
+  # Single source of truth: policies used by both nixosConfig (/etc) and hmConfig (programs.firefox)
+  firefoxPolicies = commonPrivacyPolicies // {
+    ExtensionSettings = mkExtensionSettings allFirefoxExtensions;
+    SearchEngines = commonSearchEngines;
+  };
+
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -51,6 +94,15 @@ selfLib.mkModule {
     environment.sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
     };
+    environment.etc."firefox/policies/policies.json".source =
+      config.sops.templates."firefox-policies.json".path;
+
+    sops.secrets."firefox-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "firefox-bookmarks.enc");
+    sops.templates."firefox-policies.json" = mkBookmarkPoliciesTemplate {
+      ownerName = config.my.user.name;
+      basePolicies = firefoxPolicies;
+      bookmarkPlaceholder = config.sops.placeholder."firefox-bookmarks";
+    };
   };
 
   hmConfig =
@@ -58,72 +110,17 @@ selfLib.mkModule {
     let
       lib = hmOpts.lib;
 
-      # Extension packages per profile
-      defaultProfileExtensions =
-        (with addons; [
-          ublock-origin
-          multi-account-containers
-          bitwarden
-          simple-tab-groups
-          auto-tab-discard
-          metamask
-          container-proxy
-          tampermonkey
-        ])
-        ++ [
-          keplr
-          solflare-wallet
-        ];
-
-      hardenedProfileExtensions = with addons; [
-        ublock-origin
-        bitwarden
-        privacy-badger
-        canvasblocker
-        localcdn
-        user-agent-string-switcher
-        proton-vpn
-        auto-tab-discard
-        simple-tab-groups
-        tampermonkey
-      ];
-
-      allFirefoxExtensions = lib.unique (defaultProfileExtensions ++ hardenedProfileExtensions);
-
       # Native Home Manager extension environments via buildEnv
       defaultExtensionsEnv = pkgs.buildEnv {
         name = "firefox-default-extensions";
         paths = defaultProfileExtensions;
-        pathsToLink = [ "/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}" ];
+        pathsToLink = [ geckoExtPath ];
       };
 
       hardenedExtensionsEnv = pkgs.buildEnv {
         name = "firefox-hardened-extensions";
         paths = hardenedProfileExtensions;
-        pathsToLink = [ "/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}" ];
-      };
-
-      # Common enterprise policies for both Native and Flatpak Firefox
-      commonPolicies = {
-        ExtensionSettings = mkExtensionSettings allFirefoxExtensions;
-        DisableTelemetry = true;
-        SearchSuggestEnabled = false;
-        DisableFirefoxStudies = true;
-        PasswordManagerEnabled = false;
-        DisableFirefoxAccounts = true;
-        DontCheckDefaultBrowser = true;
-        EnableTrackingProtection = {
-          Value = true;
-          Locked = true;
-          Cryptomining = true;
-          Fingerprinting = true;
-        };
-        PopupBlocking = {
-          Default = true;
-          Locked = true;
-        };
-        DisablePocket = true;
-        NetworkPrediction = false;
+        pathsToLink = [ geckoExtPath ];
       };
 
       baseSettings = {
@@ -140,11 +137,6 @@ selfLib.mkModule {
         "trailhead.firstrun.didSeeAboutWelcome" = true;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "extensions.autoDisableScopes" = 0;
-      };
-
-      bookmarks = {
-        force = true;
-        settings = bookmarksList;
       };
 
       userChrome = ''
@@ -198,20 +190,26 @@ selfLib.mkModule {
         fi
       '';
 
+      home.activation.copyFirefoxPolicies =
+        hmOpts.config.lib.dag.entryAfter [ "writeBoundary" ]
+          (mkCopyPoliciesScript {
+            etcPath = "/etc/firefox/policies/policies.json";
+            destinations = [
+              "$HOME/.local/share/flatpak/extension/org.mozilla.firefox.systemconfig/x86_64/stable/policies"
+              "$HOME/.config/mozilla/firefox/distribution"
+              "$HOME/.var/app/org.mozilla.firefox/config/mozilla/firefox/distribution"
+            ];
+          });
+
       home.file = {
+
         # Declarative per-profile extension directories linked via Home Manager buildEnv
         ".config/mozilla/firefox/${hmOpts.config.home.username}/extensions" = {
-          source = "${defaultExtensionsEnv}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+          source = "${defaultExtensionsEnv}${geckoExtPath}";
         };
         ".config/mozilla/firefox/${hmOpts.config.home.username}-hardened/extensions" = {
-          source = "${hardenedExtensionsEnv}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+          source = "${hardenedExtensionsEnv}${geckoExtPath}";
         };
-
-        # Flatpak systemconfig extension policies for org.mozilla.firefox
-        ".local/share/flatpak/extension/org.mozilla.firefox.systemconfig/x86_64/stable/policies/policies.json".text =
-          builtins.toJSON {
-            policies = commonPolicies;
-          };
       };
 
       programs.firefox = {
@@ -221,47 +219,13 @@ selfLib.mkModule {
           "en-US"
           "id"
         ];
-        policies = commonPolicies // {
-          SearchEngines = {
-            Remove = [
-              "eBay"
-              "Google"
-              "Bing"
-              "Ecosia"
-              "Wikipedia"
-              "Perplexity"
-            ];
-            Add = [
-              {
-                "Name" = "Brave Search";
-                "URLTemplate" = "https://search.brave.com/search?q={searchTerms}&summary=0";
-                "IconURL" =
-                  "https://cdn.search.brave.com/serp/v1/static/brand/eebf5f2ce06b0b0ee6bbd72d7e18621d4618b9663471d42463c692d019068072-brave-lion-favicon.png";
-                "Alias" = "brave";
-              }
-              {
-                "Name" = "DuckDuckGo";
-                "URLTemplate" = "https://duckduckgo.com/?q={searchTerms}&ia=web&assist=false";
-                "IconURL" = "https://duckduckgo.com/favicon.ico";
-                "Alias" = "ddg";
-                "Description" = "Duckduckgo without AI integrations";
-              }
-              {
-                "Name" = "Wikipedia";
-                "URLTemplate" = "https://en.wikipedia.org/wiki/Special:Search?go=Go&search={searchTerms}";
-                "IconURL" = "https://en.wikipedia.org/favicon.ico";
-                "Alias" = "wiki";
-              }
-            ];
-            Default = "DuckDuckGo";
-          };
-        };
+        policies = firefoxPolicies;
 
         profiles = {
           ${hmOpts.config.home.username} = {
             isDefault = true;
             id = 0;
-            inherit bookmarks userChrome;
+            inherit userChrome;
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
@@ -276,7 +240,7 @@ selfLib.mkModule {
           "${hmOpts.config.home.username}-hardened" = {
             isDefault = false;
             id = 1;
-            inherit bookmarks userChrome;
+            inherit userChrome;
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;

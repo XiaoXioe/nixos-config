@@ -1,9 +1,14 @@
-# Shared Firefox/Zen policy-lock helpers and AMO addon builders (DRY: used by
-# ../firefox/default.nix and ./zen/default.nix, which are otherwise separate
+# Shared Firefox/Zen/Tor Browser policy-lock helpers, privacy policies, search engines,
+# and AMO addon builders (DRY: used by browser modules which are otherwise separate
 # flatpak/native browser configs with no other common parent).
 { pkgs, inputs }:
 let
+  lib = pkgs.lib;
   addons = inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
+
+  # Canonical Gecko/Firefox extension directory GUID — single source of truth
+  geckoExtGuid = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+  geckoExtPath = "/share/mozilla/extensions/${geckoExtGuid}";
 
   buildAmoAddon =
     {
@@ -30,7 +35,7 @@ let
         inherit addonId;
       };
       buildCommand = ''
-        dst="$out/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+        dst="$out${geckoExtPath}"
         mkdir -p "$dst"
         ln -s "$src" "$dst/${addonId}.xpi"
       '';
@@ -45,8 +50,8 @@ let
           blocked_install_message = "Ekstensi dikunci oleh sistem deklaratif NixOS. Tambahkan ekstensi baru di konfigurasi Nix Anda.";
         };
       };
-      allowedAddons = pkgs.lib.listToAttrs (
-        pkgs.lib.flatten (
+      allowedAddons = lib.listToAttrs (
+        lib.flatten (
           map (
             addon:
             let
@@ -54,9 +59,9 @@ let
             in
             if extId != null then
               [
-                (pkgs.lib.nameValuePair extId {
+                (lib.nameValuePair extId {
                   installation_mode = "force_installed";
-                  install_url = "file://${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${extId}.xpi";
+                  install_url = "file://${addon}${geckoExtPath}/${extId}.xpi";
                 })
               ]
             else
@@ -66,6 +71,116 @@ let
       );
     in
     base // allowedAddons;
+
+  # Shared privacy/hardening policies applied across all Gecko browsers (Firefox, Zen, Tor)
+  commonPrivacyPolicies = {
+    DisableTelemetry = true;
+    SearchSuggestEnabled = false;
+    DisableFirefoxStudies = true;
+    PasswordManagerEnabled = false;
+    DisableFirefoxAccounts = true;
+    DontCheckDefaultBrowser = true;
+    EnableTrackingProtection = {
+      Value = true;
+      Locked = true;
+      Cryptomining = true;
+      Fingerprinting = true;
+    };
+    PopupBlocking = {
+      Default = true;
+      Locked = true;
+    };
+    DisablePocket = true;
+    NetworkPrediction = false;
+  };
+
+  # Shared custom search engine configuration for Firefox and Zen
+  commonSearchEngines = {
+    Remove = [
+      "google"
+      "Google"
+      "ebay"
+      "eBay"
+      "bing"
+      "Bing"
+      "ecosia"
+      "Ecosia"
+      "wikipedia"
+      "Wikipedia"
+      "perplexity"
+      "Perplexity"
+      "amazondotcom-us"
+      "Amazon.com"
+    ];
+    Add = [
+      {
+        "Name" = "Brave Search";
+        "URLTemplate" = "https://search.brave.com/search?q={searchTerms}&summary=0";
+        "IconURL" =
+          "https://cdn.search.brave.com/serp/v1/static/brand/eebf5f2ce06b0b0ee6bbd72d7e18621d4618b9663471d42463c692d019068072-brave-lion-favicon.png";
+        "Alias" = "brave";
+      }
+      {
+        "Name" = "DuckDuckGo";
+        "URLTemplate" = "https://duckduckgo.com/?q={searchTerms}&ia=web&assist=false";
+        "IconURL" = "https://duckduckgo.com/favicon.ico";
+        "Alias" = "ddg";
+        "Description" = "Duckduckgo without AI integrations";
+      }
+      {
+        "Name" = "Wikipedia";
+        "URLTemplate" = "https://en.wikipedia.org/wiki/Special:Search?go=Go&search={searchTerms}";
+        "IconURL" = "https://en.wikipedia.org/favicon.ico";
+        "Alias" = "wiki";
+      }
+    ];
+    Default = "DuckDuckGo";
+  };
+
+  # Helper: generate shell script to copy policies.json from /etc to N destinations
+  mkCopyPoliciesScript =
+    { etcPath, destinations }:
+    let
+      mkdirs = lib.concatMapStringsSep "\n" (d: ''$DRY_RUN_CMD mkdir -p "${d}"'') destinations;
+      rmOld = lib.concatMapStringsSep "\n" (d: ''$DRY_RUN_CMD rm -f "${d}/policies.json"'') destinations;
+      copyNew = lib.concatMapStringsSep "\n" (d: ''
+        $DRY_RUN_CMD cp -L "${etcPath}" "${d}/policies.json"
+        $DRY_RUN_CMD chmod 644 "${d}/policies.json"
+      '') destinations;
+    in
+    ''
+      ${mkdirs}
+      ${rmOld}
+      if [ -f "${etcPath}" ]; then
+        ${copyNew}
+      fi
+    '';
+
+  # Helper: generate sops.templates value for bookmark-injected policies.json
+  mkBookmarkPoliciesTemplate =
+    {
+      ownerName,
+      basePolicies,
+      bookmarkPlaceholder,
+    }:
+    {
+      owner = ownerName;
+      mode = "0644";
+      content = builtins.replaceStrings [ ''"__BOOKMARKS__"'' ] [ bookmarkPlaceholder ] (
+        builtins.toJSON {
+          policies = basePolicies // {
+            Bookmarks = "__BOOKMARKS__";
+          };
+        }
+      );
+    };
+
+  # Helper: generate sops.secrets value for binary bookmark files
+  mkBookmarkSecret = sopsFile: {
+    format = "binary";
+    inherit sopsFile;
+    mode = "0444";
+  };
 in
 {
   lock-false = {
@@ -85,7 +200,18 @@ in
     Status = "locked";
   };
 
-  inherit addons buildAmoAddon mkExtensionSettings;
+  inherit
+    addons
+    buildAmoAddon
+    mkExtensionSettings
+    commonPrivacyPolicies
+    commonSearchEngines
+    geckoExtGuid
+    geckoExtPath
+    mkCopyPoliciesScript
+    mkBookmarkPoliciesTemplate
+    mkBookmarkSecret
+    ;
 
   keplr = buildAmoAddon {
     pname = "keplr";
