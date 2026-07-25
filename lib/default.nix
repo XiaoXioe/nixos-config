@@ -1,9 +1,22 @@
 # Custom library functions used across the configuration.
 # Only helpers that provide genuine value beyond stdlib are kept here.
-{ lib, ... }:
+{
+  lib,
+  inputs ? null,
+  ...
+}:
 
 let
   modules = import ./modules { inherit lib; };
+
+  # Helpers to resolve secret files relative to the Flake root by name/path
+  secret =
+    relPath:
+    if inputs != null && inputs ? self then
+      inputs.self + "/secrets/${relPath}"
+    else
+      ../secrets + "/${relPath}";
+  secretBinary = name: secret "binary/${name}";
 
   # Recursively maps a user features attribute set to a module enable structure.
   # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
@@ -47,7 +60,7 @@ let
 in
 {
   inherit (modules) mkModule;
-  inherit mapFeatures;
+  inherit mapFeatures secret secretBinary;
 
   # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
   # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix

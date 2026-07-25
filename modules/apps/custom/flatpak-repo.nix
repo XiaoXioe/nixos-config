@@ -120,7 +120,7 @@ selfLib.mkModule {
         Type = "oneshot";
         ExecStart = "${pkgs.writeShellScript "sync-flatpak-repo" ''
           set -eu
-          REPO_PATH="$HOME/CloudStorage/union-raid1-decrypted/custom-flatpaks/repo"
+          REPO_PATH="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
 
           echo "Waiting for Google Drive FUSE mount and repository directory..."
           mounted=false

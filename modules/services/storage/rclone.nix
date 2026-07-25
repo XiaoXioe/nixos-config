@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  inputs,
   selfLib,
   ...
 }:
@@ -14,7 +15,7 @@ selfLib.mkModule {
 
     sops.secrets."rclone.conf" = {
       format = "binary";
-      sopsFile = ../../../secrets/binary/rclone.enc.conf;
+      sopsFile = selfLib.secretBinary "rclone.enc.conf";
       owner = config.my.user.name;
       mode = "0400";
     };

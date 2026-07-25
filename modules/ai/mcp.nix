@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   inputs,
   selfLib,
@@ -67,7 +66,7 @@ selfLib.mkModule {
       homeDir = config.home.homeDirectory;
 
       # Secret paths (defined sekali, dipakai kedua format)
-      githubTokenPath = osConfig.sops.secrets."github-access-token-primary".path;
+      githubTokenPath = osConfig.sops.secrets."github-access-token-1".path;
       tavilyKeyPath = osConfig.sops.secrets."tavily-api-key".path;
       cloudflareTokenPath = osConfig.sops.secrets."cloudflare-token".path;
 

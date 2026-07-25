@@ -69,11 +69,11 @@
       },
       "locked": {
         "dir": "pkgs/firefox-addons",
-        "lastModified": 1784865747,
-        "narHash": "sha256-C6sPCSqT8wNrbbzmHws810rfeY4+PTiJL5ty4h3tM7w=",
+        "lastModified": 1784952175,
+        "narHash": "sha256-/V+bExYV3ZsCYD5wRp2gQY3mnwfR1IisCSXXo1C92SM=",
         "owner": "rycee",
         "repo": "nur-expressions",
-        "rev": "49f9c545855b3ceabdfefe5ac0be6b21d5f9b7a9",
+        "rev": "804703f8b3abb808af39c41fa89354aa00b0a558",
         "type": "gitlab"
       },
       "original": {
@@ -201,11 +201,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784872943,
-        "narHash": "sha256-bDJfiYdXFvjoadGZKpMjAFa0aE46lBseXJyq0+y9/+Q=",
+        "lastModified": 1784923786,
+        "narHash": "sha256-w/clKlVE0cHzb8SIcruG6MEtOz6CSozhSl79ZQPh3so=",
         "owner": "ggml-org",
         "repo": "llama.cpp",
-        "rev": "0cea36222fe9bac5ebfc45716c9eef11f37046c4",
+        "rev": "555881ebc8b0fc0402b30e09258a32a7bfd13c52",
         "type": "github"
       },
       "original": {
@@ -325,11 +325,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784811718,
-        "narHash": "sha256-1N6WzM69sARVl2Fo4C7LBhdXRIhJh4KOR+FKBn1w/UU=",
+        "lastModified": 1784917177,
+        "narHash": "sha256-BunxD3nKN6oa4LXh9I3rAopolL0bloBtswKBXrm8hEE=",
         "owner": "notashelf",
         "repo": "nvf",
-        "rev": "78474b4b88024e14c9e1d0de6d90f125e04cb1b2",
+        "rev": "07d5eb208b8f16306b10342b634da7e07e926fa5",
         "type": "github"
       },
       "original": {

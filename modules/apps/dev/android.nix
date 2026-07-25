@@ -14,14 +14,16 @@ selfLib.mkModule {
       "d /home/${config.my.user.name}/.android 0700 ${config.my.user.name} users - -"
     ];
     sops.secrets = {
-      "adbkey_${config.my.user.name}" = {
-        key = "adbkey";
+      "adbkey" = {
+        format = "binary";
+        sopsFile = selfLib.secretBinary "adbkey.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.android/adbkey";
         mode = "0400";
       };
-      "adbkey_pub_${config.my.user.name}" = {
-        key = "adbkey_pub";
+      "adbkey.pub" = {
+        format = "binary";
+        sopsFile = selfLib.secretBinary "adbkey.pub.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.android/adbkey.pub";
         mode = "0444";

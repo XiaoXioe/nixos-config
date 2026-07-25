@@ -79,7 +79,7 @@
 
       # User data & custom library
       userData = import ./hosts/nixos/users.nix;
-      selfLib = import ./lib { inherit lib; };
+      selfLib = import ./lib { inherit lib inputs; };
 
       pkgs = import inputs.nixpkgs {
         inherit system;

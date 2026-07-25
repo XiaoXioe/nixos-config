@@ -2,12 +2,13 @@
   config,
   pkgs,
   lib,
+  inputs,
   selfLib,
   ...
 }:
 
 let
-  vpnDir = ../../../secrets/vpn-files;
+  vpnDir = selfLib.secret "vpn-files";
   vpnFiles = selfLib.getVpnFiles vpnDir;
   protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") vpnFiles;
 in
@@ -21,7 +22,7 @@ selfLib.mkModule {
     sops.secrets = lib.mkMerge [
       {
         "wg-lan.conf" = {
-          sopsFile = ../../../secrets/binary/wg-lan.enc.conf;
+          sopsFile = selfLib.secretBinary "wg-lan.enc.conf";
           format = "binary";
           path = "/etc/wireguard/wg-lan.conf";
           owner = "root";
@@ -29,7 +30,7 @@ selfLib.mkModule {
           mode = "0600";
         };
         "wg-wifi.conf" = {
-          sopsFile = ../../../secrets/binary/wg-wifi.enc.conf;
+          sopsFile = selfLib.secretBinary "wg-wifi.enc.conf";
           format = "binary";
           path = "/etc/wireguard/wg-wifi.conf";
           owner = "root";
@@ -38,7 +39,7 @@ selfLib.mkModule {
         };
       }
       (lib.genAttrs vpnFiles (fileName: {
-        sopsFile = ../../../secrets/vpn-files/${fileName};
+        sopsFile = selfLib.secret "vpn-files/${fileName}";
         format = "binary";
         owner = config.my.user.name;
         mode = "0600";

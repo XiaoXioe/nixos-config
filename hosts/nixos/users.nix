@@ -86,8 +86,9 @@
         starship = true;
         tmux = true;
         wezterm = false;
-        foot = true;
-        zellij = true;
+        foot = false;
+        kitty = true;
+        zellij = false;
         tools = true;
         fzf = true;
         zoxide = true;
