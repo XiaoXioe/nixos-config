@@ -23,10 +23,21 @@ in
               manifest="$HOME/.var/app/${appId}/.nix-managed-symlinks"
               if [ -f "$manifest" ]; then
                 while IFS= read -r old_guest; do
-                  is_active=0
-                  ${lib.concatMapStringsSep "\n                  " (s: ''
-                    if [ "$old_guest" = "${utils.sanitizePath s.guest}" ]; then is_active=1; fi
-                  '') flatpakSymlinks}
+                  ${
+                    if flatpakSymlinks == [ ] then
+                      ''
+                        is_active=0
+                      ''
+                    else
+                      ''
+                        case "$old_guest" in
+                          ${
+                            lib.concatMapStringsSep "|" (s: "\"${utils.sanitizePath s.guest}\"") flatpakSymlinks
+                          }) is_active=1 ;;
+                          *) is_active=0 ;;
+                        esac
+                      ''
+                  }
                   if [ "$is_active" -eq 0 ] && [ -n "$old_guest" ]; then
                     echo "Pruning stale Flatpak symlink: $old_guest"
                     rm -f "$HOME/.var/app/${appId}/$old_guest"
@@ -84,6 +95,40 @@ in
                 ''
               else
                 "";
+
+            declaredEnvKeys = builtins.attrNames (appVal.overrides.Environment or { });
+            cleanEnvCmds =
+              let
+                casePattern = if declaredEnvKeys == [ ] then "" else lib.concatStringsSep "|" declaredEnvKeys;
+              in
+              ''
+                # Auto-cleanup stale user flatpak environment overrides not defined in Nix configuration
+                override_file="$HOME/.local/share/flatpak/overrides/${appId}"
+                if [ -f "$override_file" ]; then
+                  current_envs=$(sed -n '/^\[Environment\]/,/^\[/p' "$override_file" | grep '=' | cut -d'=' -f1 || true)
+                  for env_key in $current_envs; do
+                    ${
+                      if declaredEnvKeys == [ ] then
+                        ''
+                          # No declared env keys — all overrides are stale
+                          is_declared=0
+                        ''
+                      else
+                        ''
+                          case "$env_key" in
+                            ${casePattern}) is_declared=1 ;;
+                            *) is_declared=0 ;;
+                          esac
+                        ''
+                    }
+                    if [ "$is_declared" -eq 0 ] && [ -n "$env_key" ]; then
+                      echo "Auto-purging stale Flatpak environment override for ${appId}: $env_key"
+                      ${ctx.pkgs.flatpak}/bin/flatpak override --user --unset-env="$env_key" "${appId}" 2>/dev/null || true
+                    fi
+                  done
+                fi
+                true
+              '';
           in
           lib.optionals (useFlatpak ctx appId) [
             (lib.nameValuePair "setup-flatpak-${flatpakIdSafe}" (
@@ -91,6 +136,7 @@ in
                 ${pruneCmds}
                 ${symlinkCmds}
                 ${flagsCmds}
+                ${cleanEnvCmds}
               ''
             ))
           ]
