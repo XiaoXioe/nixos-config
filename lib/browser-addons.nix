@@ -55,7 +55,8 @@ let
             if extId != null then
               [
                 (pkgs.lib.nameValuePair extId {
-                  installation_mode = "allowed";
+                  installation_mode = "force_installed";
+                  install_url = "file://${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${extId}.xpi";
                 })
               ]
             else

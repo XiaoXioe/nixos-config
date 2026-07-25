@@ -32,6 +32,7 @@ selfLib.mkModule {
           LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri"; # Tell libva where to find i965_drv_video.so
           LIBVA_DRIVER_NAME = "i965"; # Intel Ivy Bridge VA-API driver
           MOZ_DISABLE_RDD_SANDBOX = "1"; # Allow RDD process to access /dev/dri for VA-API
+          MOZ_DISABLE_CONTENT_SANDBOX = "1"; # Prevent tab process clone() EPERM crashes inside Flatpak
           MOZ_ENABLE_WAYLAND = "1"; # Ensure Wayland backend for DMABUF/VA-API
           MOZ_LEGACY_PROFILES = "1";
         };
@@ -120,7 +121,12 @@ selfLib.mkModule {
       # Gecko browsers (Firefox/Zen) require write access to profiles.ini on startup and will revert
       # to creating a random profile if the file is write-locked.
       home.activation.writeZenProfiles = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen"
+        ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen" "$HOME/.var/app/app.zen_browser.zen/config/zen"
+        if [ -d "$HOME/.config/zen/${profileName}" ]; then
+          ${pkgs.coreutils}/bin/chmod 700 "$HOME/.config/zen/${profileName}"
+        fi
+        ${pkgs.coreutils}/bin/ln -sfn "$HOME/.config/zen/${profileName}" "$HOME/.var/app/app.zen_browser.zen/config/zen/${profileName}"
+        ${pkgs.coreutils}/bin/ln -sfn "$HOME/.config/zen/${profileName}" "$HOME/.var/app/app.zen_browser.zen/.zen/${profileName}"
         ${pkgs.coreutils}/bin/cat << 'EOF' > "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
         [General]
         StartWithLastProfile=1
@@ -132,8 +138,10 @@ selfLib.mkModule {
         Path=${profileName}
         Default=1
         EOF
-        ${pkgs.coreutils}/bin/chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
-        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/zen/${profileName}/extensions.json"
+        ${pkgs.coreutils}/bin/cp "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
+        ${pkgs.coreutils}/bin/chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
+        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/zen/${profileName}/extensions.json" "$HOME/.config/zen/${profileName}/addonStartup.json.lz4"
+        ${pkgs.coreutils}/bin/rm -f "$HOME/.var/app/app.zen_browser.zen/config/zen/installs.ini" "$HOME/.var/app/app.zen_browser.zen/.zen/installs.ini"
       '';
 
       home.file = {

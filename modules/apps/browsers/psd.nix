@@ -85,10 +85,42 @@ selfLib.mkModule {
         resyncTimer = "1h";
       };
 
-      # Prevent PSD from restarting during nixos rebuild/activation
+      # Prevent PSD from restarting during nixos rebuild/activation & cleanup broken symlinks before start
       systemd.user.services.psd = {
         restartIfChanged = false;
         stopIfChanged = false;
+        serviceConfig = {
+          ExecStartPre = "${pkgs.writeShellScript "psd-pre-start-cleanup" ''
+            # Cleanup broken or orphan PSD symlinks before mounting overlayfs
+            for dir in \
+              "$HOME/.config/BraveSoftware/Brave-Browser" \
+              "$HOME/.config/chromium" \
+              "$HOME/.config/zen/$USER" \
+              "$HOME/.config/mozilla/firefox/$USER" \
+              "$HOME/.config/mozilla/firefox/$USER-hardened" \
+              "$HOME/.local/share/torbrowser" \
+              "$HOME/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/TorBrowser/Data/Browser/profile.default"; do
+              if [ -L "$dir" ]; then
+                target=$(${pkgs.coreutils}/bin/readlink "$dir" || true)
+                if [ ! -e "$dir" ] || [[ "$target" == /run/user/* ]]; then
+                  backup="''${dir}-backup"
+                  if [ -d "$backup" ]; then
+                    echo "PSD pre-start: restoring $dir from $backup"
+                    ${pkgs.coreutils}/bin/rm -f "$dir"
+                    ${pkgs.coreutils}/bin/mv "$backup" "$dir"
+                  else
+                    echo "PSD pre-start: repairing missing backup for $dir"
+                    ${pkgs.coreutils}/bin/rm -f "$dir"
+                    ${pkgs.coreutils}/bin/mkdir -p "$dir"
+                  fi
+                fi
+              elif [ -d "$dir" ] && [ -d "''${dir}-backup" ]; then
+                echo "PSD pre-start: clearing stale backup directory for $dir"
+                ${pkgs.coreutils}/bin/rm -rf "''${dir}-backup"
+              fi
+            done
+          ''}";
+        };
       };
       systemd.user.services.psd-resync = {
         restartIfChanged = false;
@@ -184,7 +216,7 @@ selfLib.mkModule {
         USE_OVERLAYFS="yes"
 
         # Keep backup copy of browser profiles before sync
-        USE_BACKUPS="yes"
+        USE_BACKUPS="false"
       '';
     };
 }
