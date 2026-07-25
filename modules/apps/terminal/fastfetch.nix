@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   selfLib,
   ...
 }:
@@ -11,7 +12,7 @@ selfLib.mkModule {
   nixosConfig = {
     sops.secrets."fastfetch-logo" = {
       format = "binary";
-      sopsFile = ../../../secrets/binary/fastfetch-logo.enc;
+      sopsFile = selfLib.secretBinary "fastfetch-logo.enc";
       owner = config.my.user.name;
       mode = "0444";
     };
