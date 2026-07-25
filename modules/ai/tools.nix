@@ -75,6 +75,10 @@ selfLib.mkModule {
         mode = "0400";
       };
     };
+    my.services.system.tmpfiles.nocowDirectories = [
+      "/home/${config.my.user.name}/.gemini"
+    ];
+
     systemd.tmpfiles.rules = [
       "d /home/${config.my.user.name}/.local/share/opencode 0700 ${config.my.user.name} users - -"
     ];
