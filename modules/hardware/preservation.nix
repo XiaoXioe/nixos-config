@@ -251,7 +251,6 @@ selfLib.mkModule {
               directory = ".android";
               mode = "0700";
             }
-            "PersistentData"
             ".antigravity-ide"
             ".gemini"
             {

@@ -60,7 +60,7 @@ selfLib.mkModule {
         "/persist/home/${config.my.user.name}/nix-custompkg-priv"
         "/persist/home/${config.my.user.name}/nix-mcp"
         "/persist/home/${config.my.user.name}/pentest"
-        "/persist/home/${config.my.user.name}/PersistentData"
+        "/mnt/data_btrfs/PersistentData"
         "/mnt/data/backup-cloud"
       ];
 

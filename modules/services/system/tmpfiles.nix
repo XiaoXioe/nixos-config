@@ -14,7 +14,7 @@ selfLib.mkModule {
         ".cache/mozilla"
         ".config/zen"
         ".local/share/AyuGramDesktop/tdata"
-        "/persist/home/klein-moretti/PersistentData/projects/ml/models"
+        "/mnt/data_btrfs/PersistentData/projects/ml/models"
         "/var/lib/vnstat"
         "/nix/var/nix/db"
       ];
