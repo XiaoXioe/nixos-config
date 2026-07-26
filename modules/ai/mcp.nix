@@ -92,7 +92,7 @@ selfLib.mkModule {
           pkg = github-mcp-server-pkg;
           bin = "github-mcp-server";
           args = [ "stdio" ];
-          geminiWrap = "export GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${githubTokenPath});";
+          geminiWrap = "[ -s \"${githubTokenPath}\" ] && export GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${githubTokenPath});";
           env = {
             GITHUB_PERSONAL_ACCESS_TOKEN = "{file:${githubTokenPath}}";
           };
@@ -119,7 +119,7 @@ selfLib.mkModule {
         tavily = {
           pkg = tavily-mcp-pkg;
           bin = "tavily-mcp";
-          geminiWrap = "export TAVILY_API_KEY=$(cat ${tavilyKeyPath});";
+          geminiWrap = "[ -s \"${tavilyKeyPath}\" ] && export TAVILY_API_KEY=$(cat ${tavilyKeyPath});";
           env = {
             TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
           };
@@ -212,6 +212,8 @@ selfLib.mkModule {
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/.gemini/config"
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/.config/opencode"
 
+          if [ ! -f "$BASE_CONF" ]; then exit 0; fi
+
           if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
             CF_TOKEN=$(${pkgs.coreutils}/bin/cat "$TOKEN_PATH")
             ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
@@ -240,8 +242,7 @@ selfLib.mkModule {
             ${pkgs.jq}/bin/jq -n --argjson mcp "$MCP_JSON" \
               '{ "$schema": "https://opencode.ai/config.json", "mcp": $mcp }' > "$OPENCODE_CONF"
           else
-            TMP_JSON=$(${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF")
-            ${pkgs.coreutils}/bin/echo "$TMP_JSON" > "$OPENCODE_CONF"
+            ${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF" > "$OPENCODE_CONF.tmp" && ${pkgs.coreutils}/bin/mv -f "$OPENCODE_CONF.tmp" "$OPENCODE_CONF"
           fi
           ${pkgs.coreutils}/bin/chmod 600 "$OPENCODE_CONF"
         '';

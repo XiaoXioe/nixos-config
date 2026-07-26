@@ -10,13 +10,13 @@ let
   antigravity-cli = inputs.antigravity-nix.packages.${system}.google-antigravity-cli;
   antigravity-ide = inputs.antigravity-nix.packages.${system}.google-antigravity-ide;
 
-  opencode = pkgs.stdenv.mkDerivation rec {
+  opencode = pkgs.stdenv.mkDerivation (finalAttrs: {
     pname = "opencode";
     version = "1.18.3";
 
     src = pkgs.fetchurl {
-      url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-${platform}.tar.gz";
-      inherit hash;
+      url = "https://github.com/anomalyco/opencode/releases/download/v${finalAttrs.version}/opencode-${finalAttrs.platform}.tar.gz";
+      inherit (finalAttrs) hash;
     };
 
     platform =
@@ -58,7 +58,7 @@ let
       platforms = [ "x86_64-linux" ];
       mainProgram = "opencode";
     };
-  };
+  });
 in
 selfLib.mkModule {
   name = "ai.tools";

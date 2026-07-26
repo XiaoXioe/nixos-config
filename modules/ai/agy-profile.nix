@@ -42,9 +42,9 @@ selfLib.mkModule {
                 exit 1
               fi
               if command -v doas >/dev/null 2>&1; then
-                (sleep 0.3; cat \"\$DOAS_PASS_FILE\") | script -q -c \"doas \$CMD_ARGS\" /dev/null
+                script -q -c \"doas \$CMD_ARGS\" /dev/null < \"\$DOAS_PASS_FILE\"
               else
-                cat \"\$DOAS_PASS_FILE\" | sudo -S -p \"\" \$CMD_ARGS
+                sudo -S -p \"\" \$CMD_ARGS < \"\$DOAS_PASS_FILE\"
               fi
             '"
         '';

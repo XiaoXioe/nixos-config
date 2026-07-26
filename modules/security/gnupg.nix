@@ -1,11 +1,24 @@
 {
   config,
+  lib,
   pkgs,
   inputs,
   selfLib,
   ...
 }:
 
+let
+  gpgKeyNums = [
+    "1"
+    "2"
+    "3"
+  ];
+  gpgKeyIds = {
+    "1" = "DABD05C1D9C1FD2A";
+    "2" = "B10004A433825F0F";
+    "3" = "95217AF28DBCD5E3";
+  };
+in
 selfLib.mkModule {
   name = "security.gnupg";
 
@@ -20,73 +33,61 @@ selfLib.mkModule {
       };
     };
 
-    sops.secrets."gpg-private-key-1" = {
-      format = "binary";
-      sopsFile = selfLib.secretBinary "private-key-1.enc";
-      owner = config.my.user.name;
-      mode = "0600";
-    };
-    sops.secrets."gpg-private-key-2" = {
-      format = "binary";
-      sopsFile = selfLib.secretBinary "private-key-2.enc";
-      owner = config.my.user.name;
-      mode = "0600";
-    };
-    sops.secrets."gpg-private-key-3" = {
-      format = "binary";
-      sopsFile = selfLib.secretBinary "private-key-3.enc";
-      owner = config.my.user.name;
-      mode = "0600";
-    };
+    sops.secrets = lib.listToAttrs (
+      map (
+        n:
+        lib.nameValuePair "gpg-private-key-${n}" {
+          format = "binary";
+          sopsFile = selfLib.secretBinary "private-key-${n}.enc";
+          owner = config.my.user.name;
+          mode = "0600";
+        }
+      ) gpgKeyNums
+    );
   };
 
-  hmConfig = hmOpts: {
-    programs.gpg = {
-      enable = true;
-      publicKeys = [
-        {
-          source = ./public-key-1.asc;
+  hmConfig =
+    hmOpts:
+    let
+      gpgKeys = lib.genAttrs gpgKeyNums (n: {
+        path = hmOpts.osConfig.sops.secrets."gpg-private-key-${n}".path;
+        keyId = gpgKeyIds.${n};
+      });
+    in
+    {
+      programs.gpg = {
+        enable = true;
+        publicKeys = map (n: {
+          source = ./. + "/public-key-${n}.asc";
           trust = "ultimate";
-        }
-        {
-          source = ./public-key-2.asc;
-          trust = "ultimate";
-        }
-        {
-          source = ./public-key-3.asc;
-          trust = "ultimate";
-        }
-      ];
+        }) gpgKeyNums;
+      };
+
+      home.file =
+        lib.listToAttrs (
+          map (n: {
+            name = ".gnupg/public-key-${n}.asc";
+            value.source = ./. + "/public-key-${n}.asc";
+          }) gpgKeyNums
+        )
+        // {
+          ".gnupg/sshcontrol".text = ''
+            # Managed by Home Manager
+            05C43456D409B53584AE76A4EA71B1A8128E5E37
+          '';
+        };
+
+      home.activation.importGpg = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        hmOpts.lib.concatStringsSep "\n" (
+          hmOpts.lib.mapAttrsToList (num: key: ''
+            if [ -f ${key.path} ]; then
+              if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "${key.keyId}"; then
+                echo "Importing GPG private key ${num}..."
+                ${pkgs.gnupg}/bin/gpg --import ${key.path}
+              fi
+            fi
+          '') gpgKeys
+        )
+      );
     };
-
-    home.file.".gnupg/public-key-1.asc".source = ./public-key-1.asc;
-    home.file.".gnupg/public-key-2.asc".source = ./public-key-2.asc;
-    home.file.".gnupg/public-key-3.asc".source = ./public-key-3.asc;
-
-    home.file.".gnupg/sshcontrol".text = ''
-      # Managed by Home Manager
-      05C43456D409B53584AE76A4EA71B1A8128E5E37
-    '';
-
-    home.activation.importGpg = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [ -f ${hmOpts.osConfig.sops.secrets."gpg-private-key-1".path} ]; then
-        if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "DABD05C1D9C1FD2A"; then
-          echo "Importing GPG private key 1..."
-          ${pkgs.gnupg}/bin/gpg --import ${hmOpts.osConfig.sops.secrets."gpg-private-key-1".path}
-        fi
-      fi
-      if [ -f ${hmOpts.osConfig.sops.secrets."gpg-private-key-2".path} ]; then
-        if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "B10004A433825F0F"; then
-          echo "Importing GPG private key 2..."
-          ${pkgs.gnupg}/bin/gpg --import ${hmOpts.osConfig.sops.secrets."gpg-private-key-2".path}
-        fi
-      fi
-      if [ -f ${hmOpts.osConfig.sops.secrets."gpg-private-key-3".path} ]; then
-        if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "95217AF28DBCD5E3"; then
-          echo "Importing GPG private key 3..."
-          ${pkgs.gnupg}/bin/gpg --import ${hmOpts.osConfig.sops.secrets."gpg-private-key-3".path}
-        fi
-      fi
-    '';
-  };
 }
