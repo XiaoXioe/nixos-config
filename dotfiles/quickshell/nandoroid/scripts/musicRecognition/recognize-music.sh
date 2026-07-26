@@ -16,6 +16,11 @@ while getopts "i:t:s:" opt; do
   esac
 done
 
+# Ensure songrec dependency is installed
+if ! command -v songrec >/dev/null 2>&1; then
+    exit 1
+fi
+
 # Try to find the device string for songrec
 if [ "$SOURCE_TYPE" = "monitor" ]; then
     # Look for the default sink's monitor
@@ -35,10 +40,6 @@ else
     if [ -z "$DEVICE_STRING" ]; then
         DEVICE_STRING=$(songrec recognize -l | grep "input" | grep -v ".monitor" | head -n 1 | awk '{print $4}')
     fi
-fi
-
-if ! command -v songrec >/dev/null 2>&1; then
-    exit 1
 fi
 
 # Run songrec directly. -j for JSON, -i for interval.

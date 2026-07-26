@@ -49,11 +49,6 @@ Singleton {
         target: Config
         function onReadyChanged() { root.updateScale(); }
     }
-    
-    Timer {
-        interval: 500; running: true; repeat: true
-        onTriggered: root.updateScale()
-    }
 
     // --- Material 3 Color Tokens (populated by MaterialThemeLoader) ---
     m3colors: QtObject {
