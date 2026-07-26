@@ -56,6 +56,8 @@ selfLib.mkModule {
 
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "$XDG_RUNTIME_DIR/rclone.conf" \
+              --rc \
+              --rc-no-auth \
               --allow-other \
               --vfs-cache-mode full \
               --vfs-cache-max-age 24h \
@@ -67,7 +69,6 @@ selfLib.mkModule {
               --vfs-read-chunk-size 32M \
               --vfs-read-chunk-size-limit 1G \
               --buffer-size 64M \
-              --no-modtime \
               --drive-use-trash \
               --vfs-fast-fingerprint \
               --no-checksum \

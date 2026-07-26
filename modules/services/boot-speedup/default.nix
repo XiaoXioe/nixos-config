@@ -20,7 +20,6 @@ selfLib.mkModule {
     services.fwupd.enable = lib.mkForce false;
     systemd.services.fwupd-refresh.enable = lib.mkForce false;
     systemd.timers.fwupd-refresh.enable = lib.mkForce false;
-    systemd.services.fwupd.enable = lib.mkForce false;
 
     # hardware
     services.printing.enable = false;

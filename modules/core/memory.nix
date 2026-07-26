@@ -21,11 +21,6 @@ selfLib.mkModule {
       };
     };
 
-    # Optimize I/O queue scheduler for SATA SSDs (non-rotational drives) to reduce I/O latency
-    services.udev.extraRules = ''
-      ACTION=="add|change", KERNEL=="sd[a-z]*|mmcblk[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="kyber"
-    '';
-
     fileSystems."/home/${config.my.user.name}/.cache/nix" = {
       device = "tmpfs";
       fsType = "tmpfs";

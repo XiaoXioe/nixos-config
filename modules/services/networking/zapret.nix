@@ -11,21 +11,23 @@ selfLib.mkModule {
     { pkgs, lib, ... }:
     let
       # Override pkgs.zapret2 to the latest commit on bol-van/zapret2 main branch
-      zapret2 = pkgs.zapret2.overrideAttrs (oldAttrs: rec {
-        version = "2026-07-22-bb042f7";
-        src = pkgs.fetchFromGitHub {
-          owner = "bol-van";
-          repo = "zapret2";
-          rev = "bb042f734e6e444e138b581624b1c5a4d30513ce";
-          hash = "sha256-Hf0Cp1tha5kX8lvOYQYJPDE5c2fRt8o6vM7jaHB2m0U=";
-        };
-        postInstall = (oldAttrs.postInstall or "") + ''
-          cp -R files "$ZAPRET_BASE/"
-        '';
-        preBuild = ''
-          makeFlagsArray+=("CFLAGS=-DZAPRET_GH_VER=v${version} -DZAPRET_GH_HASH=bb042f734e6e")
-        '';
-      });
+      zapret2 = pkgs.zapret2.overrideAttrs (
+        finalAttrs: oldAttrs: {
+          version = "2026-07-22-bb042f7";
+          src = pkgs.fetchFromGitHub {
+            owner = "bol-van";
+            repo = "zapret2";
+            rev = "bb042f734e6e444e138b581624b1c5a4d30513ce";
+            hash = "sha256-Hf0Cp1tha5kX8lvOYQYJPDE5c2fRt8o6vM7jaHB2m0U=";
+          };
+          postInstall = (oldAttrs.postInstall or "") + ''
+            cp -R files "$ZAPRET_BASE/"
+          '';
+          preBuild = ''
+            makeFlagsArray+=("CFLAGS=-DZAPRET_GH_VER=v${finalAttrs.version} -DZAPRET_GH_HASH=bb042f734e6e")
+          '';
+        }
+      );
 
       runnerScript = pkgs.writeShellScript "zapret2-runner" ''
         STATE_DIR="/var/lib/zapret2"

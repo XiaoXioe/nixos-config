@@ -90,8 +90,11 @@ selfLib.mkModule {
                   local mnt_info="''${mounted_paths[i]}"
                   local mnt
                   mnt=$(echo "$mnt_info" | cut -d'|' -f1)
-                  echo "==> [nocow-migration] Melepas mount aktif di $mnt"
-                  umount -l "$mnt"
+                  echo "==> [nocow-migration] Melepas mount aktif di $mnt secara aman"
+                  if ! umount "$mnt"; then
+                    echo "==> [nocow-migration] WARNING: Gagal melepaskan mount $mnt secara aman (sedang digunakan). Membatalkan migrasi $target_dir"
+                    return 0
+                  fi
                 done
 
                 # 2. Amankan backup jika ada sisa backup dari proses yang terputus (mencegah data loss)

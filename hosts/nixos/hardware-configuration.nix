@@ -10,6 +10,15 @@
 
 let
   mainDevice = "/dev/disk/by-uuid/f888825f-bdb2-4dca-9c58-b5dd4f6a39d8";
+  commonBtrfsOpts = [
+    "compress=zstd:3"
+    "noatime"
+    "discard=async"
+    "space_cache=v2"
+    "commit=120"
+    "ssd"
+  ];
+  mkBtrfsSubvol = subvol: [ "subvol=${subvol}" ] ++ commonBtrfsOpts;
 in
 {
   imports = [
@@ -31,88 +40,40 @@ in
   fileSystems."/" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-root"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-root";
   };
 
   fileSystems."/nix" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-nix"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-nix";
   };
 
   fileSystems."/home" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-home"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-home";
     neededForBoot = true;
   };
 
   fileSystems."/persist" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-persist"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-persist";
     neededForBoot = true;
   };
 
   fileSystems."/var/log" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-log"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-log";
     neededForBoot = true;
   };
 
   fileSystems."/boot" = {
     device = mainDevice;
     fsType = "btrfs";
-    options = [
-      "subvol=@nixos-boot"
-      "compress=zstd:3"
-      "noatime"
-      "discard=async"
-      "space_cache=v2"
-      "commit=120"
-      "ssd"
-    ];
+    options = mkBtrfsSubvol "@nixos-boot";
   };
 
   fileSystems."/boot/efi" = {

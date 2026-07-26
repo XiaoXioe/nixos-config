@@ -252,7 +252,12 @@ selfLib.mkModule {
               mode = "0700";
             }
             ".antigravity-ide"
-            ".gemini"
+            {
+              directory = ".gemini";
+              user = config.my.user.name;
+              group = "users";
+              mode = "0755";
+            }
             {
               directory = ".mcp-colab";
               mode = "0700";

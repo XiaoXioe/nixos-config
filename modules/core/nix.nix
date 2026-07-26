@@ -83,16 +83,6 @@ selfLib.mkModule {
       channel.enable = false;
     };
 
-    # Direct nix-daemon network traffic through wireproxy-warp SOCKS5 at 127.0.0.1:40000
-    systemd.services.nix-daemon.environment = {
-      http_proxy = "socks5://127.0.0.1:40000";
-      https_proxy = "socks5://127.0.0.1:40000";
-      all_proxy = "socks5://127.0.0.1:40000";
-      NO_PROXY = "localhost,127.0.0.1,::1";
-      no_proxy = "localhost,127.0.0.1,::1";
-      TMPDIR = "/var/tmp";
-    };
-
     systemd.tmpfiles.rules = [
       "d /home/${config.my.user.name}/.config/cachix 0700 ${config.my.user.name} users - -"
     ];

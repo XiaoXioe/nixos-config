@@ -73,9 +73,9 @@
     let
       lib = inputs.nixpkgs.lib;
       hostName = "KleinMoretti";
+      adminUser = "klein-moretti";
       flakePath = "/home/${adminUser}/nixos-config";
       system = "x86_64-linux";
-      adminUser = "klein-moretti";
 
       # User data & custom library
       userData = import ./hosts/nixos/users.nix;

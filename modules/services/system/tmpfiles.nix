@@ -59,8 +59,6 @@ selfLib.mkModule {
               # Buat direktori kosong terlebih dahulu dengan owner pengguna agar langsung nocow sejak awal
               "d ${host_dir} 0700 ${config.my.user.name} users - -"
               "d ${persist_dir} 0700 ${config.my.user.name} users - -"
-              "h ${host_dir} - - - - +C"
-              "h ${persist_dir} - - - - +C"
             ]
         ) cfg.nocowDirectories
       ));

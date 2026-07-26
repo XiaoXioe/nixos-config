@@ -304,6 +304,25 @@ selfLib.mkModule {
         # Jalankan koneksi baru
         vpn-on-bin
       '';
+
+      commonVpn = ''
+        vpn-on() {
+          vpn-on-bin
+          if [ $? -eq 0 ]; then
+            export ALL_PROXY="socks5h://127.0.0.1:1080"
+          fi
+        }
+        vpn-off() {
+          vpn-off-bin
+          unset ALL_PROXY
+        }
+        vpn-switch() {
+          vpn-switch-bin
+          if [ $? -eq 0 ]; then
+            export ALL_PROXY="socks5h://127.0.0.1:1080"
+          fi
+        }
+      '';
     in
     {
       home.packages = [
@@ -342,42 +361,7 @@ selfLib.mkModule {
         };
       };
 
-      programs.bash.initExtra = ''
-        vpn-on() {
-          vpn-on-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
-        vpn-off() {
-          vpn-off-bin
-          unset ALL_PROXY
-        }
-        vpn-switch() {
-          vpn-switch-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
-      '';
-
-      programs.zsh.initExtra = ''
-        vpn-on() {
-          vpn-on-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
-        vpn-off() {
-          vpn-off-bin
-          unset ALL_PROXY
-        }
-        vpn-switch() {
-          vpn-switch-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
-      '';
+      programs.bash.initExtra = commonVpn;
+      programs.zsh.initExtra = commonVpn;
     };
 }

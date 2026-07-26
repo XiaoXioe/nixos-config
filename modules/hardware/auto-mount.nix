@@ -74,7 +74,11 @@ selfLib.mkModule {
       fileSystems."/var/lib/flatpak" = {
         device = "/mnt/data_btrfs/flatpak-system";
         fsType = "none";
-        options = [ "bind" ];
+        options = [
+          "bind"
+          "x-systemd.requires=mnt-data_btrfs.mount"
+          "x-systemd.after=mnt-data_btrfs.mount"
+        ];
       };
     };
 }

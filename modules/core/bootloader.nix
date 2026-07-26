@@ -6,12 +6,12 @@
   ...
 }:
 let
-  grubfm-efi = pkgs.stdenv.mkDerivation rec {
+  grubfm-efi = pkgs.stdenv.mkDerivation (finalAttrs: {
     pname = "grubfm";
     version = "v7.4.0";
 
     src = pkgs.fetchurl {
-      url = "https://github.com/a1ive/grub2-filemanager/releases/download/${version}/grubfm-en_US.7z";
+      url = "https://github.com/a1ive/grub2-filemanager/releases/download/${finalAttrs.version}/grubfm-en_US.7z";
       hash = "sha256-J2TDaqdBzTY9kqCQ3Ra6pQ/x83a+Q9XBf6Ihc83mFpI=";
     };
 
@@ -26,7 +26,7 @@ let
 
       cp grubfmx64.efi $out/grubfmx64.efi
     '';
-  };
+  });
 
   efiDevice = config.fileSystems."/boot/efi".device or "";
   efiUuid = lib.removePrefix "/dev/disk/by-uuid/" efiDevice;
