@@ -41,17 +41,11 @@ let
             flatpakVal =
               if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
           in
-          if rest == { } then
-            {
-              enable = enableVal;
-              flatpak = flatpakVal;
-            }
-          else
-            {
-              enable = enableVal;
-              flatpak = flatpakVal;
-            }
-            // rest
+          {
+            enable = enableVal;
+            flatpak = flatpakVal;
+          }
+          // rest
         else
           mapFeatures value
       else
@@ -77,7 +71,7 @@ in
           name: type:
           let
             isNixFile = lib.hasSuffix ".nix" name && name != "default.nix";
-            isModuleDir = type == "directory";
+            isModuleDir = type == "directory" && builtins.pathExists (path + "/${name}/default.nix");
           in
           isNixFile || isModuleDir
         ) (builtins.readDir path)

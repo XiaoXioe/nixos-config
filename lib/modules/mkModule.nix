@@ -65,20 +65,13 @@ in
               enable = lib.mkEnableOption (if description != "" then description else name);
             };
           in
-          if flatpakOptions == { } && options == { } then
-            baseOptions
-          else if flatpakOptions == { } then
-            baseOptions // options
-          else if options == { } then
-            baseOptions // flatpakOptions
-          else
-            baseOptions // flatpakOptions // options
+          baseOptions // flatpakOptions // options
         );
 
         config = lib.mkIf cfg (
           lib.mkMerge [
             resolvedNixosConfig
-            (lib.mkIf (hmConfig != null && hmConfig != { }) {
+            (lib.mkIf (hmConfig != null) {
               home-manager.users.${config.my.user.name} = hmConfig;
             })
             # Flatpak-specific NixOS configuration

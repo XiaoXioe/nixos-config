@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  inherit (selfLib.browserAddons { inherit pkgs; }) commonChromiumExtensions;
+in
 selfLib.mkModule {
   name = "apps.browsers.chromium";
   description = "Chromium browser configuration";
@@ -45,17 +48,8 @@ selfLib.mkModule {
         extraConfig = {
           extensions = [
             { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
-            { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
-            { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
-            { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
-            { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
-            { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
-            { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
-            { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
-            { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
-            { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
-            { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
-          ];
+          ]
+          ++ commonChromiumExtensions;
         };
       };
     };

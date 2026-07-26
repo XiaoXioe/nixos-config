@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  inherit (selfLib.browserAddons { inherit pkgs; }) commonChromiumExtensions;
+in
 selfLib.mkModule {
   name = "apps.browsers.brave";
   description = "Brave browser configuration with maximal performance & privacy";
@@ -51,19 +54,9 @@ selfLib.mkModule {
       hmProgram = {
         name = "brave";
         extraConfig = {
-          extensions = [
-            { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
-            { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
-            { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
-            { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
-            { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
-            { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
-            { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
-            { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
-            { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
+          extensions = commonChromiumExtensions ++ [
             { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
             { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
-            { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
             { id = "nkbihfbeogaeaoehlefnkodbefgpgknn"; } # Metamask
             { id = "bhhhlbepdkbapadjdnnojkbgioiodbic"; } # Solflare Wallet
             { id = "dmkamcknogkgcdfhhbddcghachkejeap"; } # Keplr Wallet

@@ -1,10 +1,31 @@
 # Shared Firefox/Zen/Tor Browser policy-lock helpers, privacy policies, search engines,
 # and AMO addon builders (DRY: used by browser modules which are otherwise separate
 # flatpak/native browser configs with no other common parent).
-{ pkgs, inputs }:
+{
+  pkgs,
+  inputs ? { },
+}:
 let
   lib = pkgs.lib;
-  addons = inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
+  addons =
+    if inputs ? firefox-addons then
+      inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}
+    else
+      null;
+
+  # Shared Chromium extension IDs across Brave, Chromium, etc.
+  commonChromiumExtensions = [
+    { id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"; } # Privacy Badger
+    { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden Password Manager
+    { id = "jplgfhpmjnbigmhklmmbgecoobifkmpa"; } # Proton-vpn
+    { id = "hlepfoohegkhhmjieoechaddaejaokhf"; } # Refined GitHub
+    { id = "lptnjkfjeaemenlipfaaocppmilaeejf"; } # ClearURLs
+    { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock
+    { id = "jinjaccalgkegednnccohejagnlnfdag"; } # Violentmonkey
+    { id = "omkfmpieigblcllmkgbflkikinpkodlk"; } # Enhanced-h264ify
+    { id = "jhnleheckmknfcgijgkadoemagpecfol"; } # Auto Tab Discard (suspend)
+    { id = "cmpdlhmnmjhihmcfnigoememnffkimlk"; } # Catppuccin Macchiato
+  ];
 
   # Canonical Gecko/Firefox extension directory GUID — single source of truth
   geckoExtGuid = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
@@ -206,7 +227,7 @@ in
     mkExtensionSettings
     commonPrivacyPolicies
     commonSearchEngines
-    geckoExtGuid
+    commonChromiumExtensions
     geckoExtPath
     mkCopyPoliciesScript
     mkBookmarkPoliciesTemplate
@@ -225,12 +246,22 @@ in
     sha256 = "sha256-740OObxZUapauVbaESJMY1nt0F5tiNEaK32CGiMFgSA=";
   };
 
-  tampermonkey = addons.tampermonkey.overrideAttrs (old: {
-    meta = (old.meta or { }) // {
-      license = [ ];
-    };
-    passthru = (old.passthru or { }) // {
-      addonId = old.addonId or "firefox@tampermonkey.net";
-    };
-  });
+  tampermonkey =
+    if addons != null && addons ? tampermonkey then
+      addons.tampermonkey.overrideAttrs (
+        _finalAttrs: old: {
+          meta = (old.meta or { }) // {
+            license = [ ];
+          };
+          passthru = (old.passthru or { }) // {
+            addonId = old.addonId or "firefox@tampermonkey.net";
+          };
+        }
+      )
+    else
+      buildAmoAddon {
+        pname = "tampermonkey";
+        addonId = "firefox@tampermonkey.net";
+        sha256 = "1133333333333333333333333333333333333333333333333333"; # fallback if inputs not provided
+      };
 }

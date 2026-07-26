@@ -21,6 +21,7 @@ selfLib.mkModule {
     systemd.tmpfiles.rules = [
       "d /mnt/data_btrfs/flatpak-userdata 0755 ${config.my.user.name} users - -"
       "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
+      "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
     ];
 
     services.flatpak = {
@@ -49,7 +50,7 @@ selfLib.mkModule {
         }
         {
           name = "xiaoxioe-flatpak";
-          location = "file:///home/${config.my.user.name}/CloudStorage/union-raid1-decrypted/custom-flatpaks/repo";
+          location = "file:///home/${config.my.user.name}/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo";
           args = "--no-gpg-verify";
         }
       ];
@@ -137,8 +138,16 @@ selfLib.mkModule {
             exit 0
           fi
 
-          echo "Repository directory found. Running Flatpak update..."
-          ${pkgs.flatpak}/bin/flatpak update --user -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro
+          echo "Repository directory found. Refreshing VFS cache for Flatpak repo..."
+          ${pkgs.rclone}/bin/rclone rc vfs/refresh recursive=true dir="gdrive-union-decrypted/custom-flatpaks/repo" || true
+
+          echo "Ensuring user and system Flatpak remotes point to current repo path..."
+          ${pkgs.flatpak}/bin/flatpak remote-add --user --if-not-exists --no-gpg-verify xiaoxioe-flatpak "file://$REPO_PATH" || true
+          ${pkgs.flatpak}/bin/flatpak remote-modify --user --url="file://$REPO_PATH" xiaoxioe-flatpak || true
+
+          echo "Running Flatpak update..."
+          ${pkgs.flatpak}/bin/flatpak update --system -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro || true
+          ${pkgs.flatpak}/bin/flatpak update --user -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro || true
         ''}";
       };
     };

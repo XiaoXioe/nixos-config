@@ -68,7 +68,6 @@ selfLib.mkModule {
           kdePackages.dolphin
           kdePackages.kio
           kdePackages.kio-extras
-          kdePackages.kservice
           kdePackages.breeze-icons
           kdePackages.qqc2-desktop-style
           kdePackages.ark

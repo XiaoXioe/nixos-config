@@ -62,9 +62,6 @@
       jcu = "journalctl --user -xe";
       jceu = "sudo journalctl -xeu";
 
-      # --- GIT ---
-      gcp = "git add . && git commit -m 'update' && git push";
-
       # --- NIXOS REBUILD & MAINTENANCE ---
       rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
       cln = "nh clean all --keep 3 --ask --optimise";

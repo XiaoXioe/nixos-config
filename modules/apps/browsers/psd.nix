@@ -34,48 +34,50 @@ selfLib.mkModule {
       # Override profile-sync-daemon globally so systemd services pick it up natively
       nixpkgs.overlays = [
         (final: prev: {
-          profile-sync-daemon = prev.profile-sync-daemon.overrideAttrs (oldAttrs: {
-            postPatch = (oldAttrs.postPatch or "") + ''
-              if [ -f common/profile-sync-daemon.in ]; then
-                substituteInPlace common/profile-sync-daemon.in \
-                  --replace-fail 'sudo -kn' 'sudo -n' \
-                  --replace-fail 'find "''${DIR%/*}"' 'find "''${DIR%/*}" 2>/dev/null'
-              fi
-              if [ -f common/psd-overlay-helper ]; then
-                substituteInPlace common/psd-overlay-helper \
-                  --replace-fail 'sudo -u "$user"' 'runuser -u "$user" --'
-              fi
-            '';
+          profile-sync-daemon = prev.profile-sync-daemon.overrideAttrs (
+            _finalAttrs: oldAttrs: {
+              postPatch = (oldAttrs.postPatch or "") + ''
+                if [ -f common/profile-sync-daemon.in ]; then
+                  substituteInPlace common/profile-sync-daemon.in \
+                    --replace-fail 'sudo -kn' 'sudo -n' \
+                    --replace-fail 'find "''${DIR%/*}"' 'find "''${DIR%/*}" 2>/dev/null'
+                fi
+                if [ -f common/psd-overlay-helper ]; then
+                  substituteInPlace common/psd-overlay-helper \
+                    --replace-fail 'sudo -u "$user"' 'runuser -u "$user" --'
+                fi
+              '';
 
-            installPhase = (oldAttrs.installPhase or "") + ''
-              cat << 'EOF' > $out/share/psd/browsers/brave
-              DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
-              PSNAME="brave"
-              EOF
+              installPhase = (oldAttrs.installPhase or "") + ''
+                cat << 'EOF' > $out/share/psd/browsers/brave
+                DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
+                PSNAME="brave"
+                EOF
 
-              cat << 'EOF' > $out/share/psd/browsers/chromium
-              DIRArr[0]="$HOME/.config/chromium"
-              PSNAME="chromium"
-              EOF
+                cat << 'EOF' > $out/share/psd/browsers/chromium
+                DIRArr[0]="$HOME/.config/chromium"
+                PSNAME="chromium"
+                EOF
 
-              cat << 'EOF' > $out/share/psd/browsers/torbrowser
-              DIRArr[0]="$HOME/.local/share/torbrowser"
-              PSNAME="firefox"
-              EOF
+                cat << 'EOF' > $out/share/psd/browsers/torbrowser
+                DIRArr[0]="$HOME/.local/share/torbrowser"
+                PSNAME="firefox"
+                EOF
 
-              cat << 'EOF' > $out/share/psd/browsers/zen
-              DIRArr[0]="$HOME/.config/zen/$USER"
-              PSNAME="zen"
-              EOF
+                cat << 'EOF' > $out/share/psd/browsers/zen
+                DIRArr[0]="$HOME/.config/zen/$USER"
+                PSNAME="zen"
+                EOF
 
-              cat << 'EOF' > $out/share/psd/browsers/firefox
-              DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
-              DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
-              PSNAME="firefox"
-              check_suffix="yes"
-              EOF
-            '';
-          });
+                cat << 'EOF' > $out/share/psd/browsers/firefox
+                DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
+                DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
+                PSNAME="firefox"
+                check_suffix="yes"
+                EOF
+              '';
+            }
+          );
         })
       ];
 

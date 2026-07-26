@@ -142,7 +142,7 @@ selfLib.mkModule {
       # Write profiles.ini as a physical, writeable file rather than a read-only Nix store symlink.
       # Gecko browsers (Firefox/Zen) require write access to profiles.ini on startup and will revert
       # to creating a random profile if the file is write-locked.
-      home.activation.writeZenProfiles = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.writeZenProfiles = hmOpts.lib.hm.dag.entryAfter [ "linkGeneration" ] ''
         ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen" "$HOME/.var/app/app.zen_browser.zen/config/zen"
         if [ -d "$HOME/.config/zen/${profileName}" ]; then
           ${pkgs.coreutils}/bin/chmod 700 "$HOME/.config/zen/${profileName}"

@@ -231,7 +231,8 @@ selfLib.mkModule {
         Context.filesystems = [
           "host"
           "/tmp"
-          "/run/user"
+          "xdg-run/bus"
+          "xdg-run/gnupg"
         ];
       };
       symlinks = [
@@ -264,7 +265,6 @@ selfLib.mkModule {
       sqlfluff
       php
       clang-tools
-      direnv
     ];
     programs.vscodium = {
       enable = true;

@@ -15,7 +15,7 @@ selfLib.mkModule {
   description = "Zellij multiplexer configuration";
 
   hmConfig = hmOpts: {
-    home.activation.zellijPermissions = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.zellijPermissions = hmOpts.lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       $DRY_RUN_CMD mkdir -p $HOME/.cache/zellij
       $DRY_RUN_CMD rm -f $HOME/.cache/zellij/permissions.kdl
       $DRY_RUN_CMD cp -f $HOME/.config/zellij/permissions.kdl $HOME/.cache/zellij/permissions.kdl 2>/dev/null || true

@@ -56,8 +56,12 @@ in
           nativePackages = nativeInfo.nativePackages;
           realNativePkg = nativeInfo.realNativePkg;
           binName =
-            appVal.binName
-              or (if realNativePkg != null && realNativePkg ? pname then realNativePkg.pname else null);
+            appVal.binName or (
+              if realNativePkg != null then
+                (realNativePkg.meta.mainProgram or (realNativePkg.pname or (lib.getName realNativePkg)))
+              else
+                null
+            );
         in
         lib.optionals (appEnabled && !skipWrapper && (hmProgram == null || hmProgram.name == null)) (
           if useFlatpakApp then
@@ -70,7 +74,7 @@ in
                         export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
                       fi
                     fi
-                    exec flatpak run ${appId} "$@"
+                    exec flatpak run ${appId} -- "$@"
                   '')
                 ]
               else
@@ -113,7 +117,7 @@ in
                   export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
                 fi
               fi
-              exec flatpak run ${appId} "$@"
+              exec flatpak run ${appId} -- "$@"
             '';
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
               wrapper = _: flatpakBin;
