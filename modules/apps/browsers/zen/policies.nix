@@ -48,7 +48,9 @@
   "browser.startup.page" = lock 3; # Restore session
   "browser.shell.checkDefaultBrowser" = lock-false;
   "extensions.autoDisableScopes" = lock 0;
-  "xpinstall.enabled" = lock-false;
+  "extensions.enabledScopes" = lock 5;
+  "toolkit.policies.perUserDir" = lock-true;
+  "xpinstall.enabled" = lock-true;
   "zen.welcome-screen.seen" = lock-true;
   "zen.workspaces.continue-where-left-off" = lock-true;
   "browser.aboutwelcome.enabled" = lock-false;

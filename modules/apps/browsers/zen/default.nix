@@ -12,11 +12,9 @@ let
     tampermonkey
     keplr
     solflare-wallet
-    mkExtensionSettings
     commonPrivacyPolicies
     commonSearchEngines
     geckoExtPath
-    mkCopyPoliciesScript
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     lock-false
@@ -33,13 +31,13 @@ let
     addons.auto-tab-discard
     addons.metamask
     addons.container-proxy
+    addons.proton-pass
     keplr
     solflare-wallet
   ];
 
   # Shared policies for Zen (used by both nixosConfig SOPS template and hmConfig)
   zenBrowserPolicies = commonPrivacyPolicies // {
-    ExtensionSettings = mkExtensionSettings extensionsList;
     SearchEngines = commonSearchEngines;
   };
 in
@@ -64,27 +62,25 @@ selfLib.mkModule {
       enable = true;
       binName = "zen";
 
-      # VA-API hardware video decoding: the Flatpak GL extension only bundles Mesa's
-      # built-in VAAPI drivers (radeonsi, nouveau, etc.) but NOT the separate
-      # intel-vaapi-driver (i965) needed for Ivy Bridge. Mount the host's graphics
-      # driver directory and point libva to it.
       overrides = {
         Context = {
           filesystems = [
-            "/run/opengl-driver/lib/dri:ro" # Host's VA-API drivers (i965, iHD)
-            "xdg-run/psd" # Profile Sync Daemon tmpfs
+            "/run/opengl-driver/lib/dri:ro"
+            "xdg-run/psd"
+            "xdg-run/zen"
+            "/home/${config.my.user.name}/.config/zen:ro"
           ];
         };
         Environment = {
           LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
-          LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri"; # Tell libva where to find i965_drv_video.so
-          LIBVA_DRIVER_NAME = "i965"; # Intel Ivy Bridge VA-API driver
-          MOZ_ENABLE_WAYLAND = "1"; # Ensure Wayland backend for DMABUF/VA-API
+          LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
+          LIBVA_DRIVER_NAME = "i965";
+          MOZ_ENABLE_WAYLAND = "1";
           MOZ_LEGACY_PROFILES = "1";
+          MOZ_SYSTEM_CONFIG_DIR = "/home/${config.my.user.name}/.config/zen";
         };
       };
 
-      # Symlink only the profile subdirectory inside .zen to bypass Flatpak's sandbox escape restriction on root dotfiles
       symlinks = [
         {
           host = ".config/zen/${config.my.user.name}";
@@ -97,7 +93,6 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
-      # Import Zen-specific policies from local policies.nix (modular)
       zenPolicies = import ./policies.nix {
         inherit
           lock
@@ -110,82 +105,58 @@ selfLib.mkModule {
       toUserJs =
         prefs:
         lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (
-            name: value:
-            let
-              realValue = if (builtins.isAttrs value && value ? Value) then value.Value else value;
-              valStr =
-                if builtins.isBool realValue then
-                  (if realValue then "true" else "false")
-                else if builtins.isInt realValue then
-                  toString realValue
-                else
-                  ''"${realValue}"'';
-            in
-            "user_pref(\"${name}\", ${valStr});"
-          ) prefs
+          lib.mapAttrsToList
+            (
+              name: value:
+              let
+                realValue = if (builtins.isAttrs value && value ? Value) then value.Value else value;
+                valStr =
+                  if builtins.isBool realValue then
+                    (if realValue then "true" else "false")
+                  else if builtins.isInt realValue then
+                    toString realValue
+                  else
+                    ''"${realValue}"'';
+              in
+              "user_pref(\"${name}\", ${valStr});"
+            )
+            (
+              prefs
+              // {
+                "extensions.autoDisableScopes" = 0;
+                "extensions.enabledScopes" = 15;
+              }
+            )
         );
 
       profileName = hmOpts.config.home.username;
 
-      extensionsEnv = pkgs.buildEnv {
-        name = "zen-extensions";
-        paths = extensionsList;
-        pathsToLink = [ geckoExtPath ];
-      };
+      extensionFiles = lib.listToAttrs (
+        lib.flatten (
+          map (
+            addon:
+            let
+              extId = addon.addonId or (addon.passthru.addonId or null);
+            in
+            if extId != null then
+              [
+                (lib.nameValuePair ".config/zen/${profileName}/extensions/${extId}.xpi" {
+                  source = "${addon}${geckoExtPath}/${extId}.xpi";
+                })
+              ]
+            else
+              [ ]
+          ) extensionsList
+        )
+      );
     in
     {
       home.sessionVariables = {
         MOZ_LEGACY_PROFILES = "1";
       };
 
-      # Write profiles.ini as a physical, writeable file rather than a read-only Nix store symlink.
-      # Gecko browsers (Firefox/Zen) require write access to profiles.ini on startup and will revert
-      # to creating a random profile if the file is write-locked.
-      home.activation.writeZenProfiles = hmOpts.lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var/app/app.zen_browser.zen/.zen" "$HOME/.var/app/app.zen_browser.zen/config/zen"
-        if [ -d "$HOME/.config/zen/${profileName}" ]; then
-          ${pkgs.coreutils}/bin/chmod 700 "$HOME/.config/zen/${profileName}"
-        fi
-        ${pkgs.coreutils}/bin/ln -sfn "$HOME/.config/zen/${profileName}" "$HOME/.var/app/app.zen_browser.zen/config/zen/${profileName}"
-        ${pkgs.coreutils}/bin/ln -sfn "$HOME/.config/zen/${profileName}" "$HOME/.var/app/app.zen_browser.zen/.zen/${profileName}"
-        ${pkgs.coreutils}/bin/cat << 'EOF' > "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini"
-        [General]
-        StartWithLastProfile=1
-        Version=2
-
-        [Profile0]
-        Name=${profileName}
-        IsRelative=1
-        Path=${profileName}
-        Default=1
-        EOF
-        ${pkgs.coreutils}/bin/cp "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
-        ${pkgs.coreutils}/bin/chmod 644 "$HOME/.var/app/app.zen_browser.zen/.zen/profiles.ini" "$HOME/.var/app/app.zen_browser.zen/config/zen/profiles.ini"
-        ${pkgs.coreutils}/bin/rm -f "$HOME/.var/app/app.zen_browser.zen/config/zen/installs.ini" "$HOME/.var/app/app.zen_browser.zen/.zen/installs.ini"
-      '';
-
-      home.activation.copyZenPolicies =
-        hmOpts.config.lib.dag.entryAfter [ "writeBoundary" ]
-          (mkCopyPoliciesScript {
-            etcPath = "/etc/zen/policies/policies.json";
-            destinations = [
-              "$HOME/.config/zen/distribution"
-              "$HOME/.var/app/app.zen_browser.zen/config/zen/distribution"
-              "$HOME/.var/app/app.zen_browser.zen/.zen/distribution"
-            ];
-          });
-
-      home.file = {
-
-        # Store user.js and extensions in the persisted host directory (~/.config/zen/...)
+      home.file = extensionFiles // {
         ".config/zen/${profileName}/user.js".text = toUserJs zenPolicies;
-
-        # Declarative extensions (dynamically linked using buildEnv)
-        ".config/zen/${profileName}/extensions" = {
-          source = "${extensionsEnv}${geckoExtPath}";
-          recursive = true;
-        };
       };
     };
 }
