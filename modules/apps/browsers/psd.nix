@@ -10,26 +10,33 @@ selfLib.mkModule {
   description = "Profile Sync Daemon (PSD) for syncing browser profiles to RAM (tmpfs)";
 
   nixosConfig =
-    let
-      psdOverlayHelperRules = [
-        {
-          users = [ config.my.user.name ];
-          commands = [
-            {
-              command = "${pkgs.profile-sync-daemon}/bin/psd-overlay-helper";
-              options = [ "NOPASSWD" ];
-            }
-            {
-              command = "/run/current-system/sw/bin/psd-overlay-helper";
-              options = [ "NOPASSWD" ];
-            }
-          ];
-        }
-      ];
-    in
+    # let
+    #   psdOverlayHelperRules = [
+    #     {
+    #       users = [ config.my.user.name ];
+    #       commands = [
+    #         {
+    #           command = "${pkgs.profile-sync-daemon}/bin/psd-overlay-helper";
+    #           options = [ "NOPASSWD" ];
+    #         }
+    #         {
+    #           command = "/run/current-system/sw/bin/psd-overlay-helper";
+    #           options = [ "NOPASSWD" ];
+    #         }
+    #       ];
+    #     }
+    #   ];
+    # in
     {
-      # Allow passwordless execution of psd-overlay-helper for sudo-rs
-      security.sudo-rs.extraRules = psdOverlayHelperRules;
+      # Allow passwordless execution of psd-overlay-helper for sudo and sudo-rs
+      security.sudo.extraConfig = ''
+        ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
+        ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
+      '';
+      security.sudo-rs.extraConfig = ''
+        ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
+        ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
+      '';
 
       # Override profile-sync-daemon globally so systemd services pick it up natively
       nixpkgs.overlays = [
@@ -124,11 +131,7 @@ selfLib.mkModule {
           ''}";
         };
       };
-      systemd.user.services.psd-resync = {
-        restartIfChanged = false;
-        stopIfChanged = false;
-      };
-
+k
       # Increase XDG_RUNTIME_DIR (/run/user/1000) size to accommodate browser tmpfs profiles
       services.logind.settings.Login.RuntimeDirectorySize = "4G";
 
