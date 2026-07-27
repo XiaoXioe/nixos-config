@@ -46,6 +46,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    mcp-nixos = {
+      url = "github:XiaoXioe/mcp-nixos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     torlink = {
       url = "github:baairon/torlink";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -120,6 +125,12 @@
           home-manager.backupFileExtension = "hm-bak";
           home-manager.users.${adminUser} = {
             imports = homeModules;
+          };
+          systemd.services."home-manager-${adminUser}" = {
+            restartIfChanged = false;
+            reloadIfChanged = false;
+            stopIfChanged = false;
+            restartTriggers = lib.mkForce [ ];
           };
         }
       ];
