@@ -16,6 +16,7 @@ let
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
   server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
+  mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
 
   makeSshMcp =
     {
@@ -98,7 +99,7 @@ selfLib.mkModule {
           };
         };
         nixos = {
-          pkg = pkgs.mcp-nixos;
+          pkg = mcp-nixos-pkg;
           bin = "mcp-nixos";
         };
         codebase-memory-mcp = {
@@ -200,7 +201,7 @@ selfLib.mkModule {
           tavily-mcp-pkg
           server-memory-pkg
           sequential-thinking-pkg
-          pkgs.mcp-nixos
+          mcp-nixos-pkg
         ];
 
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

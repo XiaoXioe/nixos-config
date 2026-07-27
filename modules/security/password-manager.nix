@@ -41,7 +41,7 @@ selfLib.mkModule {
     };
 
     "me.proton.Pass" = {
-      enable = true;
+      enable = false;
       binName = "proton-pass";
       overrides = {
         Context = {

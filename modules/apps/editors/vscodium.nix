@@ -295,6 +295,7 @@ selfLib.mkModule {
           "workbench.activityBar.location" = "hidden";
           "workbench.statusBar.visible" = false;
           "workbench.layoutControl.enabled" = false;
+          "explorer.confirmDelete" = false;
           "explorer.openEditors.visible" = 0;
           "breadcrumbs.enabled" = false;
           "editor.scrollbar.verticalScrollbarSize" = 2;
