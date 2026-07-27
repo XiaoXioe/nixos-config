@@ -12,7 +12,7 @@
 }:
 {
   imports = [
-    ./hardware-configuration.nix
+    ./hardware-configuration
   ];
 
   # Single user definition

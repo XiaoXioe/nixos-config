@@ -1,5 +1,5 @@
 { lib, ... }:
 
 {
-  mkModule = import ./mkModule.nix { inherit lib; };
+  mkModule = import ./mkModule { inherit lib; };
 }

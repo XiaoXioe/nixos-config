@@ -95,7 +95,9 @@ selfLib.mkModule {
     environment.etc."firefox/policies/policies.json".source =
       config.sops.templates."firefox-policies.json".path;
 
-    sops.secrets."firefox-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "firefox-bookmarks.enc");
+    sops.secrets."firefox-bookmarks" = mkBookmarkSecret (
+      selfLib.secretBinary "browsers/firefox-bookmarks.enc"
+    );
     sops.templates."firefox-policies.json" = mkBookmarkPoliciesTemplate {
       ownerName = config.my.user.name;
       basePolicies = firefoxPolicies;

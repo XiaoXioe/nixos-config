@@ -49,7 +49,7 @@ selfLib.mkModule {
     environment.etc."zen/policies/policies.json".source =
       config.sops.templates."zen-policies.json".path;
 
-    sops.secrets."zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "zen-bookmarks.enc");
+    sops.secrets."zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/zen-bookmarks.enc");
     sops.templates."zen-policies.json" = mkBookmarkPoliciesTemplate {
       ownerName = config.my.user.name;
       basePolicies = zenBrowserPolicies;

@@ -74,7 +74,7 @@ in
                         export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
                       fi
                     fi
-                    exec flatpak run ${appId} -- "$@"
+                    exec flatpak run ${appId} "$@"
                   '')
                 ]
               else
@@ -117,7 +117,7 @@ in
                   export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
                 fi
               fi
-              exec flatpak run ${appId} -- "$@"
+              exec flatpak run ${appId} "$@"
             '';
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
               wrapper = _: flatpakBin;

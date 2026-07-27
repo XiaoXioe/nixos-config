@@ -16,7 +16,7 @@ let
       inputs.self + "/secrets/${relPath}"
     else
       ../secrets + "/${relPath}";
-  secretBinary = name: secret "binary/${name}";
+  secretBinary = relPath: secret "binary/${relPath}";
 
   # Recursively maps a user features attribute set to a module enable structure.
   # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
@@ -59,7 +59,7 @@ in
   # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
   # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix
   # only has `lib` in scope, not pkgs/inputs.
-  browserAddons = import ./browser-addons.nix;
+  browserAddons = import ./browser-addons;
 
   # Auto-import all .nix files (except default.nix) and directories
   # containing a default.nix from the given path.

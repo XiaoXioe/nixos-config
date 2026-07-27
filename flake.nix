@@ -78,12 +78,13 @@
     let
       lib = inputs.nixpkgs.lib;
       hostName = "KleinMoretti";
-      adminUser = "klein-moretti";
+
+      # User data & custom library
+      userData = import ./hosts/nixos/users;
+      adminUser = userData.userName;
       flakePath = "/home/${adminUser}/nixos-config";
       system = "x86_64-linux";
 
-      # User data & custom library
-      userData = import ./hosts/nixos/users.nix;
       selfLib = import ./lib { inherit lib inputs; };
 
       pkgs = import inputs.nixpkgs {
@@ -107,7 +108,7 @@
       };
 
       homeModules = [
-        ./hosts/nixos/home.nix
+        ./hosts/nixos/home
         inputs.nix-index-database.homeModules.nix-index
       ];
 
@@ -136,7 +137,7 @@
       ];
 
       # Build configurations using extracted builders
-      builders = import ./lib/builders.nix {
+      builders = import ./lib/builders {
         inherit
           lib
           pkgs
