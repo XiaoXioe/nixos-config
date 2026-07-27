@@ -64,6 +64,9 @@ let
 
   mkExtensionSettings =
     extensionsList:
+    {
+      mode ? "allowed",
+    }:
     let
       base = {
         "*" = {
@@ -81,7 +84,7 @@ let
             if extId != null then
               [
                 (lib.nameValuePair extId {
-                  installation_mode = "force_installed";
+                  installation_mode = mode;
                   install_url = "file://${addon}${geckoExtPath}/${extId}.xpi";
                 })
               ]
@@ -158,25 +161,6 @@ let
     Default = "DuckDuckGo";
   };
 
-  # Helper: generate shell script to copy policies.json from /etc to N destinations
-  mkCopyPoliciesScript =
-    { etcPath, destinations }:
-    let
-      mkdirs = lib.concatMapStringsSep "\n" (d: ''$DRY_RUN_CMD mkdir -p "${d}"'') destinations;
-      rmOld = lib.concatMapStringsSep "\n" (d: ''$DRY_RUN_CMD rm -f "${d}/policies.json"'') destinations;
-      copyNew = lib.concatMapStringsSep "\n" (d: ''
-        $DRY_RUN_CMD cp -L "${etcPath}" "${d}/policies.json"
-        $DRY_RUN_CMD chmod 644 "${d}/policies.json"
-      '') destinations;
-    in
-    ''
-      ${mkdirs}
-      ${rmOld}
-      if [ -f "${etcPath}" ]; then
-        ${copyNew}
-      fi
-    '';
-
   # Helper: generate sops.templates value for bookmark-injected policies.json
   mkBookmarkPoliciesTemplate =
     {
@@ -229,10 +213,15 @@ in
     commonSearchEngines
     commonChromiumExtensions
     geckoExtPath
-    mkCopyPoliciesScript
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     ;
+
+  proton-pass = buildAmoAddon {
+    pname = "proton-pass";
+    addonId = "78272b6fa58f4a1abaac99321d503a20@proton.me";
+    sha256 = "1nzrxqk7iq5icjlb82h3qglr6k8gzha24hqm4rmpbdsi1cv9cnr2";
+  };
 
   keplr = buildAmoAddon {
     pname = "keplr";
