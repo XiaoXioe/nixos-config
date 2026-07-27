@@ -8,7 +8,6 @@
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
     commonPrivacyPolicies
-    mkCopyPoliciesScript
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     ;
@@ -55,17 +54,5 @@ selfLib.mkModule {
       # Native package fallback if Flatpak is disabled
       nativePkgs = pkgs.tor-browser;
     };
-  };
-
-  hmConfig = hmOpts: {
-    home.activation.copyTorBrowserPolicies =
-      hmOpts.config.lib.dag.entryAfter [ "writeBoundary" ]
-        (mkCopyPoliciesScript {
-          etcPath = "/etc/tor-browser/policies/policies.json";
-          destinations = [
-            "$HOME/.local/share/torbrowser/tbb/x86_64/tor-browser/Browser/distribution"
-            "$HOME/.local/share/flatpak/extension/org.torproject.torbrowser-launcher.systemconfig/x86_64/stable/policies"
-          ];
-        });
   };
 }
