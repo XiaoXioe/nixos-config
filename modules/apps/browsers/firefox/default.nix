@@ -11,16 +11,13 @@ let
     tampermonkey
     keplr
     solflare-wallet
-    mkExtensionSettings
     commonPrivacyPolicies
     commonSearchEngines
-    geckoExtPath
-    mkCopyPoliciesScript
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     ;
 
-  # Extension packages per profile
+  # Extension packages per profile (100% declarative Home Manager packages)
   defaultProfileExtensions =
     (with addons; [
       ublock-origin
@@ -31,6 +28,7 @@ let
       metamask
       container-proxy
       tampermonkey
+      proton-pass
     ])
     ++ [
       keplr
@@ -50,11 +48,8 @@ let
     tampermonkey
   ];
 
-  allFirefoxExtensions = pkgs.lib.unique (defaultProfileExtensions ++ hardenedProfileExtensions);
-
   # Single source of truth: policies used by both nixosConfig (/etc) and hmConfig (programs.firefox)
   firefoxPolicies = commonPrivacyPolicies // {
-    ExtensionSettings = mkExtensionSettings allFirefoxExtensions;
     SearchEngines = commonSearchEngines;
   };
 
@@ -70,11 +65,14 @@ selfLib.mkModule {
         Context.filesystems = [
           "/run/opengl-driver/lib/dri:ro"
           "xdg-run/psd" # Profile Sync Daemon tmpfs
+          "xdg-run/firefox" # Runtime per-user policy directory
+          "xdg-run/org.mozilla.firefox"
         ];
         Environment = {
           LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
           LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
           MOZ_LEGACY_PROFILES = "1";
+          MOZ_SYSTEM_CONFIG_DIR = "/home/${config.my.user.name}/.config/mozilla/firefox";
         };
       };
       symlinks = [
@@ -108,21 +106,6 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
-      lib = hmOpts.lib;
-
-      # Native Home Manager extension environments via buildEnv
-      defaultExtensionsEnv = pkgs.buildEnv {
-        name = "firefox-default-extensions";
-        paths = defaultProfileExtensions;
-        pathsToLink = [ geckoExtPath ];
-      };
-
-      hardenedExtensionsEnv = pkgs.buildEnv {
-        name = "firefox-hardened-extensions";
-        paths = hardenedProfileExtensions;
-        pathsToLink = [ geckoExtPath ];
-      };
-
       baseSettings = {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
@@ -136,7 +119,9 @@ selfLib.mkModule {
         "browser.uitour.enabled" = false;
         "trailhead.firstrun.didSeeAboutWelcome" = true;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "toolkit.policies.perUserDir" = true;
         "extensions.autoDisableScopes" = 0;
+        "extensions.enabledScopes" = 15;
       };
 
       userChrome = ''
@@ -146,70 +131,6 @@ selfLib.mkModule {
     {
       home.sessionVariables = {
         MOZ_LEGACY_PROFILES = "1";
-      };
-
-      home.activation.prepareFirefoxProfiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-        # Hapus file backup lama agar tidak memicu error clobber
-        ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini.hm-bak"
-
-        # Hapus profiles.ini jika berupa file biasa (bukan symlink) agar linkGeneration bisa membuat symlink baru tanpa backup
-        if [ -f "$HOME/.config/mozilla/firefox/profiles.ini" ] && [ ! -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
-          ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
-        fi
-
-        # Penanganan dangling atau invalid symlink (seperti /dev/null atau /run/user/...) akibat Profile Sync Daemon (PSD) saat boot
-        if [ -d "$HOME/.config/mozilla/firefox" ]; then
-          for prof in "$HOME/.config/mozilla/firefox/"*; do
-            if [ -L "$prof" ]; then
-              target=$(${pkgs.coreutils}/bin/readlink "$prof" || true)
-              if [ ! -e "$prof" ] || [ "$target" = "/dev/null" ] || [[ "$target" == /run/user/* ]]; then
-                backup="''${prof}-backup"
-                if [ -d "$backup" ]; then
-                  echo "PSD cleanup: restoring $(${pkgs.coreutils}/bin/basename "$prof") from backup"
-                  ${pkgs.coreutils}/bin/rm -f "$prof"
-                  ${pkgs.coreutils}/bin/mv "$backup" "$prof"
-                else
-                  echo "PSD cleanup: removing invalid symlink $(${pkgs.coreutils}/bin/basename "$prof")"
-                  ${pkgs.coreutils}/bin/rm -f "$prof"
-                fi
-              fi
-            fi
-          done
-        fi
-      '';
-
-      home.activation.copyFirefoxProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        if [ -L "$HOME/.config/mozilla/firefox/profiles.ini" ]; then
-          real_file=$(${pkgs.coreutils}/bin/readlink -f "$HOME/.config/mozilla/firefox/profiles.ini")
-          ${pkgs.coreutils}/bin/rm -f "$HOME/.config/mozilla/firefox/profiles.ini"
-          ${pkgs.coreutils}/bin/cp "$real_file" "$HOME/.config/mozilla/firefox/profiles.ini"
-          ${pkgs.coreutils}/bin/chmod 644 "$HOME/.config/mozilla/firefox/profiles.ini"
-
-          # Reset Default di section [Install] ke 'default'
-          ${pkgs.gnused}/bin/sed -i '/^\[Install\]/,/^\[/s/^Default=.*/Default=default/' "$HOME/.config/mozilla/firefox/profiles.ini"
-        fi
-      '';
-
-      home.activation.copyFirefoxPolicies =
-        hmOpts.config.lib.dag.entryAfter [ "writeBoundary" ]
-          (mkCopyPoliciesScript {
-            etcPath = "/etc/firefox/policies/policies.json";
-            destinations = [
-              "$HOME/.local/share/flatpak/extension/org.mozilla.firefox.systemconfig/x86_64/stable/policies"
-              "$HOME/.config/mozilla/firefox/distribution"
-              "$HOME/.var/app/org.mozilla.firefox/config/mozilla/firefox/distribution"
-            ];
-          });
-
-      home.file = {
-
-        # Declarative per-profile extension directories linked via Home Manager buildEnv
-        ".config/mozilla/firefox/${hmOpts.config.home.username}/extensions" = {
-          source = "${defaultExtensionsEnv}${geckoExtPath}";
-        };
-        ".config/mozilla/firefox/${hmOpts.config.home.username}-hardened/extensions" = {
-          source = "${hardenedExtensionsEnv}${geckoExtPath}";
-        };
       };
 
       programs.firefox = {
@@ -226,6 +147,7 @@ selfLib.mkModule {
             isDefault = true;
             id = 0;
             inherit userChrome;
+            extensions.packages = defaultProfileExtensions;
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
@@ -241,16 +163,17 @@ selfLib.mkModule {
             isDefault = false;
             id = 1;
             inherit userChrome;
+            extensions.packages = hardenedProfileExtensions;
             settings = baseSettings // {
               "privacy.resistFingerprinting" = false;
               "privacy.fingerprintingProtection" = true;
-              "privacy.clearOnShutdown_v2.cookiesAndStorage" = true;
-              "privacy.clearOnShutdown_v2.cache" = true;
-              "privacy.sanitize.sanitizeOnShutdown" = true;
+              "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
+              "privacy.clearOnShutdown_v2.cache" = false;
+              "privacy.sanitize.sanitizeOnShutdown" = false;
               "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
               "privacy.clearOnShutdown_v2.browsingHistoryAndDownloads" = false;
               "media.peerconnection.enabled" = false;
-              "webgl.disabled" = true;
+              "webgl.disabled" = false;
               "geo.enabled" = false;
               "browser.privatebrowsing.autostart" = false;
               "device.sensors.enabled" = false;

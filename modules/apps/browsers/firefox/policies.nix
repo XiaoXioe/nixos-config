@@ -99,7 +99,7 @@
   "dom.disable_window_move_resize" = lock-true; # Blokir situs web mengubah ukuran atau memindahkan jendela browser
   "devtools.debugger.remote-enabled" = lock-false; # Matikan remote debugging demi keamanan lokal
   "extensions.enabledScopes" = lock 5; # Batasi direktori instalasi ekstensi hanya dari profil pengguna (cegah instalasi siluman)
-  "xpinstall.enabled" = lock-false; # Matikan instalasi ekstensi dari web/AMO untuk pengguna
+  "xpinstall.enabled" = lock-true; # Izinkan mesin instalasi XPI memproses ekstensi deklaratif NixOS
   "app.shield.optoutstudies.enabled" = lock-false; # Matikan partisipasi dalam studi/uji coba Firefox Shield
   "nimbus.rollouts.enabled" = lock-false; # Matikan eksperimen rollout fitur otomatis Mozilla
 }
