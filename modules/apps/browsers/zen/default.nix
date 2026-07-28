@@ -113,9 +113,5 @@ selfLib.mkModule {
           };
         };
       };
-
-      home.file.".zen/policies/policies.json".source =
-        hmOpts.config.lib.file.mkOutOfStoreSymlink
-          config.sops.templates."zen-policies.json".path;
     };
 }
