@@ -1,11 +1,12 @@
 {
   config,
-  selfLib,
   pkgs,
   inputs,
   lib,
+  selfLib,
   ...
 }:
+
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
     addons
@@ -14,7 +15,6 @@ let
     solflare-wallet
     commonPrivacyPolicies
     commonSearchEngines
-    geckoExtPath
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     lock-false
@@ -23,77 +23,56 @@ let
     lock
     ;
 
-  # Clean list of extension packages (shared between nixosConfig and hmConfig)
-  extensionsList = [
-    addons.ublock-origin
-    addons.bitwarden
-    tampermonkey
-    addons.auto-tab-discard
-    addons.metamask
-    addons.container-proxy
-    addons.proton-pass
-    keplr
-    solflare-wallet
-  ];
+  defaultProfileExtensions =
+    (with addons; [
+      ublock-origin
+      bitwarden
+      multi-account-containers
+      auto-tab-discard
+      proton-pass
+      tampermonkey
+    ])
+    ++ [
+      keplr
+      solflare-wallet
+    ];
 
-  # Shared policies for Zen (used by both nixosConfig SOPS template and hmConfig)
-  zenBrowserPolicies = commonPrivacyPolicies // {
+  zenBrowserPolicies = lib.recursiveUpdate commonPrivacyPolicies {
     SearchEngines = commonSearchEngines;
   };
 in
 selfLib.mkModule {
   name = "apps.browsers.zen";
-  description = "Zen Browser Flatpak configuration with dedicated profile directory";
+  description = "Zen Browser configuration powered by zen-browser-flake";
 
   nixosConfig = {
-    environment.etc."zen/policies/policies.json".source =
-      config.sops.templates."zen-policies.json".path;
-
-    sops.secrets."zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/zen-bookmarks.enc");
-    sops.templates."zen-policies.json" = mkBookmarkPoliciesTemplate {
-      ownerName = config.my.user.name;
-      basePolicies = zenBrowserPolicies;
-      bookmarkPlaceholder = config.sops.placeholder."zen-bookmarks";
+    environment.sessionVariables = {
+      MOZ_ENABLE_WAYLAND = "1";
     };
-  };
 
-  flatpakCfg = {
-    "app.zen_browser.zen" = {
-      enable = true;
-      binName = "zen";
+    sops.secrets = {
+      "zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/zen-bookmarks.enc");
+    };
 
-      overrides = {
-        Context = {
-          filesystems = [
-            "/run/opengl-driver/lib/dri:ro"
-            "xdg-run/psd"
-            "xdg-run/zen"
-            "/home/${config.my.user.name}/.config/zen:ro"
-          ];
-        };
-        Environment = {
-          LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
-          LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
-          LIBVA_DRIVER_NAME = "i965";
-          MOZ_ENABLE_WAYLAND = "1";
-          MOZ_LEGACY_PROFILES = "1";
-          MOZ_SYSTEM_CONFIG_DIR = "/home/${config.my.user.name}/.config/zen";
-        };
+    sops.templates = {
+      "zen-policies.json" = mkBookmarkPoliciesTemplate {
+        ownerName = config.my.user.name;
+        basePolicies = zenBrowserPolicies;
+        bookmarkPlaceholder = config.sops.placeholder."zen-bookmarks";
       };
+    };
 
-      symlinks = [
-        {
-          host = ".config/zen/${config.my.user.name}";
-          guest = ".zen/${config.my.user.name}";
-        }
-      ];
+    environment.etc = {
+      "zen/policies/policies.json".text = builtins.toJSON { policies = zenBrowserPolicies; };
     };
   };
 
   hmConfig =
     hmOpts:
     let
-      zenPolicies = import ./policies.nix {
+      user = hmOpts.config.home.username;
+
+      zenPolicies = import ./policies {
         inherit
           lock
           lock-true
@@ -102,61 +81,41 @@ selfLib.mkModule {
           ;
       };
 
-      toUserJs =
-        prefs:
-        lib.concatStringsSep "\n" (
-          lib.mapAttrsToList
-            (
-              name: value:
-              let
-                realValue = if (builtins.isAttrs value && value ? Value) then value.Value else value;
-                valStr =
-                  if builtins.isBool realValue then
-                    (if realValue then "true" else "false")
-                  else if builtins.isInt realValue then
-                    toString realValue
-                  else
-                    ''"${realValue}"'';
-              in
-              "user_pref(\"${name}\", ${valStr});"
-            )
-            (
-              prefs
-              // {
-                "extensions.autoDisableScopes" = 0;
-                "extensions.enabledScopes" = 15;
-              }
-            )
-        );
-
-      profileName = hmOpts.config.home.username;
-
-      extensionFiles = lib.listToAttrs (
-        lib.flatten (
-          map (
-            addon:
-            let
-              extId = addon.addonId or (addon.passthru.addonId or null);
-            in
-            if extId != null then
-              [
-                (lib.nameValuePair ".config/zen/${profileName}/extensions/${extId}.xpi" {
-                  source = "${addon}${geckoExtPath}/${extId}.xpi";
-                })
-              ]
-            else
-              [ ]
-          ) extensionsList
-        )
-      );
+      baseSettings = zenPolicies // {
+        "browser.startup.page" = 3;
+        "accessibility.force_disabled" = 1;
+        "browser.urlbar.quickactions.enabled" = false;
+        "widget.dmabuf.force-enabled" = true;
+        "browser.disableResetPrompt" = true;
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "toolkit.policies.perUserDir" = false;
+        "extensions.autoDisableScopes" = 0;
+        "extensions.enabledScopes" = 15;
+      };
     in
     {
-      home.sessionVariables = {
-        MOZ_LEGACY_PROFILES = "1";
+      imports = [
+        inputs.zen-browser.homeModules.default
+      ];
+
+      programs.zen-browser = {
+        enable = true;
+        setAsDefaultBrowser = true;
+        package = inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        policies = zenBrowserPolicies;
+
+        profiles = {
+          ${user} = {
+            isDefault = true;
+            id = 0;
+            extensions.packages = defaultProfileExtensions;
+            settings = baseSettings;
+          };
+        };
       };
 
-      home.file = extensionFiles // {
-        ".config/zen/${profileName}/user.js".text = toUserJs zenPolicies;
-      };
+      home.file.".zen/policies/policies.json".source =
+        hmOpts.config.lib.file.mkOutOfStoreSymlink
+          config.sops.templates."zen-policies.json".path;
     };
 }

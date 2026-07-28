@@ -1,15 +1,49 @@
 {
-  lib,
   config,
   pkgs,
-  inputs,
+  lib,
   selfLib,
   ...
 }:
+
 let
-  system = pkgs.stdenv.hostPlatform.system;
-  custom = inputs.custompkgs.packages.${system};
-  priv = inputs.custompkgs-priv.packages.${system};
+  syncFlatpakRepoScript = pkgs.writeShellScriptBin "sync-flatpak-repo" ''
+    set -euo pipefail
+
+    REPO_DIR="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
+    REMOTE_NAME="xiaoxioe-flatpak"
+    RCLONE_MOUNT_POINT="$HOME/CloudStorage/gdrive-union-decrypted"
+    RC_URL="http://127.0.0.1:5572"
+
+    echo "==> [sync-flatpak-repo] Checking rclone FUSE mount..."
+    if ! ${pkgs.util-linux}/bin/mountpoint -q "$RCLONE_MOUNT_POINT"; then
+      echo "ERROR: Rclone FUSE mount is not active at $RCLONE_MOUNT_POINT"
+      exit 1
+    fi
+
+    echo "==> [sync-flatpak-repo] Refreshing Rclone VFS cache via RC API..."
+    if ${pkgs.curl}/bin/curl -s -f -X POST "$RC_URL/vfs/refresh?recursive=true&dir=custom-flatpaks" > /dev/null 2>&1; then
+      echo "==> [sync-flatpak-repo] VFS cache refreshed successfully."
+    else
+      echo "WARNING: Rclone RC endpoint unreachable at $RC_URL/vfs/refresh. Proceeding with filesystem check..."
+    fi
+
+    echo "==> [sync-flatpak-repo] Verifying repository path..."
+    if [ ! -d "$REPO_DIR" ]; then
+      echo "ERROR: Custom Flatpak repository directory not found at $REPO_DIR"
+      exit 1
+    fi
+
+    echo "==> [sync-flatpak-repo] Aligning Flatpak remote URL..."
+    ${pkgs.flatpak}/bin/flatpak remote-modify --system --url="file://$REPO_DIR" "$REMOTE_NAME" || true
+    ${pkgs.flatpak}/bin/flatpak remote-modify --user --url="file://$REPO_DIR" "$REMOTE_NAME" || true
+
+    echo "==> [sync-flatpak-repo] Triggering non-interactive Flatpak update..."
+    ${pkgs.flatpak}/bin/flatpak update --system -y || true
+    ${pkgs.flatpak}/bin/flatpak update --user -y || true
+
+    echo "==> [sync-flatpak-repo] Sync completed successfully."
+  '';
 in
 selfLib.mkModule {
   name = "apps.custom.flatpak-repo";
@@ -19,9 +53,10 @@ selfLib.mkModule {
     my.services.system.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/flatpak-userdata" ];
 
     systemd.tmpfiles.rules = [
-      "d /mnt/data_btrfs/flatpak-userdata 0755 ${config.my.user.name} users - -"
-      "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
-      "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
+      "d /mnt/data_btrfs/flatpak-userdata 0755 root users - -"
+      "d /mnt/data_btrfs/flatpak-local 0755 root users - -"
+      "d /mnt/data_btrfs/containers 0755 root users - -"
+      "d /home/${config.my.user.name}/CloudStorage 0755 ${config.my.user.name} users - -"
     ];
 
     services.flatpak = {
@@ -58,112 +93,35 @@ selfLib.mkModule {
 
     systemd.services.flatpak-managed-install = {
       restartIfChanged = false;
+      reloadIfChanged = false;
       stopIfChanged = false;
       # wantedBy = lib.mkForce [ ];
     };
 
-    systemd.timers.flatpak-managed-install-timer.timerConfig.RandomizedDelaySec = "15min";
+    environment.systemPackages = [ syncFlatpakRepoScript ];
   };
 
   flatpakCfg = {
     "com.portswigger.BurpSuitePro" = {
-      enable = true;
+      enable = false;
       origin = "xiaoxioe-flatpak";
       binName = "burpsuitepro";
-      nativePkgs = priv.burpsuitepro;
     };
     "io.github.xiaoyouchr.GhostDownloader" = {
-      enable = true;
+      enable = false;
       origin = "xiaoxioe-flatpak";
       binName = "ghost-downloader";
-      nativePkgs = custom.ghost-downloader-3;
     };
   };
 
   hmConfig = hmOpts: {
-    home.activation.setupFlatpakSymlinks = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      # Pastikan direktori penampung di home ada
-      ${pkgs.coreutils}/bin/mkdir -p "$HOME/.var"
-      ${pkgs.coreutils}/bin/mkdir -p "$HOME/.local/share"
+    home.packages = [ syncFlatpakRepoScript ];
 
-      # Buat symlink langsung (ln -sfn) dari home ke target host
-      # Hapus folder target asli jika ada untuk mencegah nested symlink
-      if [ -d "$HOME/.var/app" ] && [ ! -L "$HOME/.var/app" ]; then
-        ${pkgs.coreutils}/bin/rm -rf "$HOME/.var/app"
-      fi
-      if [ -d "$HOME/.local/share/flatpak" ] && [ ! -L "$HOME/.local/share/flatpak" ]; then
-        ${pkgs.coreutils}/bin/rm -rf "$HOME/.local/share/flatpak"
-      fi
-      if [ -d "$HOME/.local/share/containers" ] && [ ! -L "$HOME/.local/share/containers" ]; then
-        ${pkgs.coreutils}/bin/rm -rf "$HOME/.local/share/containers"
-      fi
-
-      ${pkgs.coreutils}/bin/ln -sfn /mnt/data_btrfs/flatpak-userdata "$HOME/.var/app"
-      ${pkgs.coreutils}/bin/ln -sfn /mnt/data_btrfs/flatpak-local "$HOME/.local/share/flatpak"
-      ${pkgs.coreutils}/bin/ln -sfn /mnt/data_btrfs/containers "$HOME/.local/share/containers"
-    '';
-
-    systemd.user.services.sync-flatpak-repo = {
-      Unit = {
-        Description = "Update private Flatpaks from Google Drive mount";
-        X-SwitchMethod = "keep-old";
-        After = [
-          "network-online.target"
-          "rclone-mount.service"
-        ];
-        Wants = [
-          "network-online.target"
-          "rclone-mount.service"
-        ];
-      };
-
-      Service = {
-        Type = "oneshot";
-        ExecStart = "${pkgs.writeShellScript "sync-flatpak-repo" ''
-          set -eu
-          REPO_PATH="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
-
-          echo "Waiting for Google Drive FUSE mount and repository directory..."
-          mounted=false
-          for i in {1..120}; do
-            if [ -d "$REPO_PATH" ]; then
-              mounted=true
-              break
-            fi
-            sleep 5
-          done
-
-          if [ "$mounted" = false ]; then
-            echo "ERROR: Google Drive mount or repository directory is not available. Skipping Flatpak update."
-            exit 0
-          fi
-
-          echo "Repository directory found. Refreshing VFS cache for Flatpak repo..."
-          ${pkgs.rclone}/bin/rclone rc vfs/refresh recursive=true dir="gdrive-union-decrypted/custom-flatpaks/repo" || true
-
-          echo "Ensuring user and system Flatpak remotes point to current repo path..."
-          ${pkgs.flatpak}/bin/flatpak remote-add --user --if-not-exists --no-gpg-verify xiaoxioe-flatpak "file://$REPO_PATH" || true
-          ${pkgs.flatpak}/bin/flatpak remote-modify --user --url="file://$REPO_PATH" xiaoxioe-flatpak || true
-
-          echo "Running Flatpak update..."
-          ${pkgs.flatpak}/bin/flatpak update --system -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro || true
-          ${pkgs.flatpak}/bin/flatpak update --user -y io.github.xiaoyouchr.GhostDownloader com.portswigger.BurpSuitePro || true
-        ''}";
-      };
-    };
-
-    systemd.user.timers.sync-flatpak-repo = {
-      Unit = {
-        Description = "Timer for updating private Flatpaks from Google Drive mount";
-      };
-      Timer = {
-        OnStartupSec = "4m";
-        RandomizedDelaySec = "30s";
-        Persistent = false;
-      };
-      Install = {
-        WantedBy = [ "timers.target" ];
-      };
-    };
+    home.file.".var/app".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-userdata";
+    home.file.".local/share/flatpak".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-local";
+    home.file.".local/share/containers".source =
+      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/containers";
   };
 }

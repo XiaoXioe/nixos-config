@@ -1,10 +1,11 @@
 {
   config,
   pkgs,
-  selfLib,
   inputs,
+  selfLib,
   ...
 }:
+
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
     addons
@@ -15,6 +16,10 @@ let
     commonSearchEngines
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
+    lock-false
+    lock-true
+    lock-empty-string
+    lock
     ;
 
   # Extension packages per profile (100% declarative Home Manager packages)
@@ -48,11 +53,9 @@ let
     tampermonkey
   ];
 
-  # Single source of truth: policies used by both nixosConfig (/etc) and hmConfig (programs.firefox)
   firefoxPolicies = commonPrivacyPolicies // {
     SearchEngines = commonSearchEngines;
   };
-
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -61,18 +64,22 @@ selfLib.mkModule {
   flatpakCfg = {
     "org.mozilla.firefox" = {
       enable = true;
+      binName = "firefox";
+
       overrides = {
-        Context.filesystems = [
-          "/run/opengl-driver/lib/dri:ro"
-          "xdg-run/psd" # Profile Sync Daemon tmpfs
-          "xdg-run/firefox" # Runtime per-user policy directory
-          "xdg-run/org.mozilla.firefox"
-        ];
+        Context = {
+          filesystems = [
+            "/run/opengl-driver/lib/dri:ro"
+            "xdg-run/psd" # Profile Sync Daemon tmpfs
+            "xdg-run/firefox" # Runtime per-user policy directory
+            "xdg-run/org.mozilla.firefox"
+          ];
+        };
         Environment = {
           LD_PRELOAD = "${pkgs.libva.out}/lib/libva.so.2:${pkgs.libva.out}/lib/libva-drm.so.2";
           LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
           MOZ_LEGACY_PROFILES = "1";
-          MOZ_SYSTEM_CONFIG_DIR = "/home/${config.my.user.name}/.config/mozilla/firefox";
+          MOZ_SYSTEM_CONFIG_DIR = "~/.config/mozilla/firefox";
         };
       };
       symlinks = [
@@ -92,23 +99,33 @@ selfLib.mkModule {
     environment.sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
     };
-    environment.etc."firefox/policies/policies.json".source =
-      config.sops.templates."firefox-policies.json".path;
 
-    sops.secrets."firefox-bookmarks" = mkBookmarkSecret (
-      selfLib.secretBinary "browsers/firefox-bookmarks.enc"
-    );
-    sops.templates."firefox-policies.json" = mkBookmarkPoliciesTemplate {
-      ownerName = config.my.user.name;
-      basePolicies = firefoxPolicies;
-      bookmarkPlaceholder = config.sops.placeholder."firefox-bookmarks";
+    sops.secrets = {
+      "firefox-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/firefox-bookmarks.enc");
+    };
+
+    sops.templates = {
+      "firefox-policies.json" = mkBookmarkPoliciesTemplate {
+        ownerName = config.my.user.name;
+        basePolicies = firefoxPolicies;
+        bookmarkPlaceholder = config.sops.placeholder."firefox-bookmarks";
+      };
     };
   };
 
   hmConfig =
     hmOpts:
     let
-      baseSettings = {
+      firefoxPoliciesPrefs = import ./policies {
+        inherit
+          lock
+          lock-true
+          lock-false
+          lock-empty-string
+          ;
+      };
+
+      baseSettings = firefoxPoliciesPrefs // {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
         "browser.urlbar.quickactions.enabled" = false;
@@ -142,46 +159,38 @@ selfLib.mkModule {
           "en-US"
           "id"
         ];
-        policies = firefoxPolicies;
 
         profiles = {
-          ${hmOpts.config.home.username} = {
-            isDefault = true;
+          default = {
             id = 0;
-            inherit userChrome;
+            name = "Default User";
+            isDefault = true;
+            settings = baseSettings;
+            userChrome = userChrome;
             extensions.packages = defaultProfileExtensions;
-            settings = baseSettings // {
-              "privacy.resistFingerprinting" = false;
-              "privacy.fingerprintingProtection" = true;
-              "privacy.fingerprintingProtection.overrides" =
-                "+AllTargets,-CSSPrefersColorScheme,-ReduceTimerPrecision";
-              "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
-              "media.peerconnection.enabled" = true;
-              "webgl.disabled" = false;
-              "geo.enabled" = true;
-            };
           };
-          "${hmOpts.config.home.username}-hardened" = {
-            isDefault = false;
+
+          hardened = {
             id = 1;
-            inherit userChrome;
-            extensions.packages = hardenedProfileExtensions;
+            name = "Hardened User";
+            isDefault = false;
             settings = baseSettings // {
-              "privacy.resistFingerprinting" = false;
-              "privacy.fingerprintingProtection" = true;
-              "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
-              "privacy.clearOnShutdown_v2.cache" = false;
-              "privacy.sanitize.sanitizeOnShutdown" = false;
-              "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
-              "privacy.clearOnShutdown_v2.browsingHistoryAndDownloads" = false;
+              "privacy.firstparty.isolate" = true;
+              "privacy.trackingprotection.fingerprinting.enabled" = true;
+              "privacy.trackingprotection.cryptomining.enabled" = true;
+              "dom.event.clipboardevents.enabled" = false;
               "media.peerconnection.enabled" = false;
-              "webgl.disabled" = false;
-              "geo.enabled" = false;
-              "browser.privatebrowsing.autostart" = false;
-              "device.sensors.enabled" = false;
             };
+            userChrome = userChrome;
+            extensions.packages = hardenedProfileExtensions;
           };
         };
       };
+
+      # Syarat Mozilla Gecko Policy: File policies.json di-link ke folder per-user
+      # ~/.config/mozilla/firefox/policies/policies.json
+      home.file.".config/mozilla/firefox/policies/policies.json".source =
+        hmOpts.config.lib.file.mkOutOfStoreSymlink
+          config.sops.templates."firefox-policies.json".path;
     };
 }
