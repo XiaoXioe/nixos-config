@@ -7,33 +7,13 @@
 
 selfLib.mkModule {
   name = "apps.dev.git";
-  description = "user git configuration";
+  description = "User git configuration";
 
   nixosConfig = {
     systemd.tmpfiles.rules = [
       "d /home/${config.my.user.name}/.config/gh 0700 ${config.my.user.name} users - -"
     ];
-    sops.templates."gh-hosts.yml" = {
-      path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
-      owner = config.my.user.name;
-      mode = "0600";
-      content = ''
-        github.com:
-            user: ${config.sops.placeholder.github-user-1}
-            users:
-                ${config.sops.placeholder.github-user-1}:
-                    oauth_token: ${config.sops.placeholder.github-access-token-1}
-                    git_protocol: ssh
-                ${config.sops.placeholder.github-user-2}:
-                    oauth_token: ${config.sops.placeholder.github-access-token-2}
-                    git_protocol: ssh
-                ${config.sops.placeholder.github-user-3}:
-                    oauth_token: ${config.sops.placeholder.github-access-token-3}
-                    git_protocol: ssh
-            oauth_token: ${config.sops.placeholder.github-access-token-1}
-            git_protocol: ssh
-      '';
-    };
+
     sops.secrets = {
       "github-user-1" = {
         owner = config.my.user.name;
@@ -59,6 +39,28 @@ selfLib.mkModule {
         owner = config.my.user.name;
         mode = "0400";
       };
+    };
+
+    sops.templates."gh_hosts.yml" = {
+      path = "/home/${config.my.user.name}/.config/gh/hosts.yml";
+      owner = config.my.user.name;
+      mode = "0600";
+      content = ''
+        github.com:
+            user: ${config.sops.placeholder."github-user-1"}
+            users:
+                ${config.sops.placeholder."github-user-1"}:
+                    oauth_token: ${config.sops.placeholder."github-access-token-1"}
+                    git_protocol: ssh
+                ${config.sops.placeholder."github-user-2"}:
+                    oauth_token: ${config.sops.placeholder."github-access-token-2"}
+                    git_protocol: ssh
+                ${config.sops.placeholder."github-user-3"}:
+                    oauth_token: ${config.sops.placeholder."github-access-token-3"}
+                    git_protocol: ssh
+            oauth_token: ${config.sops.placeholder."github-access-token-1"}
+            git_protocol: ssh
+      '';
     };
   };
 
@@ -87,7 +89,7 @@ selfLib.mkModule {
       };
       settings = {
         user = {
-          name = hmOpts.osConfig.my.user.fullName;
+          name = "XiaoXioe";
           email = "169626976+XiaoXioe@users.noreply.github.com";
         };
         safe.directory = [

@@ -41,22 +41,7 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    home.file.".ssh/config_raw".source =
+    home.file.".ssh/config".source =
       hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/ssh-config/config.conf";
-    programs.ssh = {
-      enable = true;
-      enableDefaultConfig = false;
-      includes = [ "~/.ssh/config_raw" ];
-      settings = {
-        "*" = {
-          SendEnv = "LANG LC_*";
-        };
-        "github.com" = {
-          User = "git";
-          IdentityFile = "~/.ssh/id_ed25519";
-          IdentitiesOnly = "yes";
-        };
-      };
-    };
   };
 }
