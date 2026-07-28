@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   selfLib,
   ...
 }:
@@ -28,66 +27,58 @@ selfLib.mkModule {
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-gnome3;
       settings = {
-        default-cache-ttl = 86400; # Cache selama 24 jam sejak terakhir aktif
-        max-cache-ttl = 86400; # Maksimum cache 24 jam
+        default-cache-ttl = 86400; # 24 Hours
+        max-cache-ttl = 86400;
       };
     };
 
     sops.secrets = lib.listToAttrs (
-      map (
-        n:
-        lib.nameValuePair "gpg-private-key-${n}" {
+      map (n: {
+        name = "gpg-private-key-${n}";
+        value = {
           format = "binary";
           sopsFile = selfLib.secretBinary "gnupg/private-key-${n}.enc";
           owner = config.my.user.name;
           mode = "0600";
-        }
-      ) gpgKeyNums
+        };
+      }) gpgKeyNums
     );
   };
 
-  hmConfig =
-    hmOpts:
-    let
-      gpgKeys = lib.genAttrs gpgKeyNums (n: {
-        path = hmOpts.osConfig.sops.secrets."gpg-private-key-${n}".path;
-        keyId = gpgKeyIds.${n};
-      });
-    in
-    {
-      programs.gpg = {
-        enable = true;
-        publicKeys = map (n: {
-          source = ./. + "/public-key-${n}.asc";
-          trust = "ultimate";
-        }) gpgKeyNums;
+  hmConfig = hmOpts: {
+    programs.gpg = {
+      enable = true;
+      publicKeys = map (n: {
+        source = ./. + "/public-key-${n}.asc";
+        trust = "ultimate";
+      }) gpgKeyNums;
+    };
+
+    home.file =
+      lib.listToAttrs (
+        map (n: {
+          name = ".gnupg/public-key-${n}.asc";
+          value.source = ./. + "/public-key-${n}.asc";
+        }) gpgKeyNums
+      )
+      // {
+        ".gnupg/sshcontrol".text = ''
+          # Managed by Home Manager
+          05C43456D409B53584AE76A4EA71B1A8128E5E37
+        '';
       };
 
-      home.file =
-        lib.listToAttrs (
-          map (n: {
-            name = ".gnupg/public-key-${n}.asc";
-            value.source = ./. + "/public-key-${n}.asc";
-          }) gpgKeyNums
-        )
-        // {
-          ".gnupg/sshcontrol".text = ''
-            # Managed by Home Manager
-            05C43456D409B53584AE76A4EA71B1A8128E5E37
-          '';
-        };
-
-      home.activation.importGpg = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] (
-        hmOpts.lib.concatStringsSep "\n" (
-          hmOpts.lib.mapAttrsToList (num: key: ''
-            if [ -f ${key.path} ]; then
-              if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys | grep -q "${key.keyId}"; then
-                echo "Importing GPG private key ${num}..."
-                ${pkgs.gnupg}/bin/gpg --import ${key.path}
-              fi
-            fi
-          '') gpgKeys
-        )
-      );
-    };
+    home.activation.importGpgPrivateKeys = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      ${lib.concatMapStringsSep "\n" (n: ''
+        key_path="${hmOpts.osConfig.sops.secrets."gpg-private-key-${n}".path}"
+        key_id="${gpgKeyIds.${n}}"
+        if [ -f "$key_path" ]; then
+          if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys "$key_id" >/dev/null 2>&1; then
+            echo "Importing GPG private key ${n} ($key_id)..."
+            ${pkgs.gnupg}/bin/gpg --batch --import "$key_path" || true
+          fi
+        fi
+      '') gpgKeyNums}
+    '';
+  };
 }
