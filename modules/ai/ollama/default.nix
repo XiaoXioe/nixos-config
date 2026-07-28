@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "ai.ollama";
 
   nixosConfig = {
-    sops.secrets."ollama-env" = { };
+    sops.secrets = builtins.listToAttrs [ (selfLib.secrets.mkSecret { key = "ollama-env"; }) ];
 
     services.ollama = {
       enable = true;

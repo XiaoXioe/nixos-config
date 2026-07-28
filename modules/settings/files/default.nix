@@ -15,11 +15,14 @@ selfLib.mkModule {
       "d /mnt/data_btrfs/PersistentData 0755 ${config.my.user.name} users - -"
     ];
 
-    sops.secrets."foto-profile" = {
-      format = "binary";
-      owner = config.my.user.name;
-      sopsFile = selfLib.secretBinary "media/foto-profile.enc";
-    };
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "foto-profile";
+        format = "binary";
+        owner = config.my.user.name;
+        sopsFile = selfLib.secretBinary "media/foto-profile.enc";
+      })
+    ];
   };
 
   hmConfig = hmOpts: {
