@@ -1,11 +1,25 @@
 { lib, pkgs }:
 
 {
+  # Generates isolated Shell Applications with clean runtimeInputs
+  mkApp =
+    name: text: runtimeInputs:
+    pkgs.writeShellApplication {
+      inherit name text runtimeInputs;
+    };
+
   # Generate a list of shell script packages from an attribute set
   # Usage: mkScripts { "script-name" = "echo hello"; }
   mkScripts =
     scriptsAttrSet:
-    lib.mapAttrsToList (name: script: pkgs.writeShellScriptBin name script) scriptsAttrSet;
+    lib.mapAttrsToList (
+      name: script:
+      pkgs.writeShellApplication {
+        inherit name;
+        runtimeInputs = [ pkgs.coreutils ];
+        text = script;
+      }
+    ) scriptsAttrSet;
 
   # Generate xdg.configFile completions for multiple shells
   # Usage: mkShellCompletions { name = "mycmd"; bash = "..."; fish = "..."; zsh = "..."; }

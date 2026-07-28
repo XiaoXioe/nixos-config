@@ -13,8 +13,9 @@
   mkSecret =
     {
       key,
-      owner,
+      owner ? "root",
       mode ? "0400",
+      group ? null,
       sopsFile ? null,
       path ? null,
       format ? "yaml",
@@ -27,6 +28,7 @@
       }
       // (lib.optionalAttrs (sopsFile != null) { inherit sopsFile; })
       // (lib.optionalAttrs (path != null) { inherit path; })
-      // (lib.optionalAttrs (format != "yaml") { inherit format; });
+      // (lib.optionalAttrs (format != "yaml") { inherit format; })
+      // (lib.optionalAttrs (group != null) { inherit group; });
     };
 }
