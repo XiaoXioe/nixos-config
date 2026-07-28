@@ -142,12 +142,6 @@
           home-manager.users.${adminUser} = {
             imports = homeModules;
           };
-          systemd.services."home-manager-${adminUser}" = {
-            restartIfChanged = false;
-            reloadIfChanged = false;
-            stopIfChanged = false;
-            restartTriggers = lib.mkForce [ ];
-          };
         }
       ];
 
