@@ -53,9 +53,9 @@ selfLib.mkModule {
     my.services.system.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/flatpak-userdata" ];
 
     systemd.tmpfiles.rules = [
-      "d /mnt/data_btrfs/flatpak-userdata 0755 root users - -"
-      "d /mnt/data_btrfs/flatpak-local 0755 root users - -"
-      "d /mnt/data_btrfs/containers 0755 root users - -"
+      "d /mnt/data_btrfs/flatpak-userdata 0755 ${config.my.user.name} users - -"
+      "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
+      "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/CloudStorage 0755 ${config.my.user.name} users - -"
     ];
 
