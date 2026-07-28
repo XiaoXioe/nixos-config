@@ -62,6 +62,14 @@ in
     secrets
     ;
 
+  # Helper to easily generate Home Manager out-of-store symlinks
+  # Usage: selfLib.mkHmSymlinks hmOpts.config { "Documents" = "/mnt/data/Documents"; }
+  mkHmSymlinks =
+    hmConfig: attrs:
+    lib.mapAttrs (name: path: {
+      source = hmConfig.lib.file.mkOutOfStoreSymlink path;
+    }) attrs;
+
   network = import ./network;
   shell = import ./shell;
 

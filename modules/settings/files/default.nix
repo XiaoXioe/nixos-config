@@ -23,21 +23,15 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    home.file."Documents".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Documents";
-    home.file."Downloads".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Downloads";
-    home.file."Pictures".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Pictures";
-    home.file."Videos".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Videos";
-    home.file."Music".source = hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data/Music";
-    home.file."PersistentData".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/PersistentData";
-
-    home.file = {
-      ".face.icon".source =
-        hmOpts.config.lib.file.mkOutOfStoreSymlink
-          hmOpts.osConfig.sops.secrets."foto-profile".path;
-      ".face".source =
-        hmOpts.config.lib.file.mkOutOfStoreSymlink
-          hmOpts.osConfig.sops.secrets."foto-profile".path;
+    home.file = selfLib.mkHmSymlinks hmOpts.config {
+      "Documents" = "/mnt/data/Documents";
+      "Downloads" = "/mnt/data/Downloads";
+      "Pictures" = "/mnt/data/Pictures";
+      "Videos" = "/mnt/data/Videos";
+      "Music" = "/mnt/data/Music";
+      "PersistentData" = "/mnt/data_btrfs/PersistentData";
+      ".face.icon" = hmOpts.osConfig.sops.secrets."foto-profile".path;
+      ".face" = hmOpts.osConfig.sops.secrets."foto-profile".path;
     };
   };
 }
