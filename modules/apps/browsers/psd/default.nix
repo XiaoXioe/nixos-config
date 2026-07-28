@@ -11,14 +11,18 @@ selfLib.mkModule {
   description = "Profile Sync Daemon (PSD) for syncing browser profiles to RAM (tmpfs)";
 
   nixosConfig = {
+    environment.systemPackages = [ pkgs.profile-sync-daemon ];
+
     # Allow passwordless execution of psd-overlay-helper for sudo and sudo-rs
     security.sudo.extraConfig = ''
       ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
       ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
+      ${config.my.user.name} ALL=(ALL) NOPASSWD: /etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper
     '';
     security.sudo-rs.extraConfig = ''
       ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
       ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
+      ${config.my.user.name} ALL=(ALL) NOPASSWD: /etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper
     '';
 
     # Override profile-sync-daemon globally so systemd services pick it up natively
@@ -30,18 +34,13 @@ selfLib.mkModule {
               if [ -f common/profile-sync-daemon.in ]; then
                 substituteInPlace common/profile-sync-daemon.in \
                   --replace-fail 'sudo -kn' 'sudo -n' \
+                  --replace-fail 'sudo -n psd-overlay-helper' 'sudo -n /run/current-system/sw/bin/psd-overlay-helper' \
+                  --replace-fail 'sudo psd-overlay-helper' 'sudo /run/current-system/sw/bin/psd-overlay-helper' \
                   --replace-fail 'find "''${DIR%/*}"' 'find "''${DIR%/*}" 2>/dev/null'
               fi
               if [ -f common/psd-overlay-helper ]; then
                 substituteInPlace common/psd-overlay-helper \
                   --replace-fail 'sudo -u "$user"' 'runuser -u "$user" --'
-              fi
-            '';
-
-            postInstall = (oldAttrs.postInstall or "") + ''
-              if [ -f $out/bin/psd ]; then
-                substituteInPlace $out/bin/psd \
-                  --replace-fail "$out/bin/psd-overlay-helper" "/run/current-system/sw/bin/psd-overlay-helper" || true
               fi
             '';
 
@@ -86,7 +85,7 @@ selfLib.mkModule {
 
     xdg.configFile."psd/psd.conf".text = ''
       USE_OVERLAYFS="yes"
-      USE_BACKUPS="false"
+      USE_BACKUP="false"
       BROWSERS=(firefox zen torbrowser brave chromium)
     '';
   };
