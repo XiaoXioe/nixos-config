@@ -63,15 +63,10 @@ selfLib.mkModule {
           chainloader /EFI/grubfm/grubfmx64.efi
         }
       '';
-    };
 
-    system.activationScripts.setupGrubFM = {
-      text = ''
-        set -eu
-        mkdir -p /boot/efi/EFI/grubfm
-        cp -f ${grubfm-efi}/grubfmx64.efi /boot/efi/EFI/grubfm/grubfmx64.efi
-      '';
-      deps = [ ];
+      extraFiles = {
+        "efi/EFI/grubfm/grubfmx64.efi" = "${grubfm-efi}/grubfmx64.efi";
+      };
     };
   };
 }
