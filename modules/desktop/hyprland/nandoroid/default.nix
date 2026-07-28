@@ -31,7 +31,7 @@ selfLib.mkModule {
     '';
 
     home.packages = with pkgs; [
-      (symlinkJoin {
+      (lib.lowPrio (symlinkJoin {
         name = "quickshell-wrapped";
         paths = [ quickshell ];
         nativeBuildInputs = [ makeWrapper ];
@@ -46,7 +46,7 @@ selfLib.mkModule {
             --set QT_WAYLAND_DISABLE_WINDOWDECORATION 1 \
             --set QT_SCALE_FACTOR_ROUNDING_POLICY RoundPreferFloor
         '';
-      })
+      }))
       matugen
       dgop
       jq

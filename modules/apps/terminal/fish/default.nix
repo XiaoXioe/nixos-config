@@ -13,9 +13,9 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     imports = [
-      ./fish.nix
-      ./alias.nix
-      ./function.nix
+      ./settings
+      ./alias
+      ./function
     ];
   };
 }

@@ -11,7 +11,7 @@ selfLib.mkModule {
   description = "Hyprland window manager with Caelestia Shell";
 
   imports = [
-    ./nandoroid.nix
+    ./nandoroid
   ];
 
   nixosConfig = {
@@ -42,12 +42,12 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     imports = [
-      ./settings.nix
-      ./keybind.nix
+      ./settings
+      ./keybind
     ]
     ++ lib.optionals (inputs ? caelestia-shell && !hmOpts.config.my.desktop.hyprland.nandoroid.enable) [
       inputs.caelestia-shell.homeManagerModules.default
-      ./caelestia.nix
+      ./caelestia
     ];
   };
 }
