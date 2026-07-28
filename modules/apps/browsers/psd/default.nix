@@ -38,6 +38,13 @@ selfLib.mkModule {
               fi
             '';
 
+            postInstall = (oldAttrs.postInstall or "") + ''
+              if [ -f $out/bin/psd ]; then
+                substituteInPlace $out/bin/psd \
+                  --replace-fail "$out/bin/psd-overlay-helper" "/run/current-system/sw/bin/psd-overlay-helper" || true
+              fi
+            '';
+
             installPhase = (oldAttrs.installPhase or "") + ''
               cat << 'EOF' > $out/share/psd/browsers/brave
               DIRArr[0]="$HOME/.config/BraveSoftware/Brave-Browser"
