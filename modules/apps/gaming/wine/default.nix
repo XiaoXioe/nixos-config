@@ -45,15 +45,13 @@ selfLib.mkModule {
       WINEARCH = "win64";
     };
 
-    home.activation.setupBottlesSymlinks = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
-      hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        if [ -d "$HOME/.local/share/bottles" ] && [ ! -L "$HOME/.local/share/bottles" ]; then
-          ${pkgs.coreutils}/bin/rm -rf "$HOME/.local/share/bottles"
-        fi
-        ${pkgs.coreutils}/bin/mkdir -p "$HOME/.local/share"
-        ${pkgs.coreutils}/bin/mkdir -p "/mnt/data_btrfs/bottles"
-        ${pkgs.coreutils}/bin/ln -sfn "/mnt/data_btrfs/bottles" "$HOME/.local/share/bottles"
-      ''
-    );
+    systemd.user.tmpfiles.rules = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
+      "d /mnt/data_btrfs/bottles 0755 - - -"
+    ];
+
+    home.file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
+      ".local/share/bottles".source =
+        hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/bottles";
+    };
   };
 }
