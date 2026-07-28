@@ -1,4 +1,9 @@
-{ config, selfLib, ... }:
+{
+  config,
+  lib,
+  selfLib,
+  ...
+}:
 selfLib.mkModule {
   name = "core.memory";
   nixosConfig = {
@@ -21,32 +26,33 @@ selfLib.mkModule {
       };
     };
 
-    fileSystems."/home/${config.my.user.name}/.cache/nix" = {
-      device = "tmpfs";
-      fsType = "tmpfs";
-      options = [
-        "rw"
-        "nodev"
-        "nosuid"
-        "size=2G"
-        "mode=0700"
-        "uid=1000"
-        "gid=100"
-      ];
-    };
-
-    fileSystems."/root/.cache/nix" = {
-      device = "tmpfs";
-      fsType = "tmpfs";
-      options = [
-        "rw"
-        "nodev"
-        "nosuid"
-        "size=1G"
-        "mode=0700"
-        "uid=0"
-        "gid=0"
-      ];
+    fileSystems = {
+      "/home/${config.my.user.name}/.cache/nix" = {
+        device = "tmpfs";
+        fsType = "tmpfs";
+        options = [
+          "rw"
+          "nodev"
+          "nosuid"
+          "size=2G"
+          "mode=0700"
+          "uid=1000"
+          "gid=100"
+        ];
+      };
+      "/root/.cache/nix" = {
+        device = "tmpfs";
+        fsType = "tmpfs";
+        options = [
+          "rw"
+          "nodev"
+          "nosuid"
+          "size=1G"
+          "mode=0700"
+          "uid=0"
+          "gid=0"
+        ];
+      };
     };
 
     zramSwap = {

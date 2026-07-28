@@ -73,9 +73,15 @@ selfLib.mkModule {
                 has_c=true
               fi
 
-              # Migrasi jika direktori belum memiliki atribut +C ATAU berkas penanda migrasi belum ada
-              if [ "$has_c" = false ] || [ ! -f "$target_dir/.nocow-migrated" ]; then
-                echo "==> [nocow-migration] $target_dir belum sepenuhnya dikonversi (atau marker belum ada). Memulai migrasi..."
+              if [ "$has_c" = true ]; then
+                if [ ! -f "$target_dir/.nocow-migrated" ]; then
+                  echo "==> [nocow-migration] Atribut nocow (+C) sudah aktif pada $target_dir. Menandai migrasi selesai."
+                  touch "$target_dir/.nocow-migrated"
+                else
+                  echo "==> [nocow-migration] $target_dir sudah memiliki atribut nocow dan marker migrasi."
+                fi
+              else
+                echo "==> [nocow-migration] $target_dir belum memiliki atribut nocow (+C). Memulai migrasi..."
 
                 # 1. Lepas semua mountpoint aktif yang berhubungan dengan host_dir atau target_dir
                 local mounted_paths=()
@@ -147,8 +153,6 @@ selfLib.mkModule {
                 done
 
                 echo "==> [nocow-migration] Migrasi $target_dir selesai."
-              else
-                echo "==> [nocow-migration] $target_dir sudah memiliki atribut nocow dan marker migrasi."
               fi
             fi
           }

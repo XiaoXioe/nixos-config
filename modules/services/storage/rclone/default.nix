@@ -1,62 +1,68 @@
 {
   config,
   pkgs,
-  inputs,
+  lib,
   selfLib,
   ...
 }:
 
+let
+  rcloneRemote = "semua-drive";
+in
+
 selfLib.mkModule {
   name = "services.storage.rclone";
-  description = "rclone mount service";
+  description = "Rclone FUSE Cloud Storage Mount";
 
   nixosConfig = {
-    programs.fuse.userAllowOther = true;
-
-    sops.secrets."rclone.conf" = {
-      format = "binary";
-      sopsFile = selfLib.secretBinary "storage/rclone.enc.conf";
-      owner = config.my.user.name;
-      mode = "0400";
+    sops.secrets = {
+      "rclone.conf" = {
+        format = "binary";
+        sopsFile = selfLib.secretBinary "storage/rclone.enc.conf";
+        owner = config.my.user.name;
+        mode = "0444";
+      };
     };
+
+    programs.fuse.userAllowOther = true;
   };
 
   hmConfig =
     hmOpts:
     let
-      rcloneRemote = "semua-drive";
       mountPoint = "${hmOpts.config.home.homeDirectory}/CloudStorage";
+      rcPort = 5572;
     in
     {
-      home.packages = [ pkgs.rclone ];
       systemd.user.services.rclone-mount = {
         Unit = {
-          Description = "Mount Rclone Remote (${rcloneRemote})";
+          Description = "Mount Rclone FUSE Cloud Storage (${rcloneRemote})";
           After = [ "network-online.target" ];
           Wants = [ "network-online.target" ];
           "X-SwitchMethod" = "keep-old";
         };
         Service = {
           Type = "simple";
+          NotifyAccess = "none";
           ExecStartPre = [
-            "-${pkgs.bash}/bin/bash -c '/run/wrappers/bin/fusermount3 -uz ${mountPoint} > /dev/null 2>&1 || true'"
             "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
-            "${pkgs.coreutils}/bin/mkdir -p ${hmOpts.config.home.homeDirectory}/.config/rclone"
-            "${pkgs.coreutils}/bin/cp ${hmOpts.osConfig.sops.secrets."rclone.conf".path} %t/rclone.conf"
-            "${pkgs.coreutils}/bin/chmod 600 %t/rclone.conf"
+            "${pkgs.writeShellScript "rclone-copy-config" ''
+              ${pkgs.coreutils}/bin/cp ${
+                hmOpts.osConfig.sops.secrets."rclone.conf".path
+              } "$XDG_RUNTIME_DIR/rclone.conf"
+              ${pkgs.coreutils}/bin/chmod 600 "$XDG_RUNTIME_DIR/rclone.conf"
+            ''}"
           ];
-          ExecStart = "${pkgs.writeShellScript "rclone-mount" ''
-            # Wait for SOCKS5 proxy port 40000 and verify actual internet connectivity
-            for i in {1..30}; do
-              if ${pkgs.curl}/bin/curl -s --max-time 3 -o /dev/null --proxy socks5h://127.0.0.1:40000 https://www.google.com; then
-                break
-              fi
-              ${pkgs.coreutils}/bin/sleep 2
-            done
+          ExecStart = pkgs.writeShellScript "rclone-mount-start" ''
+            set -euo pipefail
+            unset NOTIFY_SOCKET
+
+            ${(selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "rclone-wait-proxy"}
 
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "$XDG_RUNTIME_DIR/rclone.conf" \
               --rc \
+              --rc-addr "127.0.0.1:${toString rcPort}" \
               --rc-no-auth \
               --allow-other \
               --vfs-cache-mode full \
@@ -69,22 +75,15 @@ selfLib.mkModule {
               --vfs-read-chunk-size 32M \
               --vfs-read-chunk-size-limit 1G \
               --buffer-size 64M \
-              --drive-use-trash \
-              --vfs-fast-fingerprint \
               --no-checksum \
-              --drive-pacer-min-sleep=100ms \
-              --log-file="${hmOpts.config.home.homeDirectory}/.config/rclone/rclone.log" \
-              --log-level INFO
-          ''}";
+              --no-modtime
+          '';
+          ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
           Restart = "on-failure";
           RestartSec = "10s";
-          TimeoutSec = "5m";
-          Environment = [
-            "PATH=/run/wrappers/bin:$PATH"
-            "HTTP_PROXY=socks5h://127.0.0.1:40000"
-            "HTTPS_PROXY=socks5h://127.0.0.1:40000"
-            "ALL_PROXY=socks5h://127.0.0.1:40000"
-          ];
+          Environment =
+            lib.mapAttrsToList (n: v: "${n}=${v}")
+              (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
         };
         Install = {
           WantedBy = [ "default.target" ];

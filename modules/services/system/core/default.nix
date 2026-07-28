@@ -10,6 +10,7 @@ selfLib.mkModule {
 
   nixosConfig = {
     services = {
+      speechd.enable = lib.mkForce false;
       thermald.enable = true;
       udisks2.enable = true;
       vnstat.enable = true;
