@@ -1,4 +1,5 @@
 {
+  inputs,
   selfLib,
   ...
 }:
@@ -8,16 +9,20 @@ selfLib.mkModule {
   description = "Niri window manager with DankMaterialShell";
 
   imports = [
-    ./dms.nix
+    inputs.niri.nixosModules.niri
+    ./dms
   ];
 
-  nixosConfig = {
-    programs.niri.enable = true;
-  };
+  nixosConfig =
+    { pkgs, ... }:
+    {
+      programs.niri.enable = true;
+      programs.niri.package = pkgs.niri;
+    };
 
   hmConfig = hmOpts: {
     imports = [
-      ./settings.nix
+      ./settings
     ];
   };
 }

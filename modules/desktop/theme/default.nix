@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   selfLib,
   ...
 }:
@@ -42,7 +43,6 @@ selfLib.mkModule {
       };
       home.sessionVariables = {
         EDITOR = "codium -w";
-        BROWSER = "firefox";
         QT_QPA_PLATFORM = "wayland;xcb";
         QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
       };
