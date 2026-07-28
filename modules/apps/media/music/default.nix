@@ -65,10 +65,9 @@ selfLib.mkModule {
       enable = true;
     };
 
-    xdg.configFile."rmpc/config.ron".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/rmpc/config.ron";
-
-    xdg.configFile."rmpc/themes/custom.ron".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/rmpc/theme.ron";
+    home.file = selfLib.mkHmSymlinks hmOpts.config {
+      ".config/rmpc/config.ron" = "${flakePath}/dotfiles/rmpc/config.ron";
+      ".config/rmpc/theme.ron" = "${flakePath}/dotfiles/rmpc/theme.ron";
+    };
   };
 }
