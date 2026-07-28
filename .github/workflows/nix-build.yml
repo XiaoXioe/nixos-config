@@ -35,5 +35,6 @@ jobs:
             ".#pipewire-32bit" \
             ".#llama" \
             ".#torlink" \
+            ".#dms" \
             ".#devShells.x86_64-linux.default" \
             -L
