@@ -5,6 +5,7 @@
   selfLib,
   ...
 }:
+
 let
   system = pkgs.stdenv.hostPlatform.system;
 
@@ -66,7 +67,7 @@ selfLib.mkModule {
     let
       homeDir = config.home.homeDirectory;
 
-      # Secret paths (defined sekali, dipakai kedua format)
+      # Path rahasia sops-nix
       githubTokenPath = osConfig.sops.secrets."github-access-token-1".path;
       tavilyKeyPath = osConfig.sops.secrets."tavily-api-key".path;
       cloudflareTokenPath = osConfig.sops.secrets."cloudflare-token".path;
@@ -162,14 +163,10 @@ selfLib.mkModule {
 
       cloudflareCfg = {
         url = "https://mcp.cloudflare.com/mcp";
-        opencodeHeaders = {
-          Authorization = "Bearer {file:${cloudflareTokenPath}}";
-        };
       };
 
       opencodeMcpConfig = opencodeExec // opencodeSsh;
 
-      # ─── Renderers ───
       geminiSsh = lib.mapAttrs (name: cfg: makeSshMcp (cfg // { inherit homeDir; })) sshServers;
 
       geminiExec = lib.mapAttrs (
@@ -204,6 +201,9 @@ selfLib.mkModule {
           mcp-nixos-pkg
         ];
 
+        # KRUSIAL: home.activation Diperlukan untuk:
+        # 1. Menggabungkan secret token Cloudflare dari /run/user/1000/secrets/ ke mcp_config.json saat runtime.
+        # 2. Menjaga opencode.json tetap MUTABLE agar OpenCode dapat mengedit tools/config tanpa error 'read-only filesystem'.
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           TOKEN_PATH="${cloudflareTokenPath}"
           BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
@@ -213,26 +213,26 @@ selfLib.mkModule {
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/.gemini/config"
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/.config/opencode"
 
-          if [ ! -f "$BASE_CONF" ]; then exit 0; fi
-
-          if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
-            CF_TOKEN=$(${pkgs.coreutils}/bin/cat "$TOKEN_PATH")
-            ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
-              '.mcpServers += {
-                "cloudflare-api": {
-                  "url": "${cloudflareCfg.url}",
-                  "headers": {
-                    "Authorization": $token
+          if [ -f "$BASE_CONF" ]; then
+            if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
+              CF_TOKEN=$(${pkgs.coreutils}/bin/cat "$TOKEN_PATH")
+              ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
+                '.mcpServers += {
+                  "cloudflare-api": {
+                    "url": "${cloudflareCfg.url}",
+                    "headers": {
+                      "Authorization": $token
+                    }
                   }
-                }
-              }' "$BASE_CONF" > "$FINAL_CONF"
-            ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
-          else
-            ${pkgs.coreutils}/bin/cp "$BASE_CONF" "$FINAL_CONF"
-            ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
+                }' "$BASE_CONF" > "$FINAL_CONF"
+              ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
+            else
+              ${pkgs.coreutils}/bin/cp "$BASE_CONF" "$FINAL_CONF"
+              ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
+            fi
           fi
 
-          # ─── Mutable opencode.json handling ───
+          # Menjaga opencode.json sebagai file yang dapat diubah (mutable) oleh CLI OpenCode
           MCP_JSON='${builtins.toJSON opencodeMcpConfig}'
 
           if [ -L "$OPENCODE_CONF" ]; then
