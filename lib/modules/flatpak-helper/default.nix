@@ -1,11 +1,11 @@
 { lib, ... }:
 
 let
-  utils = import ./utils.nix { inherit lib; };
-  optionsHelper = import ./options.nix { inherit lib; };
-  activationHelper = import ./activation.nix { inherit lib; };
-  overridesHelper = import ./overrides.nix { inherit lib; };
-  packagesHelper = import ./packages.nix { inherit lib; };
+  utils = import ./utils { inherit lib; };
+  optionsHelper = import ./options { inherit lib; };
+  activationHelper = import ./activation { inherit lib; };
+  overridesHelper = import ./overrides { inherit lib; };
+  packagesHelper = import ./packages { inherit lib; };
 in
 {
   inherit (optionsHelper) mkFlatpakOptions;

@@ -1,7 +1,7 @@
 { lib, ... }:
 
 let
-  utils = import ./utils.nix { inherit lib; };
+  utils = import ../utils { inherit lib; };
 in
 {
   # Collect all flatpaks to install

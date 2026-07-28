@@ -51,10 +51,19 @@ let
       else
         value
     ) attrs;
+  secrets = import ./secrets { inherit lib secret secretBinary; };
 in
 {
   inherit (modules) mkModule;
-  inherit mapFeatures secret secretBinary;
+  inherit
+    mapFeatures
+    secret
+    secretBinary
+    secrets
+    ;
+
+  network = import ./network;
+  shell = import ./shell;
 
   # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
   # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix
