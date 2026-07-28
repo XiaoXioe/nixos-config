@@ -10,14 +10,13 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (pkgs.writeShellApplication {
-        name = "agy-ide-profile";
-        runtimeInputs = [
-          pkgs.bubblewrap
-          pkgs.sqlite
-          pkgs.coreutils
-        ];
-        text = ''
+      (
+        (selfLib.shell {
+          inherit pkgs;
+          lib = pkgs.lib;
+        }).mkApp
+        "agy-ide-profile"
+        ''
           REAL_HOME="$(eval echo "~$(whoami)")"
           AGY_IDE_DIR="$REAL_HOME/.gemini/antigravity-ide"
           CRED_DIR_BASE="$AGY_IDE_DIR/credentials"
@@ -99,8 +98,13 @@ selfLib.mkModule {
               --setenv XDG_RUNTIME_DIR "$XDG_RUNTIME_DIR_PROFILE" \
               --die-with-parent \
               antigravity-ide
-        '';
-      })
+        ''
+        [
+          pkgs.bubblewrap
+          pkgs.sqlite
+          pkgs.coreutils
+        ]
+      )
     ];
   };
 }

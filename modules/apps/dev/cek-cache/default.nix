@@ -10,14 +10,13 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (pkgs.writeShellApplication {
-        name = "cek-cache";
-        runtimeInputs = [
-          pkgs.coreutils
-          pkgs.nix
-          pkgs.gnugrep
-        ];
-        text = ''
+      (
+        (selfLib.shell {
+          inherit pkgs;
+          lib = pkgs.lib;
+        }).mkApp
+        "cek-cache"
+        ''
           if [ "$#" -eq 0 ]; then
             echo "Error: Masukkan nama paket atau perintah."
             echo "Penggunaan: cek-cache <perintah>"
@@ -47,8 +46,13 @@ selfLib.mkModule {
 
           echo "Mengecek signatures untuk: $store_path"
           nix path-info --sigs "$store_path"
-        '';
-      })
+        ''
+        [
+          pkgs.coreutils
+          pkgs.nix
+          pkgs.gnugrep
+        ]
+      )
     ];
   };
 }

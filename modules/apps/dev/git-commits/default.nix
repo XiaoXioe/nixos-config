@@ -22,10 +22,13 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     home.packages = [
       (
-        (pkgs.writeShellApplication {
-          name = "git-commit-helper";
-          runtimeInputs = [ pkgs.git ];
-          text = ''
+        (
+          (selfLib.shell {
+            inherit pkgs;
+            lib = pkgs.lib;
+          }).mkApp
+          "git-commit-helper"
+          ''
             cmd="$(basename "$0")"
             case "$cmd" in
               gcfeat) category="feat" ;;
@@ -42,8 +45,9 @@ selfLib.mkModule {
               exit 1
             fi
             exec git commit -m "''${category}: $*"
-          '';
-        }).overrideAttrs
+          ''
+          [ pkgs.git ]
+        ).overrideAttrs
         (old: {
           buildCommand =
             old.buildCommand

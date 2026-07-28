@@ -10,13 +10,14 @@ selfLib.mkModule {
   description = "Multi-account profile launcher for Antigravity CLI";
 
   nixosConfig = {
-    sops.secrets = {
-      "doas-password" = {
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "doas-password";
         owner = config.my.user.name;
-        mode = "0440";
         group = "users";
-      };
-    };
+        mode = "0440";
+      })
+    ];
   };
 
   hmConfig =
@@ -26,13 +27,13 @@ selfLib.mkModule {
     in
     {
       home.packages = [
-        (pkgs.writeShellApplication {
-          name = "doas-agent";
-          runtimeInputs = [
-            pkgs.openssh
-            pkgs.coreutils
-          ];
-          text = ''
+        (
+          (selfLib.shell {
+            inherit pkgs;
+            lib = pkgs.lib;
+          }).mkApp
+          "doas-agent"
+          ''
             # Escaped arguments for safe remote execution
             QARGS=""
             for arg in "$@"; do
@@ -55,17 +56,20 @@ selfLib.mkModule {
                   sudo -S -p \"\" \$CMD_ARGS < \"\$DOAS_PASS_FILE\"
                 fi
               '"
-          '';
-        })
-
-        (pkgs.writeShellApplication {
-          name = "agy-profile";
-          runtimeInputs = [
-            pkgs.bubblewrap
+          ''
+          [
+            pkgs.openssh
             pkgs.coreutils
-            pkgs.fzf
-          ];
-          text = ''
+          ]
+        )
+
+        (
+          (selfLib.shell {
+            inherit pkgs;
+            lib = pkgs.lib;
+          }).mkApp
+          "agy-profile"
+          ''
                       REAL_HOME="$HOME"
                       AGY_DIR="$REAL_HOME/.gemini/antigravity-cli"
                       CRED_DIR_BASE="$AGY_DIR/credentials"
@@ -277,8 +281,13 @@ selfLib.mkModule {
                               launch_profile "$1" "''${@:2}"
                               ;;
                       esac
-          '';
-        })
+          ''
+          [
+            pkgs.bubblewrap
+            pkgs.coreutils
+            pkgs.fzf
+          ]
+        )
       ];
     };
 }

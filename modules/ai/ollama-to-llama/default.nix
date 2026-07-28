@@ -10,14 +10,13 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (pkgs.writeShellApplication {
-        name = "ollama-to-llama";
-        runtimeInputs = [
-          pkgs.gawk
-          pkgs.coreutils
-          pkgs.jq
-        ];
-        text = ''
+      (
+        (selfLib.shell {
+          inherit pkgs;
+          lib = pkgs.lib;
+        }).mkApp
+        "ollama-to-llama"
+        ''
           if ! command -v ollama &> /dev/null; then
               echo "Error: Perintah 'ollama' tidak ditemukan."
               exit 1
@@ -201,8 +200,13 @@ selfLib.mkModule {
                   echo "Pilihan tidak valid."
               fi
           done
-        '';
-      })
+        ''
+        [
+          pkgs.gawk
+          pkgs.coreutils
+          pkgs.jq
+        ]
+      )
     ];
   };
 }

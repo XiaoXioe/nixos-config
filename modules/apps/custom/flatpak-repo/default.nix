@@ -7,43 +7,48 @@
 }:
 
 let
-  syncFlatpakRepoScript = pkgs.writeShellScriptBin "sync-flatpak-repo" ''
-    set -euo pipefail
+  syncFlatpakRepoScript =
+    (selfLib.shell {
+      inherit pkgs;
+      lib = pkgs.lib;
+    }).mkApp
+      "sync-flatpak-repo"
+      ''
+        REPO_DIR="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
+        RCLONE_MOUNT_POINT="$HOME/CloudStorage"
+        RC_URL="http://127.0.0.1:5572"
 
-    REPO_DIR="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
-    REMOTE_NAME="xiaoxioe-flatpak"
-    RCLONE_MOUNT_POINT="$HOME/CloudStorage/gdrive-union-decrypted"
-    RC_URL="http://127.0.0.1:5572"
+        echo "==> [sync-flatpak-repo] Checking rclone FUSE mount..."
+        if ! mountpoint -q "$RCLONE_MOUNT_POINT"; then
+          echo "ERROR: Rclone FUSE mount is not active at $RCLONE_MOUNT_POINT"
+          exit 1
+        fi
 
-    echo "==> [sync-flatpak-repo] Checking rclone FUSE mount..."
-    if ! ${pkgs.util-linux}/bin/mountpoint -q "$RCLONE_MOUNT_POINT"; then
-      echo "ERROR: Rclone FUSE mount is not active at $RCLONE_MOUNT_POINT"
-      exit 1
-    fi
+        echo "==> [sync-flatpak-repo] Refreshing Rclone VFS cache via RC API..."
+        if curl -s -f -X POST "$RC_URL/vfs/refresh?recursive=true&dir=custom-flatpaks" > /dev/null 2>&1; then
+          echo "==> [sync-flatpak-repo] VFS cache refreshed successfully."
+        else
+          echo "WARNING: Rclone RC endpoint unreachable at $RC_URL/vfs/refresh. Proceeding with filesystem check..."
+        fi
 
-    echo "==> [sync-flatpak-repo] Refreshing Rclone VFS cache via RC API..."
-    if ${pkgs.curl}/bin/curl -s -f -X POST "$RC_URL/vfs/refresh?recursive=true&dir=custom-flatpaks" > /dev/null 2>&1; then
-      echo "==> [sync-flatpak-repo] VFS cache refreshed successfully."
-    else
-      echo "WARNING: Rclone RC endpoint unreachable at $RC_URL/vfs/refresh. Proceeding with filesystem check..."
-    fi
+        echo "==> [sync-flatpak-repo] Verifying repository path..."
+        if [ ! -d "$REPO_DIR" ]; then
+          echo "ERROR: Custom Flatpak repository directory not found at $REPO_DIR"
+          exit 1
+        fi
 
-    echo "==> [sync-flatpak-repo] Verifying repository path..."
-    if [ ! -d "$REPO_DIR" ]; then
-      echo "ERROR: Custom Flatpak repository directory not found at $REPO_DIR"
-      exit 1
-    fi
+        echo "==> [sync-flatpak-repo] Triggering non-interactive Flatpak update..."
+        flatpak update --system -y || true
+        flatpak update --user -y || true
 
-    echo "==> [sync-flatpak-repo] Aligning Flatpak remote URL..."
-    ${pkgs.flatpak}/bin/flatpak remote-modify --system --url="file://$REPO_DIR" "$REMOTE_NAME" || true
-    ${pkgs.flatpak}/bin/flatpak remote-modify --user --url="file://$REPO_DIR" "$REMOTE_NAME" || true
-
-    echo "==> [sync-flatpak-repo] Triggering non-interactive Flatpak update..."
-    ${pkgs.flatpak}/bin/flatpak update --system -y || true
-    ${pkgs.flatpak}/bin/flatpak update --user -y || true
-
-    echo "==> [sync-flatpak-repo] Sync completed successfully."
-  '';
+        echo "==> [sync-flatpak-repo] Sync completed successfully."
+      ''
+      [
+        pkgs.coreutils
+        pkgs.util-linux
+        pkgs.curl
+        pkgs.flatpak
+      ];
 in
 selfLib.mkModule {
   name = "apps.custom.flatpak-repo";
@@ -101,7 +106,6 @@ selfLib.mkModule {
       restartIfChanged = false;
       reloadIfChanged = false;
       stopIfChanged = false;
-      # wantedBy = lib.mkForce [ ];
     };
 
     environment.systemPackages = [ syncFlatpakRepoScript ];
@@ -118,9 +122,5 @@ selfLib.mkModule {
       origin = "xiaoxioe-flatpak";
       binName = "ghost-downloader";
     };
-  };
-
-  hmConfig = hmOpts: {
-    home.packages = [ syncFlatpakRepoScript ];
   };
 }

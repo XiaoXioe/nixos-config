@@ -10,17 +10,13 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (pkgs.writeShellApplication {
-        name = "nfui";
-        runtimeInputs = [
-          pkgs.coreutils
-          pkgs.gnugrep
-          pkgs.fzf
-          pkgs.jq
-          pkgs.nix
-          pkgs.git
-        ];
-        text = ''
+      (
+        (selfLib.shell {
+          inherit pkgs;
+          lib = pkgs.lib;
+        }).mkApp
+        "nfui"
+        ''
           # Helper untuk menampilkan help
           show_help() {
             echo "Nix Flake Update Interactive (nfui)"
@@ -221,8 +217,16 @@ selfLib.mkModule {
           fi
           echo "===================================================="
           echo "Info: Jalankan 'nfui --restore' jika ingin me-rollback pembaruan tertentu secara interaktif nanti."
-        '';
-      })
+        ''
+        [
+          pkgs.coreutils
+          pkgs.gnugrep
+          pkgs.fzf
+          pkgs.jq
+          pkgs.nix
+          pkgs.git
+        ]
+      )
     ];
   };
 }

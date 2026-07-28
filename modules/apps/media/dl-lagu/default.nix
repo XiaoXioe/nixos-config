@@ -10,13 +10,13 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (pkgs.writeShellApplication {
-        name = "dl-lagu";
-        runtimeInputs = [
-          pkgs.yt-dlp
-          pkgs.ffmpeg
-        ];
-        text = ''
+      (
+        (selfLib.shell {
+          inherit pkgs;
+          lib = pkgs.lib;
+        }).mkApp
+        "dl-lagu"
+        ''
           if [ "$#" -eq 0 ]; then
             echo "Error: Masukkan URL atau judul lagu."
             echo "Penggunaan: dl-lagu <url atau judul lagu>"
@@ -32,8 +32,12 @@ selfLib.mkModule {
             echo "Mencari dan mengunduh audio: $query"
             yt-dlp --no-write-subs -f bestaudio -x --audio-format mp3 --audio-quality 0 --embed-thumbnail --add-metadata "ytsearch1:$query audio"
           fi
-        '';
-      })
+        ''
+        [
+          pkgs.yt-dlp
+          pkgs.ffmpeg
+        ]
+      )
     ];
   };
 }
