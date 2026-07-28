@@ -57,6 +57,9 @@ selfLib.mkModule {
       "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
       "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/CloudStorage 0755 ${config.my.user.name} users - -"
+      "L+ /home/${config.my.user.name}/.var/app - - - - /mnt/data_btrfs/flatpak-userdata"
+      "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - /mnt/data_btrfs/flatpak-local"
+      "L+ /home/${config.my.user.name}/.local/share/containers - - - - /mnt/data_btrfs/containers"
     ];
 
     services.flatpak = {
@@ -116,12 +119,5 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [ syncFlatpakRepoScript ];
-
-    home.file.".var/app".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-userdata";
-    home.file.".local/share/flatpak".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/flatpak-local";
-    home.file.".local/share/containers".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/containers";
   };
 }
