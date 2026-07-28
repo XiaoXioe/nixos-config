@@ -9,10 +9,11 @@ selfLib.mkModule {
   name = "core.nix";
 
   hmConfig = hmOpts: {
-    home.file.".cache/nix/gitv3".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/gitv3";
-    home.file.".cache/nix/tarball-cache-v2".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/tarball-cache-v2";
+    home.file = selfLib.mkHmSymlinks hmOpts.config {
+      ".cache/nix/gitv3" = "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/gitv3";
+      ".cache/nix/tarball-cache-v2" =
+        "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/tarball-cache-v2";
+    };
   };
 
   nixosConfig = {
