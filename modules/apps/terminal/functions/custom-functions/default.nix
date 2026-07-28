@@ -79,7 +79,7 @@ selfLib.mkModule {
             ${pkgs.nmap}/bin/nmap -F -T4 --open -Pn "$target_ip" 2>/dev/null | grep -E "^[0-9]+/tcp" | awk -v c_val="$c_val" '
                 { printf "  -> Port %-5s : %s%s\n", $1, c_val, $3 }
             '
-            if [ ''${PIPESTATUS[0]} -ne 0 ]; then
+            if [ "''${PIPESTATUS[0]}" -ne 0 ]; then
                 echo "  (No open ports found on Top 100 or Host Firewall active)"
             fi
         else

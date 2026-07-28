@@ -5,6 +5,24 @@
   ...
 }:
 
+let
+  # Preset preferensi server mail yang dapat digunakan kembali secara DRY
+  commonServerSettings = {
+    offline_download = false;
+    autosync_max_age_days = 1;
+    limit_offline_message_size = true;
+    max_size = 50;
+    check_time = 30;
+    check_new_mail = true;
+  };
+
+  # Helper function untuk menghasilkan preferensi server berdasarkan id server
+  mkServerConfig =
+    serverId: extraSettings:
+    lib.mapAttrs' (name: value: lib.nameValuePair "mail.server.${serverId}.${name}" value) (
+      commonServerSettings // extraSettings
+    );
+in
 selfLib.mkModule {
   name = "apps.office.thunderbird";
   description = "Thunderbird and Betterbird email client with optimized profiles";
@@ -18,6 +36,11 @@ selfLib.mkModule {
       home.sessionVariables = {
         MOZ_LEGACY_PROFILES = "1";
       };
+
+      # KRUSIAL: home.activation Diperlukan untuk profiles.ini Thunderbird/Betterbird.
+      # Thunderbird/Betterbird saat runtime akan mencoba menulis/memodifikasi profiles.ini.
+      # Jika profiles.ini berupa symlink read-only ke Nix Store, Thunderbird akan mengalami error
+      # 'read-only filesystem' atau gagal mengasosiasikan profil default.
       home.activation.copyThunderbirdProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
         if [ -L "$HOME/.thunderbird/profiles.ini" ]; then
           real_file=$(${pkgs.coreutils}/bin/readlink -f "$HOME/.thunderbird/profiles.ini")
@@ -25,7 +48,7 @@ selfLib.mkModule {
           ${pkgs.coreutils}/bin/cp "$real_file" "$HOME/.thunderbird/profiles.ini"
           ${pkgs.coreutils}/bin/chmod 644 "$HOME/.thunderbird/profiles.ini"
           
-          # Paksa agar asosiasi instalasi ([Install...]) di profiles.ini selalu mengarah ke profil 'default'
+          # Paksa agar asosiation instalasi ([Install...]) di profiles.ini selalu mengarah ke profil 'default'
           ${pkgs.gnused}/bin/sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.thunderbird/profiles.ini"
         fi
       '';
@@ -52,58 +75,38 @@ selfLib.mkModule {
           profiles = {
             default = {
               isDefault = true;
-              settings = {
-                # --- TEMPLATE DEFAULT UNTUK AKUN BARU ---
-                "mail.server.default.offline_download" = false;
-                "mail.server.default.autosync_max_age_days" = 1; # Batas sinkronisasi maksimal 1 hari
-                "mail.server.default.limit_offline_message_size" = true;
-                "mail.server.default.max_size" = 50;
-                "mail.server.default.check_time" = 30;
-                "mail.server.default.check_new_mail" = true;
-                "mail.server.default.max_cached_connections" = 1;
+              settings =
+                (mkServerConfig "default" { })
+                // (mkServerConfig "server1" { })
+                // (mkServerConfig "server2" {
+                  daysToKeepHdrs = 7;
+                  retainBy = 2;
+                })
+                // {
+                  # Preferensi Kinerja & Telemetri
+                  "mailnews.database.global.indexer.enabled" = false;
+                  "datareporting.healthreport.uploadEnabled" = false;
+                  "toolkit.telemetry.enabled" = false;
 
-                # --- OVERRIDE UNTUK SERVER 1 (JIKA ADA) ---
-                "mail.server.server1.offline_download" = false;
-                "mail.server.server1.autosync_max_age_days" = 1;
-                "mail.server.server1.limit_offline_message_size" = true;
-                "mail.server.server1.max_size" = 50;
-                "mail.server.server1.check_time" = 30;
-                "mail.server.server1.check_new_mail" = true;
+                  # UI & System Tray
+                  "mailnews.start_page.enabled" = false;
+                  "toolkit.cosmeticAnimations.enabled" = false;
+                  "mail.minimizeToTray" = true;
 
-                # --- OVERRIDE UNTUK SERVER 2 (AKUN GMAIL AKTIF ANDA) ---
-                "mail.server.server2.offline_download" = false;
-                "mail.server.server2.autosync_max_age_days" = 1;
-                "mail.server.server2.limit_offline_message_size" = true;
-                "mail.server.server2.max_size" = 50;
-                "mail.server.server2.check_time" = 30;
-                "mail.server.server2.check_new_mail" = true;
-                "mail.server.server2.daysToKeepHdrs" = 7; # Hapus pesan setelah 7 hari
-                "mail.server.server2.retainBy" = 2; # Retensi berdasarkan umur pesan (age)
+                  # Auto Compact Storage
+                  "mail.purge_threshhold_mb" = 20;
+                  "mail.prompt_purge_threshold" = false;
 
-                # --- PREFERENSI GLOBAL & KINERJA ---
-                "mailnews.database.global.indexer.enabled" = false;
-                "datareporting.healthreport.uploadEnabled" = false;
-                "toolkit.telemetry.enabled" = false;
-
-                # Opsi Snappiness & System Tray
-                "mailnews.start_page.enabled" = false;
-                "toolkit.cosmeticAnimations.enabled" = false;
-                "mail.minimizeToTray" = true;
-
-                # Pembersihan Penyimpanan Otomatis (Auto Compact)
-                "mail.purge_threshhold_mb" = 20;
-                "mail.prompt_purge_threshold" = false;
-
-                # Unified Folders (Menampilkan Gabungan Semua Email/Inbox)
-                "mail.folderpane.activeModes" = "0,1";
-                "mail.folderpane.header.visible" = true;
-              }
-              // (builtins.listToAttrs (
-                map (n: {
-                  name = "mail.server.server${toString n}.max_cached_connections";
-                  value = 1;
-                }) (lib.range 1 30)
-              ));
+                  # Unified Folders
+                  "mail.folderpane.activeModes" = "0,1";
+                  "mail.folderpane.header.visible" = true;
+                }
+                // (lib.listToAttrs (
+                  map (n: {
+                    name = "mail.server.server${toString n}.max_cached_connections";
+                    value = 1;
+                  }) (lib.range 1 30)
+                ));
             };
           };
         };

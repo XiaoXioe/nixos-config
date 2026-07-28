@@ -7,16 +7,24 @@
 }:
 
 let
-  gpgKeyNums = [
-    "1"
-    "2"
-    "3"
+  # Single Source of Truth untuk seluruh kunci GPG (Publik & Privat via sops)
+  gpgKeysList = [
+    {
+      num = "1";
+      id = "DABD05C1D9C1FD2A";
+      pubFile = ./public-key-1.asc;
+    }
+    {
+      num = "2";
+      id = "B10004A433825F0F";
+      pubFile = ./public-key-2.asc;
+    }
+    {
+      num = "3";
+      id = "95217AF28DBCD5E3";
+      pubFile = ./public-key-3.asc;
+    }
   ];
-  gpgKeyIds = {
-    "1" = "DABD05C1D9C1FD2A";
-    "2" = "B10004A433825F0F";
-    "3" = "95217AF28DBCD5E3";
-  };
 in
 selfLib.mkModule {
   name = "security.gnupg";
@@ -27,39 +35,41 @@ selfLib.mkModule {
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-gnome3;
       settings = {
-        default-cache-ttl = 86400; # 24 Hours
+        default-cache-ttl = 86400; # 24 Jam
         max-cache-ttl = 86400;
       };
     };
 
+    # Deklarasi rahasia kunci privat via sops-nix
     sops.secrets = lib.listToAttrs (
-      map (n: {
-        name = "gpg-private-key-${n}";
+      map (key: {
+        name = "gpg-private-key-${key.num}";
         value = {
           format = "binary";
-          sopsFile = selfLib.secretBinary "gnupg/private-key-${n}.enc";
+          sopsFile = selfLib.secretBinary "gnupg/private-key-${key.num}.enc";
           owner = config.my.user.name;
           mode = "0600";
         };
-      }) gpgKeyNums
+      }) gpgKeysList
     );
   };
 
   hmConfig = hmOpts: {
     programs.gpg = {
       enable = true;
-      publicKeys = map (n: {
-        source = ./. + "/public-key-${n}.asc";
+      # Impor kunci publik ke ring kunci GPG secara deklaratif
+      publicKeys = map (key: {
+        source = key.pubFile;
         trust = "ultimate";
-      }) gpgKeyNums;
+      }) gpgKeysList;
     };
 
     home.file =
       lib.listToAttrs (
-        map (n: {
-          name = ".gnupg/public-key-${n}.asc";
-          value.source = ./. + "/public-key-${n}.asc";
-        }) gpgKeyNums
+        map (key: {
+          name = ".gnupg/public-key-${key.num}.asc";
+          value.source = key.pubFile;
+        }) gpgKeysList
       )
       // {
         ".gnupg/sshcontrol".text = ''
@@ -68,17 +78,21 @@ selfLib.mkModule {
         '';
       };
 
+    # KRUSIAL: home.activation Diperlukan untuk Mengimpor Kunci Privat GPG dari sops-nix ke Keyring Daemon GPG.
+    # `programs.gpg.publicKeys` HANYA mengimpor kunci publik (.asc).
+    # Kunci privat yang didekripsi oleh sops-nix di /run/user/1000/secrets/ HARUS diimpor secara eksplisit
+    # ke dalam keyring rahasia GPG (~/.gnupg/private-keys-v1.d/) agar gpg/git commit -S dapat bekerja.
     home.activation.importGpgPrivateKeys = hmOpts.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      ${lib.concatMapStringsSep "\n" (n: ''
-        key_path="${hmOpts.osConfig.sops.secrets."gpg-private-key-${n}".path}"
-        key_id="${gpgKeyIds.${n}}"
+      ${lib.concatMapStringsSep "\n" (key: ''
+        key_path="${hmOpts.osConfig.sops.secrets."gpg-private-key-${key.num}".path}"
+        key_id="${key.id}"
         if [ -f "$key_path" ]; then
           if ! ${pkgs.gnupg}/bin/gpg --list-secret-keys "$key_id" >/dev/null 2>&1; then
-            echo "Importing GPG private key ${n} ($key_id)..."
+            echo "Importing GPG private key ${key.num} ($key_id)..."
             ${pkgs.gnupg}/bin/gpg --batch --import "$key_path" || true
           fi
         fi
-      '') gpgKeyNums}
+      '') gpgKeysList}
     '';
   };
 }

@@ -12,13 +12,11 @@ selfLib.mkModule {
   nixosConfig = { };
 
   hmConfig = hmOpts: {
-    # Link Quickshell configuration for nandoroid
-    xdg.configFile."quickshell/nandoroid".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/dotfiles/quickshell/nandoroid";
-
-    # Link Matugen configuration
-    xdg.configFile."matugen".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "${config.my.user.flakePath}/dotfiles/matugen";
+    # Link Quickshell and Matugen configuration
+    xdg.configFile = selfLib.mkHmSymlinks hmOpts.config {
+      "quickshell/nandoroid" = "${config.my.user.flakePath}/dotfiles/quickshell/nandoroid";
+      "matugen" = "${config.my.user.flakePath}/dotfiles/matugen";
+    };
 
     systemd.user.tmpfiles.rules = [
       "d %h/.config/hypr/hyprland 0755 - - -"

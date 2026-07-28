@@ -41,7 +41,8 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    home.file.".ssh/config".source =
-      hmOpts.config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/ssh-config/config.conf";
+    home.file = selfLib.mkHmSymlinks hmOpts.config {
+      ".ssh/config" = "${flakePath}/dotfiles/ssh-config/config.conf";
+    };
   };
 }

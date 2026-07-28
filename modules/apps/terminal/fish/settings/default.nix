@@ -4,6 +4,7 @@
   config,
   osConfig,
   flakePath,
+  selfLib,
   ...
 }:
 {
@@ -72,6 +73,7 @@
     };
   };
 
-  xdg.configFile."fish/history_blacklist".source =
-    config.lib.file.mkOutOfStoreSymlink "${flakePath}/dotfiles/fish/history_blacklist";
+  xdg.configFile = selfLib.mkHmSymlinks config {
+    "fish/history_blacklist" = "${flakePath}/dotfiles/fish/history_blacklist";
+  };
 }

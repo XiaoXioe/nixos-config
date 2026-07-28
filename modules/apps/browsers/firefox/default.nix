@@ -189,8 +189,9 @@ selfLib.mkModule {
 
       # Syarat Mozilla Gecko Policy: File policies.json di-link ke folder per-user
       # ~/.config/mozilla/firefox/policies/policies.json
-      home.file.".config/mozilla/firefox/policies/policies.json".source =
-        hmOpts.config.lib.file.mkOutOfStoreSymlink
+      home.file = selfLib.mkHmSymlinks hmOpts.config {
+        ".config/mozilla/firefox/policies/policies.json" =
           config.sops.templates."firefox-policies.json".path;
+      };
     };
 }

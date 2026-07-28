@@ -49,9 +49,10 @@ selfLib.mkModule {
       "d /mnt/data_btrfs/bottles 0755 - - -"
     ];
 
-    home.file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
-      ".local/share/bottles".source =
-        hmOpts.config.lib.file.mkOutOfStoreSymlink "/mnt/data_btrfs/bottles";
-    };
+    home.file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
+      selfLib.mkHmSymlinks hmOpts.config {
+        ".local/share/bottles" = "/mnt/data_btrfs/bottles";
+      }
+    );
   };
 }
