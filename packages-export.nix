@@ -25,6 +25,9 @@ in
 
   # DankMaterialShell package (agar di-cache oleh CI)
   dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  # Custom xBoreUp Linux Kernel (agar di-cache oleh CI GitHub Actions)
+  kernel-xboreup = config.my.core.kernel-xboreup.package.kernel;
 }
 # Caelestia hanya diekspor bila modulnya benar-benar aktif (butuh input
 # caelestia-shell yang saat ini tidak ada di flake.nix).

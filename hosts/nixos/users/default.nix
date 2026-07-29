@@ -139,6 +139,7 @@
       graphics = true;
       bootloader = true;
       kernel = true;
+      kernel-xboreup = true;
       memory = true;
       power = true;
     };
@@ -150,12 +151,12 @@
         dms = true;
       };
       hyprland = {
-        enable = true;
+        enable = false;
         nandoroid = true;
       };
       xfce = false;
       theme = true;
-      gnome = true;
+      gnome = false;
       greeter = true;
     };
 

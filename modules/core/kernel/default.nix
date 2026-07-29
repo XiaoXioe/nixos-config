@@ -1,9 +1,18 @@
-{ pkgs, selfLib, ... }:
+{
+  pkgs,
+  selfLib,
+  config,
+  ...
+}:
 selfLib.mkModule {
   name = "core.kernel";
   nixosConfig = {
     boot = {
-      kernelPackages = pkgs.linuxPackages_zen;
+      kernelPackages =
+        if (config.my.core.kernel-xboreup.enable or false) then
+          config.my.core.kernel-xboreup.package
+        else
+          pkgs.linuxPackages_zen;
 
       kernelModules = [
         "sch_cake"
