@@ -10,7 +10,7 @@ let
   xboreupSrc = pkgs.fetchFromGitHub {
     owner = "sxlmnwb";
     repo = "xBoreUp_Linux_Patch";
-    rev = "linux-7.1.y";
+    rev = "aa35aab540994e9322e475a9967fd66200ec692e";
     hash = "sha256-mmofg4eJYXB1uq5aLoNRnrvNgLJ9RWEAs6+CKHqOZbs=";
   };
 
