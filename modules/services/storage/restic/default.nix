@@ -13,59 +13,12 @@ in
 
 selfLib.mkModule {
   name = "services.storage.restic";
-  description = "Restic Backup Service via Rclone";
+  description = "Restic Backup Service via Rclone (Domain-Separated)";
 
-  nixosConfig = {
-    # Secret declaration for restic password
-    sops.secrets = {
-      "restic-password" = {
-        owner = config.my.user.name;
-        mode = "0444";
-      };
-    };
-
-    environment.systemPackages = [
-      (pkgs.symlinkJoin {
-        name = "rclone-proxy-wrapper";
-        paths = [ pkgs.rclone ];
-        buildInputs = [ pkgs.makeWrapper ];
-        postBuild =
-          let
-            proxyEnv = (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
-          in
-          ''
-            wrapProgram $out/bin/rclone \
-              --set HTTP_PROXY "${proxyEnv.HTTP_PROXY}" \
-              --set HTTPS_PROXY "${proxyEnv.HTTPS_PROXY}" \
-              --set ALL_PROXY "${proxyEnv.ALL_PROXY}"
-          '';
-      })
-    ];
-
-    services.restic.backups."data-utama" = {
-      repository = resticRepo;
-      rcloneConfigFile = config.sops.secrets."rclone.conf".path;
-      passwordFile = config.sops.secrets."restic-password".path;
-
-      paths = [
-        "/home/${config.my.user.name}/.gemini"
-        "/home/${config.my.user.name}/.ssh"
-        "/home/${config.my.user.name}/.gnupg"
-        "/home/${config.my.user.name}/.thunderbird"
-        "/persist/home/${config.my.user.name}/nixos-config"
-        "/persist/home/${config.my.user.name}/nix-custompkgs"
-        "/persist/home/${config.my.user.name}/nix-custompkg-priv"
-        "/persist/home/${config.my.user.name}/nix-mcp"
-        "/persist/home/${config.my.user.name}/pentest"
-        "/mnt/data/Documents"
-        "/mnt/data/Pictures"
-        "/mnt/data/Music"
-        "/persist/etc/ssh"
-        "/mnt/data_btrfs/PersistentData"
-        "/mnt/data/backup-cloud"
-      ];
-
-      exclude = [
+  nixosConfig =
+    let
+      # Shared exclude list across domains
+      commonExcludes = [
         ".cache"
         "venv"
         ".venv"
@@ -74,48 +27,150 @@ selfLib.mkModule {
         "ml"
       ];
 
-      initialize = true;
+      # Helper function untuk membuat konfigurasi backup per domain
+      mkBackupConfig =
+        {
+          name,
+          paths,
+          onCalendar,
+          backupPrepareCommand ? null,
+          backupCleanupCommand ? null,
+        }:
+        {
+          services.restic.backups.${name} = {
+            repository = resticRepo;
+            rcloneConfigFile = config.sops.secrets."rclone.conf".path;
+            passwordFile = config.sops.secrets."restic-password".path;
 
-      timerConfig = {
-        OnCalendar = "02:00:00";
-        Persistent = true;
-        RandomizedDelaySec = "10m";
+            paths = paths;
+            exclude = commonExcludes;
+            initialize = true;
+            extraBackupArgs = [
+              "--tag"
+              name
+              "--no-lock"
+            ];
+
+            timerConfig = {
+              OnCalendar = onCalendar;
+              Persistent = true;
+              RandomizedDelaySec = "10m";
+            };
+
+            pruneOpts = [
+              "--keep-daily 7"
+              "--keep-weekly 4"
+              "--keep-monthly 6"
+            ];
+          }
+          // (lib.optionalAttrs (backupPrepareCommand != null) { inherit backupPrepareCommand; })
+          // (lib.optionalAttrs (backupCleanupCommand != null) { inherit backupCleanupCommand; });
+
+          systemd.services."restic-backups-${name}" = {
+            restartIfChanged = false;
+            after = [
+              "network-online.target"
+              "wireproxy-warp.service"
+            ];
+            wants = [
+              "network-online.target"
+              "wireproxy-warp.service"
+            ];
+            environment = {
+              RCLONE_CONFIG = lib.mkForce "/run/restic-backups-${name}/rclone.conf";
+              RESTIC_PROGRESS_FPS = "0.016666";
+            }
+            // (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+
+            serviceConfig = {
+              ExecStartPre = lib.mkBefore [
+                ((selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "restic-backups-${name}-wait-proxy")
+                (pkgs.writeShellScript "restic-backups-${name}-copy-rclone-config" ''
+                  ${pkgs.coreutils}/bin/mkdir -p /run/restic-backups-${name}
+                  ${pkgs.coreutils}/bin/cp ${
+                    config.sops.secrets."rclone.conf".path
+                  } /run/restic-backups-${name}/rclone.conf
+                  ${pkgs.coreutils}/bin/chmod 600 /run/restic-backups-${name}/rclone.conf
+                '')
+              ];
+            };
+          };
+        };
+
+      # Domain 1: Vaultwarden (Setiap 3 jam: 00:00, 03:00, 06:00, dst)
+      vaultwardenBackup = mkBackupConfig {
+        name = "vaultwarden";
+        paths = [
+          "/persist/var/lib/vaultwarden"
+        ];
+        onCalendar = "00/3:00:00";
+        backupPrepareCommand = "${pkgs.systemd}/bin/systemctl stop vaultwarden.service";
+        backupCleanupCommand = "${pkgs.systemd}/bin/systemctl start vaultwarden.service";
       };
 
-      pruneOpts = [
-        "--keep-daily 7"
-        "--keep-weekly 4"
-        "--keep-monthly 6"
-      ];
-    };
+      # Domain 2: System & Nix Configuration (Setiap 3 jam + offset 15 menit: 00:15, 03:15, dst)
+      systemConfigBackup = mkBackupConfig {
+        name = "system-config";
+        paths = [
+          "/persist/etc/ssh"
+          "/persist/home/${config.my.user.name}/nixos-config"
+          "/persist/home/${config.my.user.name}/nix-custompkgs"
+          "/persist/home/${config.my.user.name}/nix-custompkg-priv"
+          "/persist/home/${config.my.user.name}/nix-mcp"
+        ];
+        onCalendar = "00/3:15:00";
+      };
 
-    systemd.services."restic-backups-data-utama" = {
-      restartIfChanged = false;
-      after = [
-        "network-online.target"
-        "wireproxy-warp.service"
-      ];
-      wants = [
-        "network-online.target"
-        "wireproxy-warp.service"
-      ];
-      environment = {
-        RCLONE_CONFIG = lib.mkForce "/run/restic-backups-data-utama/rclone.conf";
-        RESTIC_PROGRESS_FPS = "0.016666";
+      # Domain 3: User Personal Data & Files (Setiap 3 jam + offset 30 menit: 00:30, 03:30, dst)
+      userDataBackup = mkBackupConfig {
+        name = "user-data";
+        paths = [
+          "/home/${config.my.user.name}/.gemini"
+          "/home/${config.my.user.name}/.ssh"
+          "/home/${config.my.user.name}/.gnupg"
+          "/home/${config.my.user.name}/.thunderbird"
+          "/persist/home/${config.my.user.name}/pentest"
+          "/mnt/data/Documents"
+          "/mnt/data/Pictures"
+          "/mnt/data/Music"
+          "/mnt/data_btrfs/PersistentData"
+          "/mnt/data/backup-cloud"
+        ];
+        onCalendar = "00/3:30:00";
+      };
+    in
+    lib.mkMerge [
+      {
+        # Secret declaration for restic password
+        sops.secrets = {
+          "restic-password" = {
+            owner = config.my.user.name;
+            mode = "0444";
+          };
+        };
+
+        environment.systemPackages = [
+          (pkgs.symlinkJoin {
+            name = "rclone-proxy-wrapper";
+            paths = [ pkgs.rclone ];
+            buildInputs = [ pkgs.makeWrapper ];
+            postBuild =
+              let
+                proxyEnv = (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+              in
+              ''
+                wrapProgram $out/bin/rclone \
+                  --set HTTP_PROXY "${proxyEnv.HTTP_PROXY}" \
+                  --set HTTPS_PROXY "${proxyEnv.HTTPS_PROXY}" \
+                  --set ALL_PROXY "${proxyEnv.ALL_PROXY}"
+              '';
+          })
+        ];
       }
-      // (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
-
-      serviceConfig.ExecStartPre = lib.mkBefore [
-        ((selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "restic-backups-data-utama-wait-proxy")
-        (pkgs.writeShellScript "restic-backups-data-utama-copy-rclone-config" ''
-          ${pkgs.coreutils}/bin/cp ${
-            config.sops.secrets."rclone.conf".path
-          } /run/restic-backups-data-utama/rclone.conf
-          ${pkgs.coreutils}/bin/chmod 600 /run/restic-backups-data-utama/rclone.conf
-        '')
-      ];
-    };
-  };
+      vaultwardenBackup
+      systemConfigBackup
+      userDataBackup
+    ];
 
   hmConfig = hmOpts: {
     systemd.user.services.restic-mount = {

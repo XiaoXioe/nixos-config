@@ -43,6 +43,8 @@ selfLib.mkModule {
         "cookies" = [
           "zen"
           "${hmOpts.config.home.homeDirectory}/.config/zen/${hmOpts.config.home.username}"
+          null
+          "Akun 1"
         ];
 
         "cache" = {

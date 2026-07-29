@@ -139,7 +139,7 @@
       graphics = true;
       bootloader = true;
       kernel = true;
-      kernel-xboreup = true;
+      kernel-xboreup = false;
       memory = true;
       power = true;
     };
@@ -192,6 +192,7 @@
         ssd-monitor = true;
       };
       boot-speedup = true;
+      vaultwarden = true;
     };
 
     security = {
