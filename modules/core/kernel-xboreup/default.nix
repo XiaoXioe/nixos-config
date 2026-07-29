@@ -11,7 +11,7 @@ let
     owner = "sxlmnwb";
     repo = "xBoreUp_Linux_Patch";
     rev = "aa35aab540994e9322e475a9967fd66200ec692e";
-    hash = "sha256-mmofg4eJYXB1uq5aLoNRnrvNgLJ9RWEAs6+CKHqOZbs=";
+    hash = "sha256-mmofg4eJYHB1uq5aLoNRnrvNgLJ9RWEAs6+CKHqOZbs=";
   };
 
   patchFiles = [
