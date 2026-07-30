@@ -293,7 +293,7 @@
   "mediaSize": 1,
   "appLauncherViewMode": "list",
   "spotlightModalViewMode": "list",
-  "browserPickerViewMode": "grid",
+  "browserPickerViewMode": "list",
   "browserUsageHistory": {
     "zen-beta": {
       "count": 1,

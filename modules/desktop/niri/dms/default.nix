@@ -19,9 +19,9 @@ selfLib.mkModule {
         enable = true;
       };
 
-      xdg.configFile."DankMaterialShell/settings.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/niri/dms/settings.json";
-      xdg.configFile."DankMaterialShell/clsettings.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/niri/dms/clsettings.json";
+      xdg.configFile = selfLib.mkHmSymlinks config {
+        "DankMaterialShell/settings.json" = "${flakePath}/modules/desktop/niri/dms/settings.json";
+        "DankMaterialShell/clsettings.json" = "${flakePath}/modules/desktop/niri/dms/clsettings.json";
+      };
     };
 }
