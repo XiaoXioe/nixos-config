@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 let
   dmsIpc = cmd: sub: args: {
     spawn = [
@@ -10,6 +10,56 @@ let
     ]
     ++ args;
   };
+
+  # 1. Skrip Pemindai Teks (OCR) Presisi Tinggi (ImageMagick Pre-processing + Tesseract --psm 6)
+  scanOcrText = pkgs.writeShellScript "niri-scan-ocr" ''
+    TMP_RAW=$(mktemp /tmp/ocr_raw_XXXXXX.png)
+    TMP_PROC=$(mktemp /tmp/ocr_proc_XXXXXX.png)
+
+    # Tangkap area layar
+    ${pkgs.grim}/bin/grim -g "$(${pkgs.slurp}/bin/slurp)" "$TMP_RAW" || { rm -f "$TMP_RAW" "$TMP_PROC"; exit 0; }
+
+    # Pra-pemrosesan ImageMagick (Scale 2.5x & Grayscale agar akurasi Tesseract 98%+)
+    ${pkgs.imagemagick}/bin/magick "$TMP_RAW" -resize 250% -colorspace gray -normalize "$TMP_PROC" 2>/dev/null || cp "$TMP_RAW" "$TMP_PROC"
+
+    # Tesseract OCR dengan mode Uniform Block Text (--psm 6)
+    TEXT_RESULT=$(${pkgs.tesseract}/bin/tesseract "$TMP_PROC" stdout --psm 6 -l eng+ind 2>/dev/null)
+    TRIMMED=$(echo "$TEXT_RESULT" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+    if [ -n "$TRIMMED" ]; then
+      echo -n "$TRIMMED" | ${pkgs.wl-clipboard}/bin/wl-copy
+      ${pkgs.libnotify}/bin/notify-send -a "OCR Scanner" "Teks Terdeteksi (OCR)" "$TRIMMED"
+    else
+      ${pkgs.libnotify}/bin/notify-send -a "OCR Scanner" "Gagal" "Tidak ada teks yang terdeteksi."
+    fi
+
+    rm -f "$TMP_RAW" "$TMP_PROC"
+  '';
+
+  # 2. Skrip Pemindai QR Code / Barcode Instan
+  scanQrCode = pkgs.writeShellScript "niri-scan-qr" ''
+    TMP_RAW=$(mktemp /tmp/qr_raw_XXXXXX.png)
+
+    # Tangkap area layar
+    ${pkgs.grim}/bin/grim -g "$(${pkgs.slurp}/bin/slurp)" "$TMP_RAW" || { rm -f "$TMP_RAW"; exit 0; }
+
+    # Baca QR Code / Barcode via zbarimg
+    QR_RESULT=$(${pkgs.zbar}/bin/zbarimg -q --raw "$TMP_RAW" 2>/dev/null)
+
+    if [ -n "$QR_RESULT" ]; then
+      echo -n "$QR_RESULT" | ${pkgs.wl-clipboard}/bin/wl-copy
+      ${pkgs.libnotify}/bin/notify-send -a "QR Scanner" "QR Code Terdeteksi!" "$QR_RESULT"
+    else
+      ${pkgs.libnotify}/bin/notify-send -a "QR Scanner" "Gagal" "Tidak terdeteksi QR Code pada area ini."
+    fi
+
+    rm -f "$TMP_RAW"
+  '';
+
+  # 3. Skrip Anotasi Screenshot Interaktif (Satty)
+  scanAnnotate = pkgs.writeShellScript "niri-scan-annotate" ''
+    ${pkgs.grim}/bin/grim -g "$(${pkgs.slurp}/bin/slurp)" - | ${pkgs.satty}/bin/satty --filename -
+  '';
 in
 {
   programs.niri.settings.binds = {
@@ -223,11 +273,6 @@ in
       "-c"
       "bemoji -t"
     ];
-    "Mod+Shift+O".action.spawn = [
-      "bash"
-      "-c"
-      "grim -g \"$(slurp)\" - | tesseract - - | wl-copy"
-    ];
     "Mod+T".action.spawn = "kitty";
     "Super+B".action.spawn = "zen-beta";
     "Mod+Tab" = {
@@ -248,6 +293,9 @@ in
     "Alt+XF86Launch1".action.screenshot-window = [ ];
     "Ctrl+Print".action.screenshot-screen = [ ];
     "Ctrl+XF86Launch1".action.screenshot-screen = [ ];
+    "Ctrl+Shift+S".action.spawn = [ "${scanOcrText}" ];
+    "Ctrl+Shift+Q".action.spawn = [ "${scanQrCode}" ];
+    "Mod+Shift+A".action.spawn = [ "${scanAnnotate}" ];
     "Super+Shift+S".action.screenshot = [ ];
     "XF86Launch1".action.screenshot = [ ];
     "Mod+Shift+E".action.quit = [ ];
