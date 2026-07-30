@@ -51,13 +51,15 @@
   "extensions.enabledScopes" = lock 5;
   "toolkit.policies.perUserDir" = lock-true;
   "xpinstall.enabled" = lock-true;
-  "zen.welcome-screen.seen" = lock-true;
-  "zen.workspaces.continue-where-left-off" = lock-true;
+
+  "browser.messaging-system.whatsNewPanel.enabled" = lock-false;
+  "browser.releaseNotes.url" = lock "";
   "browser.aboutwelcome.enabled" = lock-false;
   "browser.onboarding.enabled" = lock-false;
   "trailhead.firstrun.didSeeAboutWelcome" = lock-true;
   "browser.startup.firstrun.bundle" = lock-false;
   "browser.startup.homepage_override.mstone" = lock "ignore";
+  "browser.startup.homepage_override.buildID" = lock "";
 
   # ==========================================
   # 5. Mesin Pencari Default (Search Engine)
@@ -72,19 +74,9 @@
   # ==========================================
   # 6. Fitur Khas Zen Browser (Zen Specific)
   # ==========================================
-  "zen.watermark.enabled" = lock-false; # Matikan splash screen saat startup
-  "zen.view.compact.hide-toolbar" = lock-true; # Sembunyikan toolbar otomatis di mode compact
-  "zen.theme.content-element-separation" = lock 0; # Setel border gap di sekitar jendela ke 0
-  "zen.widget.linux.transparency" = lock-false; # Matikan dukungan transparansi UI di Linux
-  "zen.view.sidebar-collapsed.hide-mute-button" = lock-true;
-  "zen.theme.essentials-favicon-bg" = lock-true;
-  "zen.ui.migration.compact-mode-button-added" = lock-true;
-  "zen.view.compact.enable-at-startup" = lock-true;
-  "zen.view.use-single-toolbar" = lock-false;
   "browser.aboutConfig.showWarning" = lock-false;
   "browser.preferences.config_warning.warningPasswordManager.dismissed" = lock-true;
   "intl.accept_languages" = lock "id,en-us";
-  "zen.tab-unloader.enabled" = lock-false;
 
   # ==========================================
   # 7. Grafis & Performa (Graphics & Performance)

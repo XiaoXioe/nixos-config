@@ -9,36 +9,58 @@
 
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
-    addons
-    tampermonkey
-    keplr
-    solflare-wallet
+    amoAddons
     commonPrivacyPolicies
     commonSearchEngines
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
+    resolveAddons
     lock-false
     lock-true
     lock-empty-string
     lock
     ;
 
-  defaultProfileExtensions =
-    (with addons; [
+  defaultProfileExtensions = resolveAddons (
+    with amoAddons;
+    [
       ublock-origin
       bitwarden
-      multi-account-containers
       auto-tab-discard
-      proton-pass
+      remove-youtube-tracking
+      gh-repo-size
       tampermonkey
-    ])
-    ++ [
       keplr
       solflare-wallet
-    ];
+    ]
+  );
+
+  declarativeProfileExtensions = resolveAddons (
+    with amoAddons;
+    [
+      auto-tab-discard
+      ublock-origin
+      privacy-badger
+      canvasblocker
+      localcdn
+      proton-vpn
+    ]
+  );
+
+  zenPolicies = import ./policies {
+    inherit
+      lock
+      lock-true
+      lock-false
+      lock-empty-string
+      ;
+  };
 
   zenBrowserPolicies = lib.recursiveUpdate commonPrivacyPolicies {
     SearchEngines = commonSearchEngines;
+    OverrideFirstRunPage = "";
+    OverridePostUpdatePage = "";
+    Preferences = zenPolicies;
   };
 in
 selfLib.mkModule {
@@ -63,7 +85,7 @@ selfLib.mkModule {
     };
 
     environment.etc = {
-      "zen/policies/policies.json".text = builtins.toJSON { policies = zenBrowserPolicies; };
+      "zen/policies/policies.json".source = config.sops.templates."zen-policies.json".path;
     };
   };
 
@@ -72,25 +94,30 @@ selfLib.mkModule {
     let
       user = hmOpts.config.home.username;
 
-      zenPolicies = import ./policies {
-        inherit
-          lock
-          lock-true
-          lock-false
-          lock-empty-string
-          ;
-      };
-
-      baseSettings = zenPolicies // {
-        "browser.startup.page" = 3;
+      baseSettings = {
         "accessibility.force_disabled" = 1;
         "browser.urlbar.quickactions.enabled" = false;
-        "widget.dmabuf.force-enabled" = true;
         "browser.disableResetPrompt" = true;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        "toolkit.policies.perUserDir" = false;
-        "extensions.autoDisableScopes" = 0;
-        "extensions.enabledScopes" = 15;
+        # Zen Specific Preferences
+        "zen.workspaces.continue-where-left-off" = true;
+        "zen.welcome-screen.seen" = true;
+        "zen.view.compact.hide-tabbar" = true;
+        "zen.view.compact.hide-toolbar" = true;
+        "zen.view.compact.animate-sidebar" = true;
+        "zen.urlbar.behavior" = "float";
+        "zen.workspaces.natural-scroll" = true;
+        "zen.release-notes.show" = false;
+        "zen.release-notes.show-on-update" = false;
+        "zen.watermark.enabled" = false;
+        "zen.theme.content-element-separation" = 0;
+        "zen.widget.linux.transparency" = false;
+        "zen.view.sidebar-collapsed.hide-mute-button" = true;
+        "zen.theme.essentials-favicon-bg" = true;
+        "zen.ui.migration.compact-mode-button-added" = true;
+        "zen.view.compact.enable-at-startup" = true;
+        "zen.view.use-single-toolbar" = false;
+        "zen.tab-unloader.enabled" = false;
       };
     in
     {
@@ -105,11 +132,11 @@ selfLib.mkModule {
         policies = zenBrowserPolicies;
 
         profiles = {
-          ${user} = {
-            isDefault = true;
-            id = 0;
+          ${user} = (import ./profiles/klein-moretti.nix { inherit baseSettings lib; }) // {
             extensions.packages = defaultProfileExtensions;
-            settings = baseSettings;
+          };
+          "${user}-01" = (import ./profiles/profile01.nix { inherit baseSettings lib; }) // {
+            extensions.packages = declarativeProfileExtensions;
           };
         };
       };

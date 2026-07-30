@@ -7,11 +7,98 @@
 }:
 let
   lib = pkgs.lib;
-  addons =
+
+  firefoxAddons =
     if inputs ? firefox-addons then
       inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}
     else
-      null;
+      { };
+
+  # Remote AMO extension definitions (addonId + Mozilla AMO slug) for direct policy auto-update
+  amoAddons = {
+    remove-youtube-tracking = {
+      addonId = "remove.youtube.tracking@moreo.app";
+      slug = "remove-youtube-tracking";
+      sha256 = "01lf497z5vh9fw5mbikc1n1m352f6k6gf9d32g9p0sjb3anpycw7";
+    };
+    gh-repo-size = {
+      addonId = "github-repository-size@pranavmangal";
+      slug = "gh-repo-size";
+      sha256 = "03markdbwl3x38r3pjp6rxiifxkbb9kjvmq2jl8kiay0alk8gcja";
+    };
+    ublock-origin = {
+      addonId = "uBlock0@raymondhill.net";
+      slug = "ublock-origin";
+    };
+    bitwarden = {
+      addonId = "{446900e4-71c2-419f-a6a7-df9c091e268b}";
+      slug = "bitwarden-password-manager";
+      pkgName = "bitwarden";
+    };
+    multi-account-containers = {
+      addonId = "@testpilot-containers";
+      slug = "multi-account-containers";
+    };
+    auto-tab-discard = {
+      addonId = "{c2c003ee-bd69-42a2-b0e9-6f34222cb046}";
+      slug = "auto-tab-discard";
+    };
+    proton-pass = {
+      addonId = "78272b6fa58f4a1abaac99321d503a20@proton.me";
+      slug = "proton-pass";
+    };
+    tampermonkey = {
+      addonId = "firefox@tampermonkey.net";
+      slug = "tampermonkey";
+      sha256 = "022r0s61bz7qg3r5vprlw78mm1bbiqn1yq1m908rcmmwip3k200r";
+    };
+    keplr = {
+      addonId = "keplr-extension@keplr.app";
+      slug = "keplr";
+      sha256 = "166ggld6b4lh1hvsm2bd0g8b7kp7y9ln2fhf7jfcmx0pbd9z4zzp";
+    };
+    solflare-wallet = {
+      addonId = "{6d72262a-b243-4dc6-8f4f-be96c74e0a86}";
+      slug = "solflare-wallet";
+      sha256 = "08410liim0kx5cdd323dbv8fsnb39hi13njnp5dallarphwhx3gg";
+    };
+    simple-tab-groups = {
+      addonId = "Drive4ik@SimpleTabGroups";
+      slug = "simple-tab-groups";
+    };
+    metamask = {
+      addonId = "webextension@metamask.io";
+      slug = "ether-metamask";
+      pkgName = "metamask";
+    };
+    container-proxy = {
+      addonId = "{c0e86b03-53d9-482a-995b-b9dcb99c855a}";
+      slug = "container-proxy";
+    };
+    privacy-badger = {
+      addonId = "jwz@eff.org";
+      slug = "privacy-badger17";
+      pkgName = "privacy-badger";
+    };
+    canvasblocker = {
+      addonId = "CanvasBlocker@kkapsner.de";
+      slug = "canvasblocker";
+    };
+    localcdn = {
+      addonId = "{344c37a9-8f90-4eac-a5c1-48ad705148f4}";
+      slug = "localcdn-fork-of-decentraleyes";
+      pkgName = "localcdn";
+    };
+    user-agent-string-switcher = {
+      addonId = "{72004245-c408-410a-9d93-3d0781745484}";
+      slug = "user-agent-string-switcher";
+    };
+    proton-vpn = {
+      addonId = "vpn@proton.me";
+      slug = "proton-vpn-firefox-extension";
+      pkgName = "proton-vpn";
+    };
+  };
 
   # Shared Chromium extension IDs across Brave, Chromium, etc.
   commonChromiumExtensions = [
@@ -62,10 +149,11 @@ let
       '';
     };
 
-  mkExtensionSettings =
+  # Helper to generate ExtensionSettings for Enterprise Policies with direct HTTPS Mozilla AMO URLs
+  mkAmoExtensionSettings =
     extensionsList:
     {
-      mode ? "allowed",
+      mode ? "force_installed",
     }:
     let
       base = {
@@ -80,12 +168,13 @@ let
             addon:
             let
               extId = addon.addonId or (addon.passthru.addonId or null);
+              extSlug = addon.slug or (addon.pname or null);
             in
-            if extId != null then
+            if extId != null && extSlug != null then
               [
                 (lib.nameValuePair extId {
                   installation_mode = mode;
-                  install_url = "file://${addon}${geckoExtPath}/${extId}.xpi";
+                  install_url = "https://addons.mozilla.org/firefox/downloads/latest/${extSlug}/latest.xpi";
                 })
               ]
             else
@@ -95,6 +184,25 @@ let
       );
     in
     base // allowedAddons;
+
+  mkExtensionSettings = mkAmoExtensionSettings;
+
+  # Helper to resolve addons from amoAddons to either firefox-addons packages or custom derivations
+  resolveAddons =
+    addonsList:
+    map (
+      addon:
+      if addon ? sha256 then
+        buildAmoAddon {
+          pname = addon.pkgName or addon.slug;
+          addonId = addon.addonId;
+          sha256 = addon.sha256;
+          slug = addon.slug;
+        }
+      else
+        firefoxAddons.${addon.pkgName or addon.slug}
+          or (throw "Addon ${addon.pkgName or addon.slug} not found in firefox-addons")
+    ) addonsList;
 
   # Shared privacy/hardening policies applied across all Gecko browsers (Firefox, Zen, Tor)
   commonPrivacyPolicies = {
@@ -206,9 +314,11 @@ in
   };
 
   inherit
-    addons
+    amoAddons
     buildAmoAddon
+    mkAmoExtensionSettings
     mkExtensionSettings
+    resolveAddons
     commonPrivacyPolicies
     commonSearchEngines
     commonChromiumExtensions
@@ -216,41 +326,4 @@ in
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     ;
-
-  proton-pass = buildAmoAddon {
-    pname = "proton-pass";
-    addonId = "78272b6fa58f4a1abaac99321d503a20@proton.me";
-    sha256 = "1nzrxqk7iq5icjlb82h3qglr6k8gzha24hqm4rmpbdsi1cv9cnr2";
-  };
-
-  keplr = buildAmoAddon {
-    pname = "keplr";
-    addonId = "keplr-extension@keplr.app";
-    sha256 = "166ggld6b4lh1hvsm2bd0g8b7kp7y9ln2fhf7jfcmx0pbd9z4zzp";
-  };
-
-  solflare-wallet = buildAmoAddon {
-    pname = "solflare-wallet";
-    addonId = "{6d72262a-b243-4dc6-8f4f-be96c74e0a86}";
-    sha256 = "sha256-740OObxZUapauVbaESJMY1nt0F5tiNEaK32CGiMFgSA=";
-  };
-
-  tampermonkey =
-    if addons != null && addons ? tampermonkey then
-      addons.tampermonkey.overrideAttrs (
-        _finalAttrs: old: {
-          meta = (old.meta or { }) // {
-            license = [ ];
-          };
-          passthru = (old.passthru or { }) // {
-            addonId = old.addonId or "firefox@tampermonkey.net";
-          };
-        }
-      )
-    else
-      buildAmoAddon {
-        pname = "tampermonkey";
-        addonId = "firefox@tampermonkey.net";
-        sha256 = "1133333333333333333333333333333333333333333333333333"; # fallback if inputs not provided
-      };
 }

@@ -2,45 +2,41 @@
   config,
   pkgs,
   inputs,
+  lib,
   selfLib,
   ...
 }:
 
 let
   inherit (selfLib.browserAddons { inherit pkgs inputs; })
-    addons
-    tampermonkey
-    keplr
-    solflare-wallet
+    amoAddons
     commonPrivacyPolicies
     commonSearchEngines
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
+    mkAmoExtensionSettings
     lock-false
     lock-true
     lock-empty-string
     lock
     ;
 
-  # Extension packages per profile (100% declarative Home Manager packages)
-  defaultProfileExtensions =
-    (with addons; [
-      ublock-origin
-      multi-account-containers
-      bitwarden
-      simple-tab-groups
-      auto-tab-discard
-      metamask
-      container-proxy
-      tampermonkey
-      proton-pass
-    ])
-    ++ [
-      keplr
-      solflare-wallet
-    ];
+  # Extension definitions for remote Mozilla AMO auto-update
+  defaultProfileExtensions = with amoAddons; [
+    ublock-origin
+    multi-account-containers
+    bitwarden
+    simple-tab-groups
+    auto-tab-discard
+    metamask
+    container-proxy
+    tampermonkey
+    proton-pass
+    keplr
+    solflare-wallet
+  ];
 
-  hardenedProfileExtensions = with addons; [
+  hardenedProfileExtensions = with amoAddons; [
     ublock-origin
     bitwarden
     privacy-badger
@@ -53,8 +49,23 @@ let
     tampermonkey
   ];
 
-  firefoxPolicies = commonPrivacyPolicies // {
+  firefoxPoliciesPrefs = import ./policies {
+    inherit
+      lock
+      lock-true
+      lock-false
+      lock-empty-string
+      ;
+  };
+
+  firefoxPolicies = lib.recursiveUpdate commonPrivacyPolicies {
     SearchEngines = commonSearchEngines;
+    OverrideFirstRunPage = "";
+    OverridePostUpdatePage = "";
+    ExtensionSettings = mkAmoExtensionSettings (defaultProfileExtensions ++ hardenedProfileExtensions) {
+      mode = "force_installed";
+    };
+    Preferences = firefoxPoliciesPrefs;
   };
 in
 selfLib.mkModule {
@@ -116,16 +127,7 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
-      firefoxPoliciesPrefs = import ./policies {
-        inherit
-          lock
-          lock-true
-          lock-false
-          lock-empty-string
-          ;
-      };
-
-      baseSettings = firefoxPoliciesPrefs // {
+      baseSettings = {
         "browser.startup.page" = 3;
         "accessibility.force_disabled" = 1;
         "browser.urlbar.quickactions.enabled" = false;
@@ -167,7 +169,6 @@ selfLib.mkModule {
             isDefault = true;
             settings = baseSettings;
             userChrome = userChrome;
-            extensions.packages = defaultProfileExtensions;
           };
 
           hardened = {
@@ -182,7 +183,6 @@ selfLib.mkModule {
               "media.peerconnection.enabled" = false;
             };
             userChrome = userChrome;
-            extensions.packages = hardenedProfileExtensions;
           };
         };
       };

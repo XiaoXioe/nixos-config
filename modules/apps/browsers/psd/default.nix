@@ -62,7 +62,9 @@ selfLib.mkModule {
 
               cat << 'EOF' > $out/share/psd/browsers/zen
               DIRArr[0]="$HOME/.config/zen/$USER"
+              DIRArr[1]="$HOME/.config/zen/$USER-01"
               PSNAME="zen"
+              check_suffix="yes"
               EOF
 
               cat << 'EOF' > $out/share/psd/browsers/firefox
@@ -86,7 +88,7 @@ selfLib.mkModule {
     xdg.configFile."psd/psd.conf".text = ''
       USE_OVERLAYFS="yes"
       USE_BACKUP="false"
-      BROWSERS=(firefox zen torbrowser brave chromium)
+      BROWSERS=(zen torbrowser brave chromium)
     '';
   };
 }
