@@ -5,7 +5,7 @@
 }:
 
 let
-  inherit (selfLib.browserAddons { inherit pkgs; }) commonChromiumExtensions;
+  inherit (selfLib.browserAddonsFor { inherit pkgs; }) commonChromiumExtensions;
 in
 selfLib.mkModule {
   name = "apps.browsers.brave";

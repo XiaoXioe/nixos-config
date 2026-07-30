@@ -8,7 +8,7 @@
 }:
 
 let
-  inherit (selfLib.browserAddons { inherit pkgs inputs; })
+  inherit (selfLib.browserAddonsFor { inherit pkgs inputs; })
     amoAddons
     commonPrivacyPolicies
     commonSearchEngines

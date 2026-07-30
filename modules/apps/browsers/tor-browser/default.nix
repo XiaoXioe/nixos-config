@@ -6,7 +6,7 @@
   ...
 }:
 let
-  inherit (selfLib.browserAddons { inherit pkgs inputs; })
+  inherit (selfLib.browserAddonsFor { inherit pkgs inputs; })
     commonPrivacyPolicies
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
