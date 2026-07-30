@@ -9,7 +9,7 @@
 
     # Layout Settings (merged from config.kdl, dms/layout.kdl, dms/colors.kdl)
     layout = {
-      gaps = 4;
+      gaps = 6;
       background-color = "transparent";
       center-focused-column = "never";
 

@@ -12,13 +12,13 @@
           rules = "";
           variant = "";
         };
-        repeat-delay = 300;
-        repeat-rate = 35;
+        numlock = true;
+        repeat-delay = 250;
+        repeat-rate = 50;
         track-layout = "global";
       };
-      touchpad = {
-        tap = true;
-        natural-scroll = true;
+      mouse = {
+        accel-speed = 0.4;
       };
     };
 

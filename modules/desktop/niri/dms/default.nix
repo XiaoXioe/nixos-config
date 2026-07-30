@@ -1,5 +1,6 @@
 {
   selfLib,
+  flakePath,
   ...
 }:
 
@@ -8,7 +9,7 @@ selfLib.mkModule {
   description = "DankMaterialShell";
 
   hmConfig =
-    { inputs, ... }:
+    { inputs, config, ... }:
     {
       imports = [
         inputs.dms.homeModules.dank-material-shell
@@ -16,15 +17,11 @@ selfLib.mkModule {
 
       programs.dank-material-shell = {
         enable = true;
-        settings = import ./settings;
-        clipboardSettings = {
-          maxHistory = -1;
-          maxEntrySize = 10485760;
-          autoClearDays = 1;
-          clearAtStartup = false;
-          disabled = false;
-          maxPinned = 25;
-        };
       };
+
+      xdg.configFile."DankMaterialShell/settings.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/niri/dms/settings.json";
+      xdg.configFile."DankMaterialShell/clsettings.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/niri/dms/clsettings.json";
     };
 }

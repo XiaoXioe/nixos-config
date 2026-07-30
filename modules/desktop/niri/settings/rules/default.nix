@@ -25,6 +25,7 @@
           bottom-left = 12.0;
         };
         clip-to-geometry = true;
+        tiled-state = true;
         draw-border-with-background = false;
       }
 
@@ -34,29 +35,30 @@
         open-maximized = true;
       }
       {
+        matches = [
+          { app-id = "^(thunderbird|org\\.mozilla\\.thunderbird)$"; }
+          { app-id = "^eu\\.betterbird\\.Betterbird$"; }
+        ];
+        open-maximized = true;
+      }
+      {
         matches = [ { app-id = "^(codium|com\\.vscodium\\.codium)$"; } ];
         open-maximized = true;
       }
       {
-        matches = [ { app-id = "^app\\.zen_browser\\.zen$"; } ];
+        matches = [ { app-id = "^org\\.kde\\.dolphin$"; } ];
         open-maximized = true;
       }
-
-      # General Window Rules
       {
-        matches = [ { app-id = "^org\\.wezfurlong\\.wezterm$"; } ];
-        default-column-width = { };
+        matches = [ { app-id = "^kitty$"; } ];
+        open-maximized = true;
       }
       {
-        matches = [ { app-id = "^org\\.gnome\\."; } ];
-        draw-border-with-background = false;
-        geometry-corner-radius = {
-          top-left = 12.0;
-          top-right = 12.0;
-          bottom-right = 12.0;
-          bottom-left = 12.0;
-        };
-        clip-to-geometry = true;
+        matches = [
+          { app-id = "^app\\.zen_browser\\.zen\\.zen-beta$"; }
+          { app-id = "zen"; }
+        ];
+        open-maximized = true;
       }
       {
         matches = [
@@ -74,8 +76,6 @@
           { app-id = "^org\\.gnome\\.Calculator$"; }
           { app-id = "^gnome-calculator$"; }
           { app-id = "^galculator$"; }
-          { app-id = "^blueman-manager$"; }
-          { app-id = "^org\\.gnome\\.Nautilus$"; }
           { app-id = "^xdg-desktop-portal$"; }
         ];
         open-floating = true;

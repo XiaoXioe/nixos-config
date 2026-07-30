@@ -20,6 +20,13 @@ selfLib.mkModule {
       ookla-speedtest
       bmon
       tdl
+      bemoji
+      wtype
+      fuzzel
+      tesseract
+      slurp
+      grim
+      wl-clipboard
     ];
   };
 }
