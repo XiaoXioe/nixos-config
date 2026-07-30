@@ -80,11 +80,11 @@ selfLib.mkModule {
               RCLONE_CONFIG = lib.mkForce "/run/restic-backups-${name}/rclone.conf";
               RESTIC_PROGRESS_FPS = "0.016666";
             }
-            // (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+            // selfLib.warpProxyEnv;
 
             serviceConfig = {
               ExecStartPre = lib.mkBefore [
-                ((selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "restic-backups-${name}-wait-proxy")
+                (selfLib.mkWarpWaitScript pkgs "restic-backups-${name}-wait-proxy")
                 (pkgs.writeShellScript "restic-backups-${name}-copy-rclone-config" ''
                   ${pkgs.coreutils}/bin/mkdir -p /run/restic-backups-${name}
                   ${pkgs.coreutils}/bin/cp ${
@@ -156,7 +156,7 @@ selfLib.mkModule {
             buildInputs = [ pkgs.makeWrapper ];
             postBuild =
               let
-                proxyEnv = (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+                proxyEnv = selfLib.warpProxyEnv;
               in
               ''
                 wrapProgram $out/bin/rclone \
@@ -188,7 +188,7 @@ selfLib.mkModule {
         ExecStart = pkgs.writeShellScript "restic-mount-start" ''
           set -euo pipefail
 
-          ${(selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "restic-mount-wait-proxy"}
+          ${selfLib.mkWarpWaitScript pkgs "restic-mount-wait-proxy"}
 
           export RCLONE_CONFIG="${hmOpts.osConfig.sops.secrets."rclone.conf".path}"
           exec ${pkgs.restic}/bin/restic mount "${mountPoint}" \
@@ -198,9 +198,7 @@ selfLib.mkModule {
         ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
         Restart = "on-failure";
         RestartSec = "10s";
-        Environment =
-          lib.mapAttrsToList (n: v: "${n}=${v}")
-            (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+        Environment = lib.mapAttrsToList (n: v: "${n}=${v}") selfLib.warpProxyEnv;
       };
     };
   };

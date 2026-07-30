@@ -57,7 +57,7 @@ selfLib.mkModule {
             set -euo pipefail
             unset NOTIFY_SOCKET
 
-            ${(selfLib.network { inherit lib pkgs; }).mkWarpWaitScript "rclone-wait-proxy"}
+            ${selfLib.mkWarpWaitScript pkgs "rclone-wait-proxy"}
 
             exec ${pkgs.rclone}/bin/rclone mount "${rcloneRemote}:" "${mountPoint}" \
               --config "$XDG_RUNTIME_DIR/rclone.conf" \
@@ -81,9 +81,7 @@ selfLib.mkModule {
           ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
           Restart = "on-failure";
           RestartSec = "10s";
-          Environment =
-            lib.mapAttrsToList (n: v: "${n}=${v}")
-              (selfLib.network { inherit lib pkgs; }).warpProxyEnv;
+          Environment = lib.mapAttrsToList (n: v: "${n}=${v}") selfLib.warpProxyEnv;
         };
         Install = {
           WantedBy = [ "default.target" ];

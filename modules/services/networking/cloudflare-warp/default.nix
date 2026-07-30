@@ -6,11 +6,7 @@
 
 let
   warpSetupScript =
-    (selfLib.shell {
-      inherit pkgs;
-      lib = pkgs.lib;
-    }).mkApp
-      "generate-warp-config"
+    selfLib.mkApp pkgs "generate-warp-config"
       ''
         cd "$STATE_DIRECTORY"
 
