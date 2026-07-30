@@ -16,8 +16,8 @@ selfLib.mkModule {
       "net.ipv4.conf.default.rp_filter" = 1;
 
       # Batasi ptrace ke proses admin saja (cegah proses non-root mengintip
-      # memori proses lain). Turunkan ke 1 bila perlu attach gdb lintas-proses.
-      "kernel.yama.ptrace_scope" = 2;
+      # memori proses lain). Diubah ke 0 agar Sober / aplikasi wrapper game bisa berjalan.
+      "kernel.yama.ptrace_scope" = 0;
       # Lindungi dari SYN flood.
       "net.ipv4.tcp_syncookies" = 1;
       # Nonaktifkan pemuatan kernel baru via kexec (perkecil permukaan serangan).
