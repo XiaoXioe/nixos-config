@@ -218,12 +218,18 @@ in
     "Mod+Shift+Ctrl+Down".action.move-column-to-monitor-down = [ ];
 
     # Launchers & Utility Binds
+    "Mod+E".action.spawn = [
+      "bash"
+      "-c"
+      "bemoji -t"
+    ];
+    "Mod+Shift+O".action.spawn = [
+      "bash"
+      "-c"
+      "grim -g \"$(slurp)\" - | tesseract - - | wl-copy"
+    ];
     "Mod+T".action.spawn = "kitty";
-    "Super+B".action.spawn = "firefox";
-    "Mod+D" = {
-      repeat = false;
-      action.toggle-overview = [ ];
-    };
+    "Super+B".action.spawn = "zen-beta";
     "Mod+Tab" = {
       repeat = false;
       action.toggle-overview = [ ];
