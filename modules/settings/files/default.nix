@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   selfLib,
   ...
 }:
@@ -13,6 +12,14 @@ selfLib.mkModule {
     systemd.tmpfiles.rules = [
       "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
       "d /mnt/data_btrfs/PersistentData 0755 ${config.my.user.name} users - -"
+      # Konfigurasi AccountsService agar SDDM dan DMS bisa membaca foto profil
+      "d /var/lib/AccountsService 0755 root root - -"
+      "d /var/lib/AccountsService/icons 0755 root root - -"
+      "d /var/lib/AccountsService/users 0755 root root - -"
+      "C+ /var/lib/AccountsService/icons/${config.my.user.name} 0444 root root - ${
+        config.sops.secrets."foto-profile".path
+      }"
+      "f+ /var/lib/AccountsService/users/${config.my.user.name} 0644 root root - [User]\\nIcon=/var/lib/AccountsService/icons/${config.my.user.name}\\n"
     ];
 
     sops.secrets = builtins.listToAttrs [
