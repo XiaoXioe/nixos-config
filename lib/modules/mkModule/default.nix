@@ -69,10 +69,14 @@ in
         );
 
         config = lib.mkIf cfg (
+          let
+            hasUser = config.my ? user && config.my.user ? name;
+            userName = if hasUser then config.my.user.name else null;
+          in
           lib.mkMerge [
             resolvedNixosConfig
-            (lib.mkIf (hmConfig != null) {
-              home-manager.users.${config.my.user.name} = hmConfig;
+            (lib.mkIf (hmConfig != null && userName != null) {
+              home-manager.users.${userName} = hmConfig;
             })
             # Flatpak-specific NixOS configuration
             (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {
@@ -82,8 +86,8 @@ in
               };
             })
             # Flatpak/Native Home Manager configuration
-            (lib.mkIf (hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) {
-              home-manager.users.${config.my.user.name} =
+            (lib.mkIf ((hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) && userName != null) {
+              home-manager.users.${userName} =
                 { lib, ... }:
                 let
                   programsConfig = flatpakConfigs.hmProgramsConfig pkgs;

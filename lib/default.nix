@@ -73,10 +73,28 @@ in
   network = import ./network;
   shell = import ./shell;
 
+  # Direct applied shortcuts for shell helpers
+  # Usage: selfLib.mkApp pkgs "name" "script" [ pkgs.coreutils ]
+  mkApp =
+    pkgs: name: text: runtimeInputs:
+    (import ./shell { inherit lib pkgs; }).mkApp name text runtimeInputs;
+  mkScripts = pkgs: scriptsAttrSet: (import ./shell { inherit lib pkgs; }).mkScripts scriptsAttrSet;
+  mkShellCompletions = pkgs: opts: (import ./shell { inherit lib pkgs; }).mkShellCompletions opts;
+
+  # Direct shortcuts for network/VPN/WARP helpers
+  warpProxyEnv = (import ./network { pkgs = null; }).warpProxyEnv;
+  mkWarpWaitScript = pkgs: name: (import ./network { inherit pkgs; }).mkWarpWaitScript name;
+
   # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
   # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix
   # only has `lib` in scope, not pkgs/inputs.
   browserAddons = import ./browser-addons;
+  browserAddonsFor =
+    {
+      pkgs,
+      inputs ? { },
+    }:
+    import ./browser-addons { inherit pkgs inputs; };
 
   # Auto-import all .nix files (except default.nix) and directories
   # containing a default.nix from the given path.
