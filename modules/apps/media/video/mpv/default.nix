@@ -28,6 +28,7 @@ selfLib.mkModule {
         osc = false;
         osd-bar = false;
         border = false;
+        autofit-larger = "90%x90%";
         msg-level = "ffmpeg/video=error,ffmpeg=fatal,audio=error";
         profile = "fast";
         video-sync = "audio";
