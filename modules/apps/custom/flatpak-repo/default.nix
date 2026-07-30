@@ -8,11 +8,7 @@
 
 let
   syncFlatpakRepoScript =
-    (selfLib.shell {
-      inherit pkgs;
-      lib = pkgs.lib;
-    }).mkApp
-      "sync-flatpak-repo"
+    selfLib.mkApp pkgs "sync-flatpak-repo"
       ''
         REPO_DIR="$HOME/CloudStorage/gdrive-union-decrypted/custom-flatpaks/repo"
         RCLONE_MOUNT_POINT="$HOME/CloudStorage"

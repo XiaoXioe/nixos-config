@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "nfui"
+      (selfLib.mkApp pkgs "nfui"
         ''
           # Helper untuk menampilkan help
           show_help() {

@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "cek-cache"
+      (selfLib.mkApp pkgs "cek-cache"
         ''
           if [ "$#" -eq 0 ]; then
             echo "Error: Masukkan nama paket atau perintah."

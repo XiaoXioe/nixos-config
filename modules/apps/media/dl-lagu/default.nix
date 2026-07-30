@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "dl-lagu"
+      (selfLib.mkApp pkgs "dl-lagu"
         ''
           if [ "$#" -eq 0 ]; then
             echo "Error: Masukkan URL atau judul lagu."
