@@ -9,10 +9,10 @@ selfLib.mkModule {
   nixosConfig = {
     boot = {
       kernelPackages =
-        if (config.my.core.kernel-xboreup.enable or false) then
-          config.my.core.kernel-xboreup.package
+        if (config.my.core.kernel-cachyos.enable or false) then
+          config.my.core.kernel-cachyos.package
         else
-          pkgs.linuxPackages_zen;
+          pkgs.linuxPackages_xanmod_latest;
 
       kernelModules = [
         "sch_cake"

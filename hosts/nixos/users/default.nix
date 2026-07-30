@@ -140,7 +140,7 @@
       graphics = true;
       bootloader = true;
       kernel = true;
-      kernel-xboreup = true;
+      kernel-cachyos = true;
       memory = true;
       power = true;
     };
@@ -184,7 +184,7 @@
         dns = true;
         vpn = true;
         openssh = true;
-        "cloudflare-warp" = true;
+        cloudflare-warp = true;
         zapret = true;
       };
       scheduling = {

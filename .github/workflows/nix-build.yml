@@ -42,6 +42,5 @@ jobs:
             ".#llama" \
             ".#torlink" \
             ".#dms" \
-            ".#kernel-xboreup" \
             ".#devShells.x86_64-linux.default" \
             -L

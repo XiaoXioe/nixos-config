@@ -56,6 +56,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-cachyos-kernel = {
+      url = "github:xddxdd/nix-cachyos-kernel/release";
+    };
+
     nix-mcp = {
       url = "github:XiaoXioe/nix-mcp";
       inputs.nixpkgs.follows = "nixpkgs";
