@@ -39,8 +39,6 @@ jobs:
           # caelestia sengaja tidak dibangun: hanya diekspor bila modul
           # hyprland/caelestia aktif (butuh input caelestia-shell).
           nix build \
-            ".#pipewire" \
-            ".#pipewire-32bit" \
             ".#llama" \
             ".#torlink" \
             ".#dms" \

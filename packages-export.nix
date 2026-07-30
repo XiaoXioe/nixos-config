@@ -14,12 +14,6 @@ in
   # refactor, eval harus gagal keras alih-alih diam-diam meng-cache pkgs.hello.
   llama = config.my.ai.llama.package;
 
-  # Pipewire 32-bit (dengan kustom overlay agar di-cache oleh CI)
-  pipewire-32bit = pkgs.pkgsi686Linux.pipewire;
-
-  # Pipewire 64-bit host system (agar di-cache oleh CI)
-  pipewire = pkgs.pipewire;
-
   # Torlink package
   torlink = inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default;
 

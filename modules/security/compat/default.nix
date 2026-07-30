@@ -41,7 +41,6 @@ selfLib.mkModule {
         fontconfig
         alsa-lib
         libpulseaudio
-        pipewire
         libdrm
         mesa
         libGL
