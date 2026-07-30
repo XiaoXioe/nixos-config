@@ -22,7 +22,7 @@
   userFeatures = {
     apps = {
       browsers = {
-        firefox = true;
+        firefox = false;
         brave = true;
         chromium = true;
         librewolf = false;
@@ -122,6 +122,7 @@
       agy-profile = true;
       agy-ide-profile = true;
       ollama-to-llama = true;
+      auth-agent = true;
     };
 
     core = {
@@ -139,7 +140,7 @@
       graphics = true;
       bootloader = true;
       kernel = true;
-      kernel-xboreup = false;
+      kernel-xboreup = true;
       memory = true;
       power = true;
     };
