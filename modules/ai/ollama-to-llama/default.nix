@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "ollama-to-llama"
+      (selfLib.mkApp pkgs "ollama-to-llama"
         ''
           if ! command -v ollama &> /dev/null; then
               echo "Error: Perintah 'ollama' tidak ditemukan."

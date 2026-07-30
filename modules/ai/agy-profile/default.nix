@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "agy-profile"
+      (selfLib.mkApp pkgs "agy-profile"
         ''
                     REAL_HOME="$HOME"
                     AGY_DIR="$REAL_HOME/.gemini/antigravity-cli"

@@ -15,12 +15,7 @@ selfLib.mkModule {
     in
     {
       home.packages = [
-        (
-          (selfLib.shell {
-            inherit pkgs;
-            lib = pkgs.lib;
-          }).mkApp
-          "auth-agent"
+        (selfLib.mkApp pkgs "auth-agent"
           ''
             # Escaped arguments for safe remote execution
             QARGS=""

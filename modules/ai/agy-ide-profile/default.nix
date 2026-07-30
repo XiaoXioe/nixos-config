@@ -10,12 +10,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.packages = [
-      (
-        (selfLib.shell {
-          inherit pkgs;
-          lib = pkgs.lib;
-        }).mkApp
-        "agy-ide-profile"
+      (selfLib.mkApp pkgs "agy-ide-profile"
         ''
           REAL_HOME="$(eval echo "~$(whoami)")"
           AGY_IDE_DIR="$REAL_HOME/.gemini/antigravity-ide"
