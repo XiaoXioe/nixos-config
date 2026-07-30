@@ -286,7 +286,7 @@ selfLib.mkModule {
 
     # Integrasi autocompletion langsung ke konfigurasi Fish di Home Manager
     xdg.configFile = lib.mkMerge [
-      ((selfLib.shell { inherit lib pkgs; }).mkShellCompletions {
+      (selfLib.mkShellCompletions pkgs {
         name = "ambil";
         fish = ''
           complete -c ambil -a "(grep '^Host ' ~/.ssh/config | awk '{print \$2}')"
@@ -308,7 +308,7 @@ selfLib.mkModule {
           compdef _ambil ambil
         '';
       })
-      ((selfLib.shell { inherit lib pkgs; }).mkShellCompletions {
+      (selfLib.mkShellCompletions pkgs {
         name = "kirim";
         fish = ''
           complete -c kirim -a "(grep '^Host ' ~/.ssh/config | awk '{print \$2}')"

@@ -10,7 +10,7 @@ selfLib.mkModule {
   description = "Migrated custom bash scripts (cek_ip, wayres, softsub, mpv-wrapper)";
 
   hmConfig = hmOpts: {
-    home.packages = (selfLib.shell { inherit lib pkgs; }).mkScripts {
+    home.packages = selfLib.mkScripts pkgs {
       "cek_ip" = ''
         target_ip="$1"
         if [ -z "$target_ip" ]; then
