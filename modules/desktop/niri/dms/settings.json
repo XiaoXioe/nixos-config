@@ -294,7 +294,13 @@
   "appLauncherViewMode": "list",
   "spotlightModalViewMode": "list",
   "browserPickerViewMode": "grid",
-  "browserUsageHistory": {},
+  "browserUsageHistory": {
+    "zen-beta": {
+      "count": 1,
+      "lastUsed": 1785407266721,
+      "name": "Zen Browser (Beta)"
+    }
+  },
   "appPickerViewMode": "grid",
   "filePickerUsageHistory": {},
   "sortAppsAlphabetically": false,
