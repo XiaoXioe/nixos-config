@@ -47,7 +47,7 @@ selfLib.mkModule {
         mkdir -p /btrfs_tmp
 
         # Mount BTRFS root
-        mount -t btrfs -o subvol=/ ${btrfsDevice} /btrfs_tmp
+        mount -t btrfs -o subvol=/ "${btrfsDevice}" /btrfs_tmp
 
         timestamp=$(date "+%Y-%m-%d_%H:%M:%S")
         mkdir -p /btrfs_tmp/@nixos-old-roots
@@ -109,47 +109,55 @@ selfLib.mkModule {
           Type = "oneshot";
           PrivateMounts = true;
           RuntimeDirectory = "btrfs_cleanup";
-          ExecStart = pkgs.writeShellScript "preservation-cleanup" ''
-            set -euo pipefail
-            echo "==> [preservation] Starting background cleanup..."
+          ExecStart = "${selfLib.mkApp pkgs "preservation-cleanup"
+            ''
+              # shellcheck disable=SC2012
+              set -euo pipefail
+              echo "==> [preservation] Starting background cleanup..."
 
-            # Mount point managed by RuntimeDirectory (auto-cleaned on exit)
-            MNTDIR="/run/btrfs_cleanup"
-            mount -t btrfs -o subvol=/ ${btrfsDevice} "$MNTDIR"
+              # Mount point managed by RuntimeDirectory (auto-cleaned on exit)
+              MNTDIR="/run/btrfs_cleanup"
+              mount -t btrfs -o subvol=/ "${btrfsDevice}" "$MNTDIR"
 
-            delete_subvolume_recursively() {
-              local IFS=$'\n'
-              for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
-                delete_subvolume_recursively "$MNTDIR/$i"
+              delete_subvolume_recursively() {
+                local IFS=$'\n'
+                for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
+                  delete_subvolume_recursively "$MNTDIR/$i"
+                done
+                if [ -e "$1" ]; then
+                  btrfs subvolume delete "$1" || true
+                fi
+              }
+
+              cleanup_old_backups() {
+                prefix=$1
+                keep=$2
+                ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)) | while read -r i; do
+                  [ -n "$i" ] || continue
+                  echo "Deleting old $prefix backup: $i"
+                  delete_subvolume_recursively "$i"
+                done
+              }
+
+              # Delete old home snapshots (keep last 10)
+              ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)} | while read -r snap; do
+                [ -n "$snap" ] || continue
+                echo "Deleting old home snapshot: $snap"
+                btrfs subvolume delete "$snap"
               done
-              if [ -e "$1" ]; then
-                btrfs subvolume delete "$1" || true
-              fi
-            }
 
-            cleanup_old_backups() {
-              prefix=$1
-              keep=$2
-              ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)) | while read -r i; do
-                [ -n "$i" ] || continue
-                echo "Deleting old $prefix backup: $i"
-                delete_subvolume_recursively "$i"
-              done
-            }
+              cleanup_old_backups "root" ${toString keepRoot}
+              cleanup_old_backups "home" ${toString keepHome}
 
-            # Delete old home snapshots (keep last 10)
-            ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)} | while read -r snap; do
-              [ -n "$snap" ] || continue
-              echo "Deleting old home snapshot: $snap"
-              btrfs subvolume delete "$snap"
-            done
-
-            cleanup_old_backups "root" ${toString keepRoot}
-            cleanup_old_backups "home" ${toString keepHome}
-
-            umount "$MNTDIR"
-            echo "==> [preservation] Background cleanup finished."
-          '';
+              umount "$MNTDIR"
+              echo "==> [preservation] Background cleanup finished."
+            ''
+            [
+              pkgs.btrfs-progs
+              pkgs.coreutils
+              pkgs.util-linux
+            ]
+          }";
         };
       };
 

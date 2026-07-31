@@ -1,10 +1,4 @@
-{ ... }:
+{ selfLib, ... }:
 {
-  imports = [
-    ./animations
-    ./binds
-    ./environment
-    ./layout
-    ./rules
-  ];
+  imports = selfLib.scanPaths ./.;
 }
