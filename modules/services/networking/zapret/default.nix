@@ -29,37 +29,44 @@ selfLib.mkModule {
         }
       );
 
-      runnerScript = pkgs.writeShellScript "zapret2-runner" ''
-        STATE_DIR="/var/lib/zapret2"
-        SHARE_DIR="${zapret2}/share/zapret2"
+      runnerScript = "${selfLib.mkApp pkgs "zapret2-runner"
+        ''
+          STATE_DIR="/var/lib/zapret2"
+          SHARE_DIR="${zapret2}/share/zapret2"
 
-        mkdir -p "$STATE_DIR"
-        cd "$STATE_DIR"
+          mkdir -p "$STATE_DIR"
+          cd "$STATE_DIR"
 
-        blob_args=""
-        if [ -d "$SHARE_DIR/files/fake" ]; then
-          for blob in "$SHARE_DIR"/files/fake/*.bin; do
-            if [ -f "$blob" ]; then
-              raw_name=$(basename "$blob" .bin)
-              name=$(echo "$raw_name" | tr '-' '_')
-              # Skip built-in C blobs fake_default_tls and fake_default_http
-              if [ "$name" != "fake_default_tls" ] && [ "$name" != "fake_default_http" ]; then
-                blob_args="$blob_args --blob=$name:@$blob"
+          blob_args=""
+          if [ -d "$SHARE_DIR/files/fake" ]; then
+            for blob in "$SHARE_DIR"/files/fake/*.bin; do
+              if [ -f "$blob" ]; then
+                raw_name=$(basename "$blob" .bin)
+                name=$(echo "$raw_name" | tr '-' '_')
+                # Skip built-in C blobs fake_default_tls and fake_default_http
+                if [ "$name" != "fake_default_tls" ] && [ "$name" != "fake_default_http" ]; then
+                  blob_args="$blob_args --blob=$name:@$blob"
+                fi
               fi
-            fi
-          done
-        fi
+            done
+          fi
 
-        exec ${zapret2}/bin/nfqws2 \
-          --pidfile=/run/nfqws2.pid \
-          --qnum=200 \
-          $blob_args \
-          --lua-init="@$SHARE_DIR/lua/zapret-lib.lua" \
-          --lua-init="@$SHARE_DIR/lua/zapret-antidpi.lua" \
-          --filter-tcp=80,443 \
-          --filter-l7=tls,http \
-          --lua-desync=fake:blob=fake_default_tls:tcp_md5
-      '';
+          # shellcheck disable=SC2086
+          exec ${zapret2}/bin/nfqws2 \
+            --pidfile=/run/nfqws2.pid \
+            --qnum=200 \
+            $blob_args \
+            --lua-init="@$SHARE_DIR/lua/zapret-lib.lua" \
+            --lua-init="@$SHARE_DIR/lua/zapret-antidpi.lua" \
+            --filter-tcp=80,443 \
+            --filter-l7=tls,http \
+            --lua-desync=fake:blob=fake_default_tls:tcp_md5
+        ''
+        [
+          pkgs.coreutils
+          zapret2
+        ]
+      }";
     in
     {
       systemd.services.zapret2 = {

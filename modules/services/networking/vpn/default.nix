@@ -19,30 +19,37 @@ selfLib.mkModule {
     networking.networkmanager.enable = true;
 
     sops.secrets = lib.mkMerge [
-      {
-        "wg-lan.conf" = {
-          sopsFile = selfLib.secretBinary "vpn/wg-lan.enc.conf";
-          format = "binary";
-          path = "/etc/wireguard/wg-lan.conf";
-          owner = "root";
-          group = "root";
-          mode = "0600";
-        };
-        "wg-wifi.conf" = {
-          sopsFile = selfLib.secretBinary "vpn/wg-wifi.enc.conf";
-          format = "binary";
-          path = "/etc/wireguard/wg-wifi.conf";
-          owner = "root";
-          group = "root";
-          mode = "0600";
-        };
-      }
-      (lib.genAttrs vpnFiles (fileName: {
-        sopsFile = selfLib.secret "vpn-files/${fileName}";
-        format = "binary";
-        owner = config.my.user.name;
-        mode = "0600";
-      }))
+      (builtins.listToAttrs (
+        map
+          (
+            iface:
+            selfLib.secrets.mkSecret {
+              key = "wg-${iface}.conf";
+              sopsFile = selfLib.secretBinary "vpn/wg-${iface}.enc.conf";
+              format = "binary";
+              path = "/etc/wireguard/wg-${iface}.conf";
+              owner = "root";
+              group = "root";
+              mode = "0600";
+            }
+          )
+          [
+            "lan"
+            "wifi"
+          ]
+      ))
+      (lib.listToAttrs (
+        map (
+          fileName:
+          selfLib.secrets.mkSecret {
+            key = fileName;
+            sopsFile = selfLib.secret "vpn-files/${fileName}";
+            format = "binary";
+            owner = config.my.user.name;
+            mode = "0600";
+          }
+        ) vpnFiles
+      ))
     ];
 
     # ProtonVPN sebagai Flatpak — diinstal bersama modul VPN
@@ -107,7 +114,7 @@ selfLib.mkModule {
         if ${pkgs.procps}/bin/pgrep -u "$(id -u)" -x wireproxy >/dev/null; then
             echo "ℹ️ Wireproxy sudah berjalan di latar belakang."
             # Run verification directly
-            exec vpn-verify-bin "$_vpn_pre_ip" "$_vpn_pre_asn"
+            exec ${vpn-verify-bin} "$_vpn_pre_ip" "$_vpn_pre_asn"
         fi
 
         # List file konfigurasi VPN yang tersedia (dibuat secara dinamis oleh Nix dari secrets/vpn-files)
@@ -162,9 +169,9 @@ selfLib.mkModule {
           hmOpts.osConfig.sops.secrets."nextdns_ip2".path
         }" 2>/dev/null || echo "45.90.30.230")
 
-        # Injeksikan kustom NextDNS ke dalam bagian [Interface] dan SOCKS5 ke berkas konfigurasi sementara
+        # Injeksikan kustom NextDNS ke dalam bagian [Interface], SOCKS5 (1080), dan HTTP (1081) ke berkas konfigurasi sementara
         ${pkgs.gnused}/bin/sed -i '/\[Interface\]/a DNS = '"$dns_ip1, $dns_ip2" "$temp_conf"
-        echo -e "\n[Socks5]\nBindAddress = 127.0.0.1:1080" >> "$temp_conf"
+        echo -e "\n[Socks5]\nBindAddress = 127.0.0.1:1080\n\n[HTTP]\nBindAddress = 127.0.0.1:1081" >> "$temp_conf"
 
         # 4. Eksekusi wireproxy di latar belakang, buang output debug yang berisik
         ${pkgs.wireproxy}/bin/wireproxy -c "$temp_conf" > /dev/null 2>&1 &
@@ -193,96 +200,104 @@ selfLib.mkModule {
         echo "✅ ALL_PROXY diarahkan ke 127.0.0.1:1080."
 
         # Verifikasi keamanan koneksi (paranoid mode)
-        exec vpn-verify-bin "$_vpn_pre_ip" "$_vpn_pre_asn"
+        exec ${vpn-verify-bin} "$_vpn_pre_ip" "$_vpn_pre_asn"
       '' [ ];
 
-      vpn-verify-bin = selfLib.mkApp pkgs "vpn-verify-bin" ''
-        pre_ip="$1"
-        pre_asn="$2"
+      vpn-verify-bin =
+        selfLib.mkApp pkgs "vpn-verify-bin"
+          ''
+            pre_ip="$1"
+            pre_asn="$2"
 
-        echo "🔍 Memverifikasi keamanan koneksi (paranoid mode)..."
-        sleep 2
+            echo "🔍 Memverifikasi keamanan koneksi (paranoid mode)..."
+            sleep 2
 
-        # 1. Cek IP pasca-VPN
-        post_ip=""
-        for _attempt in {1..3}; do
-            post_ip=$(env ALL_PROXY=socks5h://127.0.0.1:1080 ${pkgs.curl}/bin/curl -s --max-time 3 https://ifconfig.me)
-            if [ -n "$post_ip" ]; then
-                break
-            fi
-            sleep 1
-        done
-
-        if [ -z "$post_ip" ]; then
-            echo "❌ Error: Gagal terhubung ke internet via VPN proxy (RTO)."
-            vpn-off-bin
-            exit 1
-        fi
-
-        if [ "$pre_ip" != "unknown" ] && [ "$post_ip" = "$pre_ip" ]; then
-            echo "❌ KEBOCORAN IP TERDETEKSI!"
-            echo "   IP Anda ($post_ip) masih sama dengan IP ISP asli Anda."
-            echo "   Menutup koneksi demi keamanan..."
-            vpn-off-bin
-            exit 1
-        fi
-
-        # 2. Uji Kebocoran DNS (DNS Leak Test)
-        echo "🔍 Menjalankan uji kebocoran DNS..."
-        id=$(env ALL_PROXY=socks5h://127.0.0.1:1080 ${pkgs.curl}/bin/curl -s --max-time 3 https://bash.ws/id)
-        if [ -z "$id" ]; then
-            echo "⚠️ Peringatan: Gagal memicu DNS leak test (API offline)."
-            echo "🌐 IP Terminal Baru Anda: $post_ip"
-            exit 0
-        fi
-
-        # Trigger DNS queries in background to force resolution through SOCKS5 proxy
-        for i in {1..5}; do
-            env ALL_PROXY=socks5h://127.0.0.1:1080 ${pkgs.curl}/bin/curl -s "https://$i.$id.bash.ws" >/dev/null 2>&1 &
-        done
-        sleep 1.5
-
-        # Ambil hasil uji (harus lewat proxy agar client IP terdeteksi sebagai IP VPN)
-        dns_result=$(env ALL_PROXY=socks5h://127.0.0.1:1080 ${pkgs.curl}/bin/curl -s --max-time 3 "https://bash.ws/dnsleak/test/$id?json")
-        conclusion=$(echo "$dns_result" | ${pkgs.jq}/bin/jq -r '.[] | select(.type == "conclusion") | .ip' 2>/dev/null)
-        dns_servers=$(echo "$dns_result" | ${pkgs.jq}/bin/jq -r '.[] | select(.type == "dns") | "\(.ip) [\(.country_name) - \(.asn)]"' 2>/dev/null)
-
-        if [ -n "$dns_servers" ]; then
-            echo "🌐 DNS Resolver yang terdeteksi:"
-            while read -r server; do
-                echo "   -> $server"
-            done <<< "$dns_servers"
-        fi
-
-        # Analisis kebocoran secara cerdas: cek apakah ada resolver DNS yang memiliki ASN sama dengan ISP fisik asli Anda
-        real_leak="no"
-        dns_asns=$(echo "$dns_result" | ${pkgs.jq}/bin/jq -r '.[] | select(.type == "dns") | .asn' 2>/dev/null)
-        if [ -n "$dns_asns" ]; then
-            while read -r dns_asn; do
-                clean_asn=$(echo "$dns_asn" | cut -d' ' -f 1)
-                if [ "$pre_asn" != "unknown" ] && [ "$clean_asn" = "$pre_asn" ]; then
-                    real_leak="yes"
+            # 1. Cek IP pasca-VPN (coba beberapa service agar tahan RTO)
+            post_ip=""
+            for _ep in "https://api.ipify.org" "https://ipinfo.io/ip" "https://ifconfig.me"; do
+                post_ip=$(env ALL_PROXY=socks5h://127.0.0.1:1080 curl -s --max-time 3 "$_ep" 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+                if [ -n "$post_ip" ]; then
                     break
                 fi
-            done <<< "$dns_asns"
-        fi
+                sleep 0.5
+            done
 
-        if [ "$real_leak" = "yes" ]; then
-            echo "❌ KEBOCORAN DNS NYATA TERDETEKSI! ($conclusion)"
-            echo "   Permintaan DNS Anda bocor ke resolver ISP fisik asli Anda ($pre_asn)."
-            echo "   Menutup koneksi demi keamanan..."
-            vpn-off-bin
-            exit 1
-        fi
+            if [ -z "$post_ip" ]; then
+                echo "❌ Error: Gagal terhubung ke internet via VPN proxy (RTO)."
+                ${vpn-off-bin}
+                exit 1
+            fi
 
-        echo "✅ Keamanan terverifikasi: IP dialihkan ke $post_ip."
-        if [[ "$conclusion" =~ leak ]]; then
-            echo "ℹ️ Catatan: Uji publik melaporkan ketidakcocokan ASN (karena Anda menggunakan NextDNS kustom, bukan DNS bawaan VPN),"
-            echo "    tetapi kueri terverifikasi aman karena tidak membocorkan data ke ISP asli Anda ($pre_asn)."
-        else
-            echo "✅ Aman: Tidak ada kebocoran DNS terdeteksi."
-        fi
-      '' [ ];
+            if [ "$pre_ip" != "unknown" ] && [ "$post_ip" = "$pre_ip" ]; then
+                echo "❌ KEBOCORAN IP TERDETEKSI!"
+                echo "   IP Anda ($post_ip) masih sama dengan IP ISP asli Anda."
+                echo "   Menutup koneksi demi keamanan..."
+                ${vpn-off-bin}
+                exit 1
+            fi
+
+            # 2. Uji Kebocoran DNS (DNS Leak Test)
+            echo "🔍 Menjalankan uji kebocoran DNS..."
+            id=$(env ALL_PROXY=socks5h://127.0.0.1:1080 curl -s --max-time 3 https://bash.ws/id)
+            if [ -z "$id" ]; then
+                echo "⚠️ Peringatan: Gagal memicu DNS leak test (API offline)."
+                echo "🌐 IP Terminal Baru Anda: $post_ip"
+                exit 0
+            fi
+
+            # Trigger DNS queries in background to force resolution through SOCKS5 proxy
+            for i in {1..5}; do
+                env ALL_PROXY=socks5h://127.0.0.1:1080 curl -s "https://$i.$id.bash.ws" >/dev/null 2>&1 &
+            done
+            sleep 1.5
+
+            # Ambil hasil uji (harus lewat proxy agar client IP terdeteksi sebagai IP VPN)
+            dns_result=$(env ALL_PROXY=socks5h://127.0.0.1:1080 curl -s --max-time 3 "https://bash.ws/dnsleak/test/$id?json")
+            conclusion=$(echo "$dns_result" | jq -r '.[] | select(.type == "conclusion") | .ip' 2>/dev/null)
+            dns_servers=$(echo "$dns_result" | jq -r '.[] | select(.type == "dns") | "\(.ip) [\(.country_name) - \(.asn)]"' 2>/dev/null)
+
+            if [ -n "$dns_servers" ]; then
+                echo "🌐 DNS Resolver yang terdeteksi:"
+                while read -r server; do
+                    echo "   -> $server"
+                done <<< "$dns_servers"
+            fi
+
+            # Analisis kebocoran secara cerdas: cek apakah ada resolver DNS yang memiliki ASN sama dengan ISP fisik asli Anda
+            real_leak="no"
+            dns_asns=$(echo "$dns_result" | jq -r '.[] | select(.type == "dns") | .asn' 2>/dev/null)
+            if [ -n "$dns_asns" ]; then
+                while read -r dns_asn; do
+                    clean_asn=$(echo "$dns_asn" | cut -d' ' -f 1)
+                    if [ "$pre_asn" != "unknown" ] && [ "$clean_asn" = "$pre_asn" ]; then
+                        real_leak="yes"
+                        break
+                    fi
+                done <<< "$dns_asns"
+            fi
+
+            if [ "$real_leak" = "yes" ]; then
+                echo "❌ KEBOCORAN DNS NYATA TERDETEKSI! ($conclusion)"
+                echo "   Permintaan DNS Anda bocor ke resolver ISP fisik asli Anda ($pre_asn)."
+                echo "   Menutup koneksi demi keamanan..."
+                ${vpn-off-bin}
+                exit 1
+            fi
+
+            echo "✅ Keamanan terverifikasi: IP dialihkan ke $post_ip."
+            if [[ "$conclusion" =~ leak ]]; then
+                echo "ℹ️ Catatan: Uji publik melaporkan ketidakcocokan ASN (karena Anda menggunakan NextDNS kustom, bukan DNS bawaan VPN),"
+                echo "    tetapi kueri terverifikasi aman karena tidak membocorkan data ke ISP asli Anda ($pre_asn)."
+            else
+                echo "✅ Aman: Tidak ada kebocoran DNS terdeteksi."
+            fi
+          ''
+          [
+            pkgs.curl
+            pkgs.gnugrep
+            pkgs.jq
+            pkgs.coreutils
+          ];
 
       vpn-switch-bin = selfLib.mkApp pkgs "vpn-switch-bin" ''
         # Ambil IP dan ASN asli sebelum VPN (bypassing any active proxy)
@@ -295,32 +310,52 @@ selfLib.mkModule {
         # Hentikan wireproxy aktif jika sedang berjalan
         if ${pkgs.procps}/bin/pgrep -u "$(id -u)" -x wireproxy >/dev/null; then
             echo "🔄 Menghentikan VPN aktif..."
-            vpn-off-bin >/dev/null
+            ${vpn-off-bin} >/dev/null
+
             # Tunggu sebentar agar port dilepaskan
             sleep 0.5
         fi
 
         # Jalankan koneksi baru
-        vpn-on-bin
+        ${vpn-on-bin}
       '' [ ];
 
+      socksProxyUrl = "socks5h://127.0.0.1:1080";
+      httpProxyUrl = "http://127.0.0.1:1081";
+
+      bashExportProxy = ''
+        export ALL_PROXY="${socksProxyUrl}" all_proxy="${socksProxyUrl}"
+        export http_proxy="${httpProxyUrl}" https_proxy="${httpProxyUrl}" HTTP_PROXY="${httpProxyUrl}" HTTPS_PROXY="${httpProxyUrl}"
+      '';
+      bashUnsetProxy = "unset ALL_PROXY all_proxy http_proxy https_proxy HTTP_PROXY HTTPS_PROXY";
+
+      fishExportProxy = ''
+        set -gx ALL_PROXY "${socksProxyUrl}"
+        set -gx all_proxy "${socksProxyUrl}"
+        set -gx http_proxy "${httpProxyUrl}"
+        set -gx https_proxy "${httpProxyUrl}"
+        set -gx HTTP_PROXY "${httpProxyUrl}"
+        set -gx HTTPS_PROXY "${httpProxyUrl}"
+      '';
+      fishUnsetProxy = "set -e ALL_PROXY all_proxy http_proxy https_proxy HTTP_PROXY HTTPS_PROXY";
+
       commonVpn = ''
-        vpn-on() {
-          vpn-on-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
-        vpn-off() {
-          vpn-off-bin
-          unset ALL_PROXY
-        }
-        vpn-switch() {
-          vpn-switch-bin
-          if [ $? -eq 0 ]; then
-            export ALL_PROXY="socks5h://127.0.0.1:1080"
-          fi
-        }
+                vpn-on() {
+                  ${vpn-on-bin}
+                  if [ $? -eq 0 ]; then
+        ${bashExportProxy}
+                  fi
+                }
+                vpn-off() {
+                  ${vpn-off-bin}
+        ${bashUnsetProxy}
+                }
+                vpn-switch() {
+                  ${vpn-switch-bin}
+                  if [ $? -eq 0 ]; then
+        ${bashExportProxy}
+                  fi
+                }
       '';
     in
     {
@@ -336,26 +371,26 @@ selfLib.mkModule {
         vpn-on = {
           description = "Jalankan Wireproxy via RAM dan aktifkan SOCKS5";
           body = ''
-            vpn-on-bin
-            if test $status -eq 0
-                set -gx ALL_PROXY "socks5h://127.0.0.1:1080"
-            end
+                        ${vpn-on-bin}
+                        if test $status -eq 0
+            ${fishExportProxy}
+                        end
           '';
         };
         vpn-off = {
           description = "Hentikan Wireproxy dan hapus variabel proxy";
           body = ''
-            vpn-off-bin
-            set -e ALL_PROXY
+                        ${vpn-off-bin}
+            ${fishUnsetProxy}
           '';
         };
         vpn-switch = {
           description = "Ganti koneksi VPN aktif ke konfigurasi lain";
           body = ''
-            vpn-switch-bin
-            if test $status -eq 0
-                set -gx ALL_PROXY "socks5h://127.0.0.1:1080"
-            end
+                        ${vpn-switch-bin}
+                        if test $status -eq 0
+            ${fishExportProxy}
+                        end
           '';
         };
       };

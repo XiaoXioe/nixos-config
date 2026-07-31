@@ -51,28 +51,34 @@ selfLib.mkModule {
 
         dispatcherScripts = [
           {
-            source = pkgs.writeShellScript "vpn-killswitch" ''
-              INTERFACE=$1
-              ACTION=$2
+            source = "${selfLib.mkApp pkgs "vpn-killswitch"
+              ''
+                _INTERFACE=$1
+                ACTION=$2
 
-              if [[ -n "$CONNECTION_UUID" ]]; then
-                CONN_TYPE=$(${pkgs.networkmanager}/bin/nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null || echo "")
-                if [[ "$CONN_TYPE" == "wireguard" || "$CONN_TYPE" == "vpn" ]]; then
-                  case "$ACTION" in
-                    up|vpn-up)
-                      # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
-                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname eth* drop
-                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlan* drop
-                      ${pkgs.nftables}/bin/nft add rule inet filter vpn_killswitch oifname wlp* drop
-                      ;;
-                    down|vpn-down)
-                      # Matikan killswitch: hapus aturan blokir
-                      ${pkgs.nftables}/bin/nft flush chain inet filter vpn_killswitch
-                      ;;
-                  esac
+                if [[ -n "$CONNECTION_UUID" ]]; then
+                  CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null || echo "")
+                  if [[ "$CONN_TYPE" == "wireguard" || "$CONN_TYPE" == "vpn" ]]; then
+                    case "$ACTION" in
+                      up|vpn-up)
+                        # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
+                        nft add rule inet filter vpn_killswitch oifname eth* drop
+                        nft add rule inet filter vpn_killswitch oifname wlan* drop
+                        nft add rule inet filter vpn_killswitch oifname wlp* drop
+                        ;;
+                      down|vpn-down)
+                        # Matikan killswitch: hapus aturan blokir
+                        nft flush chain inet filter vpn_killswitch
+                        ;;
+                    esac
+                  fi
                 fi
-              fi
-            '';
+              ''
+              [
+                pkgs.networkmanager
+                pkgs.nftables
+              ]
+            }";
             type = "basic";
           }
         ];

@@ -8,18 +8,17 @@ selfLib.mkModule {
   name = "services.networking.dns";
 
   nixosConfig = {
-    sops.secrets = {
-      "rethinkdns_stamp" = { };
-      "nextdns_stamp" = { };
-      "nextdns_name" = { };
-      "dnscrypt_monitoring_password" = { };
-      "nextdns_ip1" = {
-        owner = config.my.user.name;
-      };
-      "nextdns_ip2" = {
-        owner = config.my.user.name;
-      };
-    };
+    sops.secrets =
+      (selfLib.secrets.mkSecrets [
+        "rethinkdns_stamp"
+        "nextdns_stamp"
+        "nextdns_name"
+        "dnscrypt_monitoring_password"
+      ] { })
+      // (selfLib.secrets.mkSecrets [
+        "nextdns_ip1"
+        "nextdns_ip2"
+      ] { owner = config.my.user.name; });
 
     # 1. Configuration template
     sops.templates."dnscrypt-proxy.toml" = {

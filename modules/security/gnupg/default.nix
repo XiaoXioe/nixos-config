@@ -42,15 +42,16 @@ selfLib.mkModule {
 
     # Deklarasi rahasia kunci privat via sops-nix
     sops.secrets = lib.listToAttrs (
-      map (key: {
-        name = "gpg-private-key-${key.num}";
-        value = {
+      map (
+        key:
+        selfLib.secrets.mkSecret {
+          key = "gpg-private-key-${key.num}";
           format = "binary";
           sopsFile = selfLib.secretBinary "gnupg/private-key-${key.num}.enc";
           owner = config.my.user.name;
           mode = "0600";
-        };
-      }) gpgKeysList
+        }
+      ) gpgKeysList
     );
   };
 

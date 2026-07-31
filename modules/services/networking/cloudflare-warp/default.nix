@@ -86,7 +86,7 @@ selfLib.mkModule {
         StateDirectoryMode = "0700";
         LogLevelMax = "err";
 
-        ExecStartPre = "${warpSetupScript}/bin/generate-warp-config";
+        ExecStartPre = "${warpSetupScript}";
         ExecStart = "${pkgs.wireproxy}/bin/wireproxy --silent -c \${STATE_DIRECTORY}/wgcf-profile.conf";
         Restart = "always";
         RestartSec = "10s";
