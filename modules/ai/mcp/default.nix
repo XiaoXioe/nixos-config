@@ -261,5 +261,20 @@ selfLib.mkModule {
       home.file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
         mcpServers = geminiSsh // geminiExec;
       };
+
+      systemd.user.services.agentmemory = {
+        Unit = {
+          Description = "AgentMemory Daemon Server";
+          After = [ "network.target" ];
+        };
+        Service = {
+          ExecStart = "${agentmemory-pkg}/bin/agentmemory";
+          Restart = "on-failure";
+          RestartSec = "5s";
+        };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
+      };
     };
 }
