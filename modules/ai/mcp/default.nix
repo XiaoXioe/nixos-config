@@ -139,6 +139,7 @@ selfLib.mkModule {
           bin = "agentmemory-mcp";
           env = {
             AGENTMEMORY_URL = "http://localhost:3111";
+            AGENTMEMORY_DATA_DIR = "${homeDir}/.gemini/config/agentmemory";
           };
         };
         sequential-thinking = {
@@ -268,9 +269,13 @@ selfLib.mkModule {
           After = [ "network.target" ];
         };
         Service = {
+          WorkingDirectory = "${homeDir}/.gemini/config/agentmemory";
           ExecStart = "${agentmemory-pkg}/bin/agentmemory";
           Restart = "on-failure";
           RestartSec = "5s";
+          Environment = [
+            "AGENTMEMORY_DATA_DIR=${homeDir}/.gemini/config/agentmemory"
+          ];
         };
         Install = {
           WantedBy = [ "default.target" ];
