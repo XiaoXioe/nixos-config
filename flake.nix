@@ -210,7 +210,12 @@
 
       packages.${system} = import ./packages-export.nix {
         nixosConfigs = mkNixosConfigurations;
-        inherit hostName adminUser inputs;
+        inherit
+          hostName
+          adminUser
+          inputs
+          selfLib
+          ;
       };
     };
 }

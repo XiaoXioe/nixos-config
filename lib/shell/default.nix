@@ -4,8 +4,17 @@
   # Generates isolated Shell Applications with clean runtimeInputs
   mkApp =
     name: text: runtimeInputs:
-    pkgs.writeShellApplication {
-      inherit name text runtimeInputs;
+    let
+      drv = pkgs.writeShellApplication {
+        inherit name text runtimeInputs;
+        excludeShellChecks = [
+          "SC2012"
+        ];
+      };
+    in
+    drv
+    // {
+      __toString = self: "${drv}/bin/${name}";
     };
 
   # Generate a list of shell script packages from an attribute set

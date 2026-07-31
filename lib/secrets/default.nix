@@ -4,12 +4,7 @@
   secretBinary,
 }:
 
-{
-  # Helper to resolve SOPS secret paths cleanly relative to Flake root
-  sopsSecret = relPath: secret relPath;
-  sopsSecretBinary = relPath: secretBinary relPath;
-
-  # Declarative SOPS secret definition builder for single-user environment
+let
   mkSecret =
     {
       key,
@@ -31,4 +26,13 @@
       // (lib.optionalAttrs (format != "yaml") { inherit format; })
       // (lib.optionalAttrs (group != null) { inherit group; });
     };
+
+  mkSecrets = keys: opts: builtins.listToAttrs (map (key: mkSecret ({ inherit key; } // opts)) keys);
+in
+{
+  # Helper to resolve SOPS secret paths cleanly relative to Flake root
+  sopsSecret = relPath: secret relPath;
+  sopsSecretBinary = relPath: secretBinary relPath;
+
+  inherit mkSecret mkSecrets;
 }
