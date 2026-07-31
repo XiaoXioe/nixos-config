@@ -65,16 +65,18 @@ selfLib.mkModule {
   description = "AI development tools";
 
   nixosConfig = {
-    sops.secrets = {
-      "gemini-api-key" = {
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "gemini-api-key";
         owner = config.my.user.name;
         mode = "0400";
-      };
-      "huggingface-token" = {
+      })
+      (selfLib.secrets.mkSecret {
+        key = "huggingface-token";
         owner = config.my.user.name;
         mode = "0400";
-      };
-    };
+      })
+    ];
     my.services.system.tmpfiles.nocowDirectories = [
       "/home/${config.my.user.name}/.gemini"
     ];

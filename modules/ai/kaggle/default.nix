@@ -10,12 +10,13 @@ selfLib.mkModule {
   description = "Kaggle CLI & SDK setup";
 
   nixosConfig = {
-    sops.secrets = {
-      "kaggle-token" = {
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "kaggle-token";
         owner = config.my.user.name;
         mode = "0400";
-      };
-    };
+      })
+    ];
     sops.templates."access_token" = {
       path = "/home/${config.my.user.name}/.kaggle/access_token";
       owner = config.my.user.name;

@@ -45,16 +45,18 @@ selfLib.mkModule {
   description = "Nix-native Model Context Protocol (MCP) servers and configuration";
 
   nixosConfig = {
-    sops.secrets = {
-      "tavily-api-key" = {
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "tavily-api-key";
         owner = config.my.user.name;
         mode = "0400";
-      };
-      "cloudflare-token" = {
+      })
+      (selfLib.secrets.mkSecret {
+        key = "cloudflare-token";
         owner = config.my.user.name;
         mode = "0400";
-      };
-    };
+      })
+    ];
   };
 
   hmConfig =
