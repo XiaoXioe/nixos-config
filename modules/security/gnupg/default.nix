@@ -7,22 +7,28 @@
 }:
 
 let
-  # Single Source of Truth untuk seluruh kunci GPG (Publik & Privat via sops)
+  # Single Source of Truth untuk seluruh kunci GPG (Publik, Privat & Keygrip via sops)
   gpgKeysList = [
     {
       num = "1";
       id = "DABD05C1D9C1FD2A";
       pubFile = ./public-key-1.asc;
+      keygrip = "91650243647D9391B58D1A7A1FB83312EA6F54D0";
+      extraKeygrips = [ "05C43456D409B53584AE76A4EA71B1A8128E5E37" ];
     }
     {
       num = "2";
       id = "B10004A433825F0F";
       pubFile = ./public-key-2.asc;
+      keygrip = "8C439498A77B2A603D4F5ED3B33A810C64798A01";
+      extraKeygrips = [ ];
     }
     {
       num = "3";
       id = "95217AF28DBCD5E3";
       pubFile = ./public-key-3.asc;
+      keygrip = "9115CC1A76F2D4A9D9FA78ADDBE8119AE1E04F99";
+      extraKeygrips = [ ];
     }
   ];
 in
@@ -40,22 +46,39 @@ selfLib.mkModule {
       };
     };
 
-    # Deklarasi rahasia kunci privat via sops-nix
-    sops.secrets = lib.listToAttrs (
-      map (
-        key:
-        selfLib.secrets.mkSecret {
-          key = "gpg-private-key-${key.num}";
-          format = "binary";
-          sopsFile = selfLib.secretBinary "gnupg/private-key-${key.num}.enc";
-          owner = config.my.user.name;
-          mode = "0600";
-        }
-      ) gpgKeysList
-    );
+    # Deklarasi rahasia kunci privat & passphrase per kunci via sops-nix
+    sops.secrets = lib.mkMerge [
+      (lib.listToAttrs (
+        map (
+          key:
+          selfLib.secrets.mkSecret {
+            key = "gpg-passphrase-${key.num}";
+            owner = config.my.user.name;
+            mode = "0400";
+          }
+        ) gpgKeysList
+      ))
+      (lib.listToAttrs (
+        map (
+          key:
+          selfLib.secrets.mkSecret {
+            key = "gpg-private-key-${key.num}";
+            format = "binary";
+            sopsFile = selfLib.secretBinary "gnupg/private-key-${key.num}.enc";
+            owner = config.my.user.name;
+            mode = "0600";
+          }
+        ) gpgKeysList
+      ))
+    ];
   };
 
   hmConfig = hmOpts: {
+    services.gpg-agent = {
+      enable = true;
+      extraConfig = "allow-preset-passphrase";
+    };
+
     programs.gpg = {
       enable = true;
       # Impor kunci publik ke ring kunci GPG secara deklaratif
@@ -78,6 +101,41 @@ selfLib.mkModule {
           05C43456D409B53584AE76A4EA71B1A8128E5E37
         '';
       };
+
+    systemd.user.services.gpg-preset-passphrase = {
+      Unit = {
+        Description = "Preset GPG key passphrases into gpg-agent cache on startup";
+        After = [ "gpg-agent.service" ];
+        Wants = [ "gpg-agent.service" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${selfLib.mkApp pkgs "gpg-preset-passphrase"
+          ''
+            ${lib.concatMapStringsSep "\n" (key: ''
+              pass_file="${hmOpts.osConfig.sops.secrets."gpg-passphrase-${key.num}".path}"
+              if [ -f "$pass_file" ]; then
+                # Gunakan stdin pipe agar passphrase TIDAK terekspos di /proc/<pid>/cmdline
+                ${pkgs.gnupg}/libexec/gpg-preset-passphrase --preset ${key.keygrip} < "$pass_file" || true
+                ${lib.concatMapStringsSep "\n" (extraGrip: ''
+                  ${pkgs.gnupg}/libexec/gpg-preset-passphrase --preset ${extraGrip} < "$pass_file" || true
+                '') key.extraKeygrips}
+              fi
+            '') gpgKeysList}
+          ''
+          [
+            pkgs.gnupg
+            pkgs.coreutils
+          ]
+        }";
+      };
+      Install = {
+        WantedBy = [
+          "graphical-session.target"
+          "default.target"
+        ];
+      };
+    };
 
     # KRUSIAL: home.activation Diperlukan untuk Mengimpor Kunci Privat GPG dari sops-nix ke Keyring Daemon GPG.
     # `programs.gpg.publicKeys` HANYA mengimpor kunci publik (.asc).
