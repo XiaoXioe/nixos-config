@@ -227,6 +227,7 @@ selfLib.mkModule {
             ".xanylabelingrc"
             ".BurpSuite"
             ".agents"
+            ".agentmemory"
             ".telegram-mcp"
             ".thunderbird"
             ".config"

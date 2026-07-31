@@ -15,7 +15,7 @@ let
   telegram-mcp-pkg = inputs.nix-mcp.packages.${system}.telegram-mcp;
   github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
-  server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
+  # server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
   agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
@@ -127,19 +127,18 @@ selfLib.mkModule {
             TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
           };
         };
-        server-memory = {
-          pkg = server-memory-pkg;
-          bin = "mcp-server-memory";
-          env = {
-            MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
-          };
-        };
+        # server-memory = {
+        #   pkg = server-memory-pkg;
+        #   bin = "mcp-server-memory";
+        #   env = {
+        #     MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
+        #   };
+        # };
         agentmemory = {
           pkg = agentmemory-pkg;
           bin = "agentmemory-mcp";
           env = {
             AGENTMEMORY_URL = "http://localhost:3111";
-            AGENTMEMORY_DATA_DIR = "${homeDir}/.gemini/config/agentmemory";
           };
         };
         sequential-thinking = {
@@ -205,7 +204,7 @@ selfLib.mkModule {
           telegram-mcp-pkg
           github-mcp-server-pkg
           tavily-mcp-pkg
-          server-memory-pkg
+          # server-memory-pkg
           agentmemory-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
@@ -269,13 +268,10 @@ selfLib.mkModule {
           After = [ "network.target" ];
         };
         Service = {
-          WorkingDirectory = "${homeDir}/.gemini/config/agentmemory";
+          WorkingDirectory = "${homeDir}/.agentmemory";
           ExecStart = "${agentmemory-pkg}/bin/agentmemory";
           Restart = "on-failure";
           RestartSec = "5s";
-          Environment = [
-            "AGENTMEMORY_DATA_DIR=${homeDir}/.gemini/config/agentmemory"
-          ];
         };
         Install = {
           WantedBy = [ "default.target" ];
