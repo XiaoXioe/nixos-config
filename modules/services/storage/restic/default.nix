@@ -85,13 +85,11 @@ selfLib.mkModule {
             serviceConfig = {
               ExecStartPre = lib.mkBefore [
                 (selfLib.mkWarpWaitScript pkgs "restic-backups-${name}-wait-proxy")
-                (pkgs.writeShellScript "restic-backups-${name}-copy-rclone-config" ''
-                  ${pkgs.coreutils}/bin/mkdir -p /run/restic-backups-${name}
-                  ${pkgs.coreutils}/bin/cp ${
-                    config.sops.secrets."rclone.conf".path
-                  } /run/restic-backups-${name}/rclone.conf
-                  ${pkgs.coreutils}/bin/chmod 600 /run/restic-backups-${name}/rclone.conf
-                '')
+                "${selfLib.mkApp pkgs "restic-backups-${name}-copy-rclone-config" ''
+                  mkdir -p /run/restic-backups-${name}
+                  cp ${config.sops.secrets."rclone.conf".path} /run/restic-backups-${name}/rclone.conf
+                  chmod 600 /run/restic-backups-${name}/rclone.conf
+                '' [ pkgs.coreutils ]}"
               ];
             };
           };
@@ -142,12 +140,13 @@ selfLib.mkModule {
     lib.mkMerge [
       {
         # Secret declaration for restic password
-        sops.secrets = {
-          "restic-password" = {
+        sops.secrets = builtins.listToAttrs [
+          (selfLib.secrets.mkSecret {
+            key = "restic-password";
             owner = config.my.user.name;
             mode = "0444";
-          };
-        };
+          })
+        ];
 
         environment.systemPackages = [
           (pkgs.symlinkJoin {
@@ -183,19 +182,27 @@ selfLib.mkModule {
       Service = {
         Type = "simple";
         ExecStartPre = [
+          "-/run/wrappers/bin/fusermount3 -u ${mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}"
         ];
-        ExecStart = pkgs.writeShellScript "restic-mount-start" ''
-          set -euo pipefail
+        ExecStart = "${selfLib.mkApp pkgs "restic-mount-start"
+          ''
+            set -euo pipefail
+            export PATH="/run/wrappers/bin:$PATH"
 
-          ${selfLib.mkWarpWaitScript pkgs "restic-mount-wait-proxy"}
+            ${selfLib.mkWarpWaitScript pkgs "restic-mount-wait-proxy"}
 
-          export RCLONE_CONFIG="${hmOpts.osConfig.sops.secrets."rclone.conf".path}"
-          exec ${pkgs.restic}/bin/restic mount "${mountPoint}" \
-            --repo "${resticRepo}" \
-            --password-file "${hmOpts.osConfig.sops.secrets."restic-password".path}"
-        '';
-        ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz ${mountPoint}";
+            export RCLONE_CONFIG="${hmOpts.osConfig.sops.secrets."rclone.conf".path}"
+            exec restic mount "${mountPoint}" \
+              --repo "${resticRepo}" \
+              --password-file "${hmOpts.osConfig.sops.secrets."restic-password".path}"
+          ''
+          [
+            pkgs.restic
+            pkgs.coreutils
+          ]
+        }";
+        ExecStop = "/run/wrappers/bin/fusermount3 -u ${mountPoint}";
         Restart = "on-failure";
         RestartSec = "10s";
         Environment = lib.mapAttrsToList (n: v: "${n}=${v}") selfLib.warpProxyEnv;

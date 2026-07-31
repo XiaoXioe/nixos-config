@@ -22,18 +22,21 @@ selfLib.mkModule {
 
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
-      sops.secrets = {
-        "9router-env" = {
+      sops.secrets = builtins.listToAttrs [
+        (selfLib.secrets.mkSecret {
+          key = "9router-env";
           mode = "0400";
-        };
-        "ninerouter-key" = {
+        })
+        (selfLib.secrets.mkSecret {
+          key = "ninerouter-key";
           owner = config.my.user.name;
           mode = "0400";
-        };
-        "mt5-vnc-env" = {
+        })
+        (selfLib.secrets.mkSecret {
+          key = "mt5-vnc-env";
           mode = "0400";
-        };
-      };
+        })
+      ];
 
       environment.variables = {
 
@@ -43,53 +46,55 @@ selfLib.mkModule {
 
       systemd.services.docker-autoupdate = lib.mkIf cfg.autoUpdate.enable {
         description = "Auto-update all running Docker containers";
-        path = [
-          pkgs.docker
-          pkgs.systemd
-          pkgs.coreutils
-        ];
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = pkgs.writeShellScript "docker-autoupdate" ''
-            set -euo pipefail
+          ExecStart = "${selfLib.mkApp pkgs "docker-autoupdate"
+            ''
+              set -euo pipefail
 
-            # Get list of running docker container names
-            containers=$(docker ps --format '{{.Names}}')
+              # Get list of running docker container names
+              containers=$(docker ps --format '{{.Names}}')
 
-            for container in $containers; do
-              # Get image name used by the container
-              image=$(docker inspect --format '{{.Config.Image}}' "$container")
+              for container in $containers; do
+                # Get image name used by the container
+                image=$(docker inspect --format '{{.Config.Image}}' "$container")
 
-              echo "Checking updates for $container ($image)..."
+                echo "Checking updates for $container ($image)..."
 
-              # Store the old image ID
-              old_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
+                # Store the old image ID
+                old_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
 
-              # Pull the latest image
-              if docker pull "$image"; then
-                # Get the new image ID
-                new_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
+                # Pull the latest image
+                if docker pull "$image"; then
+                  # Get the new image ID
+                  new_image_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || echo "")
 
-                # If the image was updated, restart the systemd service for the container
-                if [ "$old_image_id" != "$new_image_id" ]; then
-                  echo "Image updated for $container. Restarting service docker-$container.service..."
-                  if systemctl is-active --quiet "docker-$container.service"; then
-                    if ! systemctl restart "docker-$container.service"; then
-                      echo "Failed to restart systemd service, trying docker restart directly..."
+                  # If the image was updated, restart the systemd service for the container
+                  if [ "$old_image_id" != "$new_image_id" ]; then
+                    echo "Image updated for $container. Restarting service docker-$container.service..."
+                    if systemctl is-active --quiet "docker-$container.service"; then
+                      if ! systemctl restart "docker-$container.service"; then
+                        echo "Failed to restart systemd service, trying docker restart directly..."
+                        docker restart "$container"
+                      fi
+                    else
+                      echo "Service docker-$container.service is not active or does not exist, restarting container directly..."
                       docker restart "$container"
                     fi
                   else
-                    echo "Service docker-$container.service is not active or does not exist, restarting container directly..."
-                    docker restart "$container"
+                    echo "Image is already up-to-date for $container."
                   fi
                 else
-                  echo "Image is already up-to-date for $container."
+                  echo "Failed to pull image $image"
                 fi
-              else
-                echo "Failed to pull image $image"
-              fi
-            done
-          '';
+              done
+            ''
+            [
+              pkgs.docker
+              pkgs.systemd
+              pkgs.coreutils
+            ]
+          }";
         };
       };
 
