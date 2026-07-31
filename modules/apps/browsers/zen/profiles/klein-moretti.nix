@@ -75,8 +75,16 @@
     force = true;
     routes = {
       # Localhost
+      "localhost" = {
+        reference = "localhost";
+        openIn = "4dd78e5e-05e0-48e2-a337-f69466eff97d";
+      };
       "0.0.0.0" = {
         reference = "0.0.0.0";
+        openIn = "4dd78e5e-05e0-48e2-a337-f69466eff97d";
+      };
+      "127.0.0.1" = {
+        reference = "127.0.0.1";
         openIn = "4dd78e5e-05e0-48e2-a337-f69466eff97d";
       };
       "192.168.5" = {
@@ -143,6 +151,10 @@
       };
 
       # Work / Git
+      "google" = {
+        reference = "google.com";
+        openIn = "e51c3712-06c5-4620-a0e5-7edf3ba57de6";
+      };
       "github" = {
         reference = "github.com";
         openIn = "e51c3712-06c5-4620-a0e5-7edf3ba57de6";

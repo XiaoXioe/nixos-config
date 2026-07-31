@@ -12,10 +12,6 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    imports = [
-      ./settings
-      ./alias
-      ./function
-    ];
+    imports = selfLib.scanPaths ./.;
   };
 }

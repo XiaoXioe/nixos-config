@@ -14,32 +14,25 @@ selfLib.mkModule {
       "d /home/${config.my.user.name}/.config/gh 0700 ${config.my.user.name} users - -"
     ];
 
-    sops.secrets = {
-      "github-user-1" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-      "github-access-token-1" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-      "github-user-2" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-      "github-access-token-2" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-      "github-user-3" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-      "github-access-token-3" = {
-        owner = config.my.user.name;
-        mode = "0400";
-      };
-    };
+    sops.secrets = builtins.listToAttrs (
+      map
+        (
+          key:
+          selfLib.secrets.mkSecret {
+            inherit key;
+            owner = config.my.user.name;
+            mode = "0400";
+          }
+        )
+        [
+          "github-user-1"
+          "github-access-token-1"
+          "github-user-2"
+          "github-access-token-2"
+          "github-user-3"
+          "github-access-token-3"
+        ]
+    );
 
     sops.templates."gh_hosts.yml" = {
       path = "/home/${config.my.user.name}/.config/gh/hosts.yml";

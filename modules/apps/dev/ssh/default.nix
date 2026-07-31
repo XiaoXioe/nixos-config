@@ -22,22 +22,24 @@ selfLib.mkModule {
     systemd.tmpfiles.rules = [
       "d /home/${config.my.user.name}/.ssh 0700 ${config.my.user.name} users - -"
     ];
-    sops.secrets = {
-      "ssh-user-klein" = {
+    sops.secrets = builtins.listToAttrs [
+      (selfLib.secrets.mkSecret {
+        key = "ssh-user-klein";
         format = "binary";
         sopsFile = selfLib.secretBinary "ssh/ssh-user-klein.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_ed25519";
         mode = "0600";
-      };
-      "ssh-rsa-user-klein" = {
+      })
+      (selfLib.secrets.mkSecret {
+        key = "ssh-rsa-user-klein";
         format = "binary";
         sopsFile = selfLib.secretBinary "ssh/ssh-rsa-user-klein.enc";
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_rsa_compat";
         mode = "0600";
-      };
-    };
+      })
+    ];
   };
 
   hmConfig = hmOpts: {

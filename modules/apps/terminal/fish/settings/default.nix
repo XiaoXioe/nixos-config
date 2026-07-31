@@ -64,7 +64,7 @@
       jceu = "sudo journalctl -xeu";
 
       # --- NIXOS REBUILD & MAINTENANCE ---
-      rebuild = "sudo nixos-rebuild switch --flake --print-build-logs --show-trace";
+      rebuild = "sudo nixos-rebuild switch --flake . --print-build-logs --show-trace";
       cln = "nh clean all --keep 3 --ask --optimise";
       nfu = "nix flake update";
       osbuild = "nh os switch --no-nom --show-trace --diff auto --ask -L";
