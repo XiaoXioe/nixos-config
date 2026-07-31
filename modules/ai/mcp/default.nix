@@ -16,6 +16,7 @@ let
   github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
   server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
+  agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
 
@@ -133,6 +134,13 @@ selfLib.mkModule {
             MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
           };
         };
+        agentmemory = {
+          pkg = agentmemory-pkg;
+          bin = "agentmemory-mcp";
+          env = {
+            AGENTMEMORY_URL = "http://localhost:3111";
+          };
+        };
         sequential-thinking = {
           pkg = sequential-thinking-pkg;
           bin = "mcp-server-sequential-thinking";
@@ -197,6 +205,7 @@ selfLib.mkModule {
           github-mcp-server-pkg
           tavily-mcp-pkg
           server-memory-pkg
+          agentmemory-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
         ];
