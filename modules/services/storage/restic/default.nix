@@ -95,15 +95,21 @@ selfLib.mkModule {
           };
         };
 
-      # Domain 1: Vaultwarden (Setiap 3 jam: 00:00, 03:00, 06:00, dst)
+      # Domain 1: Vaultwarden (Setiap 3 jam: 00:00, 03:00, 06:00, dst) - Zero Downtime Online Backup
       vaultwardenBackup = mkBackupConfig {
         name = "vaultwarden";
         paths = [
-          "/persist/var/lib/vaultwarden"
+          "/run/vaultwarden-backup"
         ];
         onCalendar = "00/3:00:00";
-        backupPrepareCommand = "${pkgs.systemd}/bin/systemctl stop vaultwarden.service";
-        backupCleanupCommand = "${pkgs.systemd}/bin/systemctl start vaultwarden.service";
+        backupPrepareCommand = ''
+          ${pkgs.coreutils}/bin/mkdir -p /run/vaultwarden-backup
+          ${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup/*
+          ${pkgs.coreutils}/bin/cp -a /persist/var/lib/vaultwarden/. /run/vaultwarden-backup/
+          ${pkgs.sqlite}/bin/sqlite3 /persist/var/lib/vaultwarden/db.sqlite3 ".backup '/run/vaultwarden-backup/db.sqlite3'"
+          ${pkgs.coreutils}/bin/rm -f /run/vaultwarden-backup/db.sqlite3-wal /run/vaultwarden-backup/db.sqlite3-shm
+        '';
+        backupCleanupCommand = "${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup";
       };
 
       # Domain 2: System & Nix Configuration (Setiap 3 jam + offset 15 menit: 00:15, 03:15, dst)
