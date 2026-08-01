@@ -13,7 +13,7 @@ in
 {
   # Menarik dari NixOS — sengaja TANPA fallback: jika opsi hilang karena
   # refactor, eval harus gagal keras alih-alih diam-diam meng-cache pkgs.hello.
-  llama = config.my.ai.llama.package;
+  llama = config.my.ai.runtimes.llama.package;
 
   # Torlink package
   torlink = inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default;

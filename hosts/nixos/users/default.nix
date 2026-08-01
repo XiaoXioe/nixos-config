@@ -49,21 +49,29 @@
       };
 
       dev = {
-        nh = true;
-        git = true;
-        ssh = true;
-        file-manager = {
-          dolphin = true;
-          nemo = false;
+        nix = {
+          nh = true;
+          nix-tools = true;
+          cek-cache = true;
+          flake-update-interactive = true;
         };
-        mime-associations = true;
-        languages = true;
-        nix-tools = true;
-        android = true;
-        direnv = true;
-        git-commits = true;
-        flake-update-interactive = true;
-        cek-cache = true;
+        vcs = {
+          git = true;
+          git-commits = true;
+        };
+        environment = {
+          direnv = true;
+          ssh = true;
+        };
+        system = {
+          android = true;
+          file-manager = {
+            dolphin = true;
+            nemo = false;
+          };
+          languages = true;
+          mime-associations = true;
+        };
       };
 
       editors = {
@@ -92,37 +100,54 @@
       };
 
       terminal = {
-        btop = true;
-        fastfetch = true;
-        fish = true;
-        starship = true;
-        wezterm = false;
-        foot = false;
-        kitty = true;
-        zellij = false;
-        tools = true;
-        fzf = true;
-        zoxide = true;
-        eza = true;
-        functions = {
-          file-transfer = true;
-          show-zombie-parents = true;
-          custom-functions = true;
+        emulators = {
+          alacritty = true;
+          foot = false;
+          kitty = false;
+          wezterm = false;
+        };
+        multiplexers = {
+          zellij = true;
+        };
+        shells = {
+          fish = true;
+          starship = true;
+        };
+        utilities = {
+          btop = true;
+          eza = true;
+          fastfetch = true;
+          fzf = true;
+          tools = true;
+          zoxide = true;
+          functions = {
+            custom-functions = true;
+            file-transfer = true;
+            show-zombie-parents = true;
+          };
         };
       };
     };
 
     ai = {
-      llama = true;
-      ollama = true;
-      open-webui = false;
-      tools = true;
-      mcp = true;
-      kaggle = true;
-      agy-profile = true;
-      agy-ide-profile = true;
-      ollama-to-llama = true;
-      auth-agent = true;
+      runtimes = {
+        llama = true;
+        ollama = true;
+        ollama-to-llama = true;
+      };
+      agents = {
+        agy-profile = true;
+        agy-ide-profile = true;
+        auth-agent = true;
+      };
+      interfaces = {
+        open-webui = false;
+      };
+      tools = {
+        mcp = true;
+        kaggle = true;
+        tools = true;
+      };
     };
 
     core = {
@@ -139,8 +164,10 @@
       system-tools = true;
       graphics = true;
       bootloader = true;
-      kernel = true;
-      kernel-cachyos = true;
+      kernel = {
+        stock = true;
+        cachyos = true;
+      };
       memory = true;
       power = true;
     };
