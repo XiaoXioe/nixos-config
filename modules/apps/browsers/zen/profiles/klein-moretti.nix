@@ -1,4 +1,10 @@
-{ baseSettings, lib }:
+{
+  baseSettings,
+  common,
+  amoAddons,
+  resolveAddons,
+  ...
+}:
 {
   isDefault = true;
   id = 0;
@@ -6,40 +12,27 @@
 
   presets.betterfox.enable = true;
 
+  extensions.packages = resolveAddons (
+    with amoAddons;
+    [
+      ublock-origin
+      bitwarden
+      auto-tab-discard
+      remove-youtube-tracking
+      tampermonkey
+      keplr
+      solflare-wallet
+      ghost-downloader
+    ]
+  );
+
   mods = [
     "803c7895-b39b-458e-84f8-a521f4d7a064" # Hide Inactive Workspaces
     "e122b5d9-d385-4bf8-9971-e137809097d0" # No Top Sites
   ];
 
   containersForce = true;
-  containers = builtins.listToAttrs (
-    builtins.genList (i: {
-      name = "Account ${if i + 1 < 10 then "0" + toString (i + 1) else toString (i + 1)}";
-      value = {
-        id = i + 6;
-        color = builtins.elemAt [
-          "blue"
-          "turquoise"
-          "green"
-          "yellow"
-          "orange"
-          "red"
-          "pink"
-          "purple"
-        ] (lib.mod i 8);
-        icon = builtins.elemAt [
-          "fingerprint"
-          "briefcase"
-          "dollar"
-          "cart"
-          "circle"
-          "gift"
-          "vacation"
-          "food"
-        ] (lib.mod i 8);
-      };
-    }) 20
-  );
+  containers = common.mkAccountContainers { startId = 6; };
 
   spacesForce = true;
   spaces = {

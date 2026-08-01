@@ -88,7 +88,7 @@
   "browser.tabs.min_inactive_duration_before_unload" = lock 3600000; # 1 jam
 
   # ==========================================
-  # 7.1. Jaringan & Performa (Network & Performance - Aligned with Firefox)
+  # 8. Jaringan & Performa (Network & Performance)
   # ==========================================
   "browser.sessionstore.restore_on_demand" = lock-true;
   "browser.sessionstore.restore_pinned_tabs_on_demand" = lock-true;
@@ -98,7 +98,7 @@
   "browser.places.speculativeConnect.enabled" = lock-false;
 
   # ==========================================
-  # 8. Privasi & Kredensial (Privacy & Credentials)
+  # 9. Privasi & Kredensial (Privacy & Credentials)
   # ==========================================
   "privacy.resistFingerprinting" = lock-false;
   "privacy.fingerprintingProtection" = lock-true;
@@ -115,7 +115,7 @@
   "extensions.formautofill.creditCards.enabled" = lock-false;
 
   # ==========================================
-  # 9. Akselerasi Video Hardware (VA-API)
+  # 10. Akselerasi Video Hardware (VA-API)
   # ==========================================
   "media.ffmpeg.vaapi.enabled" = lock-true;
   "gfx.webrender.all" = lock-true;

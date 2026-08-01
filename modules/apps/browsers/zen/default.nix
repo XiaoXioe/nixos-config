@@ -21,32 +21,6 @@ let
     lock
     ;
 
-  defaultProfileExtensions = resolveAddons (
-    with amoAddons;
-    [
-      ublock-origin
-      bitwarden
-      auto-tab-discard
-      remove-youtube-tracking
-      gh-repo-size
-      tampermonkey
-      keplr
-      solflare-wallet
-    ]
-  );
-
-  declarativeProfileExtensions = resolveAddons (
-    with amoAddons;
-    [
-      auto-tab-discard
-      ublock-origin
-      privacy-badger
-      canvasblocker
-      localcdn
-      proton-vpn
-    ]
-  );
-
   zenPolicies = import ./policies {
     inherit
       lock
@@ -93,6 +67,7 @@ selfLib.mkModule {
     hmOpts:
     let
       user = hmOpts.config.home.username;
+      common = import ./profiles/common.nix { inherit lib; };
 
       baseSettings = {
         "accessibility.force_disabled" = 1;
@@ -132,11 +107,23 @@ selfLib.mkModule {
         policies = zenBrowserPolicies;
 
         profiles = {
-          ${user} = (import ./profiles/klein-moretti.nix { inherit baseSettings lib; }) // {
-            extensions.packages = defaultProfileExtensions;
+          ${user} = import ./profiles/klein-moretti.nix {
+            inherit
+              baseSettings
+              lib
+              common
+              amoAddons
+              resolveAddons
+              ;
           };
-          "${user}-01" = (import ./profiles/profile01.nix { inherit baseSettings lib; }) // {
-            extensions.packages = declarativeProfileExtensions;
+          "${user}-01" = import ./profiles/profile01.nix {
+            inherit
+              baseSettings
+              lib
+              common
+              amoAddons
+              resolveAddons
+              ;
           };
         };
       };

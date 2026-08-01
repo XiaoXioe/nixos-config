@@ -16,6 +16,11 @@ let
 
   # Remote AMO extension definitions (addonId + Mozilla AMO slug) for direct policy auto-update
   amoAddons = {
+    ghost-downloader = {
+      addonId = "ghostdownloader@github.com";
+      slug = "ghost-downloader";
+      sha256 = "086jajf31973pdb9rc4s0jf6kyis4l1iy5m2rfc2d6jhzb7lcgcn";
+    };
     remove-youtube-tracking = {
       addonId = "remove.youtube.tracking@moreo.app";
       slug = "remove-youtube-tracking";

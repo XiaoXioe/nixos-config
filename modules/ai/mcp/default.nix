@@ -18,6 +18,7 @@ let
   # server-memory-pkg = inputs.nix-mcp.packages.${system}.server-memory;
   agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
+  docker-hub-mcp-pkg = inputs.nix-mcp.packages.${system}.docker-hub-mcp;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
 
   makeSshMcp =
@@ -35,7 +36,7 @@ let
         "--port=${toString port}"
         "--user=${user}"
         "--key=${homeDir}/.ssh/${key}"
-        "--timeout=3000"
+        "--timeout=30000"
       ];
     };
 
@@ -141,11 +142,17 @@ selfLib.mkModule {
           bin = "agentmemory-mcp";
           env = {
             AGENTMEMORY_URL = "http://localhost:3111";
+            # Expose all 51 MCP tools (default "all", but be explicit)
+            AGENTMEMORY_TOOLS = "all";
           };
         };
         sequential-thinking = {
           pkg = sequential-thinking-pkg;
           bin = "mcp-server-sequential-thinking";
+        };
+        docker-hub = {
+          pkg = docker-hub-mcp-pkg;
+          bin = "dockerhub-mcp-server";
         };
       };
 
@@ -210,6 +217,7 @@ selfLib.mkModule {
           agentmemory-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
+          docker-hub-mcp-pkg
         ];
 
         # KRUSIAL: home.activation Diperlukan untuk:
@@ -274,6 +282,14 @@ selfLib.mkModule {
           ExecStart = "${agentmemory-pkg}/bin/agentmemory";
           Restart = "on-failure";
           RestartSec = "5s";
+          Environment = [
+            # Enable knowledge graph extraction (powers graph-traversal recall)
+            "GRAPH_EXTRACTION_ENABLED=true"
+            # Enable 4-tier consolidation pipeline
+            "CONSOLIDATION_ENABLED=true"
+            # Expose all 51 MCP tools to the daemon
+            "AGENTMEMORY_TOOLS=all"
+          ];
         };
         Install = {
           WantedBy = [ "default.target" ];

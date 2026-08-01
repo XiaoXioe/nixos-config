@@ -1,7 +1,26 @@
-{ baseSettings, lib }:
+{
+  baseSettings,
+  common,
+  amoAddons,
+  resolveAddons,
+  ...
+}:
 {
   id = 1;
   settings = baseSettings;
+
+  extensions.packages = resolveAddons (
+    with amoAddons;
+    [
+      auto-tab-discard
+      ublock-origin
+      privacy-badger
+      canvasblocker
+      localcdn
+      proton-vpn
+      ghost-downloader
+    ]
+  );
 
   mods = [
     "a6335949-4465-4b71-926c-4a52d34bc9c0" # Better Find Bar
@@ -14,34 +33,10 @@
   presets.betterfox.enable = true;
 
   containersForce = true;
-  containers = builtins.listToAttrs (
-    builtins.genList (i: {
-      name = "Account ${if i + 1 < 10 then "0" + toString (i + 1) else toString (i + 1)}";
-      value = {
-        id = i + 1;
-        color = builtins.elemAt [
-          "blue"
-          "turquoise"
-          "green"
-          "yellow"
-          "orange"
-          "red"
-          "pink"
-          "purple"
-        ] (lib.mod i 8);
-        icon = builtins.elemAt [
-          "fingerprint"
-          "briefcase"
-          "dollar"
-          "cart"
-          "circle"
-          "gift"
-          "vacation"
-          "food"
-        ] (lib.mod i 8);
-      };
-    }) 20
-  );
+  containers = common.mkAccountContainers {
+    startId = 1;
+    count = 10;
+  };
 
   spacesForce = true;
   spaces = {

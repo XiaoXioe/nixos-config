@@ -520,11 +520,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785461611,
-        "narHash": "sha256-b+AUgKpLuyKScSoxJy4xTXipQxssRvALLIreIoK3lMU=",
+        "lastModified": 1785508459,
+        "narHash": "sha256-38XcBNL4jENgS8pLU6FEInXgRPLSwmZr2yW4HNKDL+A=",
         "owner": "XiaoXioe",
         "repo": "nix-mcp",
-        "rev": "e8fafa0d9d049c3cdfd256a5b1b1e629392af5b5",
+        "rev": "d18f2b827cc43aa882024e3c4d37f01dc9a93c5e",
         "type": "github"
       },
       "original": {
