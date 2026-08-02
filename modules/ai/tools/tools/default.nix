@@ -77,7 +77,7 @@ selfLib.mkModule {
         mode = "0400";
       })
     ];
-    my.services.system.tmpfiles.nocowDirectories = [
+    my.services.storage.btrfs-nocow-migration.nocowDirectories = [
       "/home/${config.my.user.name}/.gemini"
     ];
 

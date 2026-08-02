@@ -296,8 +296,8 @@
   "browserPickerViewMode": "list",
   "browserUsageHistory": {
     "zen-beta": {
-      "count": 6,
-      "lastUsed": 1785477931940,
+      "count": 14,
+      "lastUsed": 1785634084412,
       "name": "Zen Browser (Beta)"
     }
   },
@@ -563,7 +563,7 @@
       "enabled": true,
       "field": "desktopEntry",
       "matchType": "exact",
-      "pattern": "com.ayugram.desktop",
+      "pattern": "io.github.kukuruzka165.materialgram",
       "urgency": "default"
     },
     {

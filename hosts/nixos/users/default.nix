@@ -43,7 +43,7 @@
         zathura = true;
       };
       social = {
-        ayugram = true;
+        materialgram = true;
         discord = true;
         signal = true;
       };
@@ -200,7 +200,6 @@
     services = {
       system = {
         core = true;
-        tmpfiles = true;
       };
       storage = {
         rclone = true;

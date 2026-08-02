@@ -18,7 +18,7 @@ selfLib.mkModule {
       cfg = config.my.virtualisation.docker;
     in
     {
-      my.services.system.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/docker" ];
+      my.services.storage.btrfs-nocow-migration.nocowDirectories = [ "/mnt/data_btrfs/docker" ];
 
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 

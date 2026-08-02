@@ -51,7 +51,7 @@ selfLib.mkModule {
   description = "Flatpak service configuration, private applications, and repository sync service";
 
   nixosConfig = {
-    my.services.system.tmpfiles.nocowDirectories = [ "/mnt/data_btrfs/flatpak-userdata" ];
+    my.services.storage.btrfs-nocow-migration.nocowDirectories = [ "/mnt/data_btrfs/flatpak-userdata" ];
 
     systemd.tmpfiles.rules = [
       "d /mnt/data_btrfs/flatpak-userdata 0755 ${config.my.user.name} users - -"
@@ -102,6 +102,7 @@ selfLib.mkModule {
       restartIfChanged = false;
       reloadIfChanged = false;
       stopIfChanged = false;
+      wantedBy = lib.mkForce [ ];
     };
 
     environment.systemPackages = [ syncFlatpakRepoScript ];
@@ -114,7 +115,7 @@ selfLib.mkModule {
       binName = "burpsuitepro";
     };
     "io.github.xiaoyouchr.GhostDownloader" = {
-      enable = false;
+      enable = true;
       origin = "xiaoxioe-flatpak";
       binName = "ghost-downloader";
     };

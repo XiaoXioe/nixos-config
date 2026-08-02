@@ -97,7 +97,7 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 * **Hourly Snapper Snapshots (`modules/services/scheduling/snapper.nix`)** — Automates Btrfs snapshots of the `/persist` directory. Timeline cleanups are scheduled at hourly marks (`OnCalendar = "*-*-* *:30:00"`) to avoid space issues.
 * **SSD TBW/TBR Tracker (`modules/services/scheduling/ssd-monitor.nix`)** — Triggers an hourly script tracking SSD read/write bytes since boot (incorporating a custom LBA multiplier for MidasForce SATA drives). Spawns a Python helper (`cgroup-monitor.py`) crawling cgroup namespaces to identify top I/O consumers.
 * **Restic Backups (`modules/services/restic.nix`)** — Daily encrypted backups sent to a cloud repository using an isolated rclone wrapper proxy that forces traffic through WARP. Features on-demand backups mounting (`restic-mount`) via FUSE.
-* **Btrfs NoCOW Automation (`modules/services/tmpfiles.nix`)** — Automatically disables copy-on-write (`+C`) on system databases (Docker, Waydroid, Nix DBs) and user caches (browser cache, AyuGram tdata) to avoid write amplification.
+* **Btrfs NoCOW Automation (`modules/services/tmpfiles.nix`)** — Automatically disables copy-on-write (`+C`) on system databases (Docker, Waydroid, Nix DBs) and user caches (browser cache, Materialgram tdata) to avoid write amplification.
 
 ---
 

@@ -8,11 +8,51 @@
 selfLib.mkModule {
   name = "services.storage.btrfs-nocow-migration";
 
+  options = {
+    nocowDirectories = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        List of directory paths to automatically migrate to Btrfs Copy-on-Write disabled (nocow, +C).
+        Can be relative to the user's home directory or absolute paths outside home.
+      '';
+    };
+  };
+
   nixosConfig =
     let
-      cfg = config.my.services.system.tmpfiles;
+      cfg = config.my.services.storage.btrfs-nocow-migration;
     in
     {
+      my.services.storage.btrfs-nocow-migration.nocowDirectories = [
+        "/var/lib/vnstat"
+        "/nix/var/nix/db"
+      ];
+
+      systemd.tmpfiles.rules = [
+        "h /nix/var/nix/db - - - - +C"
+        "h /nix/var/nix/temproots - - - - +C"
+      ]
+      ++ (lib.concatLists (
+        map (
+          dir:
+          let
+            isAbsolute = lib.hasPrefix "/" dir;
+            host_dir = if isAbsolute then dir else "/home/${config.my.user.name}/${dir}";
+            persist_dir = "/persist${host_dir}";
+          in
+          if isAbsolute then
+            [
+              "h ${host_dir} - - - - +C"
+            ]
+          else
+            [
+              "d ${host_dir} 0700 ${config.my.user.name} users - +C"
+              "d ${persist_dir} 0700 ${config.my.user.name} users - +C"
+            ]
+        ) cfg.nocowDirectories
+      ));
+
       # Layanan otomatisasi migrasi direktori nocow pada saat boot (sebelum display manager aktif)
       systemd.services.btrfs-nocow-migration = lib.mkIf (cfg.nocowDirectories != [ ]) {
         description = "Automated Btrfs nocow directory migration";
