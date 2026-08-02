@@ -11,6 +11,14 @@ selfLib.mkModule {
   flatpakCfg = {
     "io.github.kukuruzka165.materialgram" = {
       enable = true;
+      overrides = {
+        Context = {
+          filesystems = [
+            "~/.local/share/materialgram:rw"
+            "/nix/store:ro"
+          ];
+        };
+      };
       symlinks = [
         {
           host = ".local/share/materialgram";
