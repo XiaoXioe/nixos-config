@@ -306,7 +306,7 @@ in
       "-c"
       "bemoji -t"
     ];
-    "Mod+T".action.spawn = "kitty";
+    "Mod+T".action.spawn = "alacritty";
     "Super+B".action.spawn = "zen-beta";
     "Mod+Tab" = {
       repeat = false;

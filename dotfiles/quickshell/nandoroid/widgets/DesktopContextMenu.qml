@@ -201,7 +201,7 @@ PanelWindow {
 
     Process {
         id: terminalProcess
-        command: ["kitty"]
+        command: ["alacritty"]
     }
 
     // Helper component for menu items

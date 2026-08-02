@@ -50,7 +50,11 @@
         open-maximized = true;
       }
       {
-        matches = [ { app-id = "^kitty$"; } ];
+        matches = [
+          { app-id = "^kitty$"; }
+          { app-id = "^Alacritty$"; }
+          { app-id = "^foot$"; }
+        ];
         open-maximized = true;
       }
       {
