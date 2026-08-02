@@ -1,7 +1,7 @@
-{ lib, ... }:
+{ lib }:
 
 let
-  utils = import ../utils { inherit lib; };
+  splitName = name: lib.splitString "." name;
 in
 {
   mkFlatpakOptions =
@@ -13,7 +13,7 @@ in
       singleAppInfo,
     }:
     let
-      optionPath = utils.splitName name;
+      optionPath = splitName name;
       isSingleApp = singleAppInfo.isSingleApp;
       singleAppId = singleAppInfo.singleAppId;
     in

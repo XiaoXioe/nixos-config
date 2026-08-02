@@ -4,12 +4,20 @@
   "com.vscodium.codium" = {
     enable = true;
     overrides = {
-      Context.filesystems = [
-        "host"
-        "/tmp"
-        "xdg-run/bus"
-        "xdg-run/gnupg"
-      ];
+      Context = {
+        sockets = [
+          "wayland"
+          "x11"
+          "fallback-x11"
+          "session-bus"
+        ];
+        talk-name = [ "org.freedesktop.secrets" ];
+        filesystems = [
+          "host"
+          "/tmp"
+          "xdg-run/gnupg"
+        ];
+      };
     };
     symlinks = [
       {

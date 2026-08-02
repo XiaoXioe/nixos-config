@@ -1,14 +1,89 @@
 { lib, ... }:
 
 let
-  utils = import ./utils { inherit lib; };
-  optionsHelper = import ./options { inherit lib; };
-  activationHelper = import ./activation { inherit lib; };
-  overridesHelper = import ./overrides { inherit lib; };
-  packagesHelper = import ./packages { inherit lib; };
+  splitName = name: lib.splitString "." name;
+
+  isAppEnabled =
+    {
+      name,
+      flatpakCfg,
+      config,
+      singleAppInfo,
+      enableState,
+      ...
+    }:
+    appId:
+    let
+      optionPath = splitName name;
+      isSingleApp = singleAppInfo.isSingleApp;
+      singleAppId = singleAppInfo.singleAppId;
+      appVal = flatpakCfg.${appId};
+    in
+    if !(appVal.enable or true) then
+      false
+    else if isSingleApp && appId == singleAppId then
+      enableState
+    else
+      let
+        appOptPath = optionPath ++ [
+          "flatpaks"
+          appId
+          "enable"
+        ];
+      in
+      if lib.hasAttrByPath appOptPath config.my then lib.getAttrFromPath appOptPath config.my else true;
+
+  useFlatpak =
+    ctx@{
+      name,
+      flatpakCfg,
+      config,
+      singleAppInfo,
+      enableState,
+      ...
+    }:
+    appId:
+    let
+      optionPath = splitName name;
+      isSingleApp = singleAppInfo.isSingleApp;
+      singleAppId = singleAppInfo.singleAppId;
+      appVal = flatpakCfg.${appId};
+      appOptPath =
+        if isSingleApp && appId == singleAppId then
+          optionPath
+          ++ [
+            "flatpak"
+            "enable"
+          ]
+        else
+          optionPath
+          ++ [
+            "flatpaks"
+            appId
+            "flatpak"
+            "enable"
+          ];
+    in
+    isAppEnabled ctx appId
+    && (
+      if lib.hasAttrByPath appOptPath config.my then
+        lib.getAttrFromPath appOptPath config.my
+      else
+        appVal.flatpak or true
+    );
+
+  optionsModule = import ./options.nix { inherit lib; };
+  packagesModule = import ./packages.nix { inherit lib; };
+  overridesModule = import ./overrides.nix { inherit lib; };
+  filesModule = import ./files.nix { inherit lib; };
+
+  inherit (optionsModule) mkFlatpakOptions;
+  inherit (packagesModule) mkFlatpakPackages mkNativePackagesList mkHmProgramsConfig;
+  inherit (overridesModule) mkFlatpakOverrides;
+  inherit (filesModule) mkHmFilesConfig;
 in
 {
-  inherit (optionsHelper) mkFlatpakOptions;
+  inherit mkFlatpakOptions;
 
   # Main runner to compute all configurations
   mkFlatpakConfigs =
@@ -34,26 +109,23 @@ in
           ;
       };
 
-      isAppEnabled = utils.isAppEnabled;
-      useFlatpak = utils.useFlatpak;
-
-      flatpakPackages = packagesHelper.mkFlatpakPackages {
+      flatpakPackages = mkFlatpakPackages {
         inherit ctx useFlatpak;
       };
 
-      flatpakOverrides = overridesHelper.mkFlatpakOverrides {
+      flatpakOverrides = mkFlatpakOverrides {
         inherit ctx useFlatpak;
       };
 
-      flatpakActivationScripts = activationHelper.mkFlatpakActivationScripts {
+      hmFilesConfig = mkHmFilesConfig {
         inherit ctx useFlatpak;
       };
 
-      nativePackagesList = packagesHelper.mkNativePackagesList {
+      nativePackagesList = mkNativePackagesList {
         inherit ctx isAppEnabled useFlatpak;
       };
 
-      hmProgramsConfig = packagesHelper.mkHmProgramsConfig {
+      hmProgramsConfig = mkHmProgramsConfig {
         inherit ctx isAppEnabled useFlatpak;
       };
     in
@@ -61,7 +133,7 @@ in
       inherit
         flatpakPackages
         flatpakOverrides
-        flatpakActivationScripts
+        hmFilesConfig
         nativePackagesList
         hmProgramsConfig
         ;

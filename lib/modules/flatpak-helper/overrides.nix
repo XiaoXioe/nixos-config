@@ -1,10 +1,11 @@
-{ lib, ... }:
+{ lib }:
 
 {
   mkFlatpakOverrides =
     { ctx, useFlatpak }:
     let
       config = ctx.config;
+      userName = config.my.user.name or "";
       flatpakCfg = ctx.flatpakCfg;
     in
     lib.listToAttrs (
@@ -23,7 +24,7 @@
 
                 nixStoreFilesystems = lib.optionals needNixStore [ "/nix/store:ro" ];
                 flatpakSymlinks = appVal.symlinks or (appVal.dataDir or [ ]);
-                symlinkFilesystems = map (s: "/home/${config.my.user.name}/${s.host}") flatpakSymlinks;
+                symlinkFilesystems = map (s: "/home/${userName}/${s.host}") flatpakSymlinks;
                 baseFilesystems = nixStoreFilesystems ++ symlinkFilesystems;
                 configuredFilesystems = appVal.overrides.Context.filesystems or [ ];
                 finalFilesystems = lib.unique (baseFilesystems ++ configuredFilesystems);

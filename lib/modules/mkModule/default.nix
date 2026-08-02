@@ -88,12 +88,12 @@ in
             # Flatpak/Native Home Manager configuration
             (lib.mkIf ((hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) && userName != null) {
               home-manager.users.${userName} =
-                { lib, ... }:
+                hmOpts@{ lib, ... }:
                 let
                   programsConfig = flatpakConfigs.hmProgramsConfig pkgs;
                 in
                 {
-                  home.activation = flatpakConfigs.flatpakActivationScripts lib;
+                  home.file = flatpakConfigs.hmFilesConfig hmOpts;
                   home.packages = flatpakConfigs.nativePackagesList;
                 }
                 // (lib.optionalAttrs (programsConfig != { }) {

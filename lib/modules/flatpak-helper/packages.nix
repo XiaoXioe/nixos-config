@@ -1,10 +1,30 @@
-{ lib, ... }:
+{ lib }:
 
 let
-  utils = import ../utils { inherit lib; };
+  getNativePkg =
+    appVal:
+    let
+      nativePkg = appVal.nativePkgs or (appVal.native.package or (appVal.package or null));
+      nativePackages =
+        if nativePkg == null then [ ] else (if builtins.isList nativePkg then nativePkg else [ nativePkg ]);
+      realNativePkg = if nativePackages != [ ] then builtins.elemAt nativePackages 0 else null;
+    in
+    {
+      inherit nativePackages realNativePkg;
+    };
+
+  mkFlatpakRunScript =
+    pkgs: binName: appId:
+    pkgs.writeShellScriptBin binName ''
+      if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
+        if [ -S "/run/user/$(id -u)/bus" ]; then
+          export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+        fi
+      fi
+      exec flatpak run ${appId} "$@"
+    '';
 in
 {
-  # Collect all flatpaks to install
   mkFlatpakPackages =
     { ctx, useFlatpak }:
     let
@@ -32,8 +52,6 @@ in
       ) flatpakCfg
     );
 
-  # Collect native packages for disabled flatpaks, and wrappers for enabled ones
-  # Apps with skipNativeWrapper = true are skipped (they handle their own package override in hmConfig)
   mkNativePackagesList =
     {
       ctx,
@@ -52,7 +70,7 @@ in
           useFlatpakApp = useFlatpak ctx appId;
           hmProgram = appVal.hmProgram or null;
           skipWrapper = appVal.skipNativeWrapper or false;
-          nativeInfo = utils.getNativePkg appVal;
+          nativeInfo = getNativePkg appVal;
           nativePackages = nativeInfo.nativePackages;
           realNativePkg = nativeInfo.realNativePkg;
           binName =
@@ -68,14 +86,7 @@ in
             (
               if binName != null then
                 [
-                  (pkgs.writeShellScriptBin binName ''
-                    if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
-                      if [ -S "/run/user/$(id -u)/bus" ]; then
-                        export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
-                      fi
-                    fi
-                    exec flatpak run ${appId} "$@"
-                  '')
+                  (mkFlatpakRunScript pkgs binName appId)
                 ]
               else
                 lib.warn
@@ -88,7 +99,6 @@ in
       ) flatpakCfg
     );
 
-  # Home Manager programs integration
   mkHmProgramsConfig =
     {
       ctx,
@@ -107,18 +117,11 @@ in
             appEnabled = isAppEnabled ctx appId;
             useFlatpakApp = useFlatpak ctx appId;
             hmProgram = appVal.hmProgram or null;
-            nativeInfo = utils.getNativePkg appVal;
+            nativeInfo = getNativePkg appVal;
             realNativePkg = nativeInfo.realNativePkg;
           in
           let
-            flatpakBin = hmPkgs.writeShellScriptBin (hmProgram.binName or hmProgram.name) ''
-              if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
-                if [ -S "/run/user/$(id -u)/bus" ]; then
-                  export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
-                fi
-              fi
-              exec flatpak run ${appId} "$@"
-            '';
+            flatpakBin = mkFlatpakRunScript hmPkgs (hmProgram.binName or hmProgram.name) appId;
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
               wrapper = _: flatpakBin;
             };

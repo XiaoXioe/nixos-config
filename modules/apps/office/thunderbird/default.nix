@@ -27,33 +27,6 @@ selfLib.mkModule {
   name = "apps.office.thunderbird";
   description = "Thunderbird and Betterbird email client with optimized profiles";
 
-  hmConfig =
-    hmOpts:
-    let
-      lib = hmOpts.lib;
-    in
-    {
-      home.sessionVariables = {
-        MOZ_LEGACY_PROFILES = "1";
-      };
-
-      # KRUSIAL: home.activation Diperlukan untuk profiles.ini Thunderbird/Betterbird.
-      # Thunderbird/Betterbird saat runtime akan mencoba menulis/memodifikasi profiles.ini.
-      # Jika profiles.ini berupa symlink read-only ke Nix Store, Thunderbird akan mengalami error
-      # 'read-only filesystem' atau gagal mengasosiasikan profil default.
-      home.activation.copyThunderbirdProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        if [ -L "$HOME/.thunderbird/profiles.ini" ]; then
-          real_file=$(${pkgs.coreutils}/bin/readlink -f "$HOME/.thunderbird/profiles.ini")
-          ${pkgs.coreutils}/bin/rm -f "$HOME/.thunderbird/profiles.ini"
-          ${pkgs.coreutils}/bin/cp "$real_file" "$HOME/.thunderbird/profiles.ini"
-          ${pkgs.coreutils}/bin/chmod 644 "$HOME/.thunderbird/profiles.ini"
-          
-          # Paksa agar asosiation instalasi ([Install...]) di profiles.ini selalu mengarah ke profil 'default'
-          ${pkgs.gnused}/bin/sed -i 's/^Default=[^1].*/Default=default/g' "$HOME/.thunderbird/profiles.ini"
-        fi
-      '';
-    };
-
   flatpakCfg = {
     "eu.betterbird.Betterbird" = {
       enable = true;
