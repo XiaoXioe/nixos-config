@@ -7,12 +7,15 @@
 }:
 {
   id = 1;
-  settings = baseSettings;
+  settings = baseSettings // {
+    "zen.urlbar.behavior" = "normal";
+  };
 
   extensions.packages = resolveAddons (
     with amoAddons;
     [
       auto-tab-discard
+      bitwarden
       ublock-origin
       privacy-badger
       canvasblocker
