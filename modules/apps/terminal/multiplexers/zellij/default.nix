@@ -22,6 +22,7 @@ selfLib.mkModule {
         pane_frames = false;
         default_layout = "compact";
         show_startup_tips = false;
+        show_release_notes = false;
 
         attach_to_session = true;
         on_force_close = "detach";
