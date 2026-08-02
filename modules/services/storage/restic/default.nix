@@ -116,6 +116,7 @@ selfLib.mkModule {
       systemConfigBackup = mkBackupConfig {
         name = "system-config";
         paths = [
+          "/var/lib/vnstat"
           "/persist/etc/ssh"
           "/persist/home/${config.my.user.name}/nixos-config"
           "/persist/home/${config.my.user.name}/nix-custompkgs"
