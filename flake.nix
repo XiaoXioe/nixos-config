@@ -90,6 +90,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixpkgs-zellij-043 = {
+      url = "github:NixOS/nixpkgs/9199b0bc1b2c11f5335cb5637b3a5ea20a27408b";
+    };
   };
 
   outputs =
