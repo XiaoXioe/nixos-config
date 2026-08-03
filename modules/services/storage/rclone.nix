@@ -80,7 +80,7 @@ selfLib.mkModule {
                 --poll-interval 15s \
                 --vfs-read-chunk-size 32M \
                 --vfs-read-chunk-size-limit 1G \
-                --buffer-size 64M \
+                --buffer-size 16M \
                 --no-checksum \
                 --no-modtime
             ''

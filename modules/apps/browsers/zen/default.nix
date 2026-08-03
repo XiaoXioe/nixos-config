@@ -95,7 +95,8 @@ selfLib.mkModule {
         "zen.ui.migration.compact-mode-button-added" = true;
         "zen.view.compact.enable-at-startup" = true;
         "zen.view.use-single-toolbar" = false;
-        "zen.tab-unloader.enabled" = false;
+        "zen.tab-unloader.enabled" = true;
+        "browser.tabs.unloadOnLowMemory" = true;
       };
     in
     {

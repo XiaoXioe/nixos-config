@@ -85,7 +85,8 @@
   "webgl.disabled" = lock-false;
   "browser.sessionhistory.max_entries" = lock 5;
   "browser.preferences.defaultPerformanceSettings.enabled" = lock-true;
-  "browser.tabs.min_inactive_duration_before_unload" = lock 3600000; # 1 jam
+  "browser.tabs.min_inactive_duration_before_unload" = lock 900000; # 15 menit
+  "browser.tabs.unloadOnLowMemory" = lock-true;
 
   # ==========================================
   # 8. Jaringan & Performa (Network & Performance)
