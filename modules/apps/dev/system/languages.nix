@@ -15,7 +15,15 @@ selfLib.mkModule {
     ];
   };
 
+  nixosConfig = {
+    environment.localBinInPath = true;
+  };
+
   hmConfig = hmOpts: {
+    home.sessionPath = [
+      "$HOME/.local/bin"
+    ];
+
     home.packages = with pkgs; [
       python3
       uv

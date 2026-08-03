@@ -12,6 +12,7 @@
     enable = true;
     interactiveShellInit = ''
       set -g fish_greeting
+      fish_add_path $HOME/.local/bin
       set -p fish_function_path $HOME/.config/fish/functions/custom
       ${lib.optionalString (osConfig.sops.secrets ? "ninerouter-key") ''
         if test -r ${osConfig.sops.secrets."ninerouter-key".path}
