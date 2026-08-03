@@ -41,13 +41,14 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    imports = [
-      ./settings
-      ./keybind
-    ]
-    ++ lib.optionals (inputs ? caelestia-shell && !hmOpts.config.my.desktop.hyprland.nandoroid.enable) [
-      inputs.caelestia-shell.homeManagerModules.default
-      ./caelestia
-    ];
+    imports =
+      (selfLib.scanPaths ./settings)
+      ++ (selfLib.scanPaths ./keybind)
+      ++ lib.optionals (inputs ? caelestia-shell && !hmOpts.config.my.desktop.hyprland.nandoroid.enable) (
+        [
+          inputs.caelestia-shell.homeManagerModules.default
+        ]
+        ++ (selfLib.scanPaths ./caelestia)
+      );
   };
 }

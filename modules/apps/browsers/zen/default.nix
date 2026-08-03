@@ -21,7 +21,7 @@ let
     lock
     ;
 
-  zenPolicies = import ./policies {
+  zenPolicies = import ./_policies {
     inherit
       lock
       lock-true

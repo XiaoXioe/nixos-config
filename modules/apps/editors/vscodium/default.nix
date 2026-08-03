@@ -5,9 +5,9 @@
 }:
 
 let
-  marketplaceExts = import ./extensions { inherit pkgs; };
-  userSettings = import ./settings { inherit pkgs; };
-  flatpakCfg = import ./flatpak { inherit pkgs; };
+  marketplaceExts = import ./_extensions { inherit pkgs; };
+  userSettings = import ./_settings { inherit pkgs; };
+  flatpakCfg = import ./_flatpak { inherit pkgs; };
 in
 selfLib.mkModule {
   name = "apps.editors.vscodium";

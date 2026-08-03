@@ -49,7 +49,7 @@ let
     tampermonkey
   ];
 
-  firefoxPoliciesPrefs = import ./policies {
+  firefoxPoliciesPrefs = import ./_policies {
     inherit
       lock
       lock-true

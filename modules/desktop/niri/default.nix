@@ -21,8 +21,6 @@ selfLib.mkModule {
     };
 
   hmConfig = hmOpts: {
-    imports = [
-      ./settings
-    ];
+    imports = selfLib.scanPaths ./settings;
   };
 }
