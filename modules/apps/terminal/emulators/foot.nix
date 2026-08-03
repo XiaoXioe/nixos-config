@@ -13,7 +13,7 @@ selfLib.mkModule {
       settings = {
         main = {
           term = "xterm-256color";
-          # font = "Adwaita Mono:size=8:Style=Bold";
+          font = "FiraCode Nerd Font:size=8:style=Retina";
           dpi-aware = "yes";
           pad = "4x4";
         };
