@@ -16,6 +16,13 @@ selfLib.mkModule {
                     AGY_DIR="$REAL_HOME/.gemini/antigravity-cli"
                     CRED_DIR_BASE="$AGY_DIR/credentials"
 
+                    is_profile_active() {
+                        local pname="$1"
+                        [ -z "$pname" ] && return 1
+                        local cred_dir="$CRED_DIR_BASE/$pname"
+                        pgrep -f "bwrap.*$cred_dir/" >/dev/null 2>&1
+                    }
+
                     list_profiles() {
                         if [ -d "$CRED_DIR_BASE" ]; then
                             echo "Daftar akun/profile yang tersedia:"
@@ -24,7 +31,11 @@ selfLib.mkModule {
                                 if [ -d "$d" ]; then
                                     pname="$(basename "$d")"
                                     if [ "$pname" != "*" ]; then
-                                        echo "  - $pname"
+                                        if is_profile_active "$pname"; then
+                                            echo "  - $pname (🟢 ACTIVE / IN USE)"
+                                        else
+                                            echo "  - $pname"
+                                        fi
                                         found=1
                                     fi
                                 fi
@@ -41,6 +52,10 @@ selfLib.mkModule {
                         local profile_name="$1"
                         shift 1
                         local cred_dir="$CRED_DIR_BASE/$profile_name"
+
+                        if is_profile_active "$profile_name"; then
+                            echo "ℹ️  Catatan: Profile '$profile_name' sedang aktif di sesi terminal lain."
+                        fi
 
                         if [ ! -d "$cred_dir" ]; then
                             echo "Profile '$profile_name' belum ada. Membuat direktori credentials..."
@@ -67,6 +82,21 @@ selfLib.mkModule {
                         local profile_name="$1"
                         shift 1
                         local cred_dir="$CRED_DIR_BASE/$profile_name"
+
+                        if is_profile_active "$profile_name"; then
+                            echo "⚠️  PERINGATAN: Profile '$profile_name' sedang AKTIF dijalankan di sesi terminal lain!"
+                            echo -n "Apakah Anda yakin ingin mereset token profile yang sedang aktif ini? [y/N]: "
+                            read -r confirm
+                            case "$confirm" in
+                                [yY][eE][sS]|[yY])
+                                    ;;
+                                *)
+                                    echo "Reset token profile '$profile_name' dibatalkan."
+                                    return 1
+                                    ;;
+                            esac
+                        fi
+
                         echo "Mereset token login untuk profile '$profile_name'..."
                         mkdir -p "$cred_dir"
                         rm -f "$cred_dir/antigravity-oauth-token" "$cred_dir/installation_id" "$cred_dir/jetski_state.pbtxt"
@@ -81,8 +111,47 @@ selfLib.mkModule {
                             echo "Profile '$profile_name' tidak ditemukan."
                             return 1
                         fi
+
+                        if is_profile_active "$profile_name"; then
+                            echo "⚠️  PERINGATAN: Profile '$profile_name' sedang AKTIF dijalankan di sesi terminal lain!"
+                            echo -n "Apakah Anda yakin ingin menghapus profile yang sedang aktif ini? [y/N]: "
+                            read -r confirm
+                            case "$confirm" in
+                                [yY][eE][sS]|[yY])
+                                    ;;
+                                *)
+                                    echo "Penghapusan profile '$profile_name' dibatalkan."
+                                    return 1
+                                    ;;
+                            esac
+                        fi
+
                         rm -rf "$cred_dir"
                         echo "Profile '$profile_name' telah berhasil dihapus."
+                    }
+
+                    select_profile_fzf() {
+                        local label="$1"
+                        local formatted_profiles=()
+                        for p in "''${profiles[@]}"; do
+                            if is_profile_active "$p"; then
+                                formatted_profiles+=("$p [🟢 Aktif]")
+                            else
+                                formatted_profiles+=("$p [⚪ Tidak Aktif]")
+                            fi
+                        done
+
+                        local choice
+                        choice=$(printf '%s\n' "''${formatted_profiles[@]}" | fzf \
+                            --height=~40% \
+                            --min-height=12 \
+                            --layout=reverse \
+                            --border=rounded \
+                            --border-label=" $label " \
+                            --prompt="  Profile ❯ " \
+                            --pointer="❯") || return 1
+
+                        echo "''${choice%% [*}"
                     }
 
                     show_help() {
@@ -100,11 +169,17 @@ selfLib.mkModule {
                     interactive_menu() {
                         while true; do
                             profiles=()
+                            active_profiles=()
                             if [ -d "$CRED_DIR_BASE" ]; then
                                 for d in "$CRED_DIR_BASE"/*/; do
                                     if [ -d "$d" ]; then
                                         pname="$(basename "$d")"
-                                        [ "$pname" != "*" ] && profiles+=("$pname")
+                                        if [ "$pname" != "*" ]; then
+                                            profiles+=("$pname")
+                                            if is_profile_active "$pname"; then
+                                                active_profiles+=("$pname")
+                                            fi
+                                        fi
                                     fi
                                 done
                             fi
@@ -120,11 +195,19 @@ selfLib.mkModule {
                             fi
                             options+=("❌ Keluar")
 
+                            if [ ''${#active_profiles[@]} -gt 0 ]; then
+                                active_info="🟢 Aktif: ''${#active_profiles[@]} (''${active_profiles[*]})"
+                            else
+                                active_info="⚪ Aktif: Tidak ada"
+                            fi
+
                             if [ ''${#profiles[@]} -eq 0 ]; then
                                 header_text="Status: Belum ada akun yang terdaftar.
+          Status Aktif: $active_info
           Gunakan panah [↑/↓] untuk memilih, Enter untuk mengonfirmasi."
                             else
                                 header_text="Status: ''${#profiles[@]} akun terdaftar (''${profiles[*]})
+          Status Aktif: $active_info
           Gunakan panah [↑/↓] untuk memilih, Enter untuk mengonfirmasi."
                             fi
 
@@ -142,14 +225,7 @@ selfLib.mkModule {
 
                             case "$choice" in
                                 "🚀 Masuk ke Akun / Profile")
-                                    selected_profile=$(printf '%s\n' "''${profiles[@]}" | fzf \
-                                        --height=~40% \
-                                        --min-height=12 \
-                                        --layout=reverse \
-                                        --border=rounded \
-                                        --border-label=" Pilih Profile " \
-                                        --prompt="  Profile ❯ " \
-                                        --pointer="❯") || continue
+                                    selected_profile=$(select_profile_fzf "Pilih Profile") || continue
                                     launch_profile "$selected_profile"
                                     exit 0
                                     ;;
@@ -162,26 +238,12 @@ selfLib.mkModule {
                                     fi
                                     ;;
                                 "🔑 Login Ulang / Reset Token Profile")
-                                    selected_profile=$(printf '%s\n' "''${profiles[@]}" | fzf \
-                                        --height=~40% \
-                                        --min-height=12 \
-                                        --layout=reverse \
-                                        --border=rounded \
-                                        --border-label=" Reset Token Profile " \
-                                        --prompt="  Profile ❯ " \
-                                        --pointer="❯") || continue
+                                    selected_profile=$(select_profile_fzf "Reset Token Profile") || continue
                                     relogin_profile "$selected_profile"
                                     exit 0
                                     ;;
                                 "🗑️  Hapus Akun / Profile")
-                                    selected_profile=$(printf '%s\n' "''${profiles[@]}" | fzf \
-                                        --height=~40% \
-                                        --min-height=12 \
-                                        --layout=reverse \
-                                        --border=rounded \
-                                        --border-label=" Hapus Profile " \
-                                        --prompt="  Profile ❯ " \
-                                        --pointer="❯") || continue
+                                    selected_profile=$(select_profile_fzf "Hapus Profile") || continue
                                     delete_profile "$selected_profile"
                                     ;;
                                 "❌ Keluar")
@@ -228,6 +290,8 @@ selfLib.mkModule {
           pkgs.bubblewrap
           pkgs.coreutils
           pkgs.fzf
+          pkgs.procps
+          pkgs.psmisc
         ]
       )
     ];
