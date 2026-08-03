@@ -102,7 +102,7 @@
       terminal = {
         emulators = {
           alacritty = true;
-          foot = false;
+          foot = true;
           kitty = false;
           wezterm = false;
         };
@@ -120,6 +120,7 @@
           fzf = true;
           tools = true;
           zoxide = true;
+          yazi = true;
           functions = {
             custom-functions = true;
             file-transfer = true;
