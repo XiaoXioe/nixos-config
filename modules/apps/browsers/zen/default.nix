@@ -32,6 +32,9 @@ let
 
   zenBrowserPolicies = lib.recursiveUpdate commonPrivacyPolicies {
     SearchEngines = commonSearchEngines;
+    Certificates = {
+      ImportEnterpriseRoots = true;
+    };
     OverrideFirstRunPage = "";
     OverridePostUpdatePage = "";
     Preferences = zenPolicies;

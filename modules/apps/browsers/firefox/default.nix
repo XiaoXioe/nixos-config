@@ -72,6 +72,12 @@ selfLib.mkModule {
   name = "apps.browsers.firefox";
   description = "Firefox configuration for user";
 
+  preservation = {
+    userDirectories = [
+      ".cache/mozilla"
+    ];
+  };
+
   flatpakCfg = {
     "org.mozilla.firefox" = {
       enable = true;
@@ -185,13 +191,6 @@ selfLib.mkModule {
             userChrome = userChrome;
           };
         };
-      };
-
-      # Syarat Mozilla Gecko Policy: File policies.json di-link ke folder per-user
-      # ~/.config/mozilla/firefox/policies/policies.json
-      home.file = selfLib.mkHmSymlinks hmOpts.config {
-        ".config/mozilla/firefox/policies/policies.json" =
-          config.sops.templates."firefox-policies.json".path;
       };
     };
 }

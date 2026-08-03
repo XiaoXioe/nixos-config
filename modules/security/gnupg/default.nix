@@ -35,6 +35,15 @@ in
 selfLib.mkModule {
   name = "security.gnupg";
 
+  preservation = {
+    userDirectories = [
+      {
+        directory = ".gnupg";
+        mode = "0700";
+      }
+    ];
+  };
+
   nixosConfig = {
     programs.gnupg.agent = {
       enable = true;

@@ -1,7 +1,6 @@
 # Per-user home-manager configuration.
 {
   userName,
-  selfLib ? null,
   ...
 }:
 {

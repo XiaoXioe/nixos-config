@@ -8,6 +8,10 @@ selfLib.mkModule {
   name = "desktop.niri.dms";
   description = "DankMaterialShell";
 
+  preservation = {
+    userDirectories = [ ".cache/DankMaterialShell" ];
+  };
+
   hmConfig =
     { inputs, config, ... }:
     {

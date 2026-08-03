@@ -13,6 +13,7 @@ in
   nixosConfig ? { },
   hmConfig ? null,
   flatpakCfg ? { },
+  preservation ? { },
 }:
 {
   imports = imports ++ [
@@ -59,49 +60,68 @@ in
           if builtins.isFunction nixosConfig then nixosConfig { inherit config lib pkgs; } else nixosConfig;
       in
       {
-        options.my = lib.setAttrByPath optionPath (
-          let
-            baseOptions = {
-              enable = lib.mkEnableOption (if description != "" then description else name);
-            };
-          in
-          baseOptions // flatpakOptions // options
-        );
-
-        config = lib.mkIf cfg (
-          let
-            hasUser = config.my ? user && config.my.user ? name;
-            userName = if hasUser then config.my.user.name else null;
-          in
-          lib.mkMerge [
-            resolvedNixosConfig
-            (lib.mkIf (hmConfig != null && userName != null) {
-              home-manager.users.${userName} = hmConfig;
-            })
-            # Flatpak-specific NixOS configuration
-            (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {
-              services.flatpak = {
-                packages = flatpakConfigs.flatpakPackages;
-                overrides = flatpakConfigs.flatpakOverrides;
+        options.my =
+          lib.recursiveUpdate
+            (lib.optionalAttrs (name == "hardware.preservation") {
+              preservation.aspects = lib.mkOption {
+                type = lib.types.attrsOf lib.types.anything;
+                default = { };
+                description = "Co-located preservation rules registered by modules.";
               };
             })
-            # Flatpak/Native Home Manager configuration
-            (lib.mkIf ((hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) && userName != null) {
-              home-manager.users.${userName} =
-                hmOpts@{ lib, ... }:
+            (
+              lib.setAttrByPath optionPath (
                 let
-                  programsConfig = flatpakConfigs.hmProgramsConfig pkgs;
+                  baseOptions = {
+                    enable = lib.mkEnableOption (if description != "" then description else name);
+                  };
                 in
-                {
-                  home.file = flatpakConfigs.hmFilesConfig hmOpts;
-                  home.packages = flatpakConfigs.nativePackagesList;
-                }
-                // (lib.optionalAttrs (programsConfig != { }) {
-                  programs = programsConfig;
-                });
-            })
-          ]
-        );
+                baseOptions // flatpakOptions // options
+              )
+            );
+
+        config = lib.mkMerge [
+          (lib.mkIf (preservation != { }) {
+            my.preservation.aspects."${name}" = {
+              enable = cfg;
+              rule = preservation;
+            };
+          })
+          (lib.mkIf cfg (
+            let
+              hasUser = config.my ? user && config.my.user ? name;
+              userName = if hasUser then config.my.user.name else null;
+            in
+            lib.mkMerge [
+              resolvedNixosConfig
+              (lib.mkIf (hmConfig != null && userName != null) {
+                home-manager.users.${userName} = hmConfig;
+              })
+              # Flatpak-specific NixOS configuration
+              (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {
+                services.flatpak = {
+                  packages = flatpakConfigs.flatpakPackages;
+                  overrides = flatpakConfigs.flatpakOverrides;
+                };
+              })
+              # Flatpak/Native Home Manager configuration
+              (lib.mkIf ((hasFlatpaks || flatpakConfigs.nativePackagesList != [ ]) && userName != null) {
+                home-manager.users.${userName} =
+                  hmOpts@{ lib, ... }:
+                  let
+                    programsConfig = flatpakConfigs.hmProgramsConfig pkgs;
+                  in
+                  {
+                    home.file = flatpakConfigs.hmFilesConfig hmOpts;
+                    home.packages = flatpakConfigs.nativePackagesList;
+                  }
+                  // (lib.optionalAttrs (programsConfig != { }) {
+                    programs = programsConfig;
+                  });
+              })
+            ]
+          ))
+        ];
       }
     )
   ];

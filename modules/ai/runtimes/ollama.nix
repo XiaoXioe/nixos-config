@@ -1,0 +1,37 @@
+{
+  config,
+  lib,
+  selfLib,
+  ...
+}:
+selfLib.mkModule {
+  name = "ai.runtimes.ollama";
+  description = "Ollama LLM runtime service";
+
+  preservation = {
+    persist = true;
+    directories = [
+      {
+        directory = "/var/lib/private/ollama";
+        mode = "0700";
+      }
+    ];
+  };
+
+  nixosConfig = {
+    sops.secrets = builtins.listToAttrs [ (selfLib.secrets.mkSecret { key = "ollama-env"; }) ];
+
+    services.ollama = {
+      enable = true;
+      models = "/mnt/data_btrfs/ollama_storage/models";
+    };
+
+    systemd.services.ollama = {
+      wantedBy = lib.mkForce [ ];
+      restartIfChanged = false;
+      serviceConfig = {
+        EnvironmentFile = [ config.sops.secrets."ollama-env".path ];
+      };
+    };
+  };
+}

@@ -1,0 +1,132 @@
+{
+  pkgs,
+  selfLib,
+  ...
+}:
+
+selfLib.mkModule {
+  name = "security.networking";
+
+  preservation = {
+    persist = true;
+    directories = [
+      "/var/lib/NetworkManager"
+      "/etc/NetworkManager/system-connections"
+    ];
+  };
+
+  nixosConfig = {
+
+    environment.systemPackages = with pkgs; [
+      wireguard-tools
+      iproute2
+      openresolv
+
+    ];
+
+    security.wrappers.bandwhich = {
+      source = "${pkgs.bandwhich}/bin/bandwhich";
+      owner = "root";
+      group = "root";
+      capabilities = "cap_net_raw,cap_net_admin+ep";
+    };
+
+    networking = {
+      firewall = {
+        enable = true;
+        allowPing = true;
+        logRefusedConnections = true;
+        trustedInterfaces = [
+          "wg-lan"
+          "wg-wifi"
+          "waydroid0"
+        ];
+        checkReversePath = "loose";
+        # filterForward = false;
+      };
+
+      networkmanager = {
+        enable = true;
+        # wifi.macAddress = "random";
+        # ethernet.macAddress = "random";
+        wifi.macAddress = "stable";
+        ethernet.macAddress = "stable";
+
+        # Disable Wi-Fi power saving in NetworkManager
+        wifi = {
+          powersave = false;
+        };
+
+        dispatcherScripts = [
+          {
+            source = "${selfLib.mkApp pkgs "vpn-killswitch"
+              ''
+                _INTERFACE=$1
+                ACTION=$2
+
+                if [[ -n "$CONNECTION_UUID" ]]; then
+                  CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null || echo "")
+                  if [[ "$CONN_TYPE" == "wireguard" || "$CONN_TYPE" == "vpn" ]]; then
+                    case "$ACTION" in
+                      up|vpn-up)
+                        # Aktifkan killswitch: blokir traffic keluar lewat interface fisik
+                        nft add rule inet filter vpn_killswitch oifname eth* drop
+                        nft add rule inet filter vpn_killswitch oifname wlan* drop
+                        nft add rule inet filter vpn_killswitch oifname wlp* drop
+                        ;;
+                      down|vpn-down)
+                        # Matikan killswitch: hapus aturan blokir
+                        nft flush chain inet filter vpn_killswitch
+                        ;;
+                    esac
+                  fi
+                fi
+              ''
+              [
+                pkgs.networkmanager
+                pkgs.nftables
+              ]
+            }";
+            type = "basic";
+          }
+        ];
+      };
+
+      nftables = {
+        enable = true;
+        ruleset = ''
+          table inet filter {
+            chain output {
+              type filter hook output priority filter; policy accept;
+
+              # 1. Izinkan loopback
+              oifname "lo" accept
+
+              # 2. Izinkan akses LAN lokal
+              ip daddr { 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } accept
+
+              # 3. Izinkan traffic VPN bertanda (fwmark) ke luar
+              meta mark 51820 accept
+
+              # 4. Lompat ke chain killswitch dinamis
+              jump vpn_killswitch
+
+              # 5. Skip DPI untuk traffic di dalam tunnel VPN
+              oifname "wg-*" accept
+
+              # 6. Redirect traffic HTTP/HTTPS ke Zapret (bypassed jika service mati)
+              meta mark and 0x40000000 == 0 tcp dport { 80, 443 } ct original packets 1-6 queue num 200 bypass
+            }
+
+            chain vpn_killswitch {
+              # Dikelola dinamis oleh dispatcher script NetworkManager
+            }
+          }
+        '';
+      };
+      usePredictableInterfaceNames = false;
+      enableIPv6 = false;
+      useDHCP = false;
+    };
+  };
+}

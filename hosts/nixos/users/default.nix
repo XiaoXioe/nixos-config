@@ -166,7 +166,7 @@
       bootloader = true;
       kernel = {
         stock = true;
-        cachyos = true;
+        cachyos = false;
       };
       memory = true;
       power = true;
