@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -8,11 +9,29 @@ selfLib.mkModule {
   description = "Alacritty GPU-accelerated terminal configuration";
 
   hmConfig = hmOpts: {
+    home.packages = [ pkgs.libnotify ];
+
     programs.alacritty = {
       enable = true;
       settings = {
         env = {
           TERM = "xterm-256color";
+        };
+
+        bell = {
+          duration = 300;
+          command = {
+            program = "${pkgs.bash}/bin/bash";
+            args = [
+              "-c"
+              ''
+                export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus"
+                win_title=$(${pkgs.niri}/bin/niri msg --json windows 2>/dev/null | ${pkgs.jq}/bin/jq -r '.[] | select(.app_id | test("Alacritty"; "i")) | .title' | ${pkgs.coreutils}/bin/head -n 1)
+                app_header="''${win_title:-"Alacritty Terminal"}"
+                ${pkgs.libnotify}/bin/notify-send -i terminal -a "$app_header" "🔔 Terminal Bell" "Proses / Agent pada '$app_header' telah memicu sinyal selesai!"
+              ''
+            ];
+          };
         };
 
         window = {
