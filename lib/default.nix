@@ -1,145 +1,57 @@
-# Custom library functions used across the configuration.
-# Only helpers that provide genuine value beyond stdlib are kept here.
-{
-  lib,
-  inputs ? null,
-  ...
-}:
-
+# selfLib — Composed library for nixos-config.
+# No logic lives here; each domain has its own focused sub-module.
+#
+# Sub-module map:
+#   features.nix      → mapFeatures (feature-toggle transformer)
+#   hm.nix            → mkHmSymlinks (out-of-store symlink helper)
+#   fs.nix            → scanPaths, getVpnFiles (filesystem helpers)
+#   audio.nix         → mkEqFilterString (PipeWire EQ renderer)
+#   shell/            → mkApp, mkShellCompletions (shell app builders)
+#   network/          → warpProxyEnv, mkWarpWaitScript (WARP helpers)
+#   browser-addons/   → browserAddonsFor (Firefox/Zen/Tor policy builders)
+#   modules/mkModule/ → mkModule (unified NixOS + HM module builder)
+#   builders/         → mkNixosConfiguration (used directly by flake.nix)
+{ lib, ... }:
 let
-  modules = import ./modules { inherit lib; };
-
-  # Helpers to resolve secret files relative to the Flake root by name/path
-  secret =
-    relPath:
-    if inputs != null && inputs ? self then
-      inputs.self + "/secrets/${relPath}"
-    else
-      ../secrets + "/${relPath}";
-
-  # Recursively maps a user features attribute set to a module enable structure.
-  # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
-  # If the key name is already "enable" (e.g. `{ feat = { enable = true; option = 1; }; }`),
-  # it leaves the boolean value as-is to avoid nested wrapping (e.g. `{ enable = { enable = true; }; }`).
-  mapFeatures =
-    attrs:
-    lib.mapAttrs (
-      name: value:
-      if builtins.isBool value then
-        if name == "enable" then value else { enable = value; }
-      else if builtins.isAttrs value then
-        if value ? flatpak && value ? enable then
-          let
-            rest = mapFeatures (
-              builtins.removeAttrs value [
-                "flatpak"
-                "enable"
-              ]
-            );
-            enableVal = value.enable or true;
-            flatpakVal =
-              if builtins.isBool value.flatpak then { enable = value.flatpak; } else mapFeatures value.flatpak;
-          in
-          {
-            enable = enableVal;
-            flatpak = flatpakVal;
-          }
-          // rest
-        else
-          mapFeatures value
-      else
-        value
-    ) attrs;
+  mkModuleLib = import ./modules/mkModule { inherit lib; };
+  shellLib = pkgs: import ./shell { inherit lib pkgs; };
+  fsLib = import ./fs.nix { inherit lib; };
+  audioLib = import ./audio.nix { inherit lib; };
+  hmLib = import ./hm.nix { inherit lib; };
 in
 {
-  inherit (modules) mkModule;
-  inherit
-    mapFeatures
-    secret
-    ;
+  # ── Module builder ───────────────────────────────────────────────────────────
+  # Primary API: wraps NixOS + Home Manager config under options.my.<name>.enable
+  mkModule = mkModuleLib;
 
-  # Helper to easily generate Home Manager out-of-store symlinks
-  # Usage: selfLib.mkHmSymlinks hmOpts.config { "Documents" = "/mnt/data/Documents"; }
-  mkHmSymlinks =
-    hmConfig: attrs:
-    lib.mapAttrs (name: path: {
-      source = hmConfig.lib.file.mkOutOfStoreSymlink path;
-    }) attrs;
+  # ── Feature toggles ──────────────────────────────────────────────────────────
+  # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }
+  mapFeatures = import ./features.nix { inherit lib; };
 
-  network = import ./network;
-  shell = import ./shell;
+  # ── Home Manager helpers ──────────────────────────────────────────────────────
+  # Wraps lib.file.mkOutOfStoreSymlink for bulk symlink declarations
+  inherit (hmLib) mkHmSymlinks;
 
-  # Direct applied shortcuts for shell helpers
-  # Usage: selfLib.mkApp pkgs "name" "script" [ pkgs.coreutils ]
-  mkApp =
-    pkgs: name: text: runtimeInputs:
-    (import ./shell { inherit lib pkgs; }).mkApp name text runtimeInputs;
-  mkScripts = pkgs: scriptsAttrSet: (import ./shell { inherit lib pkgs; }).mkScripts scriptsAttrSet;
-  mkShellCompletions = pkgs: opts: (import ./shell { inherit lib pkgs; }).mkShellCompletions opts;
+  # ── Shell app builders ────────────────────────────────────────────────────────
+  # mkApp: pkgs.writeShellApplication wrapper with __toString for string coercion
+  mkApp = pkgs: (shellLib pkgs).mkApp;
+  mkShellCompletions = pkgs: (shellLib pkgs).mkShellCompletions;
 
-  # Direct shortcuts for network/VPN/WARP helpers
+  # ── Network / WARP helpers ────────────────────────────────────────────────────
+  # warpProxyEnv: static socks5h://127.0.0.1:40000 env-var set (no pkgs needed)
   warpProxyEnv = (import ./network { pkgs = null; }).warpProxyEnv;
   mkWarpWaitScript = pkgs: name: (import ./network { inherit pkgs; }).mkWarpWaitScript name;
 
-  # Shared Firefox/Zen policy-lock helpers and AMO addon builders.
-  # Call with { inherit pkgs inputs; } — kept unapplied here since lib/default.nix
-  # only has `lib` in scope, not pkgs/inputs.
-  browserAddons = import ./browser-addons;
-  browserAddonsFor =
-    {
-      pkgs,
-      inputs ? { },
-    }:
-    import ./browser-addons { inherit pkgs inputs; };
+  # ── Browser addons ────────────────────────────────────────────────────────────
+  # Call with { inherit pkgs inputs; } — see lib/browser-addons/default.nix
+  browserAddonsFor = args: import ./browser-addons args;
 
-  # Auto-import all .nix files recursively (Dendritic Pattern).
-  # Traverses subdirectories automatically without requiring dummy default.nix files.
-  # Stops recursing if a directory contains a non-dummy default.nix module.
-  scanPaths =
-    path:
-    let
-      scanDir =
-        dir:
-        let
-          entries = builtins.readDir dir;
-          validEntries = lib.filterAttrs (
-            name: type: !(lib.hasPrefix "." name) && !(lib.hasPrefix "_" name) && !(lib.hasSuffix ".bak" name)
-          ) entries;
+  # ── Filesystem helpers ────────────────────────────────────────────────────────
+  # scanPaths: Dendritic auto-import traverser (stops at non-dummy default.nix)
+  # getVpnFiles: list WireGuard .conf filenames in a directory
+  inherit (fsLib) scanPaths getVpnFiles;
 
-          hasDefaultNix = (entries ? "default.nix") && dir != path;
-        in
-        if hasDefaultNix then
-          [ (dir + "/default.nix") ]
-        else
-          lib.concatLists (
-            lib.mapAttrsToList (
-              name: type:
-              let
-                subPath = dir + "/${name}";
-              in
-              if type == "directory" then
-                scanDir subPath
-              else if type == "regular" && lib.hasSuffix ".nix" name && name != "default.nix" then
-                [ subPath ]
-              else
-                [ ]
-            ) validEntries
-          );
-    in
-    scanDir path;
-
-  mkEqFilterString =
-    filters:
-    lib.concatMapStringsSep "\n                    " (
-      f: "{ type = ${f.type}, freq = ${toString f.freq}, q = ${toString f.q}, gain = ${toString f.gain} }"
-    ) filters;
-
-  getVpnFiles =
-    dir:
-    let
-      raw = if builtins.pathExists dir then builtins.readDir dir else { };
-    in
-    builtins.filter (name: raw.${name} == "regular" && lib.hasSuffix ".conf" name) (
-      builtins.attrNames raw
-    );
+  # ── Audio helpers ─────────────────────────────────────────────────────────────
+  # Renders EQ filter attrsets to PipeWire filter-chain string
+  inherit (audioLib) mkEqFilterString;
 }

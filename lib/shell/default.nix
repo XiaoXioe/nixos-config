@@ -1,3 +1,4 @@
+# Shell app builders: isolated shell applications and shell completion generators.
 { lib, pkgs }:
 
 {
@@ -16,19 +17,6 @@
     // {
       __toString = self: "${drv}/bin/${name}";
     };
-
-  # Generate a list of shell script packages from an attribute set
-  # Usage: mkScripts { "script-name" = "echo hello"; }
-  mkScripts =
-    scriptsAttrSet:
-    lib.mapAttrsToList (
-      name: script:
-      pkgs.writeShellApplication {
-        inherit name;
-        runtimeInputs = [ pkgs.coreutils ];
-        text = script;
-      }
-    ) scriptsAttrSet;
 
   # Generate xdg.configFile completions for multiple shells
   # Usage: mkShellCompletions { name = "mycmd"; bash = "..."; fish = "..."; zsh = "..."; }

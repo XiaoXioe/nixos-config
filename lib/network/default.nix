@@ -1,3 +1,4 @@
+# Network / WARP helpers: static proxy env-vars and connection wait script.
 {
   pkgs,
   ...
