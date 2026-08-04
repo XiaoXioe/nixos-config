@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -15,7 +16,27 @@ selfLib.mkModule {
           term = "xterm-256color";
           font = "FiraCode Nerd Font:size=8:style=Retina";
           dpi-aware = "yes";
-          pad = "4x4";
+          pad = "6x6";
+          selection-target = "both";
+        };
+        scrollback = {
+          lines = 10000;
+          multiplier = 3;
+          indicator-position = "relative";
+          indicator-format = "line";
+        };
+        url = {
+          launch = "${pkgs.xdg-utils}/bin/xdg-open \${url}";
+          label-letters = "sadfjklewcmpgh";
+          osc8-underline = "url-mode";
+        };
+        cursor = {
+          style = "beam";
+          beam-thickness = 2;
+        };
+        tweak = {
+          font-monospace-warn = "no";
+          sixel = "yes";
         };
         colors-dark = {
           alpha = 0.95;

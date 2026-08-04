@@ -27,6 +27,9 @@ selfLib.mkModule {
     {
       time.timeZone = cfg.timezone;
       i18n.defaultLocale = cfg.locale;
+      i18n.extraLocaleSettings = {
+        LC_TIME = "id_ID.UTF-8";
+      };
 
       # Disable documentation generation to speed up rebuilds.
       documentation = {
