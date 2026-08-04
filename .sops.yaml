@@ -5,7 +5,7 @@ keys:
   - &my_gpg "79F1B7C136E4B15B39997036DABD05C1D9C1FD2A"
 creation_rules:
   # Ubah regex agar mencakup semua file di dalam folder secrets
-  - path_regex: secrets/.*$
+  - path_regex: (secrets/.*|modules/.*/(secrets\.yaml|.*\.enc.*|vpn-files/.*))$
     key_groups:
       - age:
           - *host_key

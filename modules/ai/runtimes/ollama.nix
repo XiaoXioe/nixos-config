@@ -19,7 +19,9 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs [ (selfLib.secrets.mkSecret { key = "ollama-env"; }) ];
+    sops.secrets."ollama-env" = {
+      sopsFile = ./secrets.yaml;
+    };
 
     services.ollama = {
       enable = true;

@@ -58,26 +58,25 @@ selfLib.mkModule {
     # Deklarasi rahasia kunci privat & passphrase per kunci via sops-nix
     sops.secrets = lib.mkMerge [
       (lib.listToAttrs (
-        map (
-          key:
-          selfLib.secrets.mkSecret {
-            key = "gpg-passphrase-${key.num}";
+        map (key: {
+          name = "gpg-passphrase-${key.num}";
+          value = {
+            sopsFile = ./secrets.yaml;
             owner = config.my.user.name;
             mode = "0400";
-          }
-        ) gpgKeysList
+          };
+        }) gpgKeysList
       ))
       (lib.listToAttrs (
-        map (
-          key:
-          selfLib.secrets.mkSecret {
-            key = "gpg-private-key-${key.num}";
+        map (key: {
+          name = "gpg-private-key-${key.num}";
+          value = {
             format = "binary";
-            sopsFile = selfLib.secretBinary "gnupg/private-key-${key.num}.enc";
+            sopsFile = ./secrets + "/private-key-${key.num}.enc";
             owner = config.my.user.name;
             mode = "0600";
-          }
-        ) gpgKeysList
+          };
+        }) gpgKeysList
       ))
     ];
   };

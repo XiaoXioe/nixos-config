@@ -16,7 +16,6 @@ let
       inputs.self + "/secrets/${relPath}"
     else
       ../secrets + "/${relPath}";
-  secretBinary = relPath: secret "binary/${relPath}";
 
   # Recursively maps a user features attribute set to a module enable structure.
   # For example: `{ feat = true; }` -> `{ feat = { enable = true; }; }`
@@ -51,15 +50,12 @@ let
       else
         value
     ) attrs;
-  secrets = import ./secrets { inherit lib secret secretBinary; };
 in
 {
   inherit (modules) mkModule;
   inherit
     mapFeatures
     secret
-    secretBinary
-    secrets
     ;
 
   # Helper to easily generate Home Manager out-of-store symlinks

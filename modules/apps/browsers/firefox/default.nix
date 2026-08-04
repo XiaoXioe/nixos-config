@@ -118,7 +118,7 @@ selfLib.mkModule {
     };
 
     sops.secrets = {
-      "firefox-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/firefox-bookmarks.enc");
+      "firefox-bookmarks" = mkBookmarkSecret ./firefox-bookmarks.enc;
     };
 
     sops.templates = {

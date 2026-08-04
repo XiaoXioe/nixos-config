@@ -147,13 +147,11 @@ selfLib.mkModule {
     lib.mkMerge [
       {
         # Secret declaration for restic password
-        sops.secrets = builtins.listToAttrs [
-          (selfLib.secrets.mkSecret {
-            key = "restic-password";
-            owner = config.my.user.name;
-            mode = "0444";
-          })
-        ];
+        sops.secrets."restic-password" = {
+          sopsFile = ./secrets.yaml;
+          owner = config.my.user.name;
+          mode = "0444";
+        };
 
         environment.systemPackages = [
           (pkgs.symlinkJoin {

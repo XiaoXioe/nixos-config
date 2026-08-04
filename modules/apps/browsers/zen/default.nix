@@ -50,7 +50,7 @@ selfLib.mkModule {
     };
 
     sops.secrets = {
-      "zen-bookmarks" = mkBookmarkSecret (selfLib.secretBinary "browsers/zen-bookmarks.enc");
+      "zen-bookmarks" = mkBookmarkSecret ./zen-bookmarks.enc;
     };
 
     sops.templates = {

@@ -7,7 +7,7 @@
 }:
 
 let
-  vpnDir = selfLib.secret "vpn-files";
+  vpnDir = ./vpn-files;
   vpnFiles = selfLib.getVpnFiles vpnDir;
   protonVpnFiles = builtins.filter (x: x != "wg-warp.conf") vpnFiles;
 in
@@ -21,34 +21,32 @@ selfLib.mkModule {
     sops.secrets = lib.mkMerge [
       (builtins.listToAttrs (
         map
-          (
-            iface:
-            selfLib.secrets.mkSecret {
-              key = "wg-${iface}.conf";
-              sopsFile = selfLib.secretBinary "vpn/wg-${iface}.enc.conf";
+          (iface: {
+            name = "wg-${iface}.conf";
+            value = {
+              sopsFile = ./vpn-files + "/wg-${iface}.enc.conf";
               format = "binary";
               path = "/etc/wireguard/wg-${iface}.conf";
               owner = "root";
               group = "root";
               mode = "0600";
-            }
-          )
+            };
+          })
           [
             "lan"
             "wifi"
           ]
       ))
       (lib.listToAttrs (
-        map (
-          fileName:
-          selfLib.secrets.mkSecret {
-            key = fileName;
-            sopsFile = selfLib.secret "vpn-files/${fileName}";
+        map (fileName: {
+          name = fileName;
+          value = {
+            sopsFile = ./. + "/vpn-files/${fileName}";
             format = "binary";
             owner = config.my.user.name;
             mode = "0600";
-          }
-        ) vpnFiles
+          };
+        }) vpnFiles
       ))
     ];
 

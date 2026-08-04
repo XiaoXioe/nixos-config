@@ -19,9 +19,7 @@ selfLib.mkModule {
   nixosConfig = {
     environment.etc."tor-browser/policies/policies.json".source =
       config.sops.templates."tor-browser-policies.json".path;
-    sops.secrets."tor-browser-bookmarks" = mkBookmarkSecret (
-      selfLib.secretBinary "browsers/tor-browser-bookmarks.enc"
-    );
+    sops.secrets."tor-browser-bookmarks" = mkBookmarkSecret ./tor-bookmarks.enc;
     sops.templates."tor-browser-policies.json" = mkBookmarkPoliciesTemplate {
       ownerName = config.my.user.name;
       basePolicies = {

@@ -41,14 +41,11 @@ selfLib.mkModule {
       "f+ /var/lib/AccountsService/users/${config.my.user.name} 0644 root root - [User]\\nIcon=/var/lib/AccountsService/icons/${config.my.user.name}\\n"
     ];
 
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "foto-profile";
-        format = "binary";
-        owner = config.my.user.name;
-        sopsFile = selfLib.secretBinary "media/foto-profile.enc";
-      })
-    ];
+    sops.secrets."foto-profile" = {
+      format = "binary";
+      owner = config.my.user.name;
+      sopsFile = ./secrets/foto-profile.enc;
+    };
   };
 
   hmConfig = hmOpts: {

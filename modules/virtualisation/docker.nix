@@ -22,21 +22,22 @@ selfLib.mkModule {
 
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
-      sops.secrets = builtins.listToAttrs [
-        (selfLib.secrets.mkSecret {
-          key = "9router-env";
+      sops.secrets = builtins.mapAttrs (name: value: { sopsFile = ./secrets.yaml; } // value) {
+        "9router-env" = {
           mode = "0400";
-        })
-        (selfLib.secrets.mkSecret {
-          key = "ninerouter-key";
+        };
+        "ninerouter-key" = {
           owner = config.my.user.name;
           mode = "0400";
-        })
-        (selfLib.secrets.mkSecret {
-          key = "mt5-vnc-env";
+        };
+        "mt5-vnc-env" = {
           mode = "0400";
-        })
-      ];
+        };
+        "docker-token" = {
+          owner = config.my.user.name;
+          mode = "0400";
+        };
+      };
 
       environment.variables = {
 

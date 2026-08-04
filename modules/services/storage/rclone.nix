@@ -19,15 +19,12 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "rclone.conf";
-        sopsFile = selfLib.secretBinary "storage/rclone.enc.conf";
-        format = "binary";
-        owner = config.my.user.name;
-        mode = "0444";
-      })
-    ];
+    sops.secrets."rclone.conf" = {
+      sopsFile = ./secrets/rclone.enc.conf;
+      format = "binary";
+      owner = config.my.user.name;
+      mode = "0444";
+    };
 
     programs.fuse.userAllowOther = true;
   };

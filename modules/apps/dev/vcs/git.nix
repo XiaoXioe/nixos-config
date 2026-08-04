@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   selfLib,
   ...
 }:
@@ -10,16 +11,8 @@ selfLib.mkModule {
   description = "User git configuration";
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs (
-      map
-        (
-          key:
-          selfLib.secrets.mkSecret {
-            inherit key;
-            owner = config.my.user.name;
-            mode = "0400";
-          }
-        )
+    sops.secrets =
+      lib.genAttrs
         [
           "github-user-1"
           "github-access-token-1"
@@ -28,7 +21,11 @@ selfLib.mkModule {
           "github-user-3"
           "github-access-token-3"
         ]
-    );
+        (key: {
+          sopsFile = ./secrets.yaml;
+          owner = config.my.user.name;
+          mode = "0400";
+        });
 
     sops.templates."gh_hosts.yml" = {
       path = "/home/${config.my.user.name}/.config/gh/hosts.yml";

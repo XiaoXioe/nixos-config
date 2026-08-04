@@ -28,24 +28,22 @@ selfLib.mkModule {
       AddressFamily inet
       ForwardX11 no
     '';
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "ssh-user-klein";
+    sops.secrets = {
+      "ssh-user-klein" = {
         format = "binary";
-        sopsFile = selfLib.secretBinary "ssh/ssh-user-klein.enc";
+        sopsFile = ./secrets/ssh-user-klein.enc;
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_ed25519";
         mode = "0600";
-      })
-      (selfLib.secrets.mkSecret {
-        key = "ssh-rsa-user-klein";
+      };
+      "ssh-rsa-user-klein" = {
         format = "binary";
-        sopsFile = selfLib.secretBinary "ssh/ssh-rsa-user-klein.enc";
+        sopsFile = ./secrets/ssh-rsa-user-klein.enc;
         owner = config.my.user.name;
         path = "/home/${config.my.user.name}/.ssh/id_rsa_compat";
         mode = "0600";
-      })
-    ];
+      };
+    };
   };
 
   hmConfig = hmOpts: {

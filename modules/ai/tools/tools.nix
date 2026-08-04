@@ -74,18 +74,13 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "gemini-api-key";
+    sops.secrets = {
+      "huggingface-token" = {
         owner = config.my.user.name;
         mode = "0400";
-      })
-      (selfLib.secrets.mkSecret {
-        key = "huggingface-token";
-        owner = config.my.user.name;
-        mode = "0400";
-      })
-    ];
+        sopsFile = ./secrets.yaml;
+      };
+    };
     my.services.storage.btrfs-nocow-migration.nocowDirectories = [
       "/home/${config.my.user.name}/.gemini"
     ];

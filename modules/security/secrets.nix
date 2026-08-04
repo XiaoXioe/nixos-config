@@ -27,7 +27,7 @@ selfLib.mkModule {
     ];
 
     sops = {
-      defaultSopsFile = selfLib.secret "secrets.yaml";
+      defaultSopsFile = ./secrets.yaml;
       defaultSopsFormat = "yaml";
 
       # Use the SSH host key as the age decryption key

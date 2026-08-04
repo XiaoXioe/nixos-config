@@ -105,11 +105,13 @@ selfLib.mkModule {
       };
       secrets = {
         "github-nix" = {
+          sopsFile = ./secrets.yaml;
           owner = config.my.user.name;
           restartUnits = [ "nix-daemon.service" ];
           mode = "0400";
         };
         "cachix-token" = {
+          sopsFile = ./secrets.yaml;
           owner = config.my.user.name;
           group = "users";
         };

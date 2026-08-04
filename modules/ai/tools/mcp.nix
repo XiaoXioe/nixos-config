@@ -38,23 +38,18 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "tavily-api-key";
+    sops.secrets = {
+      "tavily-api-key" = {
+        sopsFile = ./secrets.yaml;
         owner = config.my.user.name;
         mode = "0400";
-      })
-      (selfLib.secrets.mkSecret {
-        key = "cloudflare-token";
+      };
+      "cloudflare-token" = {
+        sopsFile = ./secrets.yaml;
         owner = config.my.user.name;
         mode = "0400";
-      })
-      # (selfLib.secrets.mkSecret {
-      #   key = "docker-token";
-      #   owner = config.my.user.name;
-      #   mode = "0400";
-      # })
-    ];
+      };
+    };
   };
 
   hmConfig =

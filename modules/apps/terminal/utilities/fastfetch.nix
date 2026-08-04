@@ -9,15 +9,12 @@ selfLib.mkModule {
   description = "Fastfetch configuration";
 
   nixosConfig = {
-    sops.secrets = builtins.listToAttrs [
-      (selfLib.secrets.mkSecret {
-        key = "fastfetch-logo";
-        format = "binary";
-        owner = config.my.user.name;
-        mode = "0444";
-        sopsFile = selfLib.secretBinary "media/fastfetch-logo.enc";
-      })
-    ];
+    sops.secrets."fastfetch-logo" = {
+      format = "binary";
+      owner = config.my.user.name;
+      mode = "0444";
+      sopsFile = ./secrets/fastfetch-logo.enc;
+    };
   };
 
   hmConfig = hmOpts: {
