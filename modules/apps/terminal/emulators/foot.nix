@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   selfLib,
   ...
@@ -33,6 +34,18 @@ selfLib.mkModule {
         cursor = {
           style = "beam";
           beam-thickness = 2;
+        };
+        bell = {
+          command-focused = "yes";
+          notify = "yes";
+          urgent = "yes";
+        };
+        desktop-notifications = {
+          command = "${pkgs.libnotify}/bin/notify-send -a \${app-id} -i \${app-id} \${title} \${body}";
+        };
+
+        mouse = {
+          hide-when-typing = "yes";
         };
         tweak = {
           font-monospace-warn = "no";
