@@ -22,19 +22,13 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 │   ├── browser-addons.nix       # Shared Firefox/Zen addon builders and policy overrides
 │   └── modules/                 # Module helper engine (mkModule & flatpak-helper)
 │
-├── hosts/
-│   └── nixos/
-│       ├── default.nix          # Host-specific overrides, user configuration, and feature linking
-│       ├── home.nix             # Home Manager wiring
-│       ├── users.nix            # User definitions and feature flags (Single Source of Truth)
-│       └── hardware-configuration.nix
-│
 ├── modules/
 │   ├── ai/                      # AI stack: Ollama, llama.cpp (Ivy Bridge optimized), Open WebUI, MCP configs, tools
 │   ├── apps/                    # Home Manager applications & user settings (browsers, editors, terminal, gaming, media)
 │   ├── core/                    # System core: bootloader (GRUB2+grubfm), fonts, graphics, kernel (Zen), memory, nix settings
 │   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland, Themeing (Colloid/Vimix)
 │   ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
+│   ├── hosts/                   # Host-specific configurations (KleinMoretti, hardware spec, single source of truth)
 │   ├── scripts/                 # Custom CLI tools and utility scripts
 │   ├── security/                # Security & Secrets: sops, hardening, gnupg, auth (sudo-rs)
 │   ├── services/                # System services: networking (zapret, cloudflare-warp, dns, vpn), snapper, ssd-monitor, restic

@@ -13,7 +13,11 @@
         let
           entries = builtins.readDir dir;
           validEntries = lib.filterAttrs (
-            name: _: !(lib.hasPrefix "." name) && !(lib.hasPrefix "_" name) && !(lib.hasSuffix ".bak" name)
+            name: _:
+            !(lib.hasPrefix "." name)
+            && !(lib.hasPrefix "_" name)
+            && !(lib.hasSuffix ".bak" name)
+            && name != "hosts"
           ) entries;
           hasDefaultNix = (entries ? "default.nix") && dir != path;
         in

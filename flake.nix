@@ -102,7 +102,7 @@
       hostName = "KleinMoretti";
 
       # User data & custom library
-      userData = import ./hosts/nixos/users;
+      userData = import ./modules/hosts/nixos/users;
       adminUser = userData.userName;
       flakePath = "/home/${adminUser}/nixos-config";
       system = "x86_64-linux";
@@ -130,12 +130,12 @@
       };
 
       homeModules = [
-        ./hosts/nixos/home
+        ./modules/hosts/nixos/home
         inputs.nix-index-database.homeModules.nix-index
       ];
 
       commonModules = [
-        ./hosts/nixos
+        ./modules/hosts/nixos
         ./modules
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
