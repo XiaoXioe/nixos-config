@@ -1,4 +1,4 @@
-<div align="center"><img src=".assets/logo_nixos.png"></div>
+<div align="center"><img src=".assets/logo_nixos.png" width="320" alt="NixOS Configuration Logo"></div>
 <h1 align="center">Klein Moretti's NixOS Configuration</h1>
 
 <div align="center">
