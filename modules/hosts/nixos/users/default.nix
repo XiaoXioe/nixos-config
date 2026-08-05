@@ -1,6 +1,12 @@
 {
   userName = "klein-moretti";
   fullName = "Klein Moretti";
+  defaultApps = {
+    terminal = "foot";
+    browser = "zen-beta";
+    editor = "codium";
+    fileManager = "dolphin";
+  };
   uid = 1000;
   extraGroups = [
     "wheel"

@@ -21,7 +21,48 @@
     type = lib.types.nonEmptyStr;
   };
 
+  options.my.defaultApps = {
+    terminal = lib.mkOption {
+      type = lib.types.str;
+      default = "foot";
+      description = "Default terminal emulator binary";
+    };
+    browser = lib.mkOption {
+      type = lib.types.str;
+      default = "zen-beta";
+      description = "Default web browser binary";
+    };
+    editor = lib.mkOption {
+      type = lib.types.str;
+      default = "codium";
+      description = "Default code/text editor binary";
+    };
+    fileManager = lib.mkOption {
+      type = lib.types.str;
+      default = "dolphin";
+      description = "Default file manager binary";
+    };
+  };
+
+  options.my.defaultTerminal = lib.mkOption {
+    type = lib.types.str;
+    default = config.my.defaultApps.terminal;
+    description = "Alias to my.defaultApps.terminal";
+  };
+
   config = {
     networking.hostName = config.my.hostname;
+    environment.variables = {
+      TERMINAL = config.my.defaultApps.terminal;
+      BROWSER = config.my.defaultApps.browser;
+      EDITOR = "${config.my.defaultApps.editor} -w";
+      VISUAL = config.my.defaultApps.editor;
+    };
+    home-manager.users.${config.my.user.name}.home.sessionVariables = {
+      TERMINAL = config.my.defaultApps.terminal;
+      BROWSER = config.my.defaultApps.browser;
+      EDITOR = "${config.my.defaultApps.editor} -w";
+      VISUAL = config.my.defaultApps.editor;
+    };
   };
 }

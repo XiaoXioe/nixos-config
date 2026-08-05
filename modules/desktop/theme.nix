@@ -42,7 +42,6 @@ selfLib.mkModule {
         };
       };
       home.sessionVariables = {
-        EDITOR = "codium -w";
         QT_QPA_PLATFORM = "wayland;xcb";
         QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
       };
