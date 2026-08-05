@@ -211,7 +211,7 @@
 
       nixosConfigurations = mkNixosConfigurations;
 
-      packages.${system} = import ./packages-export.nix {
+      packages.${system} = import ./modules/_lib/packages-export.nix {
         nixosConfigs = mkNixosConfigurations;
         inherit
           hostName

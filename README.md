@@ -16,27 +16,20 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 ```text
 .
 ├── flake.nix                    # Entry point — inputs, outputs, system configuration wiring
-├── modules/
-│   ├── _lib/                    # Public API for custom library functions (scanPaths, mapFeatures, mkModule, builders)
-│   ├── ai/                      # AI stack: Ollama, llama.cpp (Ivy Bridge optimized), Open WebUI, MCP configs, tools
-│   ├── apps/                    # Home Manager applications & user settings (browsers, editors, terminal, gaming, media)
-│   ├── core/                    # System core: bootloader (GRUB2+grubfm), fonts, graphics, kernel (Zen), memory, nix settings
-│   ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland, Themeing (Colloid/Vimix)
-│   ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
-│   ├── hosts/                   # Host-specific configurations (KleinMoretti, hardware spec, single source of truth)
-│   ├── scripts/                 # Custom CLI tools and utility scripts
-│   ├── security/                # Security & Secrets: sops, hardening, gnupg, auth (sudo-rs)
-│   ├── services/                # System services: networking (zapret, cloudflare-warp, dns, vpn), snapper, ssd-monitor, restic
-│   ├── settings/                # HM settings: identity, file symlinks
-│   ├── specialization/          # Performance & Retro gaming modes
-│   └── virtualisation/          # Docker, Waydroid, libvirt
-│
-├── secrets/                     # Encrypted via sops-nix (age)
-│   ├── secrets.yaml             # Main secrets file (API keys, passwords, credentials)
-│   ├── binary/                  # Encrypted binary secrets (wg-configs, credentials)
-│   └── vpn-files/               # Decrypted-on-the-fly WireGuard profile configurations
-│
-└── packages-export.nix          # Unified export for custom derivations (caching target)
+└── modules/
+    ├── _lib/                    # Custom Nix library, builder engine, and package exports
+    ├── ai/                      # AI stack: Ollama, llama.cpp (Ivy Bridge optimized), Open WebUI, MCP configs, tools
+    ├── apps/                    # Home Manager applications & user settings (browsers, editors, terminal, gaming, media)
+    ├── core/                    # System core: bootloader (GRUB2+grubfm), fonts, graphics, kernel (Zen), memory, nix settings
+    ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland, Themeing (Colloid/Vimix)
+    ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
+    ├── hosts/                   # Host-specific configurations (KleinMoretti, hardware spec, single source of truth)
+    ├── scripts/                 # Custom CLI tools and utility scripts
+    ├── security/                # Security & Secrets: sops, hardening, gnupg, auth (sudo-rs)
+    ├── services/                # System services: networking (zapret, cloudflare-warp, dns, vpn), snapper, ssd-monitor, restic
+    ├── settings/                # HM settings: identity, file symlinks
+    ├── specialization/          # Performance & Retro gaming modes
+    └── virtualisation/          # Docker, Waydroid, libvirt
 ```
 
 ---
@@ -44,10 +37,10 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 ## 🛠️ Key Features & Technical Details
 
 ### 1. System Core & Architecture
-* **Single Source of Truth (`hosts/nixos/users.nix`)** — System features and application suites are toggled per-user under `userFeatures`. The builder dynamically maps these flat flags to system options via `selfLib.mapFeatures` and `lib.recursiveUpdate`.
+* **Single Source of Truth (`modules/hosts/nixos/users/default.nix`)** — System features and application suites are toggled per-user under `userFeatures`. The builder dynamically maps these flat flags to system options via `selfLib.mapFeatures` and `lib.recursiveUpdate`.
 * **Unified Module Builder (`selfLib.mkModule`)** — Consolidates system options, Home Manager configs (`hmConfig`), and Flatpak options (`flatpakCfg`) in a single boilerplate-free module definition.
 * **Bootloader (`modules/core/bootloader.nix`)** — Utilizes GRUB2 (disabling systemd-boot) with full EFI support, styled with the `catppuccin-grub` theme. Features an activation script (`setupGrubFM`) that installs and chainloads the **Grub2 File Manager** (`grubfmx64.efi`) directly from the EFI partition.
-* **Kernel & Tuning (`modules/core/kernel.nix`)** — Boots the interactive-optimized **Zen Kernel** (`linuxPackages_zen`). Applies workarounds for Gen 3 Intel Ivy Bridge graphics (disabling i915 FBC/PSR) to prevent rendering glitches. Tunes TCP congestion control with CAKE (`sch_cake`) and BBR (`tcp_bbr`), disables IPv6, and optimizes sysctl limits.
+* **Kernel & Tuning (`modules/core/kernel/`)** — Boots the interactive-optimized **Zen Kernel** (`linuxPackages_zen`). Applies workarounds for Gen 3 Intel Ivy Bridge graphics (disabling i915 FBC/PSR) to prevent rendering glitches. Tunes TCP congestion control with CAKE (`sch_cake`) and BBR (`tcp_bbr`), disables IPv6, and optimizes sysctl limits.
 * **Memory Tuning (`modules/core/memory.nix`)** — Configures Zram swap with 100% RAM allocation using `zstd` compression. Mounts `/tmp` on a RAM-backed tmpfs (capped at 60%), and tunes VM swappiness (`vm.swappiness = 180`) and cache pressure (`vm.vfs_cache_pressure = 50`) to optimize memory longevity.
 * **Nix Settings & Hardening (`modules/core/nix.nix`)** — Sets up multi-source binary caches (caches for NixOS, nix-community, Cachix, Niri, Hyprland). Routes nix-daemon network calls through a local SOCKS5 proxy to bypass local blocks, and injects private GitHub tokens using SOPS secrets to raise download API rate limits.
 
@@ -57,7 +50,7 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 * **Declarative Preservation** — Sourced via the `preservation` module under `/persist`. Persists system directories (NetworkManager, Bluetooth keys, Docker/Waydroid, Ollama, wireproxy) and user directories (Documents, configs, SSH, GPG, browser profiles, Steam). System logs are preserved cleanly on a dedicated Btrfs subvolume (`subvol=@nixos-log`).
 
 ### 3. Privilege Escalation & Security
-* **Memory-Safe Escalation (`modules/security/auth.nix`)** — Replaces standard `sudo` and `doas` with the memory-safe Rust implementation **`sudo-rs`** (`security.sudo-rs.enable = true`), restricting execution strictly to the wheel group (`execWheelOnly = true`).
+* **Memory-Safe Escalation (`modules/security/auth/`)** — Replaces standard `sudo` and `doas` with the memory-safe Rust implementation **`sudo-rs`** (`security.sudo-rs.enable = true`), restricting execution strictly to the wheel group (`execWheelOnly = true`).
 * **Secrets Management (`modules/security/secrets.nix`)** — Decrypts API tokens, SSH keys, binary files, and VPN profiles via `sops-nix` using the system's SSH host key. Dynamically generates configurations (`gh` hosts, Kaggle tokens, Cachix credentials) and injects hashed user passwords into user accounts declaratively (`mutableUsers = false`).
 
 ### 4. Desktop Environments & Themes
@@ -70,12 +63,12 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 * **Firefox (`modules/apps/browsers/firefox/`)** — Configures a **Default Profile** (preloaded with Bitwarden, uBlock, Simple Tab Groups, containers) and a **Hardened Profile** (aggressive fingerprinting, disabled WebGL/WebRTC/Geolocation). Restricts 50+ telemetry/Pocket parameters declaratively. Resolves Gecko's random directory issue by copying and patching `profiles.ini` dynamically.
 * **Zen Browser (`modules/apps/browsers/zen/`)** — Implements a VA-API hardware decoding workaround (mounting `/run/opengl-driver/lib/dri:ro`, preloading `libva` libraries, disabling RDD sandbox) to match the Ivy Bridge GPU. Resolves Flatpak symlink boundary violations by linking only the profile directory.
 * **Profile Sync Daemon (`modules/apps/browsers/psd.nix`)** — Syncs browser profiles into a RAM disk to accelerate I/O and minimize SSD wear. Migrated to **OverlayFS mode** (`USE_OVERLAYFS = "yes"`), caching only delta changes to save memory. Grants passwordless `sudo-rs` privileges for `psd-overlay-helper` (patched to use coreutils `runuser -u` to bypass TTY requirements).
-* **VSCodium (`modules/apps/editors/vscodium.nix`)** — Configured declaratively (`mutableExtensionsDir = false`). Compiles marketplace extensions (RunOnSave, sqlfluff, sqlite-viewer) out-of-store via `buildVscodeMarketplaceExtension` and configures default language formatters (`nixfmt`, `black`, `shfmt`).
+* **VSCodium (`modules/apps/editors/vscodium/`)** — Configured declaratively (`mutableExtensionsDir = false`). Compiles marketplace extensions (RunOnSave, sqlfluff, sqlite-viewer) out-of-store via `buildVscodeMarketplaceExtension` and configures default language formatters (`nixfmt`, `black`, `shfmt`).
 * **Shell & Terminals** — Fish shell utilizes a custom blacklist (`fish_should_add_to_history`) preventing sensitive tokens or blacklisted commands from writing to disk. Includes shortcuts (`,` and `,,`) for running Nix shells. Zellij, Foot, and Tmux are pre-styled with Catppuccin themes.
 
 ### 6. AI Stack & MCP Infrastructure
-* **Ivy Bridge Llama.cpp (`modules/ai/llama.nix`)** — Overrides the `llama-cpp` package to compile a localized build, disabling AVX2 and FMA (unsupported by Ivy Bridge CPUs) while target-optimizing with `-march=ivybridge`.
-* **Declarative MCP Setup (`modules/ai/mcp.nix`)** — Provisions native Model Context Protocol servers (`nixos`, `tavily`, `github`, `server-memory`, etc.) for Gemini/Antigravity CLI. Wraps credential-heavy servers inside `exec` bash structures to avoid secret leakage in `/nix/store`, and uses a post-link activation script (`setupMcpConfig`) to dynamically merge Cloudflare tokens via `jq`.
+* **Ivy Bridge Llama.cpp (`modules/ai/runtimes/llama.nix`)** — Overrides the `llama-cpp` package to compile a localized build, disabling AVX2 and FMA (unsupported by Ivy Bridge CPUs) while target-optimizing with `-march=ivybridge`.
+* **Declarative MCP Setup (`modules/ai/tools/mcp.nix`)** — Provisions native Model Context Protocol servers (`nixos`, `tavily`, `github`, `server-memory`, etc.) for Gemini/Antigravity CLI. Wraps credential-heavy servers inside `exec` bash structures to avoid secret leakage in `/nix/store`, and uses a post-link activation script (`setupMcpConfig`) to dynamically merge Cloudflare tokens via `jq`.
 * **LLM Engine & Web UI** — Integrates Ollama and Open WebUI services, binding their systemd lifecycles (`bindsTo` / `wants`) so starting Ollama automatically launches the Web UI. Disables rebuild-induced service restarts (`restartIfChanged = false`).
 
 ### 7. Services & Cloud Backups
@@ -84,8 +77,8 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 * **Secure DNS (`modules/services/networking/dns.nix`)** — Bypasses systemd-resolved, mapping DNS queries to `dnscrypt-proxy` resolving via NextDNS. Generates authenticated configurations dynamically from secrets.
 * **Hourly Snapper Snapshots (`modules/services/scheduling/snapper.nix`)** — Automates Btrfs snapshots of the `/persist` directory. Timeline cleanups are scheduled at hourly marks (`OnCalendar = "*-*-* *:30:00"`) to avoid space issues.
 * **SSD TBW/TBR Tracker (`modules/services/scheduling/ssd-monitor.nix`)** — Triggers an hourly script tracking SSD read/write bytes since boot (incorporating a custom LBA multiplier for MidasForce SATA drives). Spawns a Python helper (`cgroup-monitor.py`) crawling cgroup namespaces to identify top I/O consumers.
-* **Restic Backups (`modules/services/restic.nix`)** — Daily encrypted backups sent to a cloud repository using an isolated rclone wrapper proxy that forces traffic through WARP. Features on-demand backups mounting (`restic-mount`) via FUSE.
-* **Btrfs NoCOW Automation (`modules/services/tmpfiles.nix`)** — Automatically disables copy-on-write (`+C`) on system databases (Docker, Waydroid, Nix DBs) and user caches (browser cache, Materialgram tdata) to avoid write amplification.
+* **Restic Backups (`modules/services/storage/restic.nix`)** — Daily encrypted backups sent to a cloud repository using an isolated rclone wrapper proxy that forces traffic through WARP. Features on-demand backups mounting (`restic-mount`) via FUSE.
+* **Btrfs NoCOW Automation (`modules/services/storage/btrfs-nocow-migration.nix`)** — Automatically disables copy-on-write (`+C`) on system databases (Docker, Waydroid, Nix DBs) and user caches (browser cache, Materialgram tdata) to avoid write amplification.
 
 ---
 
