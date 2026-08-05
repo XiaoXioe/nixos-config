@@ -1,11 +1,16 @@
-# ❄️ Klein Moretti's NixOS Configuration
+<div align="center"><img src=".assets/logo_nixos.png"></div>
+<h1 align="center">Klein Moretti's NixOS Configuration</h1>
 
-![NixOS](https://img.shields.io/badge/NixOS-30343f?style=flat&logo=nixos&logoColor=7eb3e6)
-![nixpkgs](https://img.shields.io/badge/nixpkgs-unstable-7eb3e6?style=flat&logo=nixos&logoColor=7eb3e6&labelColor=30343f)
-![kernel](https://img.shields.io/badge/kernel-zen-a2a7f5?style=flat&logo=linux&logoColor=a2a7f5&labelColor=30343f)
-![desktop](https://img.shields.io/badge/desktop-niri/hyprland-86d1fc?style=flat&logo=wayland&logoColor=86d1fc&labelColor=30343f)
-![browser](https://img.shields.io/badge/browser-zen/firefox-fca3a7?style=flat&logo=firefox-browser&logoColor=fca3a7&labelColor=30343f)
-![shell](https://img.shields.io/badge/shell-fish-f7ca94?style=flat&logo=fishshell&logoColor=f7ca94&labelColor=30343f)
+<div align="center">
+
+![nixos](https://img.shields.io/badge/NixOS-24273A.svg?style=flat&logo=nixos&logoColor=CAD3F5)
+![nixpkgs](https://img.shields.io/badge/nixpkgs-26.05-informational.svg?style=flat&logo=nixos&logoColor=CAD3F5&colorA=24273A&colorB=8aadf4)
+![linux kernel](https://img.shields.io/badge/kernel-zen-informational.svg?style=flat&logo=linux&logoColor=f4dbd6&colorA=24273A&colorB=b7bdf8)
+![niri](https://img.shields.io/badge/niri-rolling-informational.svg?style=flat&logo=wayland&logoColor=eed49f&colorA=24273A&colorB=91d7e3)
+![hyprland](https://img.shields.io/badge/hyprland-informational.svg?style=flat&logo=wayland&logoColor=eed49f&colorA=24273A&colorB=91d7e3)
+![rust](https://img.shields.io/badge/rust-stable-informational.svg?style=flat&logo=rust&logoColor=f5a97f&colorA=24273A&colorB=f5a97f)
+
+</div>
 
 Modular, declarative NixOS flake featuring Home Manager integration, an ephemeral root with Btrfs impermanence, secure secrets management via sops-nix, a customized local AI stack, performance optimization, and custom CLI terminal scripts.
 
