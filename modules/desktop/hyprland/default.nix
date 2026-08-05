@@ -43,7 +43,7 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     imports =
       (selfLib.scanPaths ./settings)
-      ++ (selfLib.scanPaths ./keybind)
+      ++ (selfLib.scanPaths ./keybinds)
       ++ lib.optionals (inputs ? caelestia-shell && !hmOpts.config.my.desktop.hyprland.nandoroid.enable) (
         [
           inputs.caelestia-shell.homeManagerModules.default
