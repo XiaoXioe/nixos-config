@@ -201,7 +201,7 @@ PanelWindow {
 
     Process {
         id: terminalProcess
-        command: ["alacritty"]
+        command: ["sh", "-c", "unset __HM_SESS_VARS_SOURCED; . /etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh 2>/dev/null; exec $TERMINAL"]
     }
 
     // Helper component for menu items

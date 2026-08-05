@@ -306,8 +306,16 @@ in
       "-c"
       "bemoji -t"
     ];
-    "Mod+T".action.spawn = "alacritty";
-    "Super+B".action.spawn = "zen-beta";
+    "Mod+T".action.spawn = [
+      "sh"
+      "-c"
+      "unset __HM_SESS_VARS_SOURCED; . /etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh 2>/dev/null; exec $TERMINAL"
+    ];
+    "Super+B".action.spawn = [
+      "sh"
+      "-c"
+      "unset __HM_SESS_VARS_SOURCED; . /etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh 2>/dev/null; exec $BROWSER"
+    ];
     "Mod+Tab" = {
       repeat = false;
       action.toggle-overview = [ ];

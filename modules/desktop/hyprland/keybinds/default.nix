@@ -11,8 +11,8 @@
 
     bind = [
       # Applications
-      "$mod, T, exec, wezterm"
-      "$mod, B, exec, firefox"
+      "$mod, T, exec, $TERMINAL"
+      "$mod, B, exec, $BROWSER"
       "$mod, Q, killactive,"
       "$mod SHIFT, E, exit,"
       "$mod SHIFT, T, togglefloating,"
