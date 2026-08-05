@@ -48,7 +48,7 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.file = selfLib.mkHmSymlinks hmOpts.config {
-      ".ssh/config" = "${flakePath}/dotfiles/ssh-config/config.conf";
+      ".ssh/config" = "${flakePath}/modules/apps/dev/environment/dotfiles/config.conf";
     };
   };
 }

@@ -66,8 +66,8 @@ selfLib.mkModule {
     };
 
     home.file = selfLib.mkHmSymlinks hmOpts.config {
-      ".config/rmpc/config.ron" = "${flakePath}/dotfiles/rmpc/config.ron";
-      ".config/rmpc/themes/custom.ron" = "${flakePath}/dotfiles/rmpc/theme.ron";
+      ".config/rmpc/config.ron" = "${flakePath}/modules/apps/media/dotfiles/rmpc/config.ron";
+      ".config/rmpc/themes/custom.ron" = "${flakePath}/modules/apps/media/dotfiles/rmpc/theme.ron";
     };
   };
 }

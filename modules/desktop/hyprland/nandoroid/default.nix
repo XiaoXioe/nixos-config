@@ -14,8 +14,9 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     # Link Quickshell and Matugen configuration
     xdg.configFile = selfLib.mkHmSymlinks hmOpts.config {
-      "quickshell/nandoroid" = "${config.my.user.flakePath}/dotfiles/quickshell/nandoroid";
-      "matugen" = "${config.my.user.flakePath}/dotfiles/matugen";
+      "quickshell/nandoroid" =
+        "${config.my.user.flakePath}/modules/desktop/hyprland/nandoroid/dotfiles/quickshell";
+      "matugen" = "${config.my.user.flakePath}/modules/desktop/hyprland/nandoroid/dotfiles/matugen";
     };
 
     systemd.user.tmpfiles.rules = [

@@ -16,7 +16,6 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 ```text
 .
 ├── flake.nix                    # Entry point — inputs, outputs, system configuration wiring
-├── dotfiles/                    # Repository-managed dotfiles (Niri, Quickshell Nandoroid, Matugen, DankMaterialShell)
 ├── lib/
 │   ├── default.nix              # Public API for custom library functions (scanPaths, mapFeatures)
 │   ├── builders.nix             # NixOS + Home Manager unified configuration builders

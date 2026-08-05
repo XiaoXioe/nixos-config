@@ -84,6 +84,7 @@
   };
 
   xdg.configFile = selfLib.mkHmSymlinks config {
-    "fish/history_blacklist" = "${flakePath}/dotfiles/fish/history_blacklist";
+    "fish/history_blacklist" =
+      "${flakePath}/modules/apps/terminal/shells/fish/settings/dotfiles/history_blacklist";
   };
 }
