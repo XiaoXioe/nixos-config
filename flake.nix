@@ -107,7 +107,7 @@
       flakePath = "/home/${adminUser}/nixos-config";
       system = "x86_64-linux";
 
-      selfLib = import ./lib { inherit lib inputs; };
+      selfLib = import ./modules/_lib { inherit lib inputs; };
 
       pkgs = import inputs.nixpkgs {
         inherit system;
@@ -153,7 +153,7 @@
       ];
 
       # Build configurations using extracted builders
-      builders = import ./lib/builders {
+      builders = import ./modules/_lib/builders {
         inherit
           lib
           pkgs

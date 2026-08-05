@@ -16,13 +16,8 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 ```text
 .
 ├── flake.nix                    # Entry point — inputs, outputs, system configuration wiring
-├── lib/
-│   ├── default.nix              # Public API for custom library functions (scanPaths, mapFeatures)
-│   ├── builders.nix             # NixOS + Home Manager unified configuration builders
-│   ├── browser-addons.nix       # Shared Firefox/Zen addon builders and policy overrides
-│   └── modules/                 # Module helper engine (mkModule & flatpak-helper)
-│
 ├── modules/
+│   ├── _lib/                    # Public API for custom library functions (scanPaths, mapFeatures, mkModule, builders)
 │   ├── ai/                      # AI stack: Ollama, llama.cpp (Ivy Bridge optimized), Open WebUI, MCP configs, tools
 │   ├── apps/                    # Home Manager applications & user settings (browsers, editors, terminal, gaming, media)
 │   ├── core/                    # System core: bootloader (GRUB2+grubfm), fonts, graphics, kernel (Zen), memory, nix settings
