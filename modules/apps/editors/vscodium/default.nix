@@ -22,6 +22,7 @@ selfLib.mkModule {
       nixfmt
       ruff
       shellcheck
+      nil
       nixd
       sqlite
       sqlfluff

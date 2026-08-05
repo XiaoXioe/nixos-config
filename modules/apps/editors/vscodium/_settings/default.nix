@@ -50,11 +50,11 @@
   "vsicons.dontShowNewVersionMessage" = true;
 
   # Nix Language Server
-  "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
+  "nix.serverPath" = "${pkgs.nil}/bin/nil";
   "nix.enableLanguageServer" = true;
   "nix.formatterPath" = "${pkgs.nixfmt}/bin/nixfmt";
   "nix.serverSettings" = {
-    "nixd" = {
+    "nil" = {
       "formatting" = {
         "command" = [ "${pkgs.nixfmt}/bin/nixfmt" ];
       };
