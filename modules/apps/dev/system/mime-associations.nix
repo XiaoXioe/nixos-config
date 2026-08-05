@@ -5,22 +5,6 @@
 }:
 
 let
-  defaultApps = {
-    text = [ "com.vscodium.codium.desktop" ];
-    image = [ "org.gnome.gThumb.desktop" ];
-    audio = [ "mpv.desktop" ];
-    video = [ "mpv.desktop" ];
-    directory = [ "org.kde.dolphin.desktop" ];
-    office = [ "org.onlyoffice.desktopeditors.desktop" ];
-    pdf = [ "org.pwmt.zathura.desktop" ];
-    terminal = [ "org.wezfurlong.wezterm.desktop" ];
-    archive = [ "org.kde.ark.desktop" ];
-    discord = [ "com.discordapp.Discord.desktop" ];
-    link = [
-      "app.zen_browser.zen.desktop"
-      "org.mozilla.firefox.desktop"
-    ];
-  };
   mimeMap = {
     link = [
       "text/html"
@@ -110,24 +94,76 @@ let
     ];
     discord = [ "x-scheme-handler/discord" ];
   };
-  associations = lib.listToAttrs (
-    lib.flatten (
-      lib.mapAttrsToList (
-        key: mimeTypes: map (type: lib.nameValuePair type defaultApps."${key}") mimeTypes
-      ) mimeMap
-    )
-  );
 in
 
 selfLib.mkModule {
   name = "apps.dev.system.mime-associations";
   description = "MIME type associations and default applications";
 
-  hmConfig = hmOpts: {
-    xdg.mimeApps = {
-      enable = true;
-      associations.added = associations;
-      defaultApplications = associations;
+  hmConfig =
+    { osConfig, ... }:
+    let
+      terminalDesktopMap = {
+        foot = "foot.desktop";
+        alacritty = "Alacritty.desktop";
+        wezterm = "org.wezfurlong.wezterm.desktop";
+        kitty = "kitty.desktop";
+      };
+      terminalDesktop =
+        terminalDesktopMap.${osConfig.my.defaultTerminal} or "${osConfig.my.defaultTerminal}.desktop";
+
+      browserDesktopMap = {
+        zen-beta = "app.zen_browser.zen.desktop";
+        firefox = "org.mozilla.firefox.desktop";
+        brave = "brave-browser.desktop";
+      };
+      editorDesktopMap = {
+        codium = "com.vscodium.codium.desktop";
+        vscodium = "com.vscodium.codium.desktop";
+      };
+      fileManagerDesktopMap = {
+        dolphin = "org.kde.dolphin.desktop";
+        nemo = "nemo.desktop";
+      };
+
+      defaultApps = {
+        text = [
+          (editorDesktopMap.${osConfig.my.defaultApps.editor} or "${osConfig.my.defaultApps.editor}.desktop")
+        ];
+        image = [ "org.gnome.gThumb.desktop" ];
+        audio = [ "mpv.desktop" ];
+        video = [ "mpv.desktop" ];
+        directory = [
+          (fileManagerDesktopMap.${osConfig.my.defaultApps.fileManager}
+            or "${osConfig.my.defaultApps.fileManager}.desktop"
+          )
+        ];
+        office = [ "org.onlyoffice.desktopeditors.desktop" ];
+        pdf = [ "org.pwmt.zathura.desktop" ];
+        terminal = [ terminalDesktop ];
+        archive = [ "org.kde.ark.desktop" ];
+        discord = [ "com.discordapp.Discord.desktop" ];
+        link = [
+          (browserDesktopMap.${osConfig.my.defaultApps.browser}
+            or "${osConfig.my.defaultApps.browser}.desktop"
+          )
+          "org.mozilla.firefox.desktop"
+        ];
+      };
+
+      associations = lib.listToAttrs (
+        lib.flatten (
+          lib.mapAttrsToList (
+            key: mimeTypes: map (type: lib.nameValuePair type defaultApps."${key}") mimeTypes
+          ) mimeMap
+        )
+      );
+    in
+    {
+      xdg.mimeApps = {
+        enable = true;
+        associations.added = associations;
+        defaultApplications = associations;
+      };
     };
-  };
 }
