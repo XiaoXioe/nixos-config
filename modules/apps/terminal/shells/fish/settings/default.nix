@@ -10,12 +10,13 @@
 {
   programs.fish = {
     enable = true;
-    functions.__done_is_process_window_focused = {
-      description = "Override plugin 'done' agar selalu mengirim notifikasi walau terminal sedang fokus";
-      body = "return 1";
-    };
 
     interactiveShellInit = ''
+      # Override plugin 'done' agar selalu mengirim notifikasi walau terminal sedang fokus
+      function __done_is_process_window_focused
+          return 1
+      end
+
       set -g fish_greeting
       fish_add_path $HOME/.local/bin
       set -p fish_function_path $HOME/.config/fish/functions/custom
