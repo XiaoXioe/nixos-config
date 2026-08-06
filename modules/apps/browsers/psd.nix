@@ -12,6 +12,10 @@ selfLib.mkModule {
   nixosConfig = {
     environment.systemPackages = [ pkgs.profile-sync-daemon ];
 
+    services.logind.settings.Login = {
+      RuntimeDirectorySize = "6G";
+    };
+
     # Allow passwordless execution of psd-overlay-helper for sudo and sudo-rs
     security.sudo.extraConfig = ''
       ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
@@ -82,16 +86,23 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     services.psd = {
       enable = true;
+      browsers = [
+        "zen"
+        "torbrowser"
+        "brave"
+        "chromium"
+      ];
     };
+
+    xdg.configFile."psd/psd.conf".text = hmOpts.lib.mkForce ''
+      BROWSERS=(${hmOpts.lib.concatStringsSep " " hmOpts.config.services.psd.browsers})
+      USE_BACKUP="${if hmOpts.config.services.psd.useBackup then "yes" else "no"}"
+      BACKUP_LIMIT=${toString hmOpts.config.services.psd.backupLimit}
+      USE_OVERLAYFS="yes"
+    '';
 
     systemd.user.services.psd = {
-      serviceConfig.TimeoutStopSec = "5m";
+      Service.TimeoutStopSec = "5m";
     };
-
-    xdg.configFile."psd/psd.conf".text = ''
-      USE_OVERLAYFS="yes"
-      USE_BACKUP="false"
-      BROWSERS=(zen torbrowser brave chromium)
-    '';
   };
 }
