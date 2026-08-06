@@ -93,9 +93,13 @@ selfLib.mkModule {
       channel.enable = false;
     };
 
-    systemd.tmpfiles.rules = [
-      "d /home/${config.my.user.name}/.config/cachix 0700 ${config.my.user.name} users - -"
-    ];
+    systemd.tmpfiles.settings."10-cachix" = {
+      "/home/${config.my.user.name}/.config/cachix".d = {
+        mode = "0700";
+        user = config.my.user.name;
+        group = "users";
+      };
+    };
     sops = {
       templates."cachix.dhall" = {
         path = "/home/${config.my.user.name}/.config/cachix/cachix.dhall";
