@@ -8,13 +8,6 @@ selfLib.mkModule {
   name = "apps.office.obsidian";
   description = "Obsidian Markdown note-taking and knowledge base application";
 
-  preservation = {
-    userDirectories = [
-      ".config/obsidian"
-      ".local/share/obsidian"
-    ];
-  };
-
   flatpakCfg = {
     "md.obsidian.Obsidian" = {
       enable = true;
