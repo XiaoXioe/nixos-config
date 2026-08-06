@@ -29,9 +29,23 @@ selfLib.mkModule {
     };
   };
 
-  nixosConfig = {
-    my.services.storage.btrfs-nocow-migration.nocowDirectories = [
-      ".local/share/materialgram/tdata"
-    ];
-  };
+  nixosConfig =
+    { config, pkgs, ... }:
+    let
+      cfg = config.my.apps.social.materialgram;
+      materialgramPath =
+        if cfg.flatpak.enable then
+          "/var/lib/flatpak/app/io.github.kukuruzka165.materialgram"
+        else
+          pkgs.materialgram;
+    in
+    {
+      my.services.storage.btrfs-nocow-migration.nocowDirectories = [
+        ".local/share/materialgram/tdata"
+      ];
+      my.services.vmtouch.paths = [
+        materialgramPath
+        "/home/${config.my.user.name}/.local/share/materialgram"
+      ];
+    };
 }
