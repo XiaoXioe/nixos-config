@@ -16,10 +16,8 @@ selfLib.mkModule {
       pulse.enable = true;
     };
 
-    systemd.user.services.pipewire-pulse = {
-      environment = {
-        PIPEWIRE_DEBUG = "1";
-      };
+    environment.sessionVariables = {
+      PIPEWIRE_DEBUG = "1";
     };
   };
 }
