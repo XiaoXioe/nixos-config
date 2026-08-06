@@ -5,6 +5,7 @@ selfLib.mkModule {
   description = "Flatpak service configuration, private applications, and repository sync service";
 
   preservation = {
+    cleanupOnDisable = true;
     userDirectories = [
       ".BurpSuite"
     ];

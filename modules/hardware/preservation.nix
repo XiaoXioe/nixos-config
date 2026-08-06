@@ -46,6 +46,17 @@ selfLib.mkModule {
         aspect: (aspect.enable or false || aspect.rule.persist or false) == true
       ) aspects;
 
+      # Aspects to clean up: disabled, no force-persist, and cleanupOnDisable opted-in
+      cleanupAspects = builtins.filter (
+        aspect:
+        (aspect.enable or false) == false
+        && (aspect.rule.persist or false) == false
+        && (aspect.rule.cleanupOnDisable or false) == true
+      ) aspects;
+      cleanupUserDirectories = builtins.concatLists (
+        map (a: a.rule.userDirectories or [ ]) cleanupAspects
+      );
+
       aspectSystemDirectories = builtins.concatLists (
         map (
           a: a.rule.systemDirectories or a.rule.sysDirectories or a.rule.directories or [ ]
@@ -176,6 +187,32 @@ selfLib.mkModule {
           }";
         };
       };
+
+      # Remove orphaned /persist user directories for disabled modules with cleanupOnDisable = true
+      systemd.services.preservation-persist-cleanup =
+        lib.mkIf (cfg.ephemeralRoot && cleanupUserDirectories != [ ])
+          {
+            description = "Remove orphaned /persist user directories for disabled modules";
+            after = [ "local-fs.target" ];
+            wantedBy = [ "multi-user.target" ];
+            path = with pkgs; [ coreutils ];
+            serviceConfig.Type = "oneshot";
+            script =
+              let
+                userName = config.my.user.name;
+                persistHome = "${persistBase}/home/${userName}";
+              in
+              builtins.concatStringsSep "\n" (
+                [ "set -euo pipefail" ]
+                ++ map (dir: ''
+                  if [ -e "${persistHome}/${dir}" ]; then
+                    echo "==> [preservation-persist-cleanup] Removing orphaned: ${persistHome}/${dir}"
+                    rm -rf "${persistHome}/${dir}"
+                  fi
+                '') cleanupUserDirectories
+                ++ [ ''echo "==> [preservation-persist-cleanup] Persist cleanup finished."'' ]
+              );
+          };
 
       preservation.enable = true;
       preservation.preserveAt."${persistBase}" = {
