@@ -61,10 +61,10 @@ selfLib.mkModule {
           {
             source = "${selfLib.mkApp pkgs "vpn-killswitch"
               ''
-                _INTERFACE=$1
-                ACTION=$2
+                _INTERFACE="''${1:-}"
+                ACTION="''${2:-}"
 
-                if [[ -n "$CONNECTION_UUID" ]]; then
+                if [[ -n "''${CONNECTION_UUID:-}" ]]; then
                   CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null || echo "")
                   if [[ "$CONN_TYPE" == "wireguard" || "$CONN_TYPE" == "vpn" ]]; then
                     case "$ACTION" in
@@ -81,6 +81,7 @@ selfLib.mkModule {
                     esac
                   fi
                 fi
+                exit 0
               ''
               [
                 pkgs.networkmanager
