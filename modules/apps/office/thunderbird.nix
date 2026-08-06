@@ -33,6 +33,20 @@ selfLib.mkModule {
     ];
   };
 
+  nixosConfig =
+    { config, pkgs, ... }:
+    let
+      cfg = config.my.apps.office.thunderbird;
+      betterbirdPath =
+        if cfg.flatpak.enable then "/var/lib/flatpak/app/eu.betterbird.Betterbird" else pkgs.thunderbird;
+    in
+    {
+      my.services.vmtouch.paths = [
+        betterbirdPath
+        "/home/${config.my.user.name}/.thunderbird"
+      ];
+    };
+
   flatpakCfg = {
     "eu.betterbird.Betterbird" = {
       enable = true;
