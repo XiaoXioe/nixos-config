@@ -47,6 +47,7 @@
         thunderbird = true;
         onlyoffice = true;
         zathura = true;
+        obsidian = true;
       };
       social = {
         materialgram = true;
@@ -227,6 +228,7 @@
       boot-speedup = true;
       vaultwarden = true;
       flatpak = true;
+      vmtouch = true;
     };
 
     security = {
