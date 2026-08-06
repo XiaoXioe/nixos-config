@@ -45,6 +45,10 @@ selfLib.mkModule {
   description = "Zen Browser configuration powered by zen-browser-flake";
 
   nixosConfig = {
+    my.services.vmtouch.paths = [
+      inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+    ];
+
     environment.sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
     };
