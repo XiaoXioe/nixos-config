@@ -17,16 +17,44 @@ selfLib.mkModule {
     };
 
     # Allow passwordless execution of psd-overlay-helper for sudo and sudo-rs
-    security.sudo.extraConfig = ''
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: /etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper
-    '';
-    security.sudo-rs.extraConfig = ''
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: ${pkgs.profile-sync-daemon}/bin/psd-overlay-helper
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/psd-overlay-helper
-      ${config.my.user.name} ALL=(ALL) NOPASSWD: /etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper
-    '';
+    security.sudo.extraRules = [
+      {
+        users = [ config.my.user.name ];
+        commands = [
+          {
+            command = "${pkgs.profile-sync-daemon}/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
+    security.sudo-rs.extraRules = [
+      {
+        users = [ config.my.user.name ];
+        commands = [
+          {
+            command = "${pkgs.profile-sync-daemon}/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/etc/profiles/per-user/${config.my.user.name}/bin/psd-overlay-helper";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
 
     # Override profile-sync-daemon globally so systemd services pick it up natively
     nixpkgs.overlays = [
