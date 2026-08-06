@@ -15,6 +15,21 @@ selfLib.mkModule {
 
   inherit flatpakCfg;
 
+  nixosConfig =
+    { config, pkgs, ... }:
+    let
+      cfg = config.my.apps.editors.vscodium;
+      vscodiumPath =
+        if cfg.flatpak.enable then "/var/lib/flatpak/app/com.vscodium.codium" else pkgs.vscodium;
+    in
+    {
+      my.services.vmtouch.paths = [
+        vscodiumPath
+        "/home/${config.my.user.name}/.config/VSCodium"
+        "/home/${config.my.user.name}/.vscode-oss"
+      ];
+    };
+
   hmConfig = hmOpts: {
     home.packages = with pkgs; [
       black

@@ -16,6 +16,7 @@
   "workbench.editor.limit.value" = 10;
   "workbench.editor.limit.perEditorGroup" = true;
   "workbench.sideBar.location" = "right";
+  "workbench.secondarySideBar.defaultVisibility" = "hidden";
   "workbench.activityBar.location" = "hidden";
   "workbench.statusBar.visible" = false;
   "workbench.layoutControl.enabled" = false;
@@ -46,7 +47,7 @@
 
   # Updates
   "update.mode" = "none";
-  "extensions.autoUpdate" = false;
+  "extensions.autoUpdate" = "off";
   "vsicons.dontShowNewVersionMessage" = true;
 
   # Nix Language Server
