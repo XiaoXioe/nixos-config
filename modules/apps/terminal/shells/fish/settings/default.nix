@@ -10,6 +10,11 @@
 {
   programs.fish = {
     enable = true;
+    functions.__done_is_process_window_focused = {
+      description = "Override plugin 'done' agar selalu mengirim notifikasi walau terminal sedang fokus";
+      body = "return 1";
+    };
+
     interactiveShellInit = ''
       set -g fish_greeting
       fish_add_path $HOME/.local/bin
@@ -27,11 +32,6 @@
 
         # GPG SSH Agent Integration
         set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/gnupg/S.gpg-agent.ssh"
-
-        # Override plugin 'done' agar selalu mengirim notifikasi walau terminal sedang fokus
-        function __done_is_process_window_focused
-            return 1
-        end
 
         set -g fish_color_command cdd6f4
         set -g fish_color_param 89b4fa
