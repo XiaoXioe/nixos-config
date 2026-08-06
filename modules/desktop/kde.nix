@@ -49,9 +49,10 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    xdg.configFile."baloofilerc".text = ''
-      [Basic Settings]
-      Indexing-Enabled=false
-    '';
+    xdg.configFile."baloofilerc".text = hmOpts.lib.generators.toINI { } {
+      "Basic Settings" = {
+        "Indexing-Enabled" = false;
+      };
+    };
   };
 }
