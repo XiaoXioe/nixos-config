@@ -18,6 +18,7 @@ let
   agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
+  obsidian-second-brain-mcp-pkg = inputs.nix-mcp.packages.${system}.obsidian-second-brain-mcp;
 
 in
 selfLib.mkModule {
@@ -126,6 +127,13 @@ selfLib.mkModule {
           pkg = sequential-thinking-pkg;
           bin = "mcp-server-sequential-thinking";
         };
+        obsidian-second-brain-mcp = {
+          pkg = obsidian-second-brain-mcp-pkg;
+          bin = "obsidian-second-brain-mcp";
+          env = {
+            OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
+          };
+        };
       };
 
       opencodeExec = lib.mapAttrs (
@@ -176,6 +184,7 @@ selfLib.mkModule {
           agentmemory-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
+          obsidian-second-brain-mcp-pkg
         ];
 
         # KRUSIAL: home.activation Diperlukan untuk:

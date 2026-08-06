@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, osConfig, ... }:
 {
   programs.niri.package = pkgs.niri;
 
@@ -69,6 +69,11 @@
         command = [
           "killall"
           "ibus-daemon"
+        ];
+      }
+      {
+        command = [
+          osConfig.my.defaultTerminal
         ];
       }
     ];
