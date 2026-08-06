@@ -38,7 +38,7 @@
       };
 
       custom = {
-        flatpak-repo = true;
+        flatpak-repo = false;
         freqtrade = true;
         scrapers = true;
         tradingview = true;
@@ -176,7 +176,6 @@
         cachyos = false;
       };
       memory = true;
-      power = true;
     };
 
     desktop = {
