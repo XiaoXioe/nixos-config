@@ -34,7 +34,7 @@ in
   ];
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {

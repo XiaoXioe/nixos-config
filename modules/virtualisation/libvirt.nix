@@ -14,6 +14,8 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
+    boot.kernelModules = [ "kvm-intel" ];
+
     users.users.${config.my.user.name}.extraGroups = [ "libvirtd" ];
 
     programs.virt-manager.enable = true;
