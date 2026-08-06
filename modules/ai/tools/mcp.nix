@@ -9,16 +9,58 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
 
-  # ssh-mcp-pkg = inputs.nix-mcp.packages.${system}.ssh-mcp;
+  # Packages dari flake input nix-mcp
   codebase-memory-mcp-pkg = inputs.nix-mcp.packages.${system}.codebase-memory-mcp;
   google-colab-mcp-pkg = inputs.nix-mcp.packages.${system}.google-colab-mcp;
   telegram-mcp-pkg = inputs.nix-mcp.packages.${system}.telegram-mcp;
-  # github-mcp-server-pkg = inputs.nix-mcp.packages.${system}.github-mcp-server;
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
-  agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
   obsidian-second-brain-mcp-pkg = inputs.nix-mcp.packages.${system}.obsidian-second-brain-mcp;
+
+  homeDir = "/home/${config.my.user.name}";
+  tavilyKeyPath = config.sops.secrets."tavily-api-key".path;
+
+  # Konfigurasi eksplisit untuk OpenCode (karena bersifat lokal & mutable)
+  opencodeMcpConfig = {
+    nixos = {
+      type = "local";
+      command = [ "${mcp-nixos-pkg}/bin/mcp-nixos" ];
+    };
+    codebase-memory-mcp = {
+      type = "local";
+      command = [ "${codebase-memory-mcp-pkg}/bin/codebase-memory-mcp" ];
+      environment = {
+        CBM_CACHE_DIR = "${homeDir}/.agents/codebase_memory";
+      };
+    };
+    google-colab-mcp = {
+      type = "local";
+      command = [ "${google-colab-mcp-pkg}/bin/colab-mcp" ];
+    };
+    telegram-mcp = {
+      type = "local";
+      command = [ "${telegram-mcp-pkg}/bin/telegram-mcp" ];
+    };
+    tavily = {
+      type = "local";
+      command = [ "${tavily-mcp-pkg}/bin/tavily-mcp" ];
+      environment = {
+        TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
+      };
+    };
+    sequential-thinking = {
+      type = "local";
+      command = [ "${sequential-thinking-pkg}/bin/mcp-server-sequential-thinking" ];
+    };
+    obsidian-second-brain-mcp = {
+      type = "local";
+      command = [ "${obsidian-second-brain-mcp-pkg}/bin/obsidian-second-brain-mcp" ];
+      environment = {
+        OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
+      };
+    };
+  };
 
 in
 selfLib.mkModule {
@@ -29,7 +71,6 @@ selfLib.mkModule {
     persist = true;
     userDirectories = [
       ".agents"
-      ".agentmemory"
       ".telegram-mcp"
       {
         directory = ".mcp-colab";
@@ -39,6 +80,7 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
+    # 1. Dekripsi rahasia menggunakan sops-nix
     sops.secrets = {
       "tavily-api-key" = {
         sopsFile = ./secrets.yaml;
@@ -51,6 +93,66 @@ selfLib.mkModule {
         mode = "0400";
       };
     };
+
+    # 2. Buat direktori tujuan untuk mcp_config.json dengan kepemilikan yang tepat
+    systemd.tmpfiles.rules = [
+      "d ${homeDir}/.gemini 0755 ${config.my.user.name} users - -"
+      "d ${homeDir}/.gemini/config 0755 ${config.my.user.name} users - -"
+    ];
+
+    # 3. Buat berkas mcp_config.json secara deklaratif menggunakan sops.templates
+    sops.templates."mcp_config.json" = {
+      content = builtins.toJSON {
+        mcpServers = {
+          nixos = {
+            command = "${mcp-nixos-pkg}/bin/mcp-nixos";
+            args = [ ];
+          };
+          codebase-memory-mcp = {
+            command = "${codebase-memory-mcp-pkg}/bin/codebase-memory-mcp";
+            args = [ ];
+            env = {
+              CBM_CACHE_DIR = "${homeDir}/.agents/codebase_memory";
+            };
+          };
+          google-colab-mcp = {
+            command = "${google-colab-mcp-pkg}/bin/colab-mcp";
+            args = [ ];
+          };
+          telegram-mcp = {
+            command = "${telegram-mcp-pkg}/bin/telegram-mcp";
+            args = [ ];
+          };
+          tavily = {
+            command = "${tavily-mcp-pkg}/bin/tavily-mcp";
+            args = [ ];
+            env = {
+              TAVILY_API_KEY = config.sops.placeholder."tavily-api-key";
+            };
+          };
+          sequential-thinking = {
+            command = "${sequential-thinking-pkg}/bin/mcp-server-sequential-thinking";
+            args = [ ];
+          };
+          obsidian-second-brain-mcp = {
+            command = "${obsidian-second-brain-mcp-pkg}/bin/obsidian-second-brain-mcp";
+            args = [ ];
+            env = {
+              OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
+            };
+          };
+          cloudflare-api = {
+            url = "https://mcp.cloudflare.com/mcp";
+            headers = {
+              Authorization = "Bearer ${config.sops.placeholder.cloudflare-token}";
+            };
+          };
+        };
+      };
+      path = "${homeDir}/.gemini/config/mcp_config.json";
+      owner = config.my.user.name;
+      mode = "0600";
+    };
   };
 
   hmConfig =
@@ -58,167 +160,26 @@ selfLib.mkModule {
       config,
       pkgs,
       lib,
-      osConfig,
       ...
     }:
-    let
-      homeDir = config.home.homeDirectory;
-
-      # Path rahasia sops-nix
-      # githubTokenPath = osConfig.sops.secrets."github-access-token-1".path;
-      tavilyKeyPath = osConfig.sops.secrets."tavily-api-key".path;
-      cloudflareTokenPath = osConfig.sops.secrets."cloudflare-token".path;
-      # dockerTokenPath = osConfig.sops.secrets."docker-token".path;
-
-      execServers = {
-        # github = {
-        #   pkg = github-mcp-server-pkg;
-        #   bin = "github-mcp-server";
-        #   args = [ "stdio" ];
-        #   geminiWrap = "[ -s \"${githubTokenPath}\" ] && export GITHUB_PERSONAL_ACCESS_TOKEN=$(cat ${githubTokenPath});";
-        #   env = {
-        #     GITHUB_PERSONAL_ACCESS_TOKEN = "{file:${githubTokenPath}}";
-        #   };
-        # };
-        nixos = {
-          pkg = mcp-nixos-pkg;
-          bin = "mcp-nixos";
-        };
-        codebase-memory-mcp = {
-          pkg = codebase-memory-mcp-pkg;
-          bin = "codebase-memory-mcp";
-          env = {
-            CBM_CACHE_DIR = "${homeDir}/.agents/codebase_memory";
-          };
-        };
-        google-colab-mcp = {
-          pkg = google-colab-mcp-pkg;
-          bin = "colab-mcp";
-        };
-        telegram-mcp = {
-          pkg = telegram-mcp-pkg;
-          bin = "telegram-mcp";
-        };
-        tavily = {
-          pkg = tavily-mcp-pkg;
-          bin = "tavily-mcp";
-          geminiWrap = "[ -s \"${tavilyKeyPath}\" ] && export TAVILY_API_KEY=$(cat ${tavilyKeyPath});";
-          env = {
-            TAVILY_API_KEY = "{file:${tavilyKeyPath}}";
-          };
-        };
-        # server-memory = {
-        #   pkg = server-memory-pkg;
-        #   bin = "mcp-server-memory";
-        #   env = {
-        #     MEMORY_FILE_PATH = "${homeDir}/.gemini/config/memory.json";
-        #   };
-        # };
-        agentmemory = {
-          pkg = agentmemory-pkg;
-          bin = "agentmemory-mcp";
-          env = {
-            AGENTMEMORY_URL = "http://localhost:3111";
-            # Expose all 51 MCP tools (default "all", but be explicit)
-            AGENTMEMORY_TOOLS = "all";
-          };
-        };
-        sequential-thinking = {
-          pkg = sequential-thinking-pkg;
-          bin = "mcp-server-sequential-thinking";
-        };
-        obsidian-second-brain-mcp = {
-          pkg = obsidian-second-brain-mcp-pkg;
-          bin = "obsidian-second-brain-mcp";
-          env = {
-            OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
-          };
-        };
-      };
-
-      opencodeExec = lib.mapAttrs (
-        name: cfg:
-        let
-          base = {
-            type = "local";
-            command = [ "${cfg.pkg}/bin/${cfg.bin}" ] ++ (cfg.args or [ ]);
-          };
-        in
-        if cfg ? env then base // { environment = cfg.env; } else base
-      ) execServers;
-
-      cloudflareCfg = {
-        url = "https://mcp.cloudflare.com/mcp";
-      };
-
-      opencodeMcpConfig = opencodeExec;
-
-      geminiExec = lib.mapAttrs (
-        name: cfg:
-        if cfg ? geminiWrap then
-          {
-            command = "${pkgs.bash}/bin/bash";
-            args = [
-              "-c"
-              "${cfg.geminiWrap} exec ${cfg.pkg}/bin/${cfg.bin} ${lib.escapeShellArgs (cfg.args or [ ])}"
-            ];
-          }
-        else
-          {
-            command = "${cfg.pkg}/bin/${cfg.bin}";
-            args = cfg.args or [ ];
-            env = cfg.env or { };
-          }
-      ) execServers;
-    in
     {
       home = {
         packages = [
-          # ssh-mcp-pkg
           codebase-memory-mcp-pkg
           google-colab-mcp-pkg
           telegram-mcp-pkg
-          # github-mcp-server-pkg
           tavily-mcp-pkg
-          # server-memory-pkg
-          agentmemory-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
           obsidian-second-brain-mcp-pkg
         ];
 
-        # KRUSIAL: home.activation Diperlukan untuk:
-        # 1. Menggabungkan secret token Cloudflare dari /run/user/1000/secrets/ ke mcp_config.json saat runtime.
-        # 2. Menjaga opencode.json tetap MUTABLE agar OpenCode dapat mengedit tools/config tanpa error 'read-only filesystem'.
+        # activation murni hanya untuk mengelola opencode.json agar tetap MUTABLE
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          TOKEN_PATH="${cloudflareTokenPath}"
-          BASE_CONF="$HOME/.gemini/config/mcp_config_base.json"
-          FINAL_CONF="$HOME/.gemini/config/mcp_config.json"
           OPENCODE_CONF="$HOME/.config/opencode/opencode.json"
 
-          ${pkgs.coreutils}/bin/mkdir -p "$HOME/.gemini/config"
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/.config/opencode"
 
-          if [ -f "$BASE_CONF" ]; then
-            if [ -f "$TOKEN_PATH" ] && [ -s "$TOKEN_PATH" ]; then
-              CF_TOKEN=$(${pkgs.coreutils}/bin/cat "$TOKEN_PATH")
-              ${pkgs.jq}/bin/jq --arg token "Bearer $CF_TOKEN" \
-                '.mcpServers += {
-                  "cloudflare-api": {
-                    "url": "${cloudflareCfg.url}",
-                    "headers": {
-                      "Authorization": $token
-                    }
-                  }
-                }' "$BASE_CONF" > "$FINAL_CONF"
-              ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
-            else
-              ${pkgs.coreutils}/bin/cp "$BASE_CONF" "$FINAL_CONF"
-              ${pkgs.coreutils}/bin/chmod 600 "$FINAL_CONF"
-            fi
-          fi
-
-          # Menjaga opencode.json sebagai file yang dapat diubah (mutable) oleh CLI OpenCode
           MCP_JSON='${builtins.toJSON opencodeMcpConfig}'
 
           if [ -L "$OPENCODE_CONF" ]; then
@@ -229,40 +190,11 @@ selfLib.mkModule {
             ${pkgs.jq}/bin/jq -n --argjson mcp "$MCP_JSON" \
               '{ "$schema": "https://opencode.ai/config.json", "mcp": $mcp }' > "$OPENCODE_CONF"
           else
-            ${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF" > "$OPENCODE_CONF.tmp" && ${pkgs.coreutils}/bin/mv -f "$OPENCODE_CONF.tmp" "$OPENCODE_CONF"
+            ${pkgs.jq}/bin/jq --argjson mcp "$MCP_JSON" '.mcp = $mcp' "$OPENCODE_CONF" > "$OPENCODE_CONF.tmp" && \
+            ${pkgs.coreutils}/bin/mv -f "$OPENCODE_CONF.tmp" "$OPENCODE_CONF"
           fi
           ${pkgs.coreutils}/bin/chmod 600 "$OPENCODE_CONF"
         '';
-      };
-
-      home.file.".gemini/config/mcp_config_base.json".text = builtins.toJSON {
-        mcpServers = geminiExec;
-      };
-
-      systemd.user.services.agentmemory = {
-        Unit = {
-          Description = "AgentMemory Daemon Server";
-          After = [ "network.target" ];
-        };
-        Service = {
-          WorkingDirectory = "${homeDir}/.agentmemory";
-          ExecStart = "${agentmemory-pkg}/bin/agentmemory";
-          Restart = "on-failure";
-          RestartSec = "5s";
-          Environment = [
-            # Enable knowledge graph extraction (powers graph-traversal recall)
-            "GRAPH_EXTRACTION_ENABLED=true"
-            # Enable 4-tier consolidation pipeline
-            "CONSOLIDATION_ENABLED=true"
-            # Expose all 51 MCP tools to the daemon
-            "AGENTMEMORY_TOOLS=all"
-            # Enable memory slots (pinned scratchpad across sessions)
-            "AGENTMEMORY_SLOTS=true"
-          ];
-        };
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
       };
     };
 }
