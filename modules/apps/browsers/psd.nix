@@ -1,7 +1,6 @@
 {
   pkgs,
   config,
-  lib,
   selfLib,
   ...
 }:
@@ -83,6 +82,10 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     services.psd = {
       enable = true;
+    };
+
+    systemd.user.services.psd = {
+      serviceConfig.TimeoutStopSec = "5m";
     };
 
     xdg.configFile."psd/psd.conf".text = ''
