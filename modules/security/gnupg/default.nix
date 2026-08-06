@@ -84,6 +84,8 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     services.gpg-agent = {
       enable = true;
+      enableSshSupport = true;
+      sshKeys = [ "05C43456D409B53584AE76A4EA71B1A8128E5E37" ];
       extraConfig = "allow-preset-passphrase";
     };
 
@@ -96,19 +98,12 @@ selfLib.mkModule {
       }) gpgKeysList;
     };
 
-    home.file =
-      lib.listToAttrs (
-        map (key: {
-          name = ".gnupg/public-key-${key.num}.asc";
-          value.source = key.pubFile;
-        }) gpgKeysList
-      )
-      // {
-        ".gnupg/sshcontrol".text = ''
-          # Managed by Home Manager
-          05C43456D409B53584AE76A4EA71B1A8128E5E37
-        '';
-      };
+    home.file = lib.listToAttrs (
+      map (key: {
+        name = ".gnupg/public-key-${key.num}.asc";
+        value.source = key.pubFile;
+      }) gpgKeysList
+    );
 
     systemd.user.services.gpg-preset-passphrase = {
       Unit = {
