@@ -52,6 +52,15 @@
     spawn-at-startup = [
       {
         command = [
+          "dbus-update-activation-environment"
+          "--systemd"
+          "WAYLAND_DISPLAY"
+          "DISPLAY"
+          "XDG_CURRENT_DESKTOP"
+        ];
+      }
+      {
+        command = [
           "dms"
           "run"
         ];
