@@ -33,21 +33,48 @@ selfLib.mkModule {
   nixosConfig = {
     services.accounts-daemon.enable = true;
 
-    systemd.tmpfiles.rules = [
-      "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
-      "d /mnt/data_btrfs/PersistentData 0755 ${config.my.user.name} users - -"
-      # Konfigurasi AccountsService agar SDDM dan DMS bisa membaca foto profil
-      "d /var/lib/AccountsService 0755 root root - -"
-      "d /var/lib/AccountsService/icons 0755 root root - -"
-      "d /var/lib/AccountsService/users 0755 root root - -"
-      "z /var/lib/AccountsService 0755 root root - -"
-      "z /var/lib/AccountsService/icons 0755 root root - -"
-      "z /var/lib/AccountsService/users 0755 root root - -"
-      "C+ /var/lib/AccountsService/icons/${config.my.user.name} 0644 root root - ${
-        config.sops.secrets."foto-profile".path
-      }"
-      "f+ /var/lib/AccountsService/users/${config.my.user.name} 0644 root root - [User]\\nIcon=/var/lib/AccountsService/icons/${config.my.user.name}\\n"
-    ];
+    systemd.tmpfiles.settings."10-accounts-service" = {
+      "/mnt/data_btrfs/containers".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "/mnt/data_btrfs/PersistentData".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "/var/lib/AccountsService".d = {
+        mode = "0755";
+        user = "root";
+        group = "root";
+      };
+      "/var/lib/AccountsService/icons".d = {
+        mode = "0755";
+        user = "root";
+        group = "root";
+      };
+      "/var/lib/AccountsService/users".d = {
+        mode = "0755";
+        user = "root";
+        group = "root";
+      };
+      "/var/lib/AccountsService/icons/${config.my.user.name}"."C+" = {
+        argument = config.sops.secrets."foto-profile".path;
+        mode = "0644";
+        user = "root";
+        group = "root";
+      };
+      "/var/lib/AccountsService/users/${config.my.user.name}"."f+" = {
+        argument = ''
+          [User]
+          Icon=/var/lib/AccountsService/icons/${config.my.user.name}
+        '';
+        mode = "0644";
+        user = "root";
+        group = "root";
+      };
+    };
 
     sops.secrets."foto-profile" = {
       format = "binary";
