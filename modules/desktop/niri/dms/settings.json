@@ -532,7 +532,7 @@
   "lockScreenSecurityKeyShortcutEnabled": false,
   "lockPamInlineFprint": false,
   "lockPamInlineU2f": false,
-  "lockPamExternallyManaged": false,
+  "lockPamExternallyManaged": true,
   "lockU2fPamPath": "",
   "lockScreenInactiveColor": "#000000",
   "lockScreenNotificationMode": 0,
