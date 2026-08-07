@@ -64,7 +64,6 @@
 
     nix-mcp = {
       url = "github:XiaoXioe/nix-mcp";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     mcp-nixos = {

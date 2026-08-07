@@ -520,11 +520,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786004901,
-        "narHash": "sha256-eIGkcx8W2I07pwvTJuX8Bq0C3O8v0f89Q4EzRDeaRTM=",
+        "lastModified": 1786074940,
+        "narHash": "sha256-AIJHBLEB6rDvAMM41yLlhZd1Pob1WeN0ZjjVf2/FPls=",
         "owner": "XiaoXioe",
         "repo": "nix-mcp",
-        "rev": "eba700c47db3033513af723ff866614aeccdd2ff",
+        "rev": "39bc58c1d1794e91585cd57631a8fc1cd81bf39f",
         "type": "github"
       },
       "original": {
@@ -814,8 +814,7 @@
         "repo": "zen-browser-flake",
         "type": "github"
       }
-    },
-    "nix-cachyos-kernel/nixpkgs": null
+    }
   },
   "root": "root",
   "version": 7
