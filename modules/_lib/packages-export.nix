@@ -9,17 +9,23 @@ let
   userConfig = nixosConfigs.${hostName}.config.home-manager.users.${adminUser};
   pkgs = nixosConfigs.${hostName}.pkgs;
   config = nixosConfigs.${hostName}.config;
+  system = pkgs.stdenv.hostPlatform.system;
 in
+# ==========================================================================
+# SINGLE SOURCE OF TRUTH untuk CI build targets.
+# Tambah/hapus atribut di sini → GitHub Actions & Kaggle builder otomatis
+# mengikuti via: nix eval .#packages.x86_64-linux --apply builtins.attrNames
+# ==========================================================================
 {
   # Menarik dari NixOS — sengaja TANPA fallback: jika opsi hilang karena
   # refactor, eval harus gagal keras alih-alih diam-diam meng-cache pkgs.hello.
-  llama = config.my.ai.runtimes.llama.package;
+  llama-cpp = config.my.ai.runtimes.llama.package;
 
   # Torlink package
-  torlink = inputs.torlink.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  torlink = inputs.torlink.packages.${system}.default;
 
   # DankMaterialShell package (agar di-cache oleh CI)
-  dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  dms = inputs.dms.packages.${system}.default;
 
 }
 # Caelestia hanya diekspor bila modulnya benar-benar aktif (butuh input

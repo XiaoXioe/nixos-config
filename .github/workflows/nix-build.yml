@@ -36,11 +36,17 @@ jobs:
 
       - name: Build cached packages
         run: |
-          # caelestia sengaja tidak dibangun: hanya diekspor bila modul
-          # hyprland/caelestia aktif (butuh input caelestia-shell).
-          nix build \
-            ".#llama" \
-            ".#torlink" \
-            ".#dms" \
+          # Auto-discover packages dari packages-export.nix (single source of truth).
+          # Tambah/hapus package di sana → CI otomatis mengikuti.
+          PKGS=$(nix eval .#packages.x86_64-linux \
+            --apply builtins.attrNames --json | \
+            jq -r 'map(".#" + .) | join(" ")')
+          if [ -z "$PKGS" ]; then
+            echo "ERROR: nix eval returned empty package list" >&2
+            exit 1
+          fi
+          # shellcheck disable=SC2086
+          nix build $PKGS \
             ".#devShells.x86_64-linux.default" \
+            ".#checks.x86_64-linux.pre-commit" \
             -L
