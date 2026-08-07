@@ -3,7 +3,6 @@
   pkgs,
   lib,
   selfLib,
-  inputs,
   ...
 }:
 selfLib.mkModule {
@@ -13,8 +12,16 @@ selfLib.mkModule {
       type = lib.types.package;
       description = "Llama.cpp yang dioptimalkan untuk arsitektur Ivy Bridge";
       default = (
-        inputs.llama-cpp.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (
+        pkgs.llama-cpp.overrideAttrs (
           _finalAttrs: previousAttrs: {
+            version = "10299";
+            src = pkgs.fetchFromGitHub {
+              owner = "ggml-org";
+              repo = "llama.cpp";
+              rev = "refs/tags/b10299";
+              sha256 = "1dkvr0y92470rzi3bnw83nszqwxipq0iwyig72pcxk60n5dh0z4g";
+            };
+            npmDepsHash = "sha256-FHvd2bMvBc9EXrJEzu8EN78oUVSLcOKYCc0232V+L4A=";
             cmakeFlags = (previousAttrs.cmakeFlags or [ ]) ++ [
               "-DGGML_NATIVE=OFF"
               "-DLLAMA_NATIVE=OFF"
