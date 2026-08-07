@@ -92,7 +92,6 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 This configuration provides a custom suite of terminal tools to manage connections, updates, and system debugging:
 
 *   **`vpn-on` / `vpn-switch` / `vpn-off`** — Decrypts ProtonVPN configs, strips default DNS blocks, injects custom NextDNS resolvers, and boots `wireproxy` on port 1080.
-    *   *Paranoid Auditing*: Connections run automatic IP leak checks and DNS ASN audits. If the script detects the physical ISP's ASN, it terminates the VPN process immediately to prevent data leakage.
 *   **`nfui` (Nix Flake Update Interactive)** — Interactive CLI wrapping `nix flake update`. Provides an `fzf` multi-select menu allowing users to pin-point which inputs to update, automatically reverting unselected input hashes using `jq` edits against a lock backup.
 *   **`ollama-to-llama`** — Translates local Ollama models and their Modelfile parameters (system prompts, context, temperature, penalties) into matching `llama-cli` flags, launching them directly using the local GGUF model binaries.
 *   **`show-zombie-parents`** — Queries and prints PPIDs and process details of parent processes currently holding defunct/zombie child states.
