@@ -93,6 +93,12 @@ selfLib.mkModule {
         ];
       };
 
+      # Catatan: networking.firewall (backend nftables) membuat tabelnya sendiri
+      # bernama "nixos-fw" (family inet), terpisah dari tabel "filter" di bawah ini.
+      # Tidak ada konflik nama tabel/chain — keduanya dimuat berdampingan dalam
+      # satu file ruleset nft. Firewall module NixOS tidak punya chain "output"
+      # sama sekali secara default, jadi tabel kustom ini adalah cara yang benar
+      # untuk menambah aturan output-direction (killswitch VPN + redirect Zapret).
       nftables = {
         enable = true;
         ruleset = ''
