@@ -3,6 +3,7 @@
 {
   lib,
   pkgs,
+  system,
   baseArgs,
   commonModules,
   ...
@@ -13,7 +14,7 @@ let
   mkNixosConfiguration =
     hostName:
     lib.nixosSystem {
-      system = "x86_64-linux";
+      inherit system;
       specialArgs = baseArgs // {
         inherit hostName;
       };

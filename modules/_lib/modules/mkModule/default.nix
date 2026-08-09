@@ -15,6 +15,11 @@ in
   flatpakCfg ? { },
   preservation ? { },
 }:
+# Validasi nama modul: harus dimulai huruf, hanya boleh alphanum/dots/dashes/underscores.
+# Mencegah typo diam-diam (spasi, slash, karakter aneh) yang menghasilkan option path orphan.
+assert
+  builtins.match "[a-zA-Z][a-zA-Z0-9._-]*" name != null
+  || builtins.throw "mkModule: invalid name '${name}'. Must match [a-zA-Z][a-zA-Z0-9._-]*.";
 {
   imports = imports ++ [
     (
