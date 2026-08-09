@@ -12,7 +12,7 @@ selfLib.mkModule {
   hmConfig = hmOpts: {
     programs.zellij = {
       enable = true;
-      package = inputs.nixpkgs-zellij-043.legacyPackages.${pkgs.stdenv.hostPlatform.system}.zellij;
+      package = inputs.nixpkgs-zellij-043.legacyPackages.${pkgs.stdenv.hostPlatform.system}.zellij; # pin ke 0.43.1 — 0.44.x menyebabkan CPU spike konstan
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;
