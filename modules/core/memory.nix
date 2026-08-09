@@ -4,6 +4,14 @@
   selfLib,
   ...
 }:
+let
+  # Ambil UID dan GID user secara dinamis dari konfigurasi NixOS.
+  # Ini mencegah hardcoding uid=1000 yang fragile.
+  userCfg = config.my.user;
+  userUid = toString config.users.users.${userCfg.name}.uid;
+  # GID grup 'users' (100) diambil dari lookup, dengan fallback ke 100
+  userGid = toString (config.users.groups.users.gid or 100);
+in
 selfLib.mkModule {
   name = "core.memory";
   nixosConfig = {
@@ -36,8 +44,8 @@ selfLib.mkModule {
           "nosuid"
           "size=2G"
           "mode=0700"
-          "uid=1000"
-          "gid=100"
+          "uid=${userUid}"
+          "gid=${userGid}"
         ];
       };
       "/root/.cache/nix" = {
