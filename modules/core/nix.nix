@@ -11,14 +11,10 @@ selfLib.mkModule {
   preservation = {
     persist = true;
     directories = [ "/var/lib/nixos" ];
-  };
-
-  hmConfig = hmOpts: {
-    home.file = selfLib.mkHmSymlinks hmOpts.config {
-      ".cache/nix/gitv3" = "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/gitv3";
-      ".cache/nix/tarball-cache-v2" =
-        "/persist/home/${hmOpts.osConfig.my.user.name}/.cache/nix/tarball-cache-v2";
-    };
+    userDirectories = [
+      ".cache/nix/gitv3"
+      ".cache/nix/tarball-cache-v2"
+    ];
   };
 
   nixosConfig = {
@@ -78,10 +74,6 @@ selfLib.mkModule {
           "flakes"
           "ca-derivations"
         ];
-      };
-
-      gc = {
-        automatic = false;
       };
 
       extraOptions = ''
