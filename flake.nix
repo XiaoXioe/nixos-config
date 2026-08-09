@@ -64,6 +64,7 @@
 
     nix-mcp = {
       url = "github:XiaoXioe/nix-mcp";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     mcp-nixos = {
@@ -87,6 +88,8 @@
     };
 
     nixpkgs-zellij-043 = {
+      # Pin ke commit nixpkgs yang membawa zellij 0.43.1.
+      # Versi 0.44.x (nixpkgs 26.05) menyebabkan CPU spike konstan — jangan update.
       url = "github:NixOS/nixpkgs/9199b0bc1b2c11f5335cb5637b3a5ea20a27408b";
     };
   };
@@ -155,6 +158,7 @@
           pkgs
           baseArgs
           commonModules
+          system
           ;
       };
 
