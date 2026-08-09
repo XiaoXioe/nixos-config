@@ -11,7 +11,7 @@
 
   # Layout
   "workbench.startupEditor" = "none";
-  "workbench.editor.showTabs" = "none";
+  "workbench.editor.showTabs" = "multiple";
   "workbench.editor.limit.enabled" = true;
   "workbench.editor.limit.value" = 10;
   "workbench.editor.limit.perEditorGroup" = true;
@@ -109,10 +109,10 @@
     "editor.defaultFormatter" = "esbenp.prettier-vscode";
   };
   "[json]" = {
-    "editor.defaultFormatter" = "esbenp.prettier-vscode";
+    "editor.defaultFormatter" = "vscode.json-language-features";
   };
   "[jsonc]" = {
-    "editor.defaultFormatter" = "esbenp.prettier-vscode";
+    "editor.defaultFormatter" = "vscode.json-language-features";
   };
 
   # MQL5

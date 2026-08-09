@@ -3,6 +3,7 @@
 {
   "com.vscodium.codium" = {
     enable = true;
+    flatpak = false;
     overrides = {
       Context = {
         sockets = [
