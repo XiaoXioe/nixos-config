@@ -9,6 +9,18 @@
 let
   resticRepo = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
   mountPoint = "/home/${config.my.user.name}/ResticBackup";
+
+  resticFlockWrapper =
+    selfLib.mkApp pkgs "restic"
+      ''
+        exec 9>/run/restic-backup.lock
+        flock -x 9
+        exec restic "$@"
+      ''
+      [
+        pkgs.util-linux
+        pkgs.restic
+      ];
 in
 
 selfLib.mkModule {
@@ -41,6 +53,10 @@ selfLib.mkModule {
             repository = resticRepo;
             rcloneConfigFile = config.sops.secrets."rclone.conf".path;
             passwordFile = config.sops.secrets."restic-password".path;
+            package = resticFlockWrapper;
+            extraOptions = [
+              "rclone.timeout=5m"
+            ];
 
             paths = paths;
             exclude = commonExcludes;
@@ -150,7 +166,7 @@ selfLib.mkModule {
         sops.secrets."restic-password" = {
           sopsFile = ./secrets.yaml;
           owner = config.my.user.name;
-          mode = "0444";
+          mode = "0400";
         };
 
         environment.systemPackages = [
