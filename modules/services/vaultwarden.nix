@@ -43,8 +43,8 @@ selfLib.mkModule {
 
     allowSignups = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Apakah pendaftaran akun baru diizinkan";
+      default = false;
+      description = "Apakah pendaftaran akun baru diizinkan. Default false untuk keamanan personal instance.";
     };
 
     environmentFile = lib.mkOption {
