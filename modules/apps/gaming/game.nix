@@ -1,126 +1,12 @@
 {
   pkgs,
   selfLib,
-  lib,
-  config,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.gaming.game";
-  description = "User game settings";
-
-  preservation = {
-    userDirectories = [ ".steam" ];
-  };
-
-  nixosConfig = {
-    hardware.steam-hardware.enable = true;
-
-    programs.steam = {
-      enable = true;
-      remotePlay.openFirewall = true;
-      dedicatedServer.openFirewall = true;
-    };
-  };
-
-  flatpakCfg = {
-    "org.vinegarhq.Sober" = {
-      enable = true;
-      binName = "sober";
-    };
-
-    "org.libretro.RetroArch" = {
-      enable = true;
-      overrides = {
-        Context = {
-          filesystems = [
-            "/mnt/data"
-          ];
-        };
-      };
-      symlinks = [
-        {
-          host = ".config/retroarch";
-          guest = "config/retroarch";
-        }
-      ];
-      nativePkgs = pkgs.retroarch.withCores (
-        cores: with cores; [
-          nestopia
-          snes9x
-          genesis-plus-gx
-          mgba
-          mupen64plus
-          swanstation
-          ppsspp
-          pcsx2
-        ]
-      );
-      hmProgram = {
-        name = "retroarch";
-        extraConfig = {
-          package = lib.mkIf config.my.apps.gaming.game.flatpaks."org.libretro.RetroArch".flatpak.enable (
-            lib.mkForce (
-              (pkgs.runCommand "empty-retroarch" { } "mkdir -p $out")
-              // {
-                wrapper = _: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
-              }
-            )
-          );
-          settings = {
-            "video_driver" = "gl";
-            "audio_driver" = "pulse";
-            "input_joypad_driver" = "udev";
-            "fps_show" = "true";
-            "menu_swap_ok_cancel_buttons" = "true";
-            "input_menu_toggle_gamepad_combo" = "4";
-            "video_threaded" = "true";
-            "quit_press_twice" = "true";
-            "savestate_auto_save" = "true";
-            "savestate_auto_load" = "true";
-            "notification_show_autoconfig" = "false";
-          };
-        };
-      };
-    };
-
-    "org.ppsspp.PPSSPP" = {
-      enable = true;
-      overrides = {
-        Context = {
-          filesystems = [
-            "/mnt/data"
-          ];
-        };
-      };
-      symlinks = [
-        {
-          host = ".config/ppsspp";
-          guest = "config/ppsspp";
-        }
-      ];
-      nativePkgs = pkgs.ppsspp;
-    };
-
-    "net.pcsx2.PCSX2" = {
-      enable = true;
-      overrides = {
-        Context = {
-          filesystems = [
-            "/mnt/data"
-          ];
-        };
-      };
-      symlinks = [
-        {
-          host = ".config/PCSX2";
-          guest = "config/PCSX2";
-        }
-      ];
-      nativePkgs = pkgs.pcsx2;
-    };
-  };
+  description = "User game settings (controllers and system integrations)";
 
   hmConfig = hmOpts: {
     home.packages = with pkgs; [
