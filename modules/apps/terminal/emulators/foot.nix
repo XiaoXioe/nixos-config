@@ -17,11 +17,11 @@ selfLib.mkModule {
           term = "xterm-256color";
           font = "FiraCode Nerd Font:size=8:style=Retina";
           dpi-aware = "yes";
-          pad = "6x6";
+          # pad = "6x6";
           selection-target = "both";
         };
         scrollback = {
-          lines = 10000;
+          lines = 1000;
           multiplier = 3;
           indicator-position = "relative";
           indicator-format = "line";
