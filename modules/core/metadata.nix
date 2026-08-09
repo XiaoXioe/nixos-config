@@ -52,12 +52,6 @@
 
   config = {
     networking.hostName = config.my.hostname;
-    environment.variables = {
-      TERMINAL = config.my.defaultApps.terminal;
-      BROWSER = config.my.defaultApps.browser;
-      EDITOR = "${config.my.defaultApps.editor} -w";
-      VISUAL = config.my.defaultApps.editor;
-    };
     home-manager.users.${config.my.user.name}.home.sessionVariables = {
       TERMINAL = config.my.defaultApps.terminal;
       BROWSER = config.my.defaultApps.browser;
