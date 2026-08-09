@@ -173,10 +173,20 @@ selfLib.mkModule {
         active_name=$(basename "$secret_conf" .conf)
         echo "$active_name" > ~/.cache/vpn/active_name
 
-        # Beri waktu sebentar agar wireproxy selesai membaca berkas konfigurasi sebelum dihapus
-        sleep 0.5
+        # 5. Tunggu hingga wireproxy selesai membaca file konfigurasi dari RAM.
+        # Polling /proc/$PID/fd lebih reliable dibanding sleep tetap:
+        # cek apakah fd ke temp_conf sudah tidak ada (file telah di-close setelah dibaca).
+        WAIT_ITER=0
+        while [ $WAIT_ITER -lt 60 ]; do
+            # Jika proses sudah tidak megang fd ke temp_conf, berarti sudah selesai baca
+            if ! ${pkgs.coreutils}/bin/ls -la /proc/"$WIREPROXY_PID"/fd 2>/dev/null | ${pkgs.gnugrep}/bin/grep -qF "$temp_conf"; then
+                break
+            fi
+            sleep 0.05
+            WAIT_ITER=$((WAIT_ITER + 1))
+        done
 
-        # 5. Segera hapus file konfigurasi dari RAM setelah dibaca sistem
+        # Hapus file konfigurasi dari RAM
         rm -f "$temp_conf"
 
         # Verifikasi apakah proses wireproxy benar-benar berjalan
