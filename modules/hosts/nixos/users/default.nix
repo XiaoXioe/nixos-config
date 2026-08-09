@@ -84,11 +84,13 @@
       editors = {
         neovim = false;
         vscodium = true;
-        zeditor = false;
+        zeditor = true;
       };
 
       gaming = {
         game = true;
+        steam = true;
+        emulators = true;
         wine = true;
       };
 
@@ -173,8 +175,8 @@
       graphics = true;
       bootloader = true;
       kernel = {
-        stock = true;
-        cachyos = false;
+        stock = false;
+        cachyos = true;
       };
       memory = true;
     };
@@ -228,7 +230,7 @@
       boot-speedup = true;
       vaultwarden = true;
       flatpak = true;
-      vmtouch = true;
+      vmtouch = false;
     };
 
     security = {
