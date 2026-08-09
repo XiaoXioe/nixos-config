@@ -24,7 +24,7 @@
     extraGroups = userData.extraGroups;
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = userData.openssh.authorizedKeys.keys;
-    homeMode = "0711";
+    homeMode = "0700";
   };
 
   my = lib.recursiveUpdate (selfLib.mapFeatures userFeatures) {
