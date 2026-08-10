@@ -84,7 +84,7 @@
       editors = {
         neovim = false;
         vscodium = true;
-        zeditor = true;
+        zeditor = false;
       };
 
       gaming = {
@@ -177,6 +177,7 @@
       kernel = {
         stock = false;
         cachyos = true;
+        settings = true;
       };
       memory = true;
     };
