@@ -34,12 +34,12 @@ selfLib.mkModule {
     services.accounts-daemon.enable = true;
 
     systemd.tmpfiles.settings."10-accounts-service" = {
-      "/mnt/data_btrfs/containers".d = {
+      "${config.my.dataBtrfsPath}/containers".d = {
         mode = "0755";
         user = config.my.user.name;
         group = "users";
       };
-      "/mnt/data_btrfs/PersistentData".d = {
+      "${config.my.dataBtrfsPath}/PersistentData".d = {
         mode = "0755";
         user = config.my.user.name;
         group = "users";
@@ -85,12 +85,12 @@ selfLib.mkModule {
 
   hmConfig = hmOpts: {
     home.file = selfLib.mkHmSymlinks hmOpts.config {
-      "Documents" = "/mnt/data/Documents";
-      "Downloads" = "/mnt/data/Downloads";
-      "Pictures" = "/mnt/data/Pictures";
-      "Videos" = "/mnt/data/Videos";
-      "Music" = "/mnt/data/Music";
-      "PersistentData" = "/mnt/data_btrfs/PersistentData";
+      "Documents" = "${hmOpts.osConfig.my.dataPath}/Documents";
+      "Downloads" = "${hmOpts.osConfig.my.dataPath}/Downloads";
+      "Pictures" = "${hmOpts.osConfig.my.dataPath}/Pictures";
+      "Videos" = "${hmOpts.osConfig.my.dataPath}/Videos";
+      "Music" = "${hmOpts.osConfig.my.dataPath}/Music";
+      "PersistentData" = "${hmOpts.osConfig.my.dataBtrfsPath}/PersistentData";
       ".face.icon" = hmOpts.osConfig.sops.secrets."foto-profile".path;
       ".face" = hmOpts.osConfig.sops.secrets."foto-profile".path;
     };

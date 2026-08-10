@@ -60,7 +60,7 @@ selfLib.mkModule {
         }
       '';
     };
-    systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/data" ];
+    systemd.user.services.mpd.Unit.RequiresMountsFor = [ hmOpts.osConfig.my.dataPath ];
     programs.rmpc = {
       enable = true;
     };

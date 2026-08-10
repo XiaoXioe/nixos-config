@@ -39,8 +39,10 @@ in
 
   # ── Network / WARP helpers ────────────────────────────────────────────────────
   # warpProxyEnv: static socks5h://127.0.0.1:40000 env-var set (no pkgs needed)
-  warpProxyEnv = (import ./network { pkgs = null; }).warpProxyEnv;
-  mkWarpWaitScript = pkgs: name: (import ./network { inherit pkgs; }).mkWarpWaitScript name;
+  warpProxyEnv = port: (import ./network { pkgs = null; }).warpProxyEnv port;
+  mkWarpWaitScript =
+    pkgs: port: name:
+    (import ./network { inherit pkgs; }).mkWarpWaitScript port name;
 
   # ── Browser addons ────────────────────────────────────────────────────────────
   # Call with { inherit pkgs inputs; } — see lib/browser-addons/default.nix

@@ -32,7 +32,7 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
-            "/mnt/data"
+            "${config.my.dataPath}"
           ];
         };
       };
@@ -79,7 +79,7 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
-            "/mnt/data"
+            "${config.my.dataPath}"
           ];
         };
       };
@@ -101,7 +101,7 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
-            "/mnt/data"
+            "${config.my.dataPath}"
           ];
         };
       };
@@ -119,7 +119,7 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
-            "/mnt/data"
+            "${config.my.dataPath}"
           ];
         };
       };
@@ -155,7 +155,7 @@ selfLib.mkModule {
         };
         General = {
           ISOPaths = 1;
-          ISOPath0 = "/mnt/data/Games-retro/gamecube";
+          ISOPath0 = "${hmOpts.osConfig.my.dataPath}/Games-retro/gamecube";
           RecursiveISOPaths = "True";
         };
         Analytics = {

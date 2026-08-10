@@ -60,7 +60,9 @@ selfLib.mkModule {
               export PATH="/run/wrappers/bin:$PATH"
               unset NOTIFY_SOCKET
 
-              ${selfLib.mkWarpWaitScript pkgs "rclone-wait-proxy"}
+              ${selfLib.mkWarpWaitScript pkgs hmOpts.osConfig.my.services.networking.cloudflare-warp.port
+                "rclone-wait-proxy"
+              }
 
               exec rclone mount "${rcloneRemote}:" "${mountPoint}" \
                 --config "$XDG_RUNTIME_DIR/rclone.conf" \
@@ -90,7 +92,9 @@ selfLib.mkModule {
           ExecStop = "/run/wrappers/bin/fusermount3 -u ${mountPoint}";
           Restart = "on-failure";
           RestartSec = "10s";
-          Environment = lib.mapAttrsToList (n: v: "${n}=${v}") selfLib.warpProxyEnv;
+          Environment = lib.mapAttrsToList (n: v: "${n}=${v}") (
+            selfLib.warpProxyEnv hmOpts.osConfig.my.services.networking.cloudflare-warp.port
+          );
         };
         Install = {
           WantedBy = [ "default.target" ];

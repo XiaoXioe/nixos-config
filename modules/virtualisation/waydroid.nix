@@ -14,7 +14,9 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    my.services.storage.btrfs-nocow-migration.nocowDirectories = [ "/mnt/data_btrfs/waydroid_data" ];
+    my.services.storage.btrfs-nocow-migration.nocowDirectories = [
+      "${config.my.dataBtrfsPath}/waydroid_data"
+    ];
 
     virtualisation.waydroid.package = pkgs.waydroid-nftables;
 
@@ -31,10 +33,10 @@ selfLib.mkModule {
       [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
         "d /persist/home/${userName}/.local/share/waydroid/data/media/0/Download 0755 ${userName} users -"
-        "d /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
-        "z /mnt/data_btrfs/waydroid_data 0755 ${userName} users -"
-        "d /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
-        "z /mnt/data_btrfs/waydroid_data/${userName} 0755 ${userName} users -"
+        "d ${config.my.dataBtrfsPath}/waydroid_data 0755 ${userName} users -"
+        "z ${config.my.dataBtrfsPath}/waydroid_data 0755 ${userName} users -"
+        "d ${config.my.dataBtrfsPath}/waydroid_data/${userName} 0755 ${userName} users -"
+        "z ${config.my.dataBtrfsPath}/waydroid_data/${userName} 0755 ${userName} users -"
       ];
 
     virtualisation.waydroid.enable = true;
@@ -62,7 +64,7 @@ selfLib.mkModule {
             ];
           };
           "/persist/home/${userName}/.local/share/waydroid" = {
-            device = "/mnt/data_btrfs/waydroid_data/${userName}";
+            device = "${config.my.dataBtrfsPath}/waydroid_data/${userName}";
             fsType = "none";
             options = [
               "bind"
@@ -72,7 +74,7 @@ selfLib.mkModule {
         }
         {
           "/var/lib/waydroid/images" = {
-            device = "/mnt/data_btrfs/waydroid_images/halcyon-os";
+            device = "${config.my.dataBtrfsPath}/waydroid_images/halcyon-os";
             fsType = "none";
             options = [
               "bind"

@@ -21,6 +21,18 @@
     type = lib.types.nonEmptyStr;
   };
 
+  options.my.dataPath = lib.mkOption {
+    type = lib.types.nonEmptyStr;
+    default = "/mnt/data";
+    description = "Global path for NTFS storage mount";
+  };
+
+  options.my.dataBtrfsPath = lib.mkOption {
+    type = lib.types.nonEmptyStr;
+    default = "/mnt/data_btrfs";
+    description = "Global path for BTRFS storage mount";
+  };
+
   options.my.defaultApps = {
     terminal = lib.mkOption {
       type = lib.types.str;

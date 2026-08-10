@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   selfLib,
   ...
@@ -15,7 +16,7 @@ selfLib.mkModule {
 
     programs.freqtrade-setup = {
       enable = true;
-      configDir = "/mnt/data_btrfs/freqtrade-dev";
+      configDir = "${config.my.dataBtrfsPath}/freqtrade-dev";
       branch = "stable";
       extraPip = [
         "scipy"
@@ -32,7 +33,7 @@ selfLib.mkModule {
         bots = {
           bot-xstar = {
             enable = true;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/coba";
             strategyRun = "xstar";
             configFile = "config.json";
             memoryLimit = "2G";
@@ -41,7 +42,7 @@ selfLib.mkModule {
           };
           bot-xstar-v1 = {
             enable = true;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/coba";
             strategyRun = "xstar_V1";
             configFile = "config_v1.json";
             memoryLimit = "2G";
@@ -50,7 +51,7 @@ selfLib.mkModule {
           };
           bot-coba-freqai = {
             enable = true;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/coba";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/coba";
             strategyRun = "coba_freqai";
             configFile = "config-freqai.json";
             memoryLimit = "2G";
@@ -59,7 +60,7 @@ selfLib.mkModule {
           };
           bot-chronos = {
             enable = true;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/timesfm";
             strategyRun = "Chronos2_AdvancedScalper";
             configFile = "config.json";
             memoryLimit = "2G";
@@ -68,7 +69,7 @@ selfLib.mkModule {
           };
           bot-smc = {
             enable = false;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/smc";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/smc";
             strategyRun = "SMCStrategy";
             configFile = "config.json";
             memoryLimit = "2G";
@@ -77,7 +78,7 @@ selfLib.mkModule {
           };
           bot-tfm = {
             enable = false;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/timesfm";
             strategyRun = "TimesFMScalpingFutures5m";
             configFile = "config.json";
             memoryLimit = "2G";
@@ -90,7 +91,7 @@ selfLib.mkModule {
           bot-tfmbb = {
             memoryLimit = "2G";
             enable = false;
-            strategiesDir = "/mnt/data_btrfs/freqtrade_strategies/timesfm";
+            strategiesDir = "${config.my.dataBtrfsPath}/freqtrade_strategies/timesfm";
             strategyRun = "TimesFMBBScalpingFutures30m";
             configFile = "config-30m.json";
             logToFile = true;

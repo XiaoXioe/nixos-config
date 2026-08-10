@@ -29,7 +29,7 @@ selfLib.mkModule {
       cfg = config.my.hardware.auto-mount;
     in
     {
-      fileSystems."/mnt/data" = {
+      fileSystems."${config.my.dataPath}" = {
         device = cfg.dataDevice;
         fsType = "ntfs-3g";
         options = [
@@ -46,7 +46,7 @@ selfLib.mkModule {
         ];
       };
 
-      fileSystems."/mnt/data_btrfs" = {
+      fileSystems."${config.my.dataBtrfsPath}" = {
         device = cfg.btrfsDevice;
         fsType = "btrfs";
         options = [
@@ -72,12 +72,16 @@ selfLib.mkModule {
       };
 
       fileSystems."/var/lib/flatpak" = {
-        device = "/mnt/data_btrfs/flatpak-system";
+        device = "${config.my.dataBtrfsPath}/flatpak-system";
         fsType = "none";
         options = [
           "bind"
-          "x-systemd.requires=mnt-data_btrfs.mount"
-          "x-systemd.after=mnt-data_btrfs.mount"
+          "x-systemd.requires=${
+            lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+          }.mount"
+          "x-systemd.after=${
+            lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+          }.mount"
         ];
       };
     };

@@ -96,11 +96,13 @@ selfLib.mkModule {
               RCLONE_CONFIG = lib.mkForce "/run/restic-backups-${name}/rclone.conf";
               RESTIC_PROGRESS_FPS = "0.016666";
             }
-            // selfLib.warpProxyEnv;
+            // (selfLib.warpProxyEnv config.my.services.networking.cloudflare-warp.port);
 
             serviceConfig = {
               ExecStartPre = lib.mkBefore [
-                (selfLib.mkWarpWaitScript pkgs "restic-backups-${name}-wait-proxy")
+                (selfLib.mkWarpWaitScript pkgs config.my.services.networking.cloudflare-warp.port
+                  "restic-backups-${name}-wait-proxy"
+                )
                 "${selfLib.mkApp pkgs "restic-backups-${name}-copy-rclone-config" ''
                   mkdir -p /run/restic-backups-${name}
                   cp ${config.sops.secrets."rclone.conf".path} /run/restic-backups-${name}/rclone.conf
@@ -151,11 +153,11 @@ selfLib.mkModule {
           "/home/${config.my.user.name}/.gnupg"
           "/home/${config.my.user.name}/.thunderbird"
           "/persist/home/${config.my.user.name}/pentest"
-          "/mnt/data/Documents"
-          "/mnt/data/Pictures"
-          "/mnt/data/Music"
-          "/mnt/data_btrfs/PersistentData"
-          "/mnt/data/backup-cloud"
+          "${config.my.dataPath}/Documents"
+          "${config.my.dataPath}/Pictures"
+          "${config.my.dataPath}/Music"
+          "${config.my.dataBtrfsPath}/PersistentData"
+          "${config.my.dataPath}/backup-cloud"
         ];
         onCalendar = "00/3:30:00";
       };
@@ -176,7 +178,7 @@ selfLib.mkModule {
             buildInputs = [ pkgs.makeWrapper ];
             postBuild =
               let
-                proxyEnv = selfLib.warpProxyEnv;
+                proxyEnv = selfLib.warpProxyEnv config.my.services.networking.cloudflare-warp.port;
               in
               ''
                 wrapProgram $out/bin/rclone \
@@ -211,7 +213,9 @@ selfLib.mkModule {
             set -euo pipefail
             export PATH="/run/wrappers/bin:$PATH"
 
-            ${selfLib.mkWarpWaitScript pkgs "restic-mount-wait-proxy"}
+            ${selfLib.mkWarpWaitScript pkgs hmOpts.osConfig.my.services.networking.cloudflare-warp.port
+              "restic-mount-wait-proxy"
+            }
 
             export RCLONE_CONFIG="${hmOpts.osConfig.sops.secrets."rclone.conf".path}"
             exec restic mount "${mountPoint}" \
@@ -226,7 +230,9 @@ selfLib.mkModule {
         ExecStop = "/run/wrappers/bin/fusermount3 -u ${mountPoint}";
         Restart = "on-failure";
         RestartSec = "10s";
-        Environment = lib.mapAttrsToList (n: v: "${n}=${v}") selfLib.warpProxyEnv;
+        Environment = lib.mapAttrsToList (n: v: "${n}=${v}") (
+          selfLib.warpProxyEnv hmOpts.osConfig.my.services.networking.cloudflare-warp.port
+        );
       };
     };
   };

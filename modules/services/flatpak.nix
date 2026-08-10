@@ -51,19 +51,21 @@ selfLib.mkModule {
   description = "Core Flatpak daemon, BTRFS persistent mounts, global overrides, and repository sync service";
 
   nixosConfig = {
-    my.services.storage.btrfs-nocow-migration.nocowDirectories = [ "/mnt/data_btrfs/flatpak-userdata" ];
+    my.services.storage.btrfs-nocow-migration.nocowDirectories = [
+      "${config.my.dataBtrfsPath}/flatpak-userdata"
+    ];
 
     systemd.tmpfiles.rules = [
-      "d /mnt/data_btrfs/flatpak-userdata 0755 ${config.my.user.name} users - -"
-      "d /mnt/data_btrfs/flatpak-local 0755 ${config.my.user.name} users - -"
-      "d /mnt/data_btrfs/containers 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataBtrfsPath}/flatpak-userdata 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataBtrfsPath}/flatpak-local 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataBtrfsPath}/containers 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/CloudStorage 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.var 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.local 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.local/share 0755 ${config.my.user.name} users - -"
-      "L+ /home/${config.my.user.name}/.var/app - - - - /mnt/data_btrfs/flatpak-userdata"
-      "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - /mnt/data_btrfs/flatpak-local"
-      "L+ /home/${config.my.user.name}/.local/share/containers - - - - /mnt/data_btrfs/containers"
+      "L+ /home/${config.my.user.name}/.var/app - - - - ${config.my.dataBtrfsPath}/flatpak-userdata"
+      "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - ${config.my.dataBtrfsPath}/flatpak-local"
+      "L+ /home/${config.my.user.name}/.local/share/containers - - - - ${config.my.dataBtrfsPath}/containers"
     ];
 
     services.flatpak = {

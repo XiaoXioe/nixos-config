@@ -18,7 +18,9 @@ selfLib.mkModule {
       cfg = config.my.virtualisation.docker;
     in
     {
-      my.services.storage.btrfs-nocow-migration.nocowDirectories = [ "/mnt/data_btrfs/docker" ];
+      my.services.storage.btrfs-nocow-migration.nocowDirectories = [
+        "${config.my.dataBtrfsPath}/docker"
+      ];
 
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
@@ -113,7 +115,7 @@ selfLib.mkModule {
           enable = true;
           enableOnBoot = true;
           daemon.settings = {
-            "data-root" = "/mnt/data_btrfs/docker";
+            "data-root" = "${config.my.dataBtrfsPath}/docker";
           };
         };
 
@@ -126,7 +128,7 @@ selfLib.mkModule {
                 "8443:6901"
                 "8001:8001"
               ];
-              volumes = [ "/mnt/data_btrfs/mt5-data:/config" ];
+              volumes = [ "${config.my.dataBtrfsPath}/mt5-data:/config" ];
               environmentFiles = lib.optional cfg.mt5.enable config.sops.secrets."mt5-vnc-env".path;
             };
 
