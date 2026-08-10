@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.nix.nh";
   description = "NH configuration";
 
-  hmConfig = hmOpts: {
+  nixosConfig = {
     programs.nh = {
       enable = true;
       flake = flakePath;
