@@ -31,13 +31,15 @@ selfLib.mkModule {
     {
       fileSystems."${config.my.dataPath}" = {
         device = cfg.dataDevice;
-        fsType = "ntfs-3g";
+        fsType = "ntfs3";
         options = [
           "rw"
           "uid=1000"
           "gid=100"
           "dmask=0022"
           "fmask=0033"
+          "iocharset=utf8"
+          "force"
           "exec"
           "nofail"
           "noatime"
