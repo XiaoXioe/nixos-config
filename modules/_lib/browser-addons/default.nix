@@ -7,7 +7,7 @@
   inputs ? { },
 }:
 let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
 
   firefoxAddons =
     if inputs ? firefox-addons then

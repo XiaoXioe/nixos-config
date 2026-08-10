@@ -25,64 +25,70 @@ in
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot.initrd.availableKernelModules = [
-    "ehci_pci"
-    "ahci"
-    "usbhid"
-    "usb_storage"
-    "sd_mod"
-  ];
-  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
-
-  fileSystems."/" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-root";
+  boot = {
+    initrd = {
+      availableKernelModules = [
+        "ehci_pci"
+        "ahci"
+        "usbhid"
+        "usb_storage"
+        "sd_mod"
+      ];
+      kernelModules = [ ];
+    };
+    binfmt.emulatedSystems = [ "aarch64-linux" ];
+    kernelModules = [ ];
+    extraModulePackages = [ ];
   };
 
-  fileSystems."/nix" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-nix";
-  };
+  fileSystems = {
+    "/" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-root";
+    };
 
-  fileSystems."/home" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-home";
-    neededForBoot = true;
-  };
+    "/nix" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-nix";
+    };
 
-  fileSystems."/persist" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-persist";
-    neededForBoot = true;
-  };
+    "/home" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-home";
+      neededForBoot = true;
+    };
 
-  fileSystems."/var/log" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-log";
-    neededForBoot = true;
-  };
+    "/persist" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-persist";
+      neededForBoot = true;
+    };
 
-  fileSystems."/boot" = {
-    device = mainDevice;
-    fsType = "btrfs";
-    options = mkBtrfsSubvol "@nixos-boot";
-  };
+    "/var/log" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-log";
+      neededForBoot = true;
+    };
 
-  fileSystems."/boot/efi" = {
-    device = "/dev/disk/by-uuid/CF4A-0A6F";
-    fsType = "vfat";
-    options = [
-      "fmask=0077"
-      "dmask=0077"
-    ];
+    "/boot" = {
+      device = mainDevice;
+      fsType = "btrfs";
+      options = mkBtrfsSubvol "@nixos-boot";
+    };
+
+    "/boot/efi" = {
+      device = "/dev/disk/by-uuid/CF4A-0A6F";
+      fsType = "vfat";
+      options = [
+        "fmask=0077"
+        "dmask=0077"
+      ];
+    };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

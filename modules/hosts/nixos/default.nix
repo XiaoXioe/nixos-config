@@ -19,9 +19,9 @@
   users.mutableUsers = false;
   users.users.${userName} = {
     isNormalUser = true;
-    uid = userData.uid;
+    inherit (userData) uid;
     description = userData.fullName;
-    extraGroups = userData.extraGroups;
+    inherit (userData) extraGroups;
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = userData.openssh.authorizedKeys.keys;
     homeMode = "0700";
@@ -39,8 +39,8 @@
     defaultTerminal = userData.defaultApps.terminal or "foot";
     user = {
       name = userName;
-      fullName = fullName;
-      flakePath = flakePath;
+      inherit fullName;
+      inherit flakePath;
     };
   };
 

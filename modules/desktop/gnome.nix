@@ -9,10 +9,25 @@ selfLib.mkModule {
   name = "desktop.gnome";
 
   nixosConfig = {
-    services.xserver.enable = true;
+    services = {
+      xserver = {
+        enable = true;
+        xkb = {
+          layout = "us";
+          variant = "";
+        };
+      };
 
-    services.desktopManager.gnome.enable = true;
-    services.speechd.enable = lib.mkForce false;
+      desktopManager.gnome.enable = true;
+      speechd.enable = lib.mkForce false;
+
+      gnome.gnome-online-accounts.enable = lib.mkForce false;
+      avahi.enable = lib.mkForce false;
+
+      udev.packages = with pkgs; [
+        gnome-settings-daemon
+      ];
+    };
 
     environment.gnome.excludePackages = with pkgs; [
       gnome-tour
@@ -52,18 +67,6 @@ selfLib.mkModule {
       gnomeExtensions.dash-to-dock
       gnomeExtensions.blur-my-shell
       gnomeExtensions.just-perfection
-    ];
-
-    services.xserver.xkb = {
-      layout = "us";
-      variant = "";
-    };
-
-    services.gnome.gnome-online-accounts.enable = lib.mkForce false;
-    services.avahi.enable = lib.mkForce false;
-
-    services.udev.packages = with pkgs; [
-      gnome-settings-daemon
     ];
   };
 }

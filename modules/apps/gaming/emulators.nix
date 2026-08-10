@@ -146,80 +146,82 @@ selfLib.mkModule {
       force = true;
     };
 
-    xdg.configFile."dolphin-emu/Dolphin.ini" = {
-      text = lib.generators.toINI { } {
-        Core = {
-          CPUThread = "True";
-          DSPHLE = "True";
-          GFXBackend = "OGL";
+    xdg.configFile = {
+      "dolphin-emu/Dolphin.ini" = {
+        text = lib.generators.toINI { } {
+          Core = {
+            CPUThread = "True";
+            DSPHLE = "True";
+            GFXBackend = "OGL";
+          };
+          General = {
+            ISOPaths = 1;
+            ISOPath0 = "${hmOpts.osConfig.my.dataPath}/Games-retro/gamecube";
+            RecursiveISOPaths = "True";
+          };
+          Analytics = {
+            PermissionAsked = "True";
+          };
         };
-        General = {
-          ISOPaths = 1;
-          ISOPath0 = "${hmOpts.osConfig.my.dataPath}/Games-retro/gamecube";
-          RecursiveISOPaths = "True";
-        };
-        Analytics = {
-          PermissionAsked = "True";
-        };
+        force = true;
       };
-      force = true;
-    };
 
-    xdg.configFile."dolphin-emu/GFX.ini" = {
-      text = lib.generators.toINI { } {
-        Settings = {
-          AspectRatio = 1;
-          BackendMultithreading = "True";
-          FastDepthCalculation = "True";
-          InternalResolution = 2;
-          ShaderCompilationMode = 2;
+      "dolphin-emu/GFX.ini" = {
+        text = lib.generators.toINI { } {
+          Settings = {
+            AspectRatio = 1;
+            BackendMultithreading = "True";
+            FastDepthCalculation = "True";
+            InternalResolution = 2;
+            ShaderCompilationMode = 2;
+          };
         };
+        force = true;
       };
-      force = true;
-    };
 
-    xdg.configFile."dolphin-emu/GCPadNew.ini" = {
-      text = lib.generators.toINI { } {
-        GCPad1 = {
-          Device = "evdev/0/Microntek              USB Joystick";
-          "Buttons/A" = "`Button 2`";
-          "Buttons/B" = "`Button 3`";
-          "Buttons/X" = "`Button 1`";
-          "Buttons/Y" = "`Button 0`";
-          "Buttons/Z" = "`Button 8`";
-          "Buttons/Start" = "`Button 9`";
-          "Main Stick/Up" = "`Axis 1-`";
-          "Main Stick/Down" = "`Axis 1+`";
-          "Main Stick/Left" = "`Axis 0-`";
-          "Main Stick/Right" = "`Axis 0+`";
-          "Main Stick/Modifier" = "`Button 10`";
-          "Main Stick/Calibration" = "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42";
-          "C-Stick/Up" = "`Axis 3-`";
-          "C-Stick/Down" = "`Axis 3+`";
-          "C-Stick/Left" = "`Axis 2-`";
-          "C-Stick/Right" = "`Axis 2+`";
-          "C-Stick/Modifier" = "`Button 11`";
-          "C-Stick/Calibration" = "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42";
-          "Triggers/L" = "`Button 6`";
-          "Triggers/R" = "`Button 7`";
-          "Triggers/L-Analog" = "`Button 4`";
-          "Triggers/R-Analog" = "`Button 5`";
-          "D-Pad/Up" = "`Axis 5-`";
-          "D-Pad/Down" = "`Axis 5+`";
-          "D-Pad/Left" = "`Axis 4-`";
-          "D-Pad/Right" = "`Axis 4+`";
+      "dolphin-emu/GCPadNew.ini" = {
+        text = lib.generators.toINI { } {
+          GCPad1 = {
+            Device = "evdev/0/Microntek              USB Joystick";
+            "Buttons/A" = "`Button 2`";
+            "Buttons/B" = "`Button 3`";
+            "Buttons/X" = "`Button 1`";
+            "Buttons/Y" = "`Button 0`";
+            "Buttons/Z" = "`Button 8`";
+            "Buttons/Start" = "`Button 9`";
+            "Main Stick/Up" = "`Axis 1-`";
+            "Main Stick/Down" = "`Axis 1+`";
+            "Main Stick/Left" = "`Axis 0-`";
+            "Main Stick/Right" = "`Axis 0+`";
+            "Main Stick/Modifier" = "`Button 10`";
+            "Main Stick/Calibration" = "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42";
+            "C-Stick/Up" = "`Axis 3-`";
+            "C-Stick/Down" = "`Axis 3+`";
+            "C-Stick/Left" = "`Axis 2-`";
+            "C-Stick/Right" = "`Axis 2+`";
+            "C-Stick/Modifier" = "`Button 11`";
+            "C-Stick/Calibration" = "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42";
+            "Triggers/L" = "`Button 6`";
+            "Triggers/R" = "`Button 7`";
+            "Triggers/L-Analog" = "`Button 4`";
+            "Triggers/R-Analog" = "`Button 5`";
+            "D-Pad/Up" = "`Axis 5-`";
+            "D-Pad/Down" = "`Axis 5+`";
+            "D-Pad/Left" = "`Axis 4-`";
+            "D-Pad/Right" = "`Axis 4+`";
+          };
+          GCPad2 = {
+            Device = "XInput2/0/Virtual core pointer";
+          };
+          GCPad3 = {
+            Device = "XInput2/0/Virtual core pointer";
+          };
+          GCPad4 = {
+            Device = "XInput2/0/Virtual core pointer";
+          };
         };
-        GCPad2 = {
-          Device = "XInput2/0/Virtual core pointer";
-        };
-        GCPad3 = {
-          Device = "XInput2/0/Virtual core pointer";
-        };
-        GCPad4 = {
-          Device = "XInput2/0/Virtual core pointer";
-        };
+        force = true;
       };
-      force = true;
     };
   };
 }

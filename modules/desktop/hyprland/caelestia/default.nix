@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   # Enable caelestia shell
   programs.caelestia = {
     enable = true;

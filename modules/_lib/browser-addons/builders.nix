@@ -84,9 +84,9 @@ let
       if addon ? sha256 then
         buildAmoAddon {
           pname = addon.pkgName or addon.slug;
-          addonId = addon.addonId;
-          sha256 = addon.sha256;
-          slug = addon.slug;
+          inherit (addon) addonId;
+          inherit (addon) sha256;
+          inherit (addon) slug;
         }
       else
         firefoxAddons.${addon.pkgName or addon.slug}

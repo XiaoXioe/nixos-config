@@ -86,7 +86,7 @@ selfLib.mkModule {
         enable = true;
       }
       // (lib.optionalAttrs (cfg.environmentFile != null) {
-        environmentFile = cfg.environmentFile;
+        inherit (cfg) environmentFile;
       })
       // {
         config = {

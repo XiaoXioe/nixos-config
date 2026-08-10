@@ -15,8 +15,8 @@ let
     appId:
     let
       optionPath = splitName name;
-      isSingleApp = singleAppInfo.isSingleApp;
-      singleAppId = singleAppInfo.singleAppId;
+      inherit (singleAppInfo) isSingleApp;
+      inherit (singleAppInfo) singleAppId;
       appVal = flatpakCfg.${appId};
     in
     if !(appVal.enable or true) then
@@ -45,8 +45,8 @@ let
     appId:
     let
       optionPath = splitName name;
-      isSingleApp = singleAppInfo.isSingleApp;
-      singleAppId = singleAppInfo.singleAppId;
+      inherit (singleAppInfo) isSingleApp;
+      inherit (singleAppInfo) singleAppId;
       appVal = flatpakCfg.${appId};
       appOptPath =
         if isSingleApp && appId == singleAppId then

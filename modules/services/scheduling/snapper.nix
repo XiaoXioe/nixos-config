@@ -49,25 +49,32 @@ selfLib.mkModule {
     };
 
     # More frequent cleanup schedule to prevent accumulation
-    systemd.timers."snapper-cleanup" = {
-      timerConfig = {
-        OnCalendar = lib.mkForce "*-*-* *:30:00";
-      };
-    };
 
     # MUST use "Q" (not "v") — snapper requires .snapshots to be a BTRFS subvolume
-    systemd.tmpfiles.rules = [
-      "Q /persist/.snapshots 0750 root root - -"
-    ];
 
     # Prevent system activation switches from hanging while snapper deletes snapshots
-    systemd.services.snapper-timeline = {
-      restartIfChanged = false;
-      stopIfChanged = false;
-    };
-    systemd.services.snapper-cleanup = {
-      restartIfChanged = false;
-      stopIfChanged = false;
+
+    systemd = {
+      timers."snapper-cleanup" = {
+        timerConfig = {
+          OnCalendar = lib.mkForce "*-*-* *:30:00";
+        };
+      };
+
+      tmpfiles.rules = [
+        "Q /persist/.snapshots 0750 root root - -"
+      ];
+
+      services = {
+        snapper-timeline = {
+          restartIfChanged = false;
+          stopIfChanged = false;
+        };
+        snapper-cleanup = {
+          restartIfChanged = false;
+          stopIfChanged = false;
+        };
+      };
     };
   };
 }

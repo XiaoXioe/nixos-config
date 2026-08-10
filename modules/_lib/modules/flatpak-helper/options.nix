@@ -14,8 +14,8 @@ in
     }:
     let
       optionPath = splitName name;
-      isSingleApp = singleAppInfo.isSingleApp;
-      singleAppId = singleAppInfo.singleAppId;
+      inherit (singleAppInfo) isSingleApp;
+      inherit (singleAppInfo) singleAppId;
     in
     lib.optionalAttrs (flatpakCfg != { } && !isSingleApp) {
       flatpaks = lib.mapAttrs (appId: appVal: {

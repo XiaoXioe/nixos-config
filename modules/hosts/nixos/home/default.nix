@@ -4,8 +4,11 @@
   ...
 }:
 {
-  home.username = userName;
-  home.homeDirectory = "/home/${userName}";
+  home = {
+    username = userName;
+    homeDirectory = "/home/${userName}";
+    stateVersion = "25.11";
+  };
 
   programs.man.generateCaches = false;
   manual = {
@@ -13,6 +16,5 @@
     html.enable = false;
     json.enable = false;
   };
-  home.stateVersion = "25.11";
   programs.home-manager.enable = true;
 }

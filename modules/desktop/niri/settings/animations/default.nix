@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   programs.niri.settings.animations = {
     workspace-switch = {
       kind.spring = {

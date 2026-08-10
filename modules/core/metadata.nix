@@ -5,61 +5,63 @@
   ...
 }:
 {
-  options.my.user = {
-    name = lib.mkOption {
+  options.my = {
+    user = {
+      name = lib.mkOption {
+        type = lib.types.nonEmptyStr;
+      };
+      fullName = lib.mkOption {
+        type = lib.types.nonEmptyStr;
+      };
+      flakePath = lib.mkOption {
+        type = lib.types.nonEmptyStr;
+      };
+    };
+
+    hostname = lib.mkOption {
       type = lib.types.nonEmptyStr;
     };
-    fullName = lib.mkOption {
+
+    dataPath = lib.mkOption {
       type = lib.types.nonEmptyStr;
+      default = "/mnt/data";
+      description = "Global path for NTFS storage mount";
     };
-    flakePath = lib.mkOption {
+
+    dataBtrfsPath = lib.mkOption {
       type = lib.types.nonEmptyStr;
+      default = "/mnt/data_btrfs";
+      description = "Global path for BTRFS storage mount";
     };
-  };
 
-  options.my.hostname = lib.mkOption {
-    type = lib.types.nonEmptyStr;
-  };
+    defaultApps = {
+      terminal = lib.mkOption {
+        type = lib.types.str;
+        default = "foot";
+        description = "Default terminal emulator binary";
+      };
+      browser = lib.mkOption {
+        type = lib.types.str;
+        default = "zen-beta";
+        description = "Default web browser binary";
+      };
+      editor = lib.mkOption {
+        type = lib.types.str;
+        default = "codium";
+        description = "Default code/text editor binary";
+      };
+      fileManager = lib.mkOption {
+        type = lib.types.str;
+        default = "dolphin";
+        description = "Default file manager binary";
+      };
+    };
 
-  options.my.dataPath = lib.mkOption {
-    type = lib.types.nonEmptyStr;
-    default = "/mnt/data";
-    description = "Global path for NTFS storage mount";
-  };
-
-  options.my.dataBtrfsPath = lib.mkOption {
-    type = lib.types.nonEmptyStr;
-    default = "/mnt/data_btrfs";
-    description = "Global path for BTRFS storage mount";
-  };
-
-  options.my.defaultApps = {
-    terminal = lib.mkOption {
+    defaultTerminal = lib.mkOption {
       type = lib.types.str;
-      default = "foot";
-      description = "Default terminal emulator binary";
+      default = config.my.defaultApps.terminal;
+      description = "Alias to my.defaultApps.terminal";
     };
-    browser = lib.mkOption {
-      type = lib.types.str;
-      default = "zen-beta";
-      description = "Default web browser binary";
-    };
-    editor = lib.mkOption {
-      type = lib.types.str;
-      default = "codium";
-      description = "Default code/text editor binary";
-    };
-    fileManager = lib.mkOption {
-      type = lib.types.str;
-      default = "dolphin";
-      description = "Default file manager binary";
-    };
-  };
-
-  options.my.defaultTerminal = lib.mkOption {
-    type = lib.types.str;
-    default = config.my.defaultApps.terminal;
-    description = "Alias to my.defaultApps.terminal";
   };
 
   config = {

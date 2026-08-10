@@ -25,7 +25,7 @@ selfLib.mkModule {
         users = adminUsers;
         noPass = true;
         keepEnv = true;
-        cmd = cmd;
+        inherit cmd;
       }) nopassCmds);
     };
   };

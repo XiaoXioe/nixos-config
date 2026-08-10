@@ -53,7 +53,7 @@
       }
       {
         name = "done";
-        src = done.src;
+        inherit (done) src;
       }
     ];
 

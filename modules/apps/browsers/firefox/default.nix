@@ -174,7 +174,7 @@ selfLib.mkModule {
             name = "Default User";
             isDefault = true;
             settings = baseSettings;
-            userChrome = userChrome;
+            inherit userChrome;
           };
 
           hardened = {
@@ -188,7 +188,7 @@ selfLib.mkModule {
               "dom.event.clipboardevents.enabled" = false;
               "media.peerconnection.enabled" = false;
             };
-            userChrome = userChrome;
+            inherit userChrome;
           };
         };
       };

@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   programs.niri.settings = {
     # Layer Rules (from config.kdl & dms/wpblur.kdl)
     layer-rules = [

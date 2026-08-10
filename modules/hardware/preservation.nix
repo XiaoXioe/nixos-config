@@ -107,91 +107,95 @@ selfLib.mkModule {
       '';
     in
     {
-      boot.initrd.systemd.enable = true;
-      boot.initrd.systemd.services.wipe-btrfs-root = lib.mkIf cfg.ephemeralRoot {
-        description = "Wipe BTRFS root and home subvolumes";
-        wantedBy = [ "initrd.target" ];
-        after = [ "initrd-root-device.target" ];
-        before = [ "sysroot.mount" ];
-        unitConfig.DefaultDependencies = "no";
-        serviceConfig.Type = "oneshot";
-        script = wipeRootScript;
-      };
-      boot.initrd.supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
-
-      # Offload slow recursive BTRFS deletions to a background post-boot service
-      systemd.services.preservation-cleanup = lib.mkIf cfg.ephemeralRoot {
-        description = "Background cleanup of old BTRFS roots and home backups";
-        after = [ "local-fs.target" ];
-        wantedBy = [ "multi-user.target" ];
-        path = [
-          "/run/wrappers/bin"
-        ]
-        ++ (with pkgs; [
-          btrfs-progs
-          coreutils
-          util-linux
-        ]);
-        serviceConfig = {
-          Type = "oneshot";
-          PrivateMounts = true;
-          RuntimeDirectory = "btrfs_cleanup";
-          ExecStart = "${selfLib.mkApp pkgs "preservation-cleanup"
-            ''
-              # shellcheck disable=SC2012
-              set -euo pipefail
-              echo "==> [preservation] Starting background cleanup..."
-
-              # Mount point managed by RuntimeDirectory (auto-cleaned on exit)
-              MNTDIR="/run/btrfs_cleanup"
-              mount -t btrfs -o subvol=/ "${btrfsDevice}" "$MNTDIR"
-
-              delete_subvolume_recursively() {
-                local IFS=$'\n'
-                for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
-                  delete_subvolume_recursively "$MNTDIR/$i"
-                done
-                if [ -e "$1" ]; then
-                  btrfs subvolume delete "$1" || true
-                fi
-              }
-
-              cleanup_old_backups() {
-                prefix=$1
-                keep=$2
-                ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)) | while read -r i; do
-                  [ -n "$i" ] || continue
-                  echo "Deleting old $prefix backup: $i"
-                  delete_subvolume_recursively "$i"
-                done
-              }
-
-              # Delete old home snapshots (keep last 10)
-              ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)} | while read -r snap; do
-                [ -n "$snap" ] || continue
-                echo "Deleting old home snapshot: $snap"
-                btrfs subvolume delete "$snap"
-              done
-
-              cleanup_old_backups "root" ${toString keepRoot}
-              cleanup_old_backups "home" ${toString keepHome}
-
-              umount "$MNTDIR"
-              echo "==> [preservation] Background cleanup finished."
-            ''
-            [
-              pkgs.btrfs-progs
-              pkgs.coreutils
-              pkgs.util-linux
-            ]
-          }";
+      boot = {
+        initrd = {
+          systemd = {
+            enable = true;
+            services.wipe-btrfs-root = lib.mkIf cfg.ephemeralRoot {
+              description = "Wipe BTRFS root and home subvolumes";
+              wantedBy = [ "initrd.target" ];
+              after = [ "initrd-root-device.target" ];
+              before = [ "sysroot.mount" ];
+              unitConfig.DefaultDependencies = "no";
+              serviceConfig.Type = "oneshot";
+              script = wipeRootScript;
+            };
+          };
+          supportedFilesystems = lib.mkIf cfg.ephemeralRoot [ "btrfs" ];
         };
       };
 
-      # Remove orphaned /persist user directories for disabled modules with cleanupOnDisable = true
-      systemd.services.preservation-persist-cleanup =
-        lib.mkIf (cfg.ephemeralRoot && cleanupUserDirectories != [ ])
-          {
+      systemd = {
+        services = {
+          preservation-cleanup = lib.mkIf cfg.ephemeralRoot {
+            description = "Background cleanup of old BTRFS roots and home backups";
+            after = [ "local-fs.target" ];
+            wantedBy = [ "multi-user.target" ];
+            path = [
+              "/run/wrappers/bin"
+            ]
+            ++ (with pkgs; [
+              btrfs-progs
+              coreutils
+              util-linux
+            ]);
+            serviceConfig = {
+              Type = "oneshot";
+              PrivateMounts = true;
+              RuntimeDirectory = "btrfs_cleanup";
+              ExecStart = "${selfLib.mkApp pkgs "preservation-cleanup"
+                ''
+                  # shellcheck disable=SC2012
+                  set -euo pipefail
+                  echo "==> [preservation] Starting background cleanup..."
+
+                  # Mount point managed by RuntimeDirectory (auto-cleaned on exit)
+                  MNTDIR="/run/btrfs_cleanup"
+                  mount -t btrfs -o subvol=/ "${btrfsDevice}" "$MNTDIR"
+
+                  delete_subvolume_recursively() {
+                    local IFS=$'\n'
+                    for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' ' || true); do
+                      delete_subvolume_recursively "$MNTDIR/$i"
+                    done
+                    if [ -e "$1" ]; then
+                      btrfs subvolume delete "$1" || true
+                    fi
+                  }
+
+                  cleanup_old_backups() {
+                    prefix=$1
+                    keep=$2
+                    ls -1d "$MNTDIR/@nixos-old-roots/$prefix-"* 2>/dev/null | sort -r | tail -n +$((keep + 1)) | while read -r i; do
+                      [ -n "$i" ] || continue
+                      echo "Deleting old $prefix backup: $i"
+                      delete_subvolume_recursively "$i"
+                    done
+                  }
+
+                  # Delete old home snapshots (keep last 10)
+                  ls -1dt "$MNTDIR/@nixos-persist/home-snapshots/"* 2>/dev/null | tail -n +${toString (keepHome + 1)} | while read -r snap; do
+                    [ -n "$snap" ] || continue
+                    echo "Deleting old home snapshot: $snap"
+                    btrfs subvolume delete "$snap"
+                  done
+
+                  cleanup_old_backups "root" ${toString keepRoot}
+                  cleanup_old_backups "home" ${toString keepHome}
+
+                  umount "$MNTDIR"
+                  echo "==> [preservation] Background cleanup finished."
+                ''
+                [
+                  pkgs.btrfs-progs
+                  pkgs.coreutils
+                  pkgs.util-linux
+                ]
+              }";
+            };
+          };
+
+          preservation-persist-cleanup = lib.mkIf (cfg.ephemeralRoot && cleanupUserDirectories != [ ]) {
             description = "Remove orphaned /persist user directories for disabled modules";
             after = [ "local-fs.target" ];
             wantedBy = [ "multi-user.target" ];
@@ -213,6 +217,9 @@ selfLib.mkModule {
                 ++ [ ''echo "==> [preservation-persist-cleanup] Persist cleanup finished."'' ]
               );
           };
+        };
+        suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
+      };
 
       preservation.enable = true;
       preservation.preserveAt."${persistBase}" = {
@@ -258,6 +265,5 @@ selfLib.mkModule {
           files = aspectUserFiles;
         };
       };
-      systemd.suppressedSystemUnits = [ "systemd-machine-id-commit.service" ];
     };
 }

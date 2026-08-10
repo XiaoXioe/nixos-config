@@ -6,8 +6,16 @@
 selfLib.mkModule {
   name = "desktop.kde";
   nixosConfig = {
-    services.xserver.enable = true;
-    services.desktopManager.plasma6.enable = true;
+    services = {
+      xserver = {
+        enable = true;
+        xkb = {
+          layout = "us";
+          variant = "";
+        };
+      };
+      desktopManager.plasma6.enable = true;
+    };
 
     environment.variables = {
 
@@ -41,11 +49,6 @@ selfLib.mkModule {
       kwallet-pam
       kwalletmanager
     ];
-
-    services.xserver.xkb = {
-      layout = "us";
-      variant = "";
-    };
   };
 
   hmConfig = hmOpts: {

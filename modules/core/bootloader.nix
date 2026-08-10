@@ -45,27 +45,31 @@ selfLib.mkModule {
       }
     ];
 
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-    boot.loader.efi.canTouchEfiVariables = true;
-    boot.loader.efi.efiSysMountPoint = "/boot/efi";
+    boot.loader = {
+      systemd-boot.enable = lib.mkForce false;
+      efi = {
+        canTouchEfiVariables = true;
+        efiSysMountPoint = "/boot/efi";
+      };
 
-    boot.loader.grub = {
-      enable = true;
-      device = "nodev";
-      efiSupport = true;
-      useOSProber = true;
-      theme = pkgs.catppuccin-grub.override { flavor = "macchiato"; };
+      grub = {
+        enable = true;
+        device = "nodev";
+        efiSupport = true;
+        useOSProber = true;
+        theme = pkgs.catppuccin-grub.override { flavor = "macchiato"; };
 
-      extraEntries = ''
-        menuentry "Grub2 File Manager" --class efi {
-          # UUID partisi EFI diambil otomatis dari fileSystems."/boot/efi".device
-          search --no-floppy --fs-uuid --set=root ${efiUuid}
-          chainloader /EFI/grubfm/grubfmx64.efi
-        }
-      '';
+        extraEntries = ''
+          menuentry "Grub2 File Manager" --class efi {
+            # UUID partisi EFI diambil otomatis dari fileSystems."/boot/efi".device
+            search --no-floppy --fs-uuid --set=root ${efiUuid}
+            chainloader /EFI/grubfm/grubfmx64.efi
+          }
+        '';
 
-      extraFiles = {
-        "efi/EFI/grubfm/grubfmx64.efi" = "${grubfm-efi}/grubfmx64.efi";
+        extraFiles = {
+          "efi/EFI/grubfm/grubfmx64.efi" = "${grubfm-efi}/grubfmx64.efi";
+        };
       };
     };
   };

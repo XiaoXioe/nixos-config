@@ -58,7 +58,7 @@ selfLib.mkModule {
               "rclone.timeout=5m"
             ];
 
-            paths = paths;
+            inherit paths;
             exclude = commonExcludes;
             initialize = true;
             extraBackupArgs = [

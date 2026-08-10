@@ -32,27 +32,29 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    home.packages =
-      with pkgs;
-      lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
-        wineWow64Packages.stable
-        winetricks
-      ];
+    home = {
+      packages =
+        with pkgs;
+        lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
+          wineWow64Packages.stable
+          winetricks
+        ];
 
-    home.sessionVariables = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
-      WINEDLLOVERRIDES = "winemenubuilder.exe=d";
-      WINEPREFIX = "${hmOpts.osConfig.my.dataBtrfsPath}/wine-data";
-      WINEARCH = "win64";
+      sessionVariables = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
+        WINEDLLOVERRIDES = "winemenubuilder.exe=d";
+        WINEPREFIX = "${hmOpts.osConfig.my.dataBtrfsPath}/wine-data";
+        WINEARCH = "win64";
+      };
+
+      file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
+        selfLib.mkHmSymlinks hmOpts.config {
+          ".local/share/bottles" = "${hmOpts.osConfig.my.dataBtrfsPath}/bottles";
+        }
+      );
     };
 
     systemd.user.tmpfiles.rules = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
       "d ${hmOpts.osConfig.my.dataBtrfsPath}/bottles 0755 - - -"
     ];
-
-    home.file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
-      selfLib.mkHmSymlinks hmOpts.config {
-        ".local/share/bottles" = "${hmOpts.osConfig.my.dataBtrfsPath}/bottles";
-      }
-    );
   };
 }

@@ -12,7 +12,7 @@ selfLib.mkModule {
   hmConfig =
     hmOpts:
     let
-      lib = hmOpts.lib;
+      inherit (hmOpts) lib;
     in
     {
       home.packages = with pkgs; [

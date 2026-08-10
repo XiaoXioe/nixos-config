@@ -4,9 +4,9 @@
   mkFlatpakOverrides =
     { ctx, useFlatpak }:
     let
-      config = ctx.config;
+      inherit (ctx) config;
       userName = config.my.user.name or "";
-      flatpakCfg = ctx.flatpakCfg;
+      inherit (ctx) flatpakCfg;
     in
     lib.listToAttrs (
       lib.flatten (
@@ -19,8 +19,7 @@
                 hasFlags = appVal ? flags && (appVal.flags.text or "") != "";
                 hasHmProgram = appVal ? hmProgram;
 
-                needNixStore =
-                  if appVal ? needNixStore then appVal.needNixStore else (hasSymlinks || hasFlags || hasHmProgram);
+                needNixStore = appVal.needNixStore or (hasSymlinks || hasFlags || hasHmProgram);
 
                 nixStoreFilesystems = lib.optionals needNixStore [ "/nix/store:ro" ];
                 flatpakSymlinks = appVal.symlinks or (appVal.dataDir or [ ]);

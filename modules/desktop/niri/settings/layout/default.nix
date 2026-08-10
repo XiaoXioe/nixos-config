@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   programs.niri.settings = {
     # Cursor Settings (from dms/cursor.kdl)
     cursor = {

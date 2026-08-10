@@ -29,62 +29,64 @@ selfLib.mkModule {
       cfg = config.my.hardware.auto-mount;
     in
     {
-      fileSystems."${config.my.dataPath}" = {
-        device = cfg.dataDevice;
-        fsType = "ntfs3";
-        options = [
-          "rw"
-          "uid=1000"
-          "gid=100"
-          "dmask=0022"
-          "fmask=0033"
-          "iocharset=utf8"
-          "force"
-          "exec"
-          "nofail"
-          "noatime"
-          "x-systemd.automount"
-          "x-systemd.mount-timeout=30s"
-        ];
-      };
+      fileSystems = {
+        "${config.my.dataPath}" = {
+          device = cfg.dataDevice;
+          fsType = "ntfs3";
+          options = [
+            "rw"
+            "uid=1000"
+            "gid=100"
+            "dmask=0022"
+            "fmask=0033"
+            "iocharset=utf8"
+            "force"
+            "exec"
+            "nofail"
+            "noatime"
+            "x-systemd.automount"
+            "x-systemd.mount-timeout=30s"
+          ];
+        };
 
-      fileSystems."${config.my.dataBtrfsPath}" = {
-        device = cfg.btrfsDevice;
-        fsType = "btrfs";
-        options = [
-          "compress=zstd:6"
-          "noatime"
-          "nofail"
-          "discard=async"
-          "space_cache=v2"
-        ];
-      };
+        "${config.my.dataBtrfsPath}" = {
+          device = cfg.btrfsDevice;
+          fsType = "btrfs";
+          options = [
+            "compress=zstd:6"
+            "noatime"
+            "nofail"
+            "discard=async"
+            "space_cache=v2"
+          ];
+        };
 
-      fileSystems."/mnt/btrfs-root" = {
-        device = cfg.btrfsRoot;
-        fsType = "btrfs";
-        options = [
-          "subvolid=5"
-          "defaults"
-          "noatime"
-          "noauto"
-          "x-systemd.automount"
-          "x-systemd.idle-timeout=1min"
-        ];
-      };
+        "/mnt/btrfs-root" = {
+          device = cfg.btrfsRoot;
+          fsType = "btrfs";
+          options = [
+            "subvolid=5"
+            "defaults"
+            "noatime"
+            "noauto"
+            "x-systemd.automount"
+            "x-systemd.idle-timeout=1min"
+          ];
+        };
 
-      fileSystems."/var/lib/flatpak" = {
-        device = "${config.my.dataBtrfsPath}/flatpak-system";
-        fsType = "none";
-        options = [
-          "bind"
-          "x-systemd.requires=${
-            lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
-          }.mount"
-          "x-systemd.after=${
-            lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
-          }.mount"
-        ];
+        "/var/lib/flatpak" = {
+          device = "${config.my.dataBtrfsPath}/flatpak-system";
+          fsType = "none";
+          options = [
+            "bind"
+            "x-systemd.requires=${
+              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+            }.mount"
+            "x-systemd.after=${
+              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+            }.mount"
+          ];
+        };
       };
     };
 }

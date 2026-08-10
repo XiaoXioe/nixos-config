@@ -38,7 +38,7 @@ in
 
           flagsAttr = lib.optionals (flagsFile != null && flatpakFlags ? text && flatpakFlags.text != "") [
             (lib.nameValuePair ".var/app/${appId}/${flagsFile}" {
-              text = flatpakFlags.text;
+              inherit (flatpakFlags) text;
               force = true;
             })
           ];

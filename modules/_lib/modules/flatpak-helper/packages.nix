@@ -28,7 +28,7 @@ in
   mkFlatpakPackages =
     { ctx, useFlatpak }:
     let
-      flatpakCfg = ctx.flatpakCfg;
+      inherit (ctx) flatpakCfg;
     in
     lib.flatten (
       lib.mapAttrsToList (
@@ -59,8 +59,8 @@ in
       useFlatpak,
     }:
     let
-      pkgs = ctx.pkgs;
-      flatpakCfg = ctx.flatpakCfg;
+      inherit (ctx) pkgs;
+      inherit (ctx) flatpakCfg;
     in
     lib.flatten (
       lib.mapAttrsToList (
@@ -71,8 +71,8 @@ in
           hmProgram = appVal.hmProgram or null;
           skipWrapper = appVal.skipNativeWrapper or false;
           nativeInfo = getNativePkg appVal;
-          nativePackages = nativeInfo.nativePackages;
-          realNativePkg = nativeInfo.realNativePkg;
+          inherit (nativeInfo) nativePackages;
+          inherit (nativeInfo) realNativePkg;
           binName =
             appVal.binName or (
               if realNativePkg != null then
@@ -107,7 +107,7 @@ in
     }:
     hmPkgs:
     let
-      flatpakCfg = ctx.flatpakCfg;
+      inherit (ctx) flatpakCfg;
     in
     lib.listToAttrs (
       lib.flatten (
@@ -118,9 +118,8 @@ in
             useFlatpakApp = useFlatpak ctx appId;
             hmProgram = appVal.hmProgram or null;
             nativeInfo = getNativePkg appVal;
-            realNativePkg = nativeInfo.realNativePkg;
-          in
-          let
+            inherit (nativeInfo) realNativePkg;
+
             flatpakBin = mkFlatpakRunScript hmPkgs (hmProgram.binName or hmProgram.name) appId;
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
               wrapper = _: flatpakBin;

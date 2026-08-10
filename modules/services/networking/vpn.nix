@@ -260,35 +260,36 @@ selfLib.mkModule {
       ];
 
       # Integrasi fungsi shell agar kompatibel dan dapat menset ALL_PROXY di sesi induk
-      programs.fish.functions = {
-        vpn-on = {
-          description = "Jalankan Wireproxy via RAM dan aktifkan SOCKS5";
-          body = ''
-                        ${vpn-on-bin}
-                        if test $status -eq 0
-            ${fishExportProxy}
-                        end
-          '';
+      programs = {
+        fish.functions = {
+          vpn-on = {
+            description = "Jalankan Wireproxy via RAM dan aktifkan SOCKS5";
+            body = ''
+              ${vpn-on-bin}
+              if test $status -eq 0
+                ${fishExportProxy}
+              end
+            '';
+          };
+          vpn-off = {
+            description = "Hentikan Wireproxy dan hapus variabel proxy";
+            body = ''
+              ${vpn-off-bin}
+              ${fishUnsetProxy}
+            '';
+          };
+          vpn-switch = {
+            description = "Ganti koneksi VPN aktif ke konfigurasi lain";
+            body = ''
+              ${vpn-switch-bin}
+              if test $status -eq 0
+                ${fishExportProxy}
+              end
+            '';
+          };
         };
-        vpn-off = {
-          description = "Hentikan Wireproxy dan hapus variabel proxy";
-          body = ''
-                        ${vpn-off-bin}
-            ${fishUnsetProxy}
-          '';
-        };
-        vpn-switch = {
-          description = "Ganti koneksi VPN aktif ke konfigurasi lain";
-          body = ''
-                        ${vpn-switch-bin}
-                        if test $status -eq 0
-            ${fishExportProxy}
-                        end
-          '';
-        };
+        bash.initExtra = commonVpn;
+        zsh.initExtra = commonVpn;
       };
-
-      programs.bash.initExtra = commonVpn;
-      programs.zsh.initExtra = commonVpn;
     };
 }

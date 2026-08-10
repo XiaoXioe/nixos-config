@@ -48,10 +48,22 @@ selfLib.mkModule {
       '';
     };
 
-    systemd.timers.fstrim.timerConfig.Persistent = false;
-    systemd.timers.btrfs-scrub--.timerConfig.Persistent = lib.mkForce false;
-    systemd.timers.btrfs-scrub-mnt-data_btrfs.timerConfig.Persistent = lib.mkForce false;
+    systemd = {
+      timers = {
+        fstrim.timerConfig.Persistent = false;
+        btrfs-scrub--.timerConfig.Persistent = lib.mkForce false;
+        btrfs-scrub-mnt-data_btrfs.timerConfig.Persistent = lib.mkForce false;
+      };
 
-    systemd.coredump.enable = false;
+      coredump = {
+        settings.Coredump = {
+          Storage = "external";
+          Compress = "yes";
+          MaxUse = "500M";
+          ExternalSizeMax = "100M";
+          KeepFree = "20G";
+        };
+      };
+    };
   };
 }
