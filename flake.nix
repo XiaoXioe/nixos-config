@@ -95,7 +95,7 @@
   };
 
   outputs =
-    inputs@{ ... }:
+    inputs:
     let
       lib = inputs.nixpkgs.lib;
       hostName = "KleinMoretti";
@@ -124,7 +124,7 @@
           userData
           ;
         userName = adminUser;
-        fullName = userData.fullName;
+        inherit (userData) fullName;
         userFeatures = userData.userFeatures or { };
       };
 
@@ -141,12 +141,14 @@
         inputs.home-manager.nixosModules.home-manager
         inputs.nix-flatpak.nixosModules.nix-flatpak
         {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.extraSpecialArgs = baseArgs;
-          home-manager.backupFileExtension = "hm-bak";
-          home-manager.users.${adminUser} = {
-            imports = homeModules;
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = baseArgs;
+            backupFileExtension = "hm-bak";
+            users.${adminUser} = {
+              imports = homeModules;
+            };
           };
         }
       ];
@@ -166,14 +168,14 @@
         ${hostName} = builders.mkNixosConfiguration hostName;
       };
 
-      # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt) + dead
-      # code (deadnix). Lambda arg diabaikan karena pola `hmConfig = hmOpts:`
-      # sengaja menyisakan argumen tak terpakai (cegah shadowing, lihat skill
-      # nix-module-authoring). statix tetap tersedia di devShell sebagai advisory.
+      # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt), dead
+      # code (deadnix), dan linting (statix). Lambda arg diabaikan karena pola
+      # `hmConfig = hmOpts:` sengaja menyisakan argumen tak terpakai (cegah shadowing)
       preCommitCheck = inputs.git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           nixfmt.enable = true;
+          statix.enable = true;
           deadnix = {
             enable = true;
             settings = {
