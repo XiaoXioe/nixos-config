@@ -115,11 +115,23 @@ selfLib.mkModule {
       browserDesktopMap = {
         zen-beta = "app.zen_browser.zen.desktop";
         firefox = "org.mozilla.firefox.desktop";
-        brave = "brave-browser.desktop";
+        brave =
+          if (osConfig.my.apps.browsers.brave.flatpak.enable or false) then
+            "com.brave.Browser.desktop"
+          else
+            "brave-browser.desktop";
       };
       editorDesktopMap = {
-        codium = "com.vscodium.codium.desktop";
-        vscodium = "com.vscodium.codium.desktop";
+        codium =
+          if (osConfig.my.apps.editors.vscodium.flatpak.enable or false) then
+            "com.vscodium.codium.desktop"
+          else
+            "codium.desktop";
+        vscodium =
+          if (osConfig.my.apps.editors.vscodium.flatpak.enable or false) then
+            "com.vscodium.codium.desktop"
+          else
+            "codium.desktop";
       };
       fileManagerDesktopMap = {
         dolphin = "org.kde.dolphin.desktop";
