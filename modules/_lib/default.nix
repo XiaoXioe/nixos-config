@@ -18,6 +18,7 @@ let
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
   hmLib = import ./hm.nix { inherit lib; };
+  webAppLib = pkgs: import ./webapp.nix { inherit lib pkgs; };
 in
 {
   # ── Module builder ───────────────────────────────────────────────────────────
@@ -56,4 +57,8 @@ in
   # ── Audio helpers ─────────────────────────────────────────────────────────────
   # Renders EQ filter attrsets to PipeWire filter-chain string
   inherit (audioLib) mkEqFilterString;
+
+  # ── WebApp PWA Builder ──────────────────────────────────────────────────────
+  # Generates desktop launcher + Chromium wrapper for PWAs
+  mkWebApp = pkgs: (webAppLib pkgs).mkWebApp;
 }
