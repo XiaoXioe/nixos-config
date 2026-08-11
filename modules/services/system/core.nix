@@ -52,11 +52,11 @@ selfLib.mkModule {
       timers = {
         fstrim.timerConfig.Persistent = false;
         # mkForce diperlukan karena nixpkgs default Persistent=true pada btrfs-scrub.
-        # Tanpa ini, scrub langsung berjalan setelah setiap reboot jika melewatkan jadwal — 
+        # Tanpa ini, scrub langsung berjalan setelah setiap reboot jika melewatkan jadwal —
         # scrub berat, lebih baik menunggu jadwal normal berikutnya.
         btrfs-scrub--.timerConfig.Persistent = lib.mkForce false;
         # mkForce diperlukan karena nixpkgs default Persistent=true pada btrfs-scrub.
-        # Tanpa ini, scrub langsung berjalan setelah setiap reboot jika melewatkan jadwal — 
+        # Tanpa ini, scrub langsung berjalan setelah setiap reboot jika melewatkan jadwal —
         # scrub berat, lebih baik menunggu jadwal normal berikutnya.
         btrfs-scrub-mnt-data_btrfs.timerConfig.Persistent = lib.mkForce false;
       };

@@ -10,7 +10,11 @@
       desktopName,
       url,
       icon ? "chromium",
-      categories ? [ "Network" "WebBrowser" "Email" ],
+      categories ? [
+        "Network"
+        "WebBrowser"
+        "Email"
+      ],
       comment ? "",
       browser ? "chromium",
       wmClass ? null,
@@ -30,15 +34,22 @@
       };
 
       # Check if browser is Firefox-like (uses different launch flags)
-      isFirefoxLike = lib.elem (if isDerivation then "" else browser) [ "firefox" "librewolf" "org.mozilla.firefox" "io.gitlab.librewolf-community" ];
+      isFirefoxLike = lib.elem (if isDerivation then "" else browser) [
+        "firefox"
+        "librewolf"
+        "org.mozilla.firefox"
+        "io.gitlab.librewolf-community"
+      ];
 
       # If it's a string, check if it's a Flatpak ID (contains dot)
       isFlatpakRaw = if isDerivation then false else lib.strings.hasInfix "." browser;
 
       # Resolve whether it should run as a Flatpak based on the active NixOS configuration (osConfig)
       isFlatpak =
-        if isDerivation then false
-        else if isFlatpakRaw then true
+        if isDerivation then
+          false
+        else if isFlatpakRaw then
+          true
         else if osConfig != null then
           let
             # Check if my.apps.browsers.${browser} is enabled and uses flatpak
@@ -58,11 +69,7 @@
           false;
 
       # Determine the actual browser string/ID to run
-      runBrowser =
-        if isFlatpak && !isFlatpakRaw then
-          (flatpakIds.${browser} or browser)
-        else
-          browser;
+      runBrowser = if isFlatpak && !isFlatpakRaw then (flatpakIds.${browser} or browser) else browser;
 
       # Format extraFlags list to a single string parameter if not empty
       flagsString = lib.concatStringsSep " " extraFlags;
@@ -78,13 +85,21 @@
         else if isFirefoxLike then
           let
             browserPkg = if isDerivation then runBrowser else pkgs.${runBrowser};
-            browserBinName = if isDerivation then (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser))) else runBrowser;
+            browserBinName =
+              if isDerivation then
+                (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser)))
+              else
+                runBrowser;
           in
           "${browserPkg}/bin/${browserBinName} --new-instance --class=\"${name}\" --profile /tmp/${name}-pwa${flagsParam} \"${url}\" \"\$@\""
         else
           let
             browserPkg = if isDerivation then runBrowser else pkgs.${runBrowser};
-            browserBinName = if isDerivation then (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser))) else runBrowser;
+            browserBinName =
+              if isDerivation then
+                (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser)))
+              else
+                runBrowser;
           in
           "${browserPkg}/bin/${browserBinName} --app=\"${url}\"${flagsParam} \"\$@\"";
 
@@ -96,7 +111,12 @@
       categoriesList = if builtins.isList categories then categories else [ categories ];
 
       desktopItem = pkgs.makeDesktopItem {
-        inherit name desktopName comment icon;
+        inherit
+          name
+          desktopName
+          comment
+          icon
+          ;
         categories = categoriesList;
         exec = "${execApp}/bin/${name} %U";
         terminal = false;
@@ -106,6 +126,9 @@
     in
     pkgs.symlinkJoin {
       inherit name;
-      paths = [ execApp desktopItem ];
+      paths = [
+        execApp
+        desktopItem
+      ];
     };
 }

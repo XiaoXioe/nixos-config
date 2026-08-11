@@ -3,6 +3,7 @@ let
   appsFeatures = import ./features/apps.nix;
   systemFeatures = import ./features/system.nix;
 in
-identity // {
+identity
+// {
   userFeatures = appsFeatures.userFeatures // systemFeatures.userFeatures;
 }
