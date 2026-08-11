@@ -101,6 +101,7 @@ selfLib.mkModule {
 
       systemd.services.wireproxy-warp = {
         description = "Wireproxy Cloudflare WARP SOCKS5 Proxy";
+        onFailure = [ "status-alert@wireproxy-warp.service" ];
         wantedBy = [ "multi-user.target" ];
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];

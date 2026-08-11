@@ -79,7 +79,10 @@ selfLib.mkModule {
       configFile = config.sops.templates."dnscrypt-proxy.toml".path;
     };
 
-    systemd.services.dnscrypt-proxy.serviceConfig.SupplementaryGroups = [ "keys" ];
+    systemd.services.dnscrypt-proxy = {
+      onFailure = [ "status-alert@dnscrypt-proxy.service" ];
+      serviceConfig.SupplementaryGroups = [ "keys" ];
+    };
 
     services.resolved.enable = false;
     networking = {

@@ -42,6 +42,7 @@ selfLib.mkModule {
           After = [ "network-online.target" ];
           Wants = [ "network-online.target" ];
           "X-SwitchMethod" = "keep-old";
+          OnFailure = [ "status-alert@rclone-mount.service" ];
         };
         Service = {
           Type = "simple";

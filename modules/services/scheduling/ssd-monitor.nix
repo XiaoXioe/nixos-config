@@ -41,6 +41,7 @@ selfLib.mkModule {
 
       services."ssd-tracker" = {
         description = "SSD TBW Tracker Service";
+        onFailure = [ "status-alert@ssd-tracker.service" ];
 
         path = with pkgs; [
           bash

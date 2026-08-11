@@ -67,10 +67,12 @@ selfLib.mkModule {
 
       services = {
         snapper-timeline = {
+          onFailure = [ "status-alert@snapper-timeline.service" ];
           restartIfChanged = false;
           stopIfChanged = false;
         };
         snapper-cleanup = {
+          onFailure = [ "status-alert@snapper-cleanup.service" ];
           restartIfChanged = false;
           stopIfChanged = false;
         };

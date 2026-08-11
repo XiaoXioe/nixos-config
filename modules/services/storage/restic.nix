@@ -83,6 +83,7 @@ selfLib.mkModule {
           // (lib.optionalAttrs (backupCleanupCommand != null) { inherit backupCleanupCommand; });
 
           systemd.services."restic-backups-${name}" = {
+            onFailure = [ "status-alert@restic-backups-${name}.service" ];
             restartIfChanged = false;
             after = [
               "network-online.target"
@@ -201,6 +202,7 @@ selfLib.mkModule {
         After = [ "network-online.target" ];
         Wants = [ "network-online.target" ];
         "X-SwitchMethod" = "keep-old";
+        OnFailure = [ "status-alert@restic-mount.service" ];
       };
       Service = {
         Type = "simple";
