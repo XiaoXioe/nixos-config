@@ -99,6 +99,80 @@ This configuration provides a custom suite of terminal tools to manage connectio
 
 ---
 
+## 🧩 Developer Guide
+
+### Module Convention (`selfLib.mkModule`)
+
+Every feature module uses `selfLib.mkModule` — a unified builder that auto-creates
+`options.my.<name>.enable` and wires NixOS + Home Manager config under a single toggle:
+
+```nix
+{ pkgs, selfLib, ... }:
+
+selfLib.mkModule {
+  name        = "apps.office.example";   # dot-path → options.my.apps.office.example.enable
+  description = "Short description";
+
+  nixosConfig = { ... };                 # system-level config (active when enable = true)
+  hmConfig    = hmOpts: { ... };         # home-manager config (receives hmOpts.config, hmOpts.osConfig)
+  flatpakCfg  = { "com.app.Id" = { enable = true; origin = "flathub"; binName = "app"; }; };
+  preservation = { persist = true; directories = [ "/var/lib/example" ]; };
+}
+```
+
+### Feature Toggles (`userFeatures`)
+
+All features are toggled via [`modules/hosts/KleinMoretti/users/default.nix`](file:///home/klein-moretti/nixos-config/modules/hosts/KleinMoretti/users/default.nix).
+Set a key to `true`/`false` — the `mapFeatures` transformer converts it to `{ enable = true/false; }`.
+
+### Adding a New Host
+
+1. Create `modules/hosts/<HostName>/` with subdirs: `default.nix`, `home/`, `hardware-configuration/`, `users/`
+2. Copy `users/default.nix` from `KleinMoretti` and adjust settings
+3. In `flake.nix`, add to `mkNixosConfigurations`:
+   ```nix
+   mkNixosConfigurations = {
+     KleinMoretti = builders.mkNixosConfiguration "KleinMoretti";
+     NewHost      = builders.mkNixosConfiguration "NewHost";     # ← add
+   };
+   ```
+
+### Adding a New Module
+
+1. Create `modules/<domain>/<name>.nix` using `selfLib.mkModule`
+2. Register the feature path in `modules/hosts/<HostName>/users/default.nix`
+3. The `scanPaths` traverser auto-discovers it — no manual import needed
+
+### Web App (PWA) Helper
+
+Use `selfLib.mkWebApp pkgs { ... }` to create a Chromium/Brave app-mode launcher with `.desktop` entry.
+For Firefox PWA, use the `PWAsForFirefox` extension (native `--app=` flag not yet supported in stable Firefox).
+
+```nix
+home.packages = [
+  (selfLib.mkWebApp pkgs {
+    name        = "my-app";
+    desktopName = "My App";
+    url         = "https://app.example.com";
+    browser     = "brave";        # "chromium" | "brave" | "firefox" (via flatpak) | "librewolf"
+    wmClass     = "app.example.com";
+    osConfig    = hmOpts.osConfig;
+  })
+];
+```
+
+### Secrets Management
+
+Secrets are encrypted with `sops-nix`. To add a new secret:
+```bash
+# Edit secrets file
+sops modules/security/secrets.yaml
+# Reference in Nix
+sops.secrets."my-secret" = { sopsFile = ./secrets.yaml; owner = "root"; };
+```
+
+---
+
 ## 💻 Quick Start & Verification
 
 ```bash

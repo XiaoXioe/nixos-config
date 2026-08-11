@@ -100,10 +100,7 @@
       lib = inputs.nixpkgs.lib;
       hostName = "KleinMoretti";
 
-      # User data & custom library
-      userData = import ./modules/hosts/nixos/users;
-      adminUser = userData.userName;
-      flakePath = "/home/${adminUser}/nixos-config";
+      adminUser = "klein-moretti";
       system = "x86_64-linux";
 
       selfLib = import ./modules/_lib { inherit lib inputs; };
@@ -114,58 +111,18 @@
         overlays = [ ];
       };
 
-      # Shared arguments for both NixOS and Home Manager
-      baseArgs = {
-        inherit
-          inputs
-          selfLib
-          hostName
-          flakePath
-          userData
-          ;
-        userName = adminUser;
-        inherit (userData) fullName;
-        userFeatures = userData.userFeatures or { };
-      };
-
-      homeModules = [
-        ./modules/hosts/nixos/home
-        inputs.nix-index-database.homeModules.nix-index
-      ];
-
-      commonModules = [
-        ./modules/hosts/nixos
-        ./modules
-        inputs.preservation.nixosModules.preservation
-        inputs.sops-nix.nixosModules.sops
-        inputs.home-manager.nixosModules.home-manager
-        inputs.nix-flatpak.nixosModules.nix-flatpak
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = baseArgs;
-            backupFileExtension = "hm-bak";
-            users.${adminUser} = {
-              imports = homeModules;
-            };
-          };
-        }
-      ];
-
       # Build configurations using extracted builders
       builders = import ./modules/_lib/builders {
         inherit
           lib
-          pkgs
-          baseArgs
-          commonModules
+          inputs
+          selfLib
           system
           ;
       };
 
       mkNixosConfigurations = {
-        ${hostName} = builders.mkNixosConfiguration hostName;
+        KleinMoretti = builders.mkNixosConfiguration "KleinMoretti";
       };
 
       # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt), dead
@@ -192,24 +149,7 @@
 
       checks.${system}.pre-commit = preCommitCheck;
 
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          nixfmt
-          statix
-          deadnix
-          nix-output-monitor
-          nvd
-        ];
-
-        shellHook = preCommitCheck.shellHook + ''
-          echo "❄️ NixOS Config DevShell"
-          echo "  Tools: nixfmt, statix, deadnix, nom, nvd"
-          echo "  Gate:  nixfmt + deadnix (pre-commit hook aktif)"
-          echo "  Usage: nixfmt <file>     # format .nix files"
-          echo "         statix .          # lint Nix code (advisory)"
-          echo "         deadnix .         # find dead code"
-        '';
-      };
+      devShells.${system}.default = builders.mkDevShell;
 
       nixosConfigurations = mkNixosConfigurations;
 

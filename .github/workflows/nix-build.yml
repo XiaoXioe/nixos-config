@@ -50,3 +50,8 @@ jobs:
             ".#devShells.x86_64-linux.default" \
             ".#checks.x86_64-linux.pre-commit" \
             -L
+
+      - name: Eval NixOS configuration (syntax check)
+        run: |
+          nix eval .#nixosConfigurations.KleinMoretti.config.system.build.toplevel.drvPath
+
