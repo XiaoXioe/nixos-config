@@ -20,7 +20,7 @@ selfLib.mkModule {
         };
         comment = "Proton Mail client via Chromium App Mode";
         browser = "chromium"; # Dapat disetel langsung ke "brave" atau "chromium"
-        osConfig = hmOpts.osConfig; # Meneruskan konfigurasi sistem untuk deteksi flatpak otomatis
+        inherit (hmOpts) osConfig; # Meneruskan konfigurasi sistem untuk deteksi flatpak otomatis
         wmClass = "mail.proton.me";
       })
     ];

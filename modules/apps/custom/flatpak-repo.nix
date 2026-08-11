@@ -18,7 +18,7 @@ selfLib.mkModule {
       binName = "burpsuitepro";
     };
     "io.github.xiaoyouchr.GhostDownloader" = {
-      enable = true;
+      enable = false;
       origin = "xiaoxioe-flatpak";
       binName = "ghost-downloader";
     };
