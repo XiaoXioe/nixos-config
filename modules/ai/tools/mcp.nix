@@ -17,6 +17,7 @@ let
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
   obsidian-second-brain-mcp-pkg = inputs.nix-mcp.packages.${system}.obsidian-second-brain-mcp;
+  scrapling-mcp-pkg = inputs.nix-mcp.packages.${system}.scrapling;
 
   homeDir = "/home/${config.my.user.name}";
   tavilyKeyPath = config.sops.secrets."tavily-api-key".path;
@@ -59,6 +60,10 @@ let
       environment = {
         OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
       };
+    };
+    scrapling = {
+      type = "local";
+      command = [ "${scrapling-mcp-pkg}/bin/scrapling" ];
     };
   };
 
@@ -141,6 +146,10 @@ selfLib.mkModule {
               OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
             };
           };
+          scrapling = {
+            command = "${scrapling-mcp-pkg}/bin/scrapling";
+            args = [ "mcp" ];
+          };
           cloudflare-api = {
             url = "https://mcp.cloudflare.com/mcp";
             headers = {
@@ -172,6 +181,7 @@ selfLib.mkModule {
           sequential-thinking-pkg
           mcp-nixos-pkg
           obsidian-second-brain-mcp-pkg
+          scrapling-mcp-pkg
         ];
 
         # activation murni hanya untuk mengelola opencode.json agar tetap MUTABLE

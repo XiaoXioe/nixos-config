@@ -13,7 +13,7 @@ selfLib.mkModule {
 
   flatpakCfg = {
     "com.portswigger.BurpSuitePro" = {
-      enable = false;
+      enable = true;
       origin = "xiaoxioe-flatpak";
       binName = "burpsuitepro";
     };
