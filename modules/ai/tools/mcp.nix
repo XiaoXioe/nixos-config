@@ -64,6 +64,9 @@ let
     scrapling = {
       type = "local";
       command = [ "${scrapling-mcp-pkg}/bin/scrapling" ];
+      environment = {
+        SCRAPLING_EXECUTABLE_PATH = "/etc/profiles/per-user/${config.my.user.name}/bin/chromium";
+      };
     };
   };
 
@@ -149,6 +152,9 @@ selfLib.mkModule {
           scrapling = {
             command = "${scrapling-mcp-pkg}/bin/scrapling";
             args = [ "mcp" ];
+            env = {
+              SCRAPLING_EXECUTABLE_PATH = "/etc/profiles/per-user/${config.my.user.name}/bin/chromium";
+            };
           };
           cloudflare-api = {
             url = "https://mcp.cloudflare.com/mcp";
