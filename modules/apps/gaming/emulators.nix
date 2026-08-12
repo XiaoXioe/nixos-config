@@ -7,15 +7,28 @@
 }:
 
 let
-  retroarchCores =
-    cores: with cores; [
-      nestopia
-      snes9x
-      genesis-plus-gx
-      mgba
-      mupen64plus
-      swanstation
-    ];
+  useFlatpak = true; # Set to true to use Flatpak, or false to use nativepkgs
+
+  enabledCoreNames = [
+    "nestopia"
+    "snes9x"
+    "genesis-plus-gx"
+    "mgba"
+    "mupen64plus"
+    "swanstation"
+    "pcsx-rearmed"
+    "beetle-psx"
+    "beetle-psx-hw"
+    "stella"
+    "melonds"
+    "desmume"
+    "sameboy"
+    "citra"
+    "flycast"
+    "fbneo"
+  ];
+
+  retroarchWithCores = pkgs.retroarch.withCores (cores: map (name: cores.${name}) enabledCoreNames);
 in
 selfLib.mkModule {
   name = "apps.gaming.emulators";
@@ -29,6 +42,7 @@ selfLib.mkModule {
 
     "org.libretro.RetroArch" = {
       enable = true;
+      flatpak = useFlatpak;
       overrides = {
         Context = {
           filesystems = [
@@ -42,33 +56,32 @@ selfLib.mkModule {
           guest = "config/retroarch";
         }
       ];
-      nativePkgs = pkgs.retroarch.withCores retroarchCores;
+      nativePkgs = pkgs.retroarch-bare;
       hmProgram = {
         name = "retroarch";
         extraConfig = {
-          package =
-            lib.mkIf config.my.apps.gaming.emulators.flatpaks."org.libretro.RetroArch".flatpak.enable
-              (
-                lib.mkForce (
-                  (pkgs.runCommand "empty-retroarch" { } "mkdir -p $out")
-                  // {
-                    wrapper = _: pkgs.runCommand "empty-retroarch-wrapped" { } "mkdir -p $out";
-                  }
-                )
-              );
           settings = {
+            "libretro_directory" = "${retroarchWithCores}/lib/retroarch/cores";
             "video_driver" = "gl";
             "audio_driver" = "pulse";
             "input_joypad_driver" = "udev";
             "fps_show" = "true";
             "menu_swap_ok_cancel_buttons" = "true";
             "input_menu_toggle_gamepad_combo" = "4";
+            "config_save_on_exit" = "false";
             "video_threaded" = "true";
             "quit_press_twice" = "true";
             "savestate_auto_save" = "true";
             "savestate_auto_load" = "true";
             "notification_show_autoconfig" = "false";
-          };
+          }
+          // (lib.optionalAttrs useFlatpak {
+            "assets_directory" = "/app/share/libretro/assets";
+            "joypad_autoconfig_dir" = "/app/share/libretro/autoconfig";
+            "libretro_info_path" = "/app/share/libretro/info";
+            "overlay_directory" = "/app/share/libretro/overlays";
+            "video_shader_dir" = "/app/share/libretro/shaders";
+          });
         };
       };
     };
@@ -134,19 +147,9 @@ selfLib.mkModule {
   };
 
   hmConfig = hmOpts: {
-    home.file.".config/retroarch/cores" = {
-      source =
-        let
-          coresJoined = pkgs.symlinkJoin {
-            name = "retroarch-cores";
-            paths = retroarchCores pkgs.libretro;
-          };
-        in
-        "${coresJoined}/lib/retroarch/cores";
-      force = true;
-    };
 
     xdg.configFile = {
+
       "dolphin-emu/Dolphin.ini" = {
         text = lib.generators.toINI { } {
           Core = {
@@ -155,9 +158,16 @@ selfLib.mkModule {
             GFXBackend = "OGL";
           };
           General = {
-            ISOPaths = 1;
+            ISOPaths = 2;
             ISOPath0 = "${hmOpts.osConfig.my.dataPath}/Games-retro/gamecube";
+            ISOPath1 = "${hmOpts.osConfig.my.dataPath}/Games-retro/wii";
             RecursiveISOPaths = "True";
+          };
+          Controls = {
+            WiimoteSource0 = 1;
+            WiimoteSource1 = 0;
+            WiimoteSource2 = 0;
+            WiimoteSource3 = 0;
           };
           Analytics = {
             PermissionAsked = "True";
@@ -174,6 +184,44 @@ selfLib.mkModule {
             FastDepthCalculation = "True";
             InternalResolution = 2;
             ShaderCompilationMode = 2;
+          };
+        };
+        force = true;
+      };
+
+      "dolphin-emu/WiimoteNew.ini" = {
+        text = lib.generators.toINI { } {
+          Wiimote1 = {
+            Device = "evdev/0/Microntek              USB Joystick";
+            "Buttons/A" = "`Button 2`";
+            "Buttons/B" = "`Button 3`";
+            "Buttons/1" = "`Button 0`";
+            "Buttons/2" = "`Button 1`";
+            "Buttons/-" = "`Button 8`";
+            "Buttons/+" = "`Button 9`";
+            "Buttons/Home" = "`Button 10`";
+
+            "D-Pad/Up" = "`Axis 5-`";
+            "D-Pad/Down" = "`Axis 5+`";
+            "D-Pad/Left" = "`Axis 4-`";
+            "D-Pad/Right" = "`Axis 4+`";
+
+            "IR/Up" = "`Axis 3-`";
+            "IR/Down" = "`Axis 3+`";
+            "IR/Left" = "`Axis 2-`";
+            "IR/Right" = "`Axis 2+`";
+
+            "Shake/X" = "`Button 4`";
+            "Shake/Y" = "`Button 5`";
+            "Shake/Z" = "`Button 5`";
+
+            "Extension/Attach" = "Nunchuk";
+            "Nunchuk/Buttons/C" = "`Button 6`";
+            "Nunchuk/Buttons/Z" = "`Button 7`";
+            "Nunchuk/Stick/Up" = "`Axis 1-`";
+            "Nunchuk/Stick/Down" = "`Axis 1+`";
+            "Nunchuk/Stick/Left" = "`Axis 0-`";
+            "Nunchuk/Stick/Right" = "`Axis 0+`";
           };
         };
         force = true;

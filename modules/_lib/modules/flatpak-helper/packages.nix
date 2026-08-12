@@ -122,7 +122,30 @@ in
 
             flatpakBin = mkFlatpakRunScript hmPkgs (hmProgram.binName or hmProgram.name) appId;
             flatpakPkg = (lib.makeOverridable (_: flatpakBin) { }) // {
-              wrapper = _: flatpakBin;
+              wrapper =
+                args:
+                let
+                  hasSettings = args ? settings && args.settings != { };
+                  cfgFile =
+                    if hasSettings then
+                      hmPkgs.writeText "${hmProgram.name}-flatpak.cfg" (
+                        lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "${k} = \"${v}\"") args.settings)
+                      )
+                    else
+                      null;
+                  binName = hmProgram.binName or hmProgram.name;
+                in
+                if cfgFile == null then
+                  flatpakBin
+                else
+                  hmPkgs.writeShellScriptBin binName ''
+                    if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] || [ "$DBUS_SESSION_BUS_ADDRESS" = "unix:path=/dev/null" ]; then
+                      if [ -S "/run/user/$(id -u)/bus" ]; then
+                        export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+                      fi
+                    fi
+                    exec flatpak run ${appId} -c ${cfgFile} "$@"
+                  '';
             };
             defaultPkg = if useFlatpakApp then flatpakPkg else realNativePkg;
           in
