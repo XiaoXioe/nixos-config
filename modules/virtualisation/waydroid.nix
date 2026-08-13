@@ -15,7 +15,7 @@ selfLib.mkModule {
 
   nixosConfig = {
     my.services.storage.btrfs-nocow-migration.nocowDirectories = [
-      "${config.my.dataBtrfsPath}/waydroid_data"
+      "${config.my.dataPath}/waydroid_data"
     ];
 
     virtualisation.waydroid.package =
@@ -28,7 +28,7 @@ selfLib.mkModule {
         nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/waydroid \
-            --set XDG_DATA_HOME "${config.my.dataBtrfsPath}/waydroid_data/${userName}/xdg_data"
+            --set XDG_DATA_HOME "${config.my.dataPath}/waydroid_data/${userName}/xdg_data"
         '';
       };
 
@@ -41,14 +41,14 @@ selfLib.mkModule {
     systemd.tmpfiles.rules =
       let
         userName = config.my.user.name;
-        dataPath = "${config.my.dataBtrfsPath}/waydroid_data/${userName}/xdg_data";
+        dataPath = "${config.my.dataPath}/waydroid_data/${userName}/xdg_data";
       in
       [
         "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
-        "d ${config.my.dataBtrfsPath}/waydroid_data 0755 ${userName} users -"
-        "z ${config.my.dataBtrfsPath}/waydroid_data 0755 ${userName} users -"
-        "d ${config.my.dataBtrfsPath}/waydroid_data/${userName} 0755 ${userName} users -"
-        "z ${config.my.dataBtrfsPath}/waydroid_data/${userName} 0755 ${userName} users -"
+        "d ${config.my.dataPath}/waydroid_data 0755 ${userName} users -"
+        "z ${config.my.dataPath}/waydroid_data 0755 ${userName} users -"
+        "d ${config.my.dataPath}/waydroid_data/${userName} 0755 ${userName} users -"
+        "z ${config.my.dataPath}/waydroid_data/${userName} 0755 ${userName} users -"
         "d ${dataPath} 0755 ${userName} users -"
         "d ${dataPath}/waydroid 0755 ${userName} users -"
         "d ${dataPath}/waydroid/data 0755 ${userName} users -"
@@ -69,7 +69,7 @@ selfLib.mkModule {
       lib.mkMerge [
         {
           "/home/${userName}/WaydroidShare" = {
-            device = "${config.my.dataBtrfsPath}/waydroid_data/${userName}/xdg_data/waydroid/data/media/0/Download";
+            device = "${config.my.dataPath}/waydroid_data/${userName}/xdg_data/waydroid/data/media/0/Download";
             fsType = "fuse.bindfs";
             options = [
               "nofail"
@@ -85,7 +85,7 @@ selfLib.mkModule {
         }
         {
           "/etc/waydroid-extra/images" = {
-            device = "${config.my.dataBtrfsPath}/waydroid_images/halcyon-os";
+            device = "${config.my.dataPath}/waydroid_images/halcyon-os";
             fsType = "none";
             options = [
               "bind"

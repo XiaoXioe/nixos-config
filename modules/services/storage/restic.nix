@@ -157,7 +157,7 @@ selfLib.mkModule {
           "${config.my.dataPath}/Documents"
           "${config.my.dataPath}/Pictures"
           "${config.my.dataPath}/Music"
-          "${config.my.dataBtrfsPath}/PersistentData"
+          "${config.my.dataPath}/PersistentData"
           "${config.my.dataPath}/backup-cloud"
         ];
         onCalendar = "00/3:30:00";

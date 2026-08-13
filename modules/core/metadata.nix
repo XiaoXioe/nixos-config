@@ -24,14 +24,8 @@
 
     dataPath = lib.mkOption {
       type = lib.types.nonEmptyStr;
-      default = "/mnt/data";
-      description = "Global path for NTFS storage mount";
-    };
-
-    dataBtrfsPath = lib.mkOption {
-      type = lib.types.nonEmptyStr;
       default = "/mnt/data_btrfs";
-      description = "Global path for BTRFS storage mount";
+      description = "Global path for data storage mount";
     };
 
     defaultApps = {

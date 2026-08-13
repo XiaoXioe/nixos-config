@@ -30,7 +30,7 @@ selfLib.mkModule {
         proc_sorting = "cpu direct";
         mem_graphs = false;
         graph_symbol = "braille";
-        disks_filter = "/ ${hmOpts.osConfig.my.dataPath} ${hmOpts.osConfig.my.dataBtrfsPath}";
+        disks_filter = "/ ${hmOpts.osConfig.my.dataPath}";
         show_swap = true;
         swap_disk = false;
         rounded_corners = true;

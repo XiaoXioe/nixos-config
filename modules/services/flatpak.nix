@@ -52,20 +52,20 @@ selfLib.mkModule {
 
   nixosConfig = {
     my.services.storage.btrfs-nocow-migration.nocowDirectories = [
-      "${config.my.dataBtrfsPath}/flatpak-userdata"
+      "${config.my.dataPath}/flatpak-userdata"
     ];
 
     systemd.tmpfiles.rules = [
-      "d ${config.my.dataBtrfsPath}/flatpak-userdata 0755 ${config.my.user.name} users - -"
-      "d ${config.my.dataBtrfsPath}/flatpak-local 0755 ${config.my.user.name} users - -"
-      "d ${config.my.dataBtrfsPath}/containers 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataPath}/flatpak-userdata 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataPath}/flatpak-local 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataPath}/containers 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/CloudStorage 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.var 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.local 0755 ${config.my.user.name} users - -"
       "d /home/${config.my.user.name}/.local/share 0755 ${config.my.user.name} users - -"
-      "L+ /home/${config.my.user.name}/.var/app - - - - ${config.my.dataBtrfsPath}/flatpak-userdata"
-      "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - ${config.my.dataBtrfsPath}/flatpak-local"
-      "L+ /home/${config.my.user.name}/.local/share/containers - - - - ${config.my.dataBtrfsPath}/containers"
+      "L+ /home/${config.my.user.name}/.var/app - - - - ${config.my.dataPath}/flatpak-userdata"
+      "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - ${config.my.dataPath}/flatpak-local"
+      "L+ /home/${config.my.user.name}/.local/share/containers - - - - ${config.my.dataPath}/containers"
     ];
 
     services.flatpak = {

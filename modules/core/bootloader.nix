@@ -56,7 +56,7 @@ selfLib.mkModule {
         enable = true;
         device = "nodev";
         efiSupport = true;
-        useOSProber = true;
+        useOSProber = false;
         theme = pkgs.catppuccin-grub.override { flavor = "macchiato"; };
 
         extraEntries = ''

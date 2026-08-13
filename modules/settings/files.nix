@@ -34,12 +34,12 @@ selfLib.mkModule {
     services.accounts-daemon.enable = true;
 
     systemd.tmpfiles.settings."10-accounts-service" = {
-      "${config.my.dataBtrfsPath}/containers".d = {
+      "${config.my.dataPath}/containers".d = {
         mode = "0755";
         user = config.my.user.name;
         group = "users";
       };
-      "${config.my.dataBtrfsPath}/PersistentData".d = {
+      "${config.my.dataPath}/PersistentData".d = {
         mode = "0755";
         user = config.my.user.name;
         group = "users";
@@ -90,7 +90,7 @@ selfLib.mkModule {
       "Pictures" = "${hmOpts.osConfig.my.dataPath}/Pictures";
       "Videos" = "${hmOpts.osConfig.my.dataPath}/Videos";
       "Music" = "${hmOpts.osConfig.my.dataPath}/Music";
-      "PersistentData" = "${hmOpts.osConfig.my.dataBtrfsPath}/PersistentData";
+      "PersistentData" = "${hmOpts.osConfig.my.dataPath}/PersistentData";
       ".face.icon" = hmOpts.osConfig.sops.secrets."foto-profile".path;
       ".face" = hmOpts.osConfig.sops.secrets."foto-profile".path;
     };

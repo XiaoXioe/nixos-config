@@ -3,7 +3,7 @@
 { lib }:
 {
   # Generate home.file / xdg.configFile entries as out-of-store symlinks.
-  # Usage: selfLib.mkHmSymlinks hmOpts.config { "Documents" = "/mnt/data/Documents"; }
+  # Usage: selfLib.mkHmSymlinks hmOpts.config { "Documents" = "${config.my.dataPath}/Documents"; }
   mkHmSymlinks =
     hmConfig: attrs:
     lib.mapAttrs (_name: path: {

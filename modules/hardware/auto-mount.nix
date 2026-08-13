@@ -7,14 +7,9 @@
 selfLib.mkModule {
   name = "hardware.auto-mount";
   options = {
-    dataDevice = lib.mkOption {
-      type = lib.types.str;
-      default = "/dev/disk/by-uuid/365EE7F85EE7AEB5";
-      description = "Device path for the NTFS data partition.";
-    };
     btrfsDevice = lib.mkOption {
       type = lib.types.str;
-      default = "/dev/disk/by-uuid/7cecb23a-1617-4376-8fe0-f459a44c832b";
+      default = "/dev/disk/by-uuid/b37ce34a-51ef-4022-a728-43b9293e7da4";
       description = "Device path for the BTRFS data partition.";
     };
     btrfsRoot = lib.mkOption {
@@ -30,26 +25,8 @@ selfLib.mkModule {
     in
     {
       fileSystems = {
-        "${config.my.dataPath}" = {
-          device = cfg.dataDevice;
-          fsType = "ntfs3";
-          options = [
-            "rw"
-            "uid=1000"
-            "gid=100"
-            "dmask=0022"
-            "fmask=0033"
-            "iocharset=utf8"
-            "force"
-            "exec"
-            "nofail"
-            "noatime"
-            "x-systemd.automount"
-            "x-systemd.mount-timeout=30s"
-          ];
-        };
 
-        "${config.my.dataBtrfsPath}" = {
+        "${config.my.dataPath}" = {
           device = cfg.btrfsDevice;
           fsType = "btrfs";
           options = [
@@ -75,15 +52,15 @@ selfLib.mkModule {
         };
 
         "/var/lib/flatpak" = {
-          device = "${config.my.dataBtrfsPath}/flatpak-system";
+          device = "${config.my.dataPath}/flatpak-system";
           fsType = "none";
           options = [
             "bind"
             "x-systemd.requires=${
-              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
             }.mount"
             "x-systemd.after=${
-              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataBtrfsPath)
+              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
             }.mount"
           ];
         };

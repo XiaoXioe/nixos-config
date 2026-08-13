@@ -16,8 +16,8 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
-            "${config.my.dataBtrfsPath}/bottles"
-            "${config.my.dataBtrfsPath}/wine-data"
+            "${config.my.dataPath}/bottles"
+            "${config.my.dataPath}/wine-data"
           ];
         };
       };
@@ -42,19 +42,19 @@ selfLib.mkModule {
 
       sessionVariables = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
         WINEDLLOVERRIDES = "winemenubuilder.exe=d";
-        WINEPREFIX = "${hmOpts.osConfig.my.dataBtrfsPath}/wine-data";
+        WINEPREFIX = "${hmOpts.osConfig.my.dataPath}/wine-data";
         WINEARCH = "win64";
       };
 
       file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
         selfLib.mkHmSymlinks hmOpts.config {
-          ".local/share/bottles" = "${hmOpts.osConfig.my.dataBtrfsPath}/bottles";
+          ".local/share/bottles" = "${hmOpts.osConfig.my.dataPath}/bottles";
         }
       );
     };
 
     systemd.user.tmpfiles.rules = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
-      "d ${hmOpts.osConfig.my.dataBtrfsPath}/bottles 0755 - - -"
+      "d ${hmOpts.osConfig.my.dataPath}/bottles 0755 - - -"
     ];
   };
 }

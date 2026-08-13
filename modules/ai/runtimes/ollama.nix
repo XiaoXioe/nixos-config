@@ -25,7 +25,7 @@ selfLib.mkModule {
 
     services.ollama = {
       enable = true;
-      models = "${config.my.dataBtrfsPath}/ollama_storage/models";
+      models = "${config.my.dataPath}/ollama_storage/models";
     };
 
     systemd.services.ollama = {
