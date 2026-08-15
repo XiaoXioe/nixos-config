@@ -168,7 +168,7 @@ assert
             lib.mkMerge [
               resolvedNixosConfig
               (lib.mkIf (hmConfig != null && userName != null) {
-                home-manager.users.${userName} = hmConfig;
+                home-manager.users.${userName} = if builtins.isFunction hmConfig then hmConfig else (_: hmConfig);
               })
               # Flatpak-specific NixOS configuration
               (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {
