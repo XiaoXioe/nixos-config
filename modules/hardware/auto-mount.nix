@@ -56,6 +56,7 @@ selfLib.mkModule {
           fsType = "none";
           options = [
             "bind"
+            "nofail"
             "x-systemd.requires=${
               lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
             }.mount"
