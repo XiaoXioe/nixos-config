@@ -18,7 +18,7 @@ selfLib.mkModule {
   name = "apps.browsers.librewolf";
   description = "LibreWolf configuration for user";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.librewolf = {
       enable = true;
       package = pkgs.librewolf;

@@ -58,7 +58,7 @@ selfLib.mkModule {
 
     # Override profile-sync-daemon globally so systemd services pick it up natively
     nixpkgs.overlays = [
-      (final: prev: {
+      (_: prev: {
         profile-sync-daemon = prev.profile-sync-daemon.overrideAttrs (
           _finalAttrs: oldAttrs: {
             postPatch = (oldAttrs.postPatch or "") + ''

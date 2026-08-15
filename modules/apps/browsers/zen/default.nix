@@ -17,7 +17,6 @@ let
     resolveAddons
     lock-false
     lock-true
-    lock-empty-string
     lock
     ;
 
@@ -26,7 +25,6 @@ let
       lock
       lock-true
       lock-false
-      lock-empty-string
       ;
   };
 
@@ -115,7 +113,7 @@ selfLib.mkModule {
         policies = zenBrowserPolicies;
 
         profiles = {
-          ${user} = import ./profiles/klein-moretti.nix {
+          ${user} = import ./profiles/primary.nix {
             inherit
               baseSettings
               lib

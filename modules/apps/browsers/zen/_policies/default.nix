@@ -4,7 +4,6 @@
   lock,
   lock-true,
   lock-false,
-  lock-empty-string,
 }:
 {
   # ==========================================
