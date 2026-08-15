@@ -108,5 +108,10 @@ let
   };
 in
 {
-  inherit mkNixosConfiguration mkDevShell;
+  inherit
+    mkNixosConfiguration
+    mkDevShell
+    preCommitCheck
+    pkgs
+    ;
 }

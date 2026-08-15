@@ -105,12 +105,6 @@
 
       selfLib = import ./modules/_lib { inherit lib inputs; };
 
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-        overlays = [ ];
-      };
-
       # Build configurations using extracted builders
       builders = import ./modules/_lib/builders {
         inherit
@@ -124,30 +118,11 @@
       mkNixosConfigurations = {
         KleinMoretti = builders.mkNixosConfiguration "KleinMoretti";
       };
-
-      # Pre-commit / CI quality gate. Objektif & aman: format (nixfmt), dead
-      # code (deadnix), dan linting (statix). Lambda arg diabaikan karena pola
-      # `hmConfig = hmOpts:` sengaja menyisakan argumen tak terpakai (cegah shadowing)
-      preCommitCheck = inputs.git-hooks.lib.${system}.run {
-        src = ./.;
-        hooks = {
-          nixfmt.enable = true;
-          statix.enable = true;
-          deadnix = {
-            enable = true;
-            settings = {
-              noLambdaArg = true;
-              noLambdaPatternNames = true;
-            };
-          };
-        };
-      };
-
     in
     {
-      formatter.${system} = pkgs.nixfmt;
+      formatter.${system} = builders.pkgs.nixfmt;
 
-      checks.${system}.pre-commit = preCommitCheck;
+      checks.${system}.pre-commit = builders.preCommitCheck;
 
       devShells.${system}.default = builders.mkDevShell;
 

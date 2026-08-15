@@ -45,18 +45,19 @@ selfLib.mkModule {
 
       hmProgram = {
         name = "chromium";
-        extraConfig = {
-          extensions = [
-            { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
-          ]
-          ++ commonChromiumExtensions;
-        };
       };
     };
   };
 
   nixosConfig = {
     environment.etc."chromium/policies/managed/policies.json".text = builtins.toJSON {
+      ExtensionInstallForcelist = map (ext: ext.id) (
+        [
+          { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
+        ]
+        ++ commonChromiumExtensions
+      );
+
       PasswordManagerEnabled = false;
       BrowserSignin = 0;
       RestoreOnStartup = 1;

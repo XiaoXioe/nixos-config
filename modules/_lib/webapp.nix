@@ -33,8 +33,15 @@
         librewolf = "io.gitlab.librewolf-community";
       };
 
+      # Browser name string (for detection and fallback)
+      browserName =
+        if isDerivation then
+          (browser.meta.mainProgram or (browser.pname or (lib.getName browser)))
+        else
+          browser;
+
       # Check if browser is Firefox-like (uses different launch flags)
-      isFirefoxLike = lib.elem (if isDerivation then "" else browser) [
+      isFirefoxLike = lib.elem browserName [
         "firefox"
         "librewolf"
         "org.mozilla.firefox"
@@ -75,6 +82,10 @@
       flagsString = lib.concatStringsSep " " extraFlags;
       flagsParam = if flagsString != "" then " " + flagsString else "";
 
+      # Resolve executable path for native browser
+      nativeBrowserPkg = if isDerivation then browser else pkgs.${browser};
+      nativeBrowserExe = lib.getExe nativeBrowserPkg;
+
       # Determine the launch command to avoid string coercing null at Nix evaluation time
       execCmd =
         if isFlatpak then
@@ -83,25 +94,9 @@
           else
             "${pkgs.flatpak}/bin/flatpak run ${runBrowser} --app=\"${url}\"${flagsParam} \"\$@\""
         else if isFirefoxLike then
-          let
-            browserPkg = if isDerivation then runBrowser else pkgs.${runBrowser};
-            browserBinName =
-              if isDerivation then
-                (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser)))
-              else
-                runBrowser;
-          in
-          "${browserPkg}/bin/${browserBinName} --new-instance --class=\"${name}\" --profile /tmp/${name}-pwa${flagsParam} \"${url}\" \"\$@\""
+          "${nativeBrowserExe} --new-instance --class=\"${name}\" --profile /tmp/${name}-pwa${flagsParam} \"${url}\" \"\$@\""
         else
-          let
-            browserPkg = if isDerivation then runBrowser else pkgs.${runBrowser};
-            browserBinName =
-              if isDerivation then
-                (runBrowser.meta.mainProgram or (runBrowser.pname or (lib.getName runBrowser)))
-              else
-                runBrowser;
-          in
-          "${browserPkg}/bin/${browserBinName} --app=\"${url}\"${flagsParam} \"\$@\"";
+          "${nativeBrowserExe} --app=\"${url}\"${flagsParam} \"\$@\"";
 
       execApp = pkgs.writeShellScriptBin name ''
         exec ${execCmd}

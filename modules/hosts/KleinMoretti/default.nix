@@ -29,13 +29,7 @@
 
   my = lib.recursiveUpdate (selfLib.mapFeatures userFeatures) {
     hostname = hostName;
-    defaultApps =
-      userData.defaultApps or {
-        terminal = "foot";
-        browser = "zen-beta";
-        editor = "codium";
-        fileManager = "dolphin";
-      };
+    defaultApps = userData.defaultApps or { };
     defaultTerminal = userData.defaultApps.terminal or "foot";
     user = {
       name = userName;

@@ -11,10 +11,6 @@ selfLib.mkModule {
   preservation = {
     persist = true;
     directories = [ "/var/lib/nixos" ];
-    userDirectories = [
-      ".cache/nix/gitv3"
-      ".cache/nix/tarball-cache-v2"
-    ];
   };
 
   nixosConfig = {

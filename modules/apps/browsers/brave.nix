@@ -19,6 +19,7 @@ selfLib.mkModule {
       overrides = {
         Context = {
           filesystems = [
+            "/etc/brave:ro"
             "xdg-run/psd" # Profile Sync Daemon tmpfs
           ];
         };
@@ -52,15 +53,6 @@ selfLib.mkModule {
       # Integrasi Home Manager program
       hmProgram = {
         name = "brave";
-        extraConfig = {
-          extensions = commonChromiumExtensions ++ [
-            { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
-            { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
-            { id = "nkbihfbeogaeaoehlefnkodbefgpgknn"; } # Metamask
-            { id = "bhhhlbepdkbapadjdnnojkbgioiodbic"; } # Solflare Wallet
-            { id = "dmkamcknogkgcdfhhbddcghachkejeap"; } # Keplr Wallet
-          ];
-        };
       };
     };
   };
@@ -68,6 +60,16 @@ selfLib.mkModule {
   # Kebijakan sistem browser (berlaku universal baik Flatpak maupun Native)
   nixosConfig = {
     environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
+      ExtensionInstallForcelist = map (ext: ext.id) (
+        commonChromiumExtensions
+        ++ [
+          { id = "einpaelgookohagofgnnkcfjbkkgepnp"; } # Random User-Agent (Switcher)
+          { id = "nplimhmoanghlebhdiboeellhgmgommi"; } # Tab Groups Extension
+          { id = "nkbihfbeogaeaoehlefnkodbefgpgknn"; } # Metamask
+          { id = "bhhhlbepdkbapadjdnnojkbgioiodbic"; } # Solflare Wallet
+          { id = "dmkamcknogkgcdfhhbddcghachkejeap"; } # Keplr Wallet
+        ]
+      );
       PasswordManagerEnabled = false;
       BrowserSignin = 0;
       RestoreOnStartup = 1;

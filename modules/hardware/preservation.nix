@@ -59,11 +59,14 @@ selfLib.mkModule {
 
       aspectSystemDirectories = builtins.concatLists (
         map (
-          a: a.rule.systemDirectories or a.rule.sysDirectories or a.rule.directories or [ ]
+          a:
+          (a.rule.systemDirectories or [ ]) ++ (a.rule.sysDirectories or [ ]) ++ (a.rule.directories or [ ])
         ) activeAspects
       );
       aspectSystemFiles = builtins.concatLists (
-        map (a: a.rule.systemFiles or a.rule.sysFiles or a.rule.files or [ ]) activeAspects
+        map (
+          a: (a.rule.systemFiles or [ ]) ++ (a.rule.sysFiles or [ ]) ++ (a.rule.files or [ ])
+        ) activeAspects
       );
       aspectUserDirectories = builtins.concatLists (map (a: a.rule.userDirectories or [ ]) activeAspects);
       aspectUserFiles = builtins.concatLists (map (a: a.rule.userFiles or [ ]) activeAspects);
