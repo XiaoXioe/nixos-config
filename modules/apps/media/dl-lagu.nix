@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.media.dl-lagu";
   description = "YouTube audio downloader script";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "dl-lagu"
         ''

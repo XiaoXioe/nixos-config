@@ -9,7 +9,7 @@ selfLib.mkModule {
   name = "apps.terminal.utilities.functions.file-transfer";
   description = "File transfer scripts (ambil & kirim)";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (pkgs.writers.writePython3Bin "ambil" { flakeIgnore = [ "E501" ]; } (
         builtins.readFile ./scripts/ambil.py

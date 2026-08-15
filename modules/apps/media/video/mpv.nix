@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.media.video.mpv";
   description = "MPV media player configuration with GPU hardware acceleration, uosc UI, and YouTube dubbing support";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.mpv = {
       enable = true;
       scripts = with pkgs.mpvScripts; [

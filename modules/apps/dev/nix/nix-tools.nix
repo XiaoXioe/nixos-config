@@ -9,7 +9,7 @@ selfLib.mkModule {
   name = "apps.dev.nix.nix-tools";
   description = "Nix ecosystem development, package searching, and inspection tools";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       nix-tree
       nix-init

@@ -13,7 +13,7 @@ selfLib.mkModule {
   name = "apps.custom.scrapers";
   description = "Custom streaming and media scraping tools";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       custom.streambert
       priv.anichin-scraper

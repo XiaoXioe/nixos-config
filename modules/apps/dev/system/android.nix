@@ -28,7 +28,7 @@ selfLib.mkModule {
     };
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       android-tools
       scrcpy

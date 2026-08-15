@@ -12,7 +12,7 @@ selfLib.mkModule {
     userDirectories = [ ".tdl" ];
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
 
     home.packages = with pkgs; [
       tdl

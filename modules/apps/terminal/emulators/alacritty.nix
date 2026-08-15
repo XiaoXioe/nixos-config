@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.emulators.alacritty";
   description = "Alacritty GPU-accelerated terminal configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [ pkgs.libnotify ];
 
     programs.alacritty = {

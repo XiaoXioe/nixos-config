@@ -9,7 +9,7 @@ selfLib.mkModule {
   name = "apps.terminal.multiplexers.zellij";
   description = "Zellij multiplexer configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.zellij = {
       enable = true;
       package = inputs.nixpkgs-zellij-043.legacyPackages.${pkgs.stdenv.hostPlatform.system}.zellij; # pin ke 0.43.1 — 0.44.x menyebabkan CPU spike konstan

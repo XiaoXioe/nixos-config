@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.nix.flake-update-interactive";
   description = "Interactive flake input updater using fzf and jq (nfui)";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "nfui"
         ''

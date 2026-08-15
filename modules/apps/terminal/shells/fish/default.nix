@@ -15,7 +15,7 @@ selfLib.mkModule {
     programs.fish.enable = true;
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     imports = selfLib.scanPaths ./.;
   };
 }

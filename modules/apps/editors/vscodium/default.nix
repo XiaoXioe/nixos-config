@@ -30,7 +30,7 @@ selfLib.mkModule {
       ];
     };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       black
       shfmt

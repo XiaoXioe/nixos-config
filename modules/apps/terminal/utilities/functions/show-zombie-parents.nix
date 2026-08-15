@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.utilities.functions.show-zombie-parents";
   description = "Identify zombie/defunct processes";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "show-zombie-parents" ''
         ZOMBIE_PPIDS=$(ps -A -ostat,ppid | grep -e '[zZ]' | awk '{ print $2 }' | uniq)

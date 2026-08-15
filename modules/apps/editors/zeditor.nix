@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.editors.zeditor";
   description = "Zed-editor configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       black
       shfmt

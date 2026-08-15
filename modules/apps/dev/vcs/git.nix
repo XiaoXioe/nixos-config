@@ -21,7 +21,7 @@ selfLib.mkModule {
           "github-user-3"
           "github-access-token-3"
         ]
-        (key: {
+        (_: {
           sopsFile = ./secrets.yaml;
           owner = config.my.user.name;
           mode = "0400";

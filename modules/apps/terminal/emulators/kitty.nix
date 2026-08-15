@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.terminal.emulators.kitty";
   description = "Kitty terminal configuration with Catppuccin Mocha theme and Zellij keybindings";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.kitty = {
       enable = true;
       font = {

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.dev.nix.cek-cache";
   description = "Check package in /nix/store";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "cek-cache"
         ''

@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.dev.environment.direnv";
   description = "Direnv shell extension for project environment variable management";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.direnv = {
       enable = true;
       nix-direnv.enable = true;

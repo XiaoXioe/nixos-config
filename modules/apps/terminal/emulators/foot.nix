@@ -1,5 +1,4 @@
 {
-  lib,
   pkgs,
   selfLib,
   ...
@@ -9,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.emulators.foot";
   description = "Foot terminal configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.foot = {
       enable = true;
       settings = {

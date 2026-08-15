@@ -9,7 +9,7 @@ selfLib.mkModule {
   name = "apps.custom.freqtrade";
   description = "Freqtrade algorithmic trading bots setup and configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     imports = [
       inputs.custompkgs.homeModules.freqtrade-setup
     ];

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.utilities.tools";
   description = "Modern command-line utilities and tools for terminal productivity";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       ripgrep
       fd

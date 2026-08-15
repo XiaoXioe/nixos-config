@@ -19,7 +19,7 @@ selfLib.mkModule {
   name = "apps.dev.vcs.git-commits";
   description = "Git Conventional Commits helper scripts";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (
         (selfLib.mkApp pkgs "git-commit-helper" ''

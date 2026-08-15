@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.terminal.utilities.fzf";
   description = "FZF interactive fuzzy finder for shell";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.fzf = {
       enable = true;
       enableFishIntegration = true;

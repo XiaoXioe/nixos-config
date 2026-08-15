@@ -14,7 +14,7 @@ selfLib.mkModule {
     ];
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     imports = [ inputs.nvf.homeManagerModules.default ];
     programs.nvf = {
       enable = true;

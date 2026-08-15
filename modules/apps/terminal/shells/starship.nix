@@ -7,7 +7,7 @@ selfLib.mkModule {
   name = "apps.terminal.shells.starship";
   description = "Starship prompt configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.starship = {
       enable = true;
       enableFishIntegration = true;

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.terminal.utilities.yazi";
   description = "Yazi modern terminal file manager configuration";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     programs.yazi = {
       enable = true;
       enableFishIntegration = true;

@@ -19,7 +19,7 @@ selfLib.mkModule {
     environment.localBinInPath = true;
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.sessionPath = [
       "$HOME/.local/bin"
     ];

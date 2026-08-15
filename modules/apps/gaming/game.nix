@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.gaming.game";
   description = "User game settings (controllers and system integrations)";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       xwayland-satellite
     ];

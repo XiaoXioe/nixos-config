@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "apps.media.ffmpeg";
   description = "FFmpeg multimedia encoding and processing suite";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = with pkgs; [
       ffmpeg
     ];
