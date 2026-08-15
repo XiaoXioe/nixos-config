@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   selfLib,
   ...
 }:
@@ -8,10 +9,52 @@ selfLib.mkModule {
   name = "ai.agents.auth-agent";
   description = "Secure GUI authentication AI agent root operations";
 
+  options = {
+    mode = lib.mkOption {
+      type = lib.types.enum [
+        "cache-confirm"
+        "cache-notify"
+        "strict"
+        "session-auto"
+      ];
+      default = "cache-confirm";
+      description = "Authentication mode for auth-agent when executed by AI agents";
+    };
+    timeoutMinutes = lib.mkOption {
+      type = lib.types.int;
+      default = 15;
+      description = "Duration in minutes for which cached authentication credentials remain valid";
+    };
+    showNotification = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether to send a desktop notification when executing root commands";
+    };
+  };
+
   hmConfig =
     hmOpts:
     let
       user = hmOpts.config.home.username;
+      cfg =
+        if
+          hmOpts ? osConfig
+          && hmOpts.osConfig ? my
+          && hmOpts.osConfig.my ? ai
+          && hmOpts.osConfig.my.ai ? agents
+          && hmOpts.osConfig.my.ai.agents ? auth-agent
+        then
+          hmOpts.osConfig.my.ai.agents.auth-agent
+        else
+          {
+            mode = "cache-confirm";
+            timeoutMinutes = 15;
+            showNotification = true;
+          };
+
+      authMode = cfg.mode;
+      timeoutMinutes = toString cfg.timeoutMinutes;
+      showNotification = if cfg.showNotification then "1" else "0";
 
       # Private helper executable (kept in Nix Store, not exposed to user PATH)
       authAgentHelper =
@@ -58,14 +101,55 @@ selfLib.mkModule {
               exit 1
             fi
 
-            # Invalidate any cached sudo timestamp so GUI authentication is always required
-            "$SUDO_BIN" -k 2>/dev/null || true
-
             DISPLAY_CMD="''${CMD_ARRAY[*]}"
+            AUTH_MODE="${authMode}"
+            TIMEOUT_MINUTES="${timeoutMinutes}"
+            SHOW_NOTIFY="${showNotification}"
+            TIMEOUT_SECONDS=$(( TIMEOUT_MINUTES * 60 ))
+
+            CACHE_DIR="/run/user/$(id -u)/auth-agent"
+            PASS_FILE="$CACHE_DIR/token"
+            TS_FILE="$CACHE_DIR/timestamp"
+
+            NOW=$(${pkgs.coreutils}/bin/date +%s)
+            IS_VALID=0
+            CACHED_PASS=""
+
+            if [ -f "$PASS_FILE" ] && [ -f "$TS_FILE" ]; then
+              LAST_TS=$(${pkgs.coreutils}/bin/cat "$TS_FILE" 2>/dev/null || echo 0)
+              AGE=$(( NOW - LAST_TS ))
+              if [ "$AGE" -lt "$TIMEOUT_SECONDS" ]; then
+                CACHED_PASS=$(${pkgs.coreutils}/bin/cat "$PASS_FILE" 2>/dev/null || true)
+                if [ -n "$CACHED_PASS" ]; then
+                  IS_VALID=1
+                fi
+              fi
+            fi
+
             PASS=""
-            if ! PASS=$(${pkgs.zenity}/bin/zenity --entry --hide-text --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nMasukkan password Anda:" </dev/null 2>/dev/null); then
-              echo "auth-agent: Otorisasi dibatalkan oleh pengguna." >&2
-              exit 1
+
+            if [ "$IS_VALID" -eq 1 ] && [ "$AUTH_MODE" != "strict" ]; then
+              if [ "$AUTH_MODE" = "cache-confirm" ]; then
+                if ! ${pkgs.zenity}/bin/zenity --question --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nIzinkan eksekusi menggunakan otentikasi ter-cache?" --ok-label="Izinkan" --cancel-label="Batal" </dev/null 2>/dev/null; then
+                  echo "auth-agent: Otorisasi dibatalkan oleh pengguna." >&2
+                  exit 1
+                fi
+                PASS="$CACHED_PASS"
+              elif [ "$AUTH_MODE" = "cache-notify" ]; then
+                if [ "$SHOW_NOTIFY" = "1" ]; then
+                  ${pkgs.libnotify}/bin/notify-send -u normal -i security-high "Otorisasi AI (auth-agent)" "Menjalankan perintah root: $DISPLAY_CMD" 2>/dev/null || true
+                fi
+                PASS="$CACHED_PASS"
+              elif [ "$AUTH_MODE" = "session-auto" ]; then
+                PASS="$CACHED_PASS"
+              fi
+            else
+              # Force password invalidation if expired or strict
+              "$SUDO_BIN" -k 2>/dev/null || true
+              if ! PASS=$(${pkgs.zenity}/bin/zenity --entry --hide-text --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nMasukkan password Anda:" </dev/null 2>/dev/null); then
+                echo "auth-agent: Otorisasi dibatalkan oleh pengguna." >&2
+                exit 1
+              fi
             fi
 
             if [ -z "$PASS" ]; then
@@ -93,11 +177,24 @@ selfLib.mkModule {
             set -e
 
             ${pkgs.coreutils}/bin/rm -rf "$ASKPASS_DIR"
+
+            if [ "$EXIT_CODE" -eq 0 ] && [ "$AUTH_MODE" != "strict" ] && [ "$TIMEOUT_SECONDS" -gt 0 ]; then
+              ${pkgs.coreutils}/bin/mkdir -p "$CACHE_DIR"
+              ${pkgs.coreutils}/bin/chmod 700 "$CACHE_DIR"
+              printf '%s' "$PASS" > "$PASS_FILE"
+              ${pkgs.coreutils}/bin/chmod 600 "$PASS_FILE"
+              printf '%s' "$NOW" > "$TS_FILE"
+              ${pkgs.coreutils}/bin/chmod 600 "$TS_FILE"
+            elif [ "$EXIT_CODE" -ne 0 ] && [ "$IS_VALID" -eq 0 ]; then
+              ${pkgs.coreutils}/bin/rm -rf "$CACHE_DIR" 2>/dev/null || true
+            fi
+
             exit "$EXIT_CODE"
           ''
           [
             pkgs.coreutils
             pkgs.zenity
+            pkgs.libnotify
             pkgs.bash
           ];
 
@@ -105,8 +202,37 @@ selfLib.mkModule {
       authAgent =
         selfLib.mkApp pkgs "auth-agent"
           ''
+            CACHE_DIR="/run/user/$(id -u)/auth-agent"
+            PASS_FILE="$CACHE_DIR/token"
+            TS_FILE="$CACHE_DIR/timestamp"
+            TIMEOUT_MINUTES="${timeoutMinutes}"
+            TIMEOUT_SECONDS=$(( TIMEOUT_MINUTES * 60 ))
+
+            if [ "$1" = "--lock" ] || [ "$1" = "-k" ]; then
+              ${pkgs.coreutils}/bin/rm -rf "$CACHE_DIR" 2>/dev/null || true
+              echo "auth-agent: Cache otentikasi telah dibatalkan."
+              exit 0
+            fi
+
+            if [ "$1" = "--status" ]; then
+              if [ -f "$PASS_FILE" ] && [ -f "$TS_FILE" ]; then
+                NOW=$(${pkgs.coreutils}/bin/date +%s)
+                LAST_TS=$(${pkgs.coreutils}/bin/cat "$TS_FILE" 2>/dev/null || echo 0)
+                AGE=$(( NOW - LAST_TS ))
+                if [ "$AGE" -lt "$TIMEOUT_SECONDS" ]; then
+                  REMAINING=$(( TIMEOUT_SECONDS - AGE ))
+                  REM_MIN=$(( REMAINING / 60 ))
+                  REM_SEC=$(( REMAINING % 60 ))
+                  echo "auth-agent: Cache otentikasi AKTIF (Mode: ${authMode}). Sisa waktu: ''${REM_MIN}m ''${REM_SEC}s."
+                  exit 0
+                fi
+              fi
+              echo "auth-agent: Cache otentikasi TIDAK AKTIF (Expired / Tidak ada)."
+              exit 0
+            fi
+
             if [ "$#" -eq 0 ] || [ -z "$1" ]; then
-              echo "Penggunaan: auth-agent <perintah> [argumen...]" >&2
+              echo "Penggunaan: auth-agent [--lock|-k | --status | <perintah> [argumen...]]" >&2
               exit 1
             fi
 
