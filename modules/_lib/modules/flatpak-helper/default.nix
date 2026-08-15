@@ -39,7 +39,6 @@ let
       flatpakCfg,
       config,
       singleAppInfo,
-      enableState,
       ...
     }:
     appId:

@@ -134,7 +134,6 @@
           hostName
           adminUser
           inputs
-          selfLib
           ;
       };
     };

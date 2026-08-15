@@ -15,7 +15,7 @@
     in
     drv
     // {
-      __toString = self: "${drv}/bin/${name}";
+      __toString = _: "${drv}/bin/${name}";
     };
 
   # Generate xdg.configFile completions for multiple shells

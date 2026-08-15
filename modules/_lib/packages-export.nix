@@ -3,7 +3,6 @@
   hostName,
   adminUser,
   inputs,
-  selfLib ? null,
 }:
 let
   userConfig = nixosConfigs.${hostName}.config.home-manager.users.${adminUser};

@@ -4,7 +4,6 @@
   lib,
   pkgs,
   firefoxAddons,
-  amoAddons,
   geckoExtPath,
 }:
 let

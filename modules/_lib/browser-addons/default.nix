@@ -19,7 +19,7 @@ let
   policies = import ./policies.nix { inherit lib; };
   builders = import ./builders.nix {
     inherit lib pkgs firefoxAddons;
-    inherit (addonsData) amoAddons geckoExtPath;
+    inherit (addonsData) geckoExtPath;
   };
 in
 {

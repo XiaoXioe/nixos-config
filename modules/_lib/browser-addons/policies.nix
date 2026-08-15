@@ -1,7 +1,6 @@
 # Shared browser privacy policies, search engine config, and bookmark helpers.
 # Used by Firefox, Zen, Tor Browser, and other Gecko-based browser modules.
-{ lib }:
-{
+_: {
   # Shared privacy/hardening policies applied across all Gecko browsers (Firefox, Zen, Tor)
   commonPrivacyPolicies = {
     DisableTelemetry = true;
