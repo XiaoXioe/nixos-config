@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   selfLib,
   ...
 }:
@@ -9,7 +8,6 @@ selfLib.mkModule {
   description = "Custom Themes";
 
   hmConfig =
-    hmOpts:
     let
       colloidTheme = {
         name = "Colloid-Dark";

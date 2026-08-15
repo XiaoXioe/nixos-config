@@ -20,7 +20,7 @@ selfLib.mkModule {
       programs.niri.package = pkgs.niri;
     };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     imports = selfLib.scanPaths ./settings;
   };
 }

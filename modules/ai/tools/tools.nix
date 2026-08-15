@@ -90,7 +90,7 @@ selfLib.mkModule {
     ];
   };
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home = {
       packages = [
         antigravity-cli

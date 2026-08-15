@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "ai.agents.agy-profile";
   description = "Multi-account profile launcher for Antigravity CLI";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "agy-profile" (builtins.readFile ./scripts/agy-profile.sh) [
         pkgs.bubblewrap

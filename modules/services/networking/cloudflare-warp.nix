@@ -1,5 +1,4 @@
 {
-  pkgs,
   selfLib,
   lib,
   ...
@@ -31,7 +30,6 @@ selfLib.mkModule {
   nixosConfig =
     {
       config,
-      lib,
       pkgs,
       ...
     }:

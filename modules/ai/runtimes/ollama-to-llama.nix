@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "ai.runtimes.ollama-to-llama";
   description = "Llama.cpp wrapper from Ollama Modelfiles";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "ollama-to-llama"
         ''

@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "ai.agents.agy-ide-profile";
   description = "Multi-account profile launcher for Antigravity IDE";
 
-  hmConfig = hmOpts: {
+  hmConfig = {
     home.packages = [
       (selfLib.mkApp pkgs "agy-ide-profile"
         ''

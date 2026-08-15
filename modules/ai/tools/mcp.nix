@@ -16,8 +16,8 @@ let
   tavily-mcp-pkg = inputs.nix-mcp.packages.${system}.tavily-mcp;
   sequential-thinking-pkg = inputs.nix-mcp.packages.${system}.sequential-thinking;
   mcp-nixos-pkg = inputs.mcp-nixos.packages.${system}.default;
-  obsidian-second-brain-mcp-pkg = inputs.nix-mcp.packages.${system}.obsidian-second-brain-mcp;
   scrapling-mcp-pkg = inputs.nix-mcp.packages.${system}.scrapling;
+  agentmemory-pkg = inputs.nix-mcp.packages.${system}.agentmemory;
 
   homeDir = "/home/${config.my.user.name}";
   tavilyKeyPath = config.sops.secrets."tavily-api-key".path;
@@ -54,19 +54,16 @@ let
       type = "local";
       command = [ "${sequential-thinking-pkg}/bin/mcp-server-sequential-thinking" ];
     };
-    obsidian-second-brain-mcp = {
-      type = "local";
-      command = [ "${obsidian-second-brain-mcp-pkg}/bin/obsidian-second-brain-mcp" ];
-      environment = {
-        OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
-      };
-    };
     scrapling = {
       type = "local";
       command = [ "${scrapling-mcp-pkg}/bin/scrapling" ];
       environment = {
         SCRAPLING_EXECUTABLE_PATH = "/etc/profiles/per-user/${config.my.user.name}/bin/chromium";
       };
+    };
+    agentmemory = {
+      type = "local";
+      command = [ "${agentmemory-pkg}/bin/agentmemory-mcp" ];
     };
   };
 
@@ -79,6 +76,7 @@ selfLib.mkModule {
     persist = true;
     userDirectories = [
       ".agents"
+      ".agentmemory"
       ".telegram-mcp"
       {
         directory = ".mcp-colab";
@@ -142,19 +140,16 @@ selfLib.mkModule {
             command = "${sequential-thinking-pkg}/bin/mcp-server-sequential-thinking";
             args = [ ];
           };
-          obsidian-second-brain-mcp = {
-            command = "${obsidian-second-brain-mcp-pkg}/bin/obsidian-second-brain-mcp";
-            args = [ ];
-            env = {
-              OBSIDIAN_VAULT_PATH = "${homeDir}/PersistentData/obsidian";
-            };
-          };
           scrapling = {
             command = "${scrapling-mcp-pkg}/bin/scrapling";
             args = [ "mcp" ];
             env = {
               SCRAPLING_EXECUTABLE_PATH = "/etc/profiles/per-user/${config.my.user.name}/bin/chromium";
             };
+          };
+          agentmemory = {
+            command = "${agentmemory-pkg}/bin/agentmemory-mcp";
+            args = [ ];
           };
           cloudflare-api = {
             url = "https://mcp.cloudflare.com/mcp";
@@ -172,11 +167,13 @@ selfLib.mkModule {
 
   hmConfig =
     {
-      config,
       pkgs,
       lib,
       ...
     }:
+    let
+      scriptsDir = "${agentmemory-pkg}/lib/agentmemory/node_modules/@agentmemory/agentmemory/plugin/scripts";
+    in
     {
       home = {
         packages = [
@@ -186,9 +183,101 @@ selfLib.mkModule {
           tavily-mcp-pkg
           sequential-thinking-pkg
           mcp-nixos-pkg
-          obsidian-second-brain-mcp-pkg
           scrapling-mcp-pkg
+          agentmemory-pkg
         ];
+
+        # Konfigurasi Hooks deklaratif untuk Google Antigravity
+        file.".gemini/config/hooks.json".text = builtins.toJSON {
+          agentmemory = {
+            enabled = true;
+            SessionStart = [
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/session-start.mjs";
+              }
+            ];
+            PreInvocation = [
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/prompt-submit.mjs";
+              }
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/pre-compact.mjs";
+              }
+            ];
+            PostInvocation = [
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/session-end.mjs";
+              }
+            ];
+            PreToolUse = [
+              {
+                matcher = ".*";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/pre-tool-use.mjs";
+                  }
+                ];
+              }
+              {
+                matcher = "invoke_subagent|define_subagent";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/subagent-start.mjs";
+                  }
+                ];
+              }
+            ];
+            PostToolUse = [
+              {
+                matcher = ".*";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/post-tool-use.mjs";
+                  }
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/post-tool-failure.mjs";
+                  }
+                ];
+              }
+              {
+                matcher = "run_command";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/post-commit.mjs";
+                  }
+                ];
+              }
+              {
+                matcher = "invoke_subagent";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "${pkgs.nodejs}/bin/node ${scriptsDir}/subagent-stop.mjs";
+                  }
+                ];
+              }
+            ];
+            Stop = [
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/stop.mjs";
+              }
+              {
+                type = "command";
+                command = "${pkgs.nodejs}/bin/node ${scriptsDir}/task-completed.mjs";
+              }
+            ];
+          };
+        };
 
         # activation murni hanya untuk mengelola opencode.json agar tetap MUTABLE
         activation.setupMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -211,6 +300,26 @@ selfLib.mkModule {
           fi
           ${pkgs.coreutils}/bin/chmod 600 "$OPENCODE_CONF"
         '';
+      };
+
+      systemd.user.services.agentmemory = {
+        Unit = {
+          Description = "AgentMemory Persistent Memory Engine & Web Viewer";
+          After = [ "network.target" ];
+        };
+        Service = {
+          ExecStart = "${agentmemory-pkg}/bin/agentmemory";
+          Restart = "on-failure";
+          RestartSec = 5;
+          Environment = [
+            "CI=1"
+            "HOME=%h"
+            "PATH=/etc/profiles/per-user/%u/bin:/run/current-system/sw/bin"
+          ];
+        };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
       };
     };
 }

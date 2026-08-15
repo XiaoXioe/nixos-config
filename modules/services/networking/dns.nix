@@ -8,7 +8,7 @@ selfLib.mkModule {
   name = "services.networking.dns";
 
   nixosConfig = {
-    sops.secrets = builtins.mapAttrs (name: value: { sopsFile = ./secrets.yaml; } // value) {
+    sops.secrets = builtins.mapAttrs (_: value: { sopsFile = ./secrets.yaml; } // value) {
       "rethinkdns_stamp" = {
       };
       "nextdns_stamp" = {

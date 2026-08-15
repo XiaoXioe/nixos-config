@@ -26,12 +26,11 @@ selfLib.mkModule {
   };
 
   hmConfig =
-    hmOpts:
     let
       myPython = pkgs.python3.override {
         packageOverrides = self: super: {
           kagglesdk = super.kagglesdk.overrideAttrs (
-            finalAttrs: oldAttrs: {
+            finalAttrs: _: {
               version = "0.1.34";
               src = pkgs.fetchPypi {
                 pname = "kagglesdk";

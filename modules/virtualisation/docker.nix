@@ -24,7 +24,7 @@ selfLib.mkModule {
 
       users.users.${config.my.user.name}.extraGroups = [ "docker" ];
 
-      sops.secrets = builtins.mapAttrs (name: value: { sopsFile = ./secrets.yaml; } // value) {
+      sops.secrets = builtins.mapAttrs (_: value: { sopsFile = ./secrets.yaml; } // value) {
         "9router-env" = {
           mode = "0400";
         };
