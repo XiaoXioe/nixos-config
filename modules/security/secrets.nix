@@ -40,7 +40,6 @@ selfLib.mkModule {
       };
       "${userName}_password_hash" = {
         neededForUsers = true;
-        key = "klein-moretti_password_hash";
       };
     };
 
