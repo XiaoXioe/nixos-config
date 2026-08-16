@@ -33,7 +33,32 @@ selfLib.mkModule {
   nixosConfig = {
     services.accounts-daemon.enable = true;
 
-    systemd.tmpfiles.settings."10-accounts-service" = {
+    systemd.tmpfiles.settings."10-user-directories" = {
+      "${config.my.dataPath}/Documents".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "${config.my.dataPath}/Downloads".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "${config.my.dataPath}/Pictures".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "${config.my.dataPath}/Music".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
+      "${config.my.dataPath}/Videos".d = {
+        mode = "0755";
+        user = config.my.user.name;
+        group = "users";
+      };
       "${config.my.dataPath}/containers".d = {
         mode = "0755";
         user = config.my.user.name;
@@ -44,6 +69,9 @@ selfLib.mkModule {
         user = config.my.user.name;
         group = "users";
       };
+    };
+
+    systemd.tmpfiles.settings."10-accounts-service" = {
       "/var/lib/AccountsService".d = {
         mode = "0755";
         user = "root";

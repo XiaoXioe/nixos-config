@@ -12,8 +12,10 @@ selfLib.mkModule {
     persist = true;
     directories = [
       {
-        directory = "/var/lib/private/ollama";
-        mode = "0700";
+        directory = "/var/lib/ollama";
+        user = config.my.user.name;
+        group = "users";
+        mode = "0755";
       }
     ];
   };
@@ -28,10 +30,21 @@ selfLib.mkModule {
       models = "${config.my.dataPath}/ollama_storage/models";
     };
 
+    systemd.tmpfiles.rules = [
+      "d ${config.my.dataPath}/ollama_storage 0755 ${config.my.user.name} users - -"
+      "d ${config.my.dataPath}/ollama_storage/models 0755 ${config.my.user.name} users - -"
+    ];
+
     systemd.services.ollama = {
       wantedBy = lib.mkForce [ ];
       restartIfChanged = false;
       serviceConfig = {
+        User = config.my.user.name;
+        Group = "users";
+        DynamicUser = lib.mkForce false;
+        PrivateUsers = lib.mkForce false;
+        ProtectHome = lib.mkForce "read-only";
+        UMask = lib.mkForce "0022";
         EnvironmentFile = [ config.sops.secrets."ollama-env".path ];
       };
     };
