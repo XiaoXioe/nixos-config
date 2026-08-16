@@ -100,6 +100,8 @@ selfLib.mkModule {
             // (selfLib.warpProxyEnv config.my.services.networking.cloudflare-warp.port);
 
             serviceConfig = {
+              TimeoutStopSec = "120s";
+              KillSignal = "SIGINT";
               ExecStartPre = lib.mkBefore [
                 (selfLib.mkWarpWaitScript pkgs config.my.services.networking.cloudflare-warp.port
                   "restic-backups-${name}-wait-proxy"
@@ -109,6 +111,18 @@ selfLib.mkModule {
                   cp ${config.sops.secrets."rclone.conf".path} /run/restic-backups-${name}/rclone.conf
                   chmod 600 /run/restic-backups-${name}/rclone.conf
                 '' [ pkgs.coreutils ]}"
+                "${selfLib.mkApp pkgs "restic-backups-${name}-auto-unlock"
+                  ''
+                    export RCLONE_CONFIG="/run/restic-backups-${name}/rclone.conf"
+                    ${resticFlockWrapper}/bin/restic -o rclone.timeout=5m -r "${resticRepo}" --password-file "${
+                      config.sops.secrets."restic-password".path
+                    }" unlock --remove-all || true
+                  ''
+                  [
+                    pkgs.coreutils
+                    pkgs.rclone
+                  ]
+                }"
               ];
             };
           };

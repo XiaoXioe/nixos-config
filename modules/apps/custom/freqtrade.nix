@@ -26,6 +26,9 @@ selfLib.mkModule {
         "PyWavelets"
         "statsmodels"
         "scikit-learn"
+        "python-dotenv"
+        "telethon"
+        "cryptg"
       ];
       service = {
         enable = false;
