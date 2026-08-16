@@ -50,8 +50,7 @@ selfLib.mkModule {
         systemd.enable = false;
       };
 
-      xdg.configFile = selfLib.mkHmSymlinks config {
-        "noctalia/config.toml" = "${flakePath}/modules/desktop/shells/noctalia/config.toml";
-      };
+      home.file.".local/state/noctalia/settings.toml".source =
+        config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/shells/noctalia/settings.toml";
     };
 }
