@@ -6,6 +6,7 @@
 #   hm.nix            → mkHmSymlinks (out-of-store symlink helper)
 #   fs.nix            → scanPaths, getVpnFiles (filesystem helpers)
 #   audio.nix         → mkEqFilterString (PipeWire EQ renderer)
+#   shell-check.nix   → isShellEnabled (compositor shell detection helper)
 #   shell/            → mkApp, mkShellCompletions (shell app builders)
 #   network/          → warpProxyEnv, mkWarpWaitScript (WARP helpers)
 #   browser-addons/   → browserAddonsFor (Firefox/Zen/Tor policy builders)
@@ -18,6 +19,7 @@ let
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
   hmLib = import ./hm.nix { inherit lib; };
+  shellCheckLib = import ./shell-check.nix { inherit lib; };
   webAppLib = pkgs: import ./webapp.nix { inherit lib pkgs; };
 in
 {
@@ -53,6 +55,10 @@ in
   # scanPaths: Dendritic auto-import traverser (stops at non-dummy default.nix)
   # getVpnFiles: list WireGuard .conf filenames in a directory
   inherit (fsLib) scanPaths getVpnFiles;
+
+  # ── Shell check helpers ──────────────────────────────────────────────────────
+  # isShellEnabled: safe osConfig check for shell enable state across compositors
+  inherit (shellCheckLib) isShellEnabled;
 
   # ── Audio helpers ─────────────────────────────────────────────────────────────
   # Renders EQ filter attrsets to PipeWire filter-chain string

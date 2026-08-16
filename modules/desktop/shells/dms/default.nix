@@ -17,6 +17,7 @@ selfLib.mkModule {
     {
       imports = [
         inputs.dms.homeModules.dank-material-shell
+        ./niri.nix
       ];
 
       programs.dank-material-shell = {

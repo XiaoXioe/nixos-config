@@ -1,7 +1,7 @@
 {
-  pkgs,
   selfLib,
   lib,
+  pkgs,
   ...
 }:
 

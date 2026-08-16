@@ -3,11 +3,6 @@
   lib,
   ...
 }:
-let
-  isNoctalia =
-    (osConfig.my.desktop.hyprland ? noctalia && osConfig.my.desktop.hyprland.noctalia.enable)
-    || (osConfig.my.desktop.shells ? noctalia && osConfig.my.desktop.shells.noctalia.enable);
-in
 {
   # Configure Hyprland general settings
   wayland.windowManager.hyprland = {
@@ -16,13 +11,7 @@ in
     configType = "hyprlang";
 
     settings = {
-      source =
-        if isNoctalia then
-          [ ]
-        else
-          [
-            "~/.config/hypr/dms/colors.conf"
-          ];
+      source = [ ];
 
       # Monitors
       monitor = [
@@ -30,27 +19,8 @@ in
       ];
 
       # Exec once (startup scripts/apps)
-      "exec-once" =
-        (lib.optionals (!osConfig.programs.hyprland.withUWSM) [
-          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
-        ])
-        ++ (
-          if isNoctalia then
-            [
-              (if osConfig.programs.hyprland.withUWSM then "uwsm app -- noctalia" else "noctalia")
-            ]
-          else
-            [ ]
-        );
-
-      layerrule = lib.optionals isNoctalia [
-        "blur on, match:namespace noctalia:.*"
-        "ignore_alpha 0.7, match:namespace noctalia:.*"
-        "blur on, match:namespace notifications"
-        "ignore_alpha 0.69, match:namespace notifications"
-        "blur on, match:namespace launcher"
-        "ignore_alpha 0.5, match:namespace launcher"
-        "blur on, match:namespace session"
+      "exec-once" = lib.optionals (!osConfig.programs.hyprland.withUWSM) [
+        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       ];
 
       # Input configuration

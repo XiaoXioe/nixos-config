@@ -1,20 +1,12 @@
 { osConfig, lib, ... }:
-
 let
-  isNoctalia =
-    (
-      osConfig.my.desktop ? niri
-      && osConfig.my.desktop.niri ? noctalia
-      && osConfig.my.desktop.niri.noctalia.enable
-    )
-    || (
-      osConfig.my.desktop ? shells
-      && osConfig.my.desktop.shells ? noctalia
-      && osConfig.my.desktop.shells.noctalia.enable
-    );
+  d = osConfig.my.desktop;
+  isEnabled =
+    (d ? niri && d.niri ? noctalia && d.niri.noctalia.enable)
+    || (d ? shells && d.shells ? noctalia && d.shells.noctalia.enable);
 in
 {
-  xdg.configFile."niri/config-noctalia.kdl" = lib.mkIf isNoctalia {
+  xdg.configFile."niri/config-noctalia.kdl" = lib.mkIf isEnabled {
     text = ''
       // Niri Session: Noctalia v5
       include "config.kdl"

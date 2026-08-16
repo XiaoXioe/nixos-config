@@ -40,6 +40,11 @@ selfLib.mkModule {
   hmConfig =
     { config, ... }:
     {
+      imports = [
+        ./niri.nix
+        ./hyprland.nix
+      ];
+
       programs.noctalia = lib.mkIf (inputs ? noctalia) {
         enable = true;
         systemd.enable = false;

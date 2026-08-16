@@ -1,18 +1,12 @@
 { osConfig, lib, ... }:
-
 let
-  isDms =
-    (
-      osConfig.my.desktop ? niri && osConfig.my.desktop.niri ? dms && osConfig.my.desktop.niri.dms.enable
-    )
-    || (
-      osConfig.my.desktop ? shells
-      && osConfig.my.desktop.shells ? dms
-      && osConfig.my.desktop.shells.dms.enable
-    );
+  d = osConfig.my.desktop;
+  isEnabled =
+    (d ? niri && d.niri ? dms && d.niri.dms.enable)
+    || (d ? shells && d.shells ? dms && d.shells.dms.enable);
 in
 {
-  xdg.configFile."niri/config-dms.kdl" = lib.mkIf isDms {
+  xdg.configFile."niri/config-dms.kdl" = lib.mkIf isEnabled {
     text = ''
       // Niri Session: DankMaterialShell
       include "config.kdl"

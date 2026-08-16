@@ -48,9 +48,6 @@ selfLib.mkModule {
     };
 
   hmConfig = {
-    imports = [
-      ./settings.nix
-      ./keybinds.nix
-    ];
+    imports = selfLib.scanPaths ./settings;
   };
 }
