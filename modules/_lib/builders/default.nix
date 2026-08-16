@@ -39,6 +39,9 @@ let
       homeModules = [
         (../../hosts + "/${hostName}/home")
         inputs.nix-index-database.homeModules.nix-index
+      ]
+      ++ lib.optionals (inputs ? noctalia) [
+        inputs.noctalia.homeModules.default
       ];
 
       commonModules = [

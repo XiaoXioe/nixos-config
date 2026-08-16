@@ -26,6 +26,8 @@ in
   # DankMaterialShell package (agar di-cache oleh CI)
   dms = inputs.dms.packages.${system}.default;
 
+  # Noctalia v5 shell package (agar di-cache oleh CI / Cachix)
+  noctalia = inputs.noctalia.packages.${system}.default;
 }
 # Caelestia hanya diekspor bila modulnya benar-benar aktif (butuh input
 # caelestia-shell yang saat ini tidak ada di flake.nix).

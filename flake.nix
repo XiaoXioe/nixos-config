@@ -92,6 +92,11 @@
       # Versi 0.44.x (nixpkgs 26.05) menyebabkan CPU spike konstan — jangan update.
       url = "github:NixOS/nixpkgs/9199b0bc1b2c11f5335cb5637b3a5ea20a27408b";
     };
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

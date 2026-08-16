@@ -47,11 +47,12 @@
       kde = false;
       niri = {
         enable = true;
+        noctalia = true;
         dms = true;
       };
       hyprland = {
         enable = false;
-        nandoroid = true;
+        noctalia = false;
       };
       xfce = false;
       theme = true;

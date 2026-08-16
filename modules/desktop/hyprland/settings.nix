@@ -1,0 +1,147 @@
+{
+  osConfig,
+  lib,
+  ...
+}:
+let
+  isNoctalia =
+    (osConfig.my.desktop.hyprland ? noctalia && osConfig.my.desktop.hyprland.noctalia.enable)
+    || (osConfig.my.desktop.shells ? noctalia && osConfig.my.desktop.shells.noctalia.enable);
+in
+{
+  # Configure Hyprland general settings
+  wayland.windowManager.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+    configType = "hyprlang";
+
+    settings = {
+      source =
+        if isNoctalia then
+          [ ]
+        else
+          [
+            "~/.config/hypr/dms/colors.conf"
+          ];
+
+      # Monitors
+      monitor = [
+        ",preferred,auto,auto"
+      ];
+
+      # Exec once (startup scripts/apps)
+      "exec-once" =
+        (lib.optionals (!osConfig.programs.hyprland.withUWSM) [
+          "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+        ])
+        ++ (
+          if isNoctalia then
+            [
+              (if osConfig.programs.hyprland.withUWSM then "uwsm app -- noctalia" else "noctalia")
+            ]
+          else
+            [ ]
+        );
+
+      layerrule = lib.optionals isNoctalia [
+        "blur on, match:namespace noctalia:.*"
+        "ignore_alpha 0.7, match:namespace noctalia:.*"
+        "blur on, match:namespace notifications"
+        "ignore_alpha 0.69, match:namespace notifications"
+        "blur on, match:namespace launcher"
+        "ignore_alpha 0.5, match:namespace launcher"
+        "blur on, match:namespace session"
+      ];
+
+      # Input configuration
+      input = {
+        kb_layout = "us";
+        follow_mouse = 1;
+        touchpad = {
+          natural_scroll = false;
+        };
+        sensitivity = 0;
+      };
+
+      # General aesthetics (curated dark mode theme)
+      general = {
+        gaps_in = 4;
+        gaps_out = 8;
+        border_size = 2;
+        layout = "dwindle";
+        resize_on_border = true;
+      };
+
+      # Decoration (Rounding, Blur, Shadow)
+      decoration = {
+        rounding = 12;
+        rounding_power = 2;
+        active_opacity = 0.95;
+        inactive_opacity = 0.90;
+
+        blur = {
+          enabled = true;
+          size = 6;
+          passes = 3;
+          new_optimizations = true;
+          ignore_opacity = true;
+        };
+
+        shadow = {
+          enabled = true;
+          range = 15;
+          render_power = 3;
+          color = "rgba(11111b66)";
+        };
+      };
+
+      # Animations (Smooth, fluid modern animations)
+      animations = {
+        enabled = false;
+        bezier = [
+          "easeOutQuint, 0.23, 1, 0.32, 1"
+          "easeInOutCubic, 0.65, 0.05, 0.36, 1"
+          "linear, 0, 0, 1, 1"
+          "almostLinear, 0.5, 0.5, 0.75, 1"
+          "quick, 0.15, 0, 0.1, 1"
+        ];
+        animation = [
+          "global,        1,     10,    default"
+          "border,        1,     5.39,  easeOutQuint"
+          "windows,       1,     4.79,  easeOutQuint"
+          "windowsIn,     1,     4.1,   easeOutQuint, popin 87%"
+          "windowsOut,    1,     1.49,  linear,       popin 87%"
+          "fadeIn,        1,     1.73,  almostLinear"
+          "fadeOut,       1,     1.46,  almostLinear"
+          "fade,          1,     3.03,  quick"
+          "layers,        1,     3.81,  easeOutQuint"
+          "layersIn,      1,     4,     easeOutQuint, fade"
+          "layersOut,     1,     1.5,   linear,       fade"
+          "fadeLayersIn,  1,     1.79,  almostLinear"
+          "fadeLayersOut, 1,     1.39,  almostLinear"
+          "workspaces,    1,     1.94,  almostLinear, fade"
+          "workspacesIn,  1,     1.21,  almostLinear, fade"
+          "workspacesOut, 1,     1.94,  almostLinear, fade"
+          "zoomFactor,    1,     7,     quick"
+        ];
+      };
+
+      # Layout settings
+      dwindle = {
+        preserve_split = true;
+      };
+
+      gesture = [
+        "3, horizontal, workspace"
+      ];
+
+      misc = {
+        force_default_wallpaper = 0;
+        disable_hyprland_logo = true;
+        disable_splash_rendering = true;
+        mouse_move_enables_dpms = true;
+        key_press_enables_dpms = true;
+      };
+    };
+  };
+}
