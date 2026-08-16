@@ -4,6 +4,8 @@ _: {
   # Shared privacy/hardening policies applied across all Gecko browsers (Firefox, Zen, Tor)
   commonPrivacyPolicies = {
     DisableTelemetry = true;
+    DisableCrashReporter = true;
+    DisableFeedbackCommands = true;
     SearchSuggestEnabled = false;
     DisableFirefoxStudies = true;
     PasswordManagerEnabled = false;

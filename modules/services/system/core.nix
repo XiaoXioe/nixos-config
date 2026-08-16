@@ -61,15 +61,7 @@ selfLib.mkModule {
         btrfs-scrub-mnt-data_btrfs.timerConfig.Persistent = lib.mkForce false;
       };
 
-      coredump = {
-        settings.Coredump = {
-          Storage = "external";
-          Compress = "yes";
-          MaxUse = "500M";
-          ExternalSizeMax = "100M";
-          KeepFree = "20G";
-        };
-      };
+      coredump.enable = false;
     };
   };
 }
