@@ -99,6 +99,7 @@ selfLib.mkModule {
       ];
 
       sessionVariables = {
+        OMNIROUTE_URL = "http://192.168.5.207:20128";
         NINEROUTER_URL = "http://192.168.5.207:20128";
       };
     };

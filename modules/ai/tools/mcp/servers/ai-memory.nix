@@ -27,7 +27,7 @@ in
   };
 
   sopsSecrets = {
-    "nine-router-api-key" = {
+    "omniroute-api-key" = {
       sopsFile = secretsFile;
       owner = userName;
       mode = "0400";
@@ -39,8 +39,8 @@ in
       content = ''
         AI_MEMORY_LLM_PROVIDER=openai-compat
         AI_MEMORY_LLM_BASE_URL=http://192.168.5.207:20128/v1
-        AI_MEMORY_LLM_MODEL=ag/gemini-3.7-flash-high
-        LLM_API_KEY=${config.sops.placeholder."nine-router-api-key"}
+        AI_MEMORY_LLM_MODEL=agy/gemini-3.6-flash-high
+        LLM_API_KEY=${config.sops.placeholder."omniroute-api-key"}
         AI_MEMORY_LLM_COMPAT_STRICT=false
         AI_MEMORY_CONSOLIDATE_ON_SESSION_END=true
 
