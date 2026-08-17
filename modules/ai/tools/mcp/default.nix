@@ -29,28 +29,76 @@ let
 
   activeServers = builtins.filter (s: s.enable or true) evaluatedServers;
 
+  # ── Graceful Process Wrapper for stdio MCP Servers ───────────────────────────
+  # Wraps stdio MCP commands to intercept SIGTERM/SIGINT and gracefully exit with 0.
+  # This prevents "signal: terminated" errors in Google Antigravity CLI (agy) and OpenCode
+  # during server reload (/mcp) or shutdown across multi-session environments.
+  mcpWrapper = pkgs.writeShellScript "mcp-wrapper" ''
+    set -u
+    cleanup() {
+      if [ -n "''${PID:-}" ] && kill -0 "$PID" 2>/dev/null; then
+        kill -TERM "$PID" 2>/dev/null || true
+        wait "$PID" 2>/dev/null || true
+      fi
+      exit 0
+    }
+    trap cleanup TERM INT HUP
+
+    "$@" <&0 &
+    PID=$!
+    wait "$PID" 2>/dev/null || true
+    exit 0
+  '';
+
   # ── Format Transformers ──────────────────────────────────────────────────────
+  wrapOpencode =
+    spec:
+    if (spec.type or "") == "local" && (spec ? command) then
+      spec
+      // {
+        command = [ "${mcpWrapper}" ] ++ spec.command;
+      }
+    else
+      spec;
+
   # Transformer ke format OpenCode ({ type = "local"; command = [...]; environment = {...}; })
   toOpencodeLocal =
     spec:
-    {
-      type = "local";
-      command = [ spec.command ] ++ (spec.args or [ ]);
-    }
-    // lib.optionalAttrs (spec ? env) {
-      environment = spec.env;
-    };
+    wrapOpencode (
+      {
+        type = "local";
+        command = [ spec.command ] ++ (spec.args or [ ]);
+      }
+      // lib.optionalAttrs (spec ? env) {
+        environment = spec.env;
+      }
+    );
+
+  wrapGemini =
+    spec:
+    if spec ? command then
+      {
+        command = "${mcpWrapper}";
+        args = [ spec.command ] ++ (spec.args or [ ]);
+      }
+      // lib.optionalAttrs (spec ? env) {
+        inherit (spec) env;
+      }
+    else
+      spec;
 
   # Transformer ke format Gemini CLI / Antigravity ({ command = "..."; args = [...]; env = {...}; })
   toGeminiLocal =
     spec:
-    {
-      inherit (spec) command;
-      args = spec.args or [ ];
-    }
-    // lib.optionalAttrs (spec ? env) {
-      inherit (spec) env;
-    };
+    wrapGemini (
+      {
+        inherit (spec) command;
+        args = spec.args or [ ];
+      }
+      // lib.optionalAttrs (spec ? env) {
+        inherit (spec) env;
+      }
+    );
 
   # ── MCP Configuration Aggregation ───────────────────────────────────────────
   commonServersList = builtins.filter (s: s ? commonSpec) activeServers;
@@ -72,14 +120,14 @@ let
   explicitOpencode = builtins.listToAttrs (
     builtins.map (s: {
       inherit (s) name;
-      value = s.opencodeServer;
+      value = wrapOpencode s.opencodeServer;
     }) (builtins.filter (s: s ? opencodeServer) activeServers)
   );
 
   explicitGemini = builtins.listToAttrs (
     builtins.map (s: {
       inherit (s) name;
-      value = s.geminiServer;
+      value = wrapGemini s.geminiServer;
     }) (builtins.filter (s: s ? geminiServer) activeServers)
   );
 
