@@ -16,15 +16,35 @@ is_profile_active() {
 
 get_profile_email() {
     local pname="$1"
-    local cred_file="$CRED_DIR_BASE/$pname/antigravity-oauth-token"
-    if [ -f "$cred_file" ]; then
-        jq -r '.id_token // empty' "$cred_file" 2>/dev/null \
-            | cut -d. -f2 2>/dev/null \
-            | base64 -d 2>/dev/null \
-            | jq -r '.email // "Unknown Email"' 2>/dev/null || echo "Unknown Email"
-    else
-        echo "Token Not Found"
+    [ -z "$pname" ] && echo "Unknown Email" && return 0
+    local cred_dir="$CRED_DIR_BASE/$pname"
+    local cred_file="$cred_dir/antigravity-oauth-token"
+    local email_file="$cred_dir/email"
+
+    if [ ! -f "$cred_file" ]; then
+        echo "Belum Login"
+        return 0
     fi
+
+    if [ -s "$email_file" ]; then
+        cat "$email_file"
+        return 0
+    fi
+
+    local token
+    token=$(jq -r '.token.access_token // empty' "$cred_file" 2>/dev/null)
+    local email=""
+    if [ -n "$token" ]; then
+        email=$(curl -s -m 2 -H "Authorization: Bearer $token" "https://www.googleapis.com/oauth2/v3/userinfo" 2>/dev/null | jq -r '.email // empty' 2>/dev/null || true)
+    fi
+
+    if [ -n "$email" ]; then
+        echo "$email" > "$email_file" 2>/dev/null || true
+        echo "$email"
+        return 0
+    fi
+
+    echo "Email Tidak Diketahui"
 }
 
 fetch_profile_quota() {
@@ -85,6 +105,13 @@ fetch_profile_quota() {
 
     if echo "$res" | jq -e '.groups' >/dev/null 2>&1; then
         echo "$res" > "$cache_file"
+        if [ ! -s "$cred_dir/email" ] && [ -n "$token" ]; then
+            local email
+            email=$(curl -s -m 2 -H "Authorization: Bearer $token" "https://www.googleapis.com/oauth2/v3/userinfo" 2>/dev/null | jq -r '.email // empty' 2>/dev/null || true)
+            if [ -n "$email" ]; then
+                echo "$email" > "$cred_dir/email" 2>/dev/null || true
+            fi
+        fi
         echo "$res"
     else
         echo '{"error": "Expired or invalid token"}'
@@ -248,7 +275,7 @@ relogin_profile() {
 
     echo "Mereset token login untuk profile '$profile_name'..."
     mkdir -p "$cred_dir"
-    rm -f "$cred_dir/antigravity-oauth-token" "$cred_dir/installation_id" "$cred_dir/jetski_state.pbtxt"
+    rm -f "$cred_dir/antigravity-oauth-token" "$cred_dir/installation_id" "$cred_dir/jetski_state.pbtxt" "$cred_dir/email"
     rm -f "$CACHE_DIR/$profile_name.json"
     touch "$cred_dir/antigravity-oauth-token" "$cred_dir/installation_id" "$cred_dir/jetski_state.pbtxt"
     launch_profile "$profile_name" "$@"
