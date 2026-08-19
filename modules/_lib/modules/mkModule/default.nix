@@ -2,6 +2,8 @@
 
 let
   flatpakHelper = import ../flatpak-helper { inherit lib; };
+  distroboxHelper = import ../distrobox-helper { inherit lib; };
+  inherit (distroboxHelper) containerSubmoduleType;
 in
 # Unified module builder for NixOS and Home Manager.
 # Automatically creates 'options.my.${name}.enable' for global NixOS state.
@@ -13,8 +15,25 @@ in
   nixosConfig ? { },
   hmConfig ? null,
   flatpakCfg ? { },
+  distroboxCfg ? { },
   preservation ? { },
 }:
+let
+  # Evaluate each distroboxCfg entry through the typed submodule so that:
+  # 1. Unknown keys cause an evaluation error (type safety).
+  # 2. All option defaults are applied (no more `or` fallbacks in sub-modules).
+  typedDistroboxCfg = lib.mapAttrs (
+    _cId: cVal:
+    containerSubmoduleType.merge
+      [ ]
+      [
+        {
+          file = "<distroboxCfg>";
+          value = cVal;
+        }
+      ]
+  ) distroboxCfg;
+in
 # Validasi nama modul: harus dimulai huruf, hanya boleh alphanum/dots/dashes/underscores.
 # Mencegah typo diam-diam (spasi, slash, karakter aneh) yang menghasilkan option path orphan.
 assert
@@ -59,6 +78,35 @@ assert
             config
             singleAppInfo
             ;
+        };
+
+        # Distrobox configuration processing — use typedDistroboxCfg (validated + defaults applied)
+        hasDistroboxes = typedDistroboxCfg != { };
+        isSingleContainer = hasDistroboxes && (lib.length (builtins.attrNames typedDistroboxCfg) == 1);
+        singleContainerId =
+          if isSingleContainer then builtins.elemAt (builtins.attrNames typedDistroboxCfg) 0 else null;
+        singleContainerInfo = { inherit isSingleContainer singleContainerId; };
+
+        distroboxConfigs = distroboxHelper.mkDistroboxConfigs {
+          inherit
+            name
+            options
+            config
+            pkgs
+            singleContainerInfo
+            ;
+          distroboxCfg = typedDistroboxCfg;
+          enableState = cfg;
+        };
+
+        distroboxOptions = distroboxHelper.mkDistroboxOptions {
+          inherit
+            name
+            options
+            config
+            singleContainerInfo
+            ;
+          distroboxCfg = typedDistroboxCfg;
         };
 
         resolvedNixosConfig =
@@ -149,7 +197,7 @@ assert
                     enable = lib.mkEnableOption (if description != "" then description else name);
                   };
                 in
-                baseOptions // flatpakOptions // options
+                baseOptions // flatpakOptions // distroboxOptions // options
               )
             );
 
@@ -169,6 +217,28 @@ assert
               resolvedNixosConfig
               (lib.mkIf (hmConfig != null && userName != null) {
                 home-manager.users.${userName} = if builtins.isFunction hmConfig then hmConfig else (_: hmConfig);
+              })
+              # Distrobox Home Manager configuration
+              (lib.mkIf (hasDistroboxes && userName != null) {
+                home-manager.users.${userName} = {
+                  programs.distrobox = lib.mkIf distroboxConfigs.hasActiveContainers {
+                    enable = true;
+                    enableSystemdUnit = true;
+                    containers = distroboxConfigs.distroboxContainers;
+                    # Inject default image from podman module option into native distrobox.conf
+                    settings = {
+                      container_image_default = lib.mkDefault (
+                        lib.attrByPath [
+                          "my"
+                          "virtualisation"
+                          "podman"
+                          "defaultDistroboxImage"
+                        ] "docker.io/library/debian:testing" config
+                      );
+                    };
+                  };
+                  home.packages = distroboxConfigs.distroboxPackagesList;
+                };
               })
               # Flatpak-specific NixOS configuration
               (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {

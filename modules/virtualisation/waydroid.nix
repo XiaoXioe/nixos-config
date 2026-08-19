@@ -38,26 +38,6 @@ selfLib.mkModule {
     ];
     boot.supportedFilesystems = [ "fuse" ];
 
-    systemd.tmpfiles.rules =
-      let
-        userName = config.my.user.name;
-        dataPath = "${config.my.dataPath}/waydroid_data/${userName}/xdg_data";
-      in
-      [
-        "d /home/${userName}/WaydroidShare 0755 ${userName} users -"
-        "d ${config.my.dataPath}/waydroid_data 0755 ${userName} users -"
-        "z ${config.my.dataPath}/waydroid_data 0755 ${userName} users -"
-        "d ${config.my.dataPath}/waydroid_data/${userName} 0755 ${userName} users -"
-        "z ${config.my.dataPath}/waydroid_data/${userName} 0755 ${userName} users -"
-        "d ${dataPath} 0755 ${userName} users -"
-        "d ${dataPath}/waydroid 0755 ${userName} users -"
-        "d ${dataPath}/waydroid/data 0755 ${userName} users -"
-        "d ${dataPath}/waydroid/data/media 0755 ${userName} users -"
-        "d ${dataPath}/waydroid/data/media/0 0755 ${userName} users -"
-        "d ${dataPath}/waydroid/data/media/0/Download 0755 ${userName} users -"
-        "z ${dataPath} 0755 ${userName} users -"
-      ];
-
     virtualisation.waydroid.enable = true;
     boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
     systemd.services.waydroid-container.wantedBy = lib.mkForce [ ];

@@ -59,7 +59,7 @@ selfLib.mkModule {
         user = config.my.user.name;
         group = "users";
       };
-      "${config.my.dataPath}/containers".d = {
+      "${config.my.dataPath}/podman".d = {
         mode = "0755";
         user = config.my.user.name;
         group = "users";
