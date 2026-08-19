@@ -114,7 +114,7 @@ selfLib.mkModule {
                 "${selfLib.mkApp pkgs "restic-backups-${name}-auto-unlock"
                   ''
                     export RCLONE_CONFIG="/run/restic-backups-${name}/rclone.conf"
-                    ${resticFlockWrapper}/bin/restic -o rclone.timeout=5m -r "${resticRepo}" --password-file "${
+                    ${resticFlockWrapper} -o rclone.timeout=5m -r "${resticRepo}" --password-file "${
                       config.sops.secrets."restic-password".path
                     }" unlock --remove-all || true
                   ''
