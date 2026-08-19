@@ -19,11 +19,11 @@ selfLib.mkModule {
         # Substituters + priority
         substituters = [
           "https://cache.nixos.org?priority=0"
-          "https://nixos-cache-proxy.cofob.dev?priority=10"
           "https://nix-community.cachix.org"
           "https://cachixix.cachix.org"
           "https://nix-mcp.cachix.org"
           "https://niri.cachix.org"
+          "https://noctalia.cachix.org"
           "https://hyprland.cachix.org"
           "https://attic.xuyh0120.win/lantian"
         ];
@@ -34,6 +34,7 @@ selfLib.mkModule {
           "cachixix.cachix.org-1:gxuKepBrK+XUD1RpGPCg0pyZZrxKayVWiugCfDJebLc="
           "nix-mcp.cachix.org-1:fX4XSh0PcNT7FJx0+41n9XxifTVsrFz7vTwMgdLsgig="
           "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
+          "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
           "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
           "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
         ];
