@@ -91,6 +91,9 @@
         snapper = true;
         ssd-monitor = true;
       };
+      documents = {
+        stirling-pdf = false;
+      };
       boot-speedup = true;
       vaultwarden = true;
       flatpak = true;
@@ -123,6 +126,11 @@
         autoUpdate = false;
         "9router" = false;
       };
+      podman = {
+        enable = true;
+        autoUpdate = true;
+      };
+      distrobox-pkg = true;
       libvirt = false;
       waydroid = true;
     };
