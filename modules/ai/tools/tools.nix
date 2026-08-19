@@ -8,7 +8,7 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   antigravity-cli = inputs.antigravity-nix.packages.${system}.google-antigravity-cli;
-  antigravity-ide = inputs.antigravity-nix.packages.${system}.google-antigravity-ide;
+  # antigravity-ide = inputs.antigravity-nix.packages.${system}.google-antigravity-ide;
 
   opencode = pkgs.stdenv.mkDerivation (finalAttrs: {
     pname = "opencode";
@@ -94,7 +94,7 @@ selfLib.mkModule {
     home = {
       packages = [
         antigravity-cli
-        antigravity-ide
+        # antigravity-ide
         opencode
       ];
 
