@@ -2,7 +2,7 @@
   userFeatures = {
     apps = {
       browsers = {
-        firefox = false;
+        firefox = true;
         brave = true;
         chromium = true;
         librewolf = false;
