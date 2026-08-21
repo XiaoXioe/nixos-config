@@ -1,4 +1,4 @@
-{ lib }:
+_:
 
 {
   # Merges camelCase + snake_case aliases into canonical field names so all

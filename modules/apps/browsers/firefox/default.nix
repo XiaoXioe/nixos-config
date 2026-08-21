@@ -125,7 +125,7 @@ selfLib.mkModule {
 
     packages = [ "firefox-esr" ];
     package = pkgs.firefox-esr;
-    # binName = "firefox";
+    binName = "firefox-esr";
     deltaUpdates = true;
     env = {
       MOZ_LEGACY_PROFILES = "1";
@@ -178,7 +178,7 @@ selfLib.mkModule {
       name = "Firefox ESR (Distrobox)";
       genericName = "Web Browser";
       comment = "Browse the World Wide Web via Debian Distrobox";
-      exec = "${pkgs.distrobox}/bin/distrobox enter firefox -- env MOZ_LEGACY_PROFILES=1 MOZ_ENABLE_WAYLAND=1 /usr/lib/firefox-esr/firefox-esr %u";
+      exec = "firefox-esr %u";
       icon = "firefox-esr";
       terminal = false;
       categories = [
@@ -202,19 +202,19 @@ selfLib.mkModule {
       actions = {
         "new-window" = {
           name = "New Window";
-          exec = "${pkgs.distrobox}/bin/distrobox enter firefox -- env MOZ_LEGACY_PROFILES=1 MOZ_ENABLE_WAYLAND=1 /usr/lib/firefox-esr/firefox-esr --new-window %u";
+          exec = "firefox-esr --new-window %u";
         };
         "new-private-window" = {
           name = "New Private Window";
-          exec = "${pkgs.distrobox}/bin/distrobox enter firefox -- env MOZ_LEGACY_PROFILES=1 MOZ_ENABLE_WAYLAND=1 /usr/lib/firefox-esr/firefox-esr --private-window %u";
+          exec = "firefox-esr --private-window %u";
         };
         "profile-hardened" = {
           name = "Open Hardened Profile";
-          exec = "${pkgs.distrobox}/bin/distrobox enter firefox -- env MOZ_LEGACY_PROFILES=1 MOZ_ENABLE_WAYLAND=1 /usr/lib/firefox-esr/firefox-esr -P hardened %u";
+          exec = "firefox-esr -P hardened %u";
         };
         "profile-manager" = {
           name = "Profile Manager";
-          exec = "${pkgs.distrobox}/bin/distrobox enter firefox -- env MOZ_LEGACY_PROFILES=1 MOZ_ENABLE_WAYLAND=1 /usr/lib/firefox-esr/firefox-esr --ProfileManager";
+          exec = "firefox-esr --ProfileManager";
         };
       };
       settings = {

@@ -1,4 +1,4 @@
-{ lib }:
+_:
 
 let
   common = import ../common.nix;

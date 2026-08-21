@@ -117,8 +117,17 @@ assert
               distroboxCfg = typedDistroboxCfg;
               enableState = cfg;
             } cId;
+            useDB = distroboxHelper.useDistrobox {
+              inherit name config singleContainerInfo;
+              distroboxCfg = typedDistroboxCfg;
+              enableState = cfg;
+            } cId;
           in
-          cVal // { enable = containerEnabled; }
+          cVal
+          // {
+            enable = containerEnabled;
+            distrobox = useDB;
+          }
         ) typedDistroboxCfg;
 
         resolvedNixosConfig =

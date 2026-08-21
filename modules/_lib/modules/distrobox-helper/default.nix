@@ -73,10 +73,16 @@ let
   optionsModule = import ./options.nix { inherit lib; };
   containersModule = import ./containers.nix { inherit lib; };
   packagesModule = import ./packages.nix { inherit lib; };
+  scriptsModule = import ./scripts.nix { inherit lib; };
 
   inherit (optionsModule) mkDistroboxOptions;
   inherit (containersModule) mkDistroboxContainers mergeDistroboxContainers;
   inherit (packagesModule) mkDistroboxPackagesList mkDistroboxHmProgramsConfig;
+  inherit (scriptsModule)
+    mkDistroboxPruneScript
+    mkDistroboxAutoUpdateScript
+    mkDistroboxSyncScript
+    ;
 in
 {
   inherit
@@ -86,6 +92,9 @@ in
     mergeDistroboxContainers
     isContainerEnabled
     useDistrobox
+    mkDistroboxPruneScript
+    mkDistroboxAutoUpdateScript
+    mkDistroboxSyncScript
     ;
 
   mkDistroboxConfigs =

@@ -41,9 +41,9 @@ let
       result;
 
   # Generates a host-side Nix wrapper script that enters the container and runs
-  # the given binary. Uses a direct 'distrobox enter -- true' probe to check
-  # container existence — more robust than parsing `distrobox list` output which
-  # can change format across distrobox versions.
+  # the given binary. Uses optimistic direct execution (fast-path) to eliminate
+  # redundant probe overhead, falling back to self-healing only if the container
+  # is uninitialized or the binary is missing.
   mkDistroboxRunScript =
     {
       pkgs,
@@ -66,30 +66,28 @@ let
     pkgs.writeShellScriptBin binName ''
       set -eo pipefail
 
-      if ! ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- true 2>/dev/null; then
-        echo "==> [distrobox-wrapper] Container '${containerName}' is not yet initialized." >&2
-        if [ -f "$HOME/.config/distrobox/containers.ini" ]; then
+      # Fast-path: optimistic direct execution in a single step (zero probing overhead)
+      if ! ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- ${envPrefix}${binName}${extraArgs} "$@"; then
+        _exit_code=$?
+        # Exit code 127 = command not found inside container
+        # Or container does not exist / failed to enter
+        if [ "$_exit_code" -eq 127 ] || ! ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- true 2>/dev/null; then
+          echo "==> [distrobox-wrapper] Binary '${binName}' not found or '${containerName}' is uninitialized." >&2
           echo "==> [distrobox-wrapper] Initializing '${containerName}' from declarative configuration..." >&2
-          ${pkgs.distrobox}/bin/distrobox assemble create --file "$HOME/.config/distrobox/containers.ini" --name "${containerName}" || true
-        elif [ -f "$HOME/.config/distrobox/distrobox.ini" ]; then
-          echo "==> [distrobox-wrapper] Initializing '${containerName}' from declarative configuration..." >&2
-          ${pkgs.distrobox}/bin/distrobox assemble create --file "$HOME/.config/distrobox/distrobox.ini" --name "${containerName}" || true
-        fi
-        if command -v distrobox-sync >/dev/null 2>&1; then
-          echo "==> [distrobox-wrapper] Synchronizing packages for '${containerName}'..." >&2
-          distrobox-sync || true
+          if [ -f "$HOME/.config/distrobox/containers.ini" ]; then
+            ${pkgs.distrobox}/bin/distrobox assemble create --file "$HOME/.config/distrobox/containers.ini" --name "${containerName}" || true
+          elif [ -f "$HOME/.config/distrobox/distrobox.ini" ]; then
+            ${pkgs.distrobox}/bin/distrobox assemble create --file "$HOME/.config/distrobox/distrobox.ini" --name "${containerName}" || true
+          fi
+          if command -v distrobox-sync >/dev/null 2>&1; then
+            echo "==> [distrobox-wrapper] Synchronizing packages for '${containerName}'..." >&2
+            distrobox-sync || true
+          fi
+          exec ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- ${envPrefix}${binName}${extraArgs} "$@"
+        else
+          exit "$_exit_code"
         fi
       fi
-
-      # Self-healing: if binary is missing in container, run distrobox-sync to install declared packages.
-      if ! ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- sh -c "command -v ${binName} >/dev/null 2>&1"; then
-        if command -v distrobox-sync >/dev/null 2>&1; then
-          echo "==> [distrobox-wrapper] '${binName}' not found in '${containerName}', running distrobox-sync..." >&2
-          distrobox-sync || true
-        fi
-      fi
-
-      exec ${pkgs.distrobox}/bin/distrobox enter "${containerName}" -- ${envPrefix}${binName}${extraArgs} "$@"
     '';
 in
 {

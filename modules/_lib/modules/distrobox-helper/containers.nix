@@ -149,47 +149,51 @@ in
             rawVals = lib.filter (v: v != null) (map (r: r.${cId} or null) configList);
             # Normalize aliases before merging so all fields are canonical.
             cVals = map normalizeCval rawVals;
-            headVal = builtins.elemAt cVals 0;
-            nonNullImage = lib.findFirst (c: c.image != null) null cVals;
-            nonNullClone = lib.findFirst (c: c.clone != null) null cVals;
-            nonNullEntry = lib.findFirst (c: c.entry != null) null cVals;
-            nonAutoDistro = lib.findFirst (c: c.distro != "auto") null cVals;
-            nonNullHome = lib.findFirst (c: c.home != null) null cVals;
+            # Only active container configurations contribute packages, hooks, and dependencies.
+            activeVals = lib.filter (c: (c.enable or true) && (c.distrobox or true)) cVals;
+            effectiveVals = if activeVals != [ ] then activeVals else cVals;
+
+            headVal = builtins.elemAt effectiveVals 0;
+            nonNullImage = lib.findFirst (c: c.image != null) null effectiveVals;
+            nonNullClone = lib.findFirst (c: c.clone != null) null effectiveVals;
+            nonNullEntry = lib.findFirst (c: c.entry != null) null effectiveVals;
+            nonAutoDistro = lib.findFirst (c: c.distro != "auto") null effectiveVals;
+            nonNullHome = lib.findFirst (c: c.home != null) null effectiveVals;
             mergedVal = headVal // {
-              enable = lib.any (c: c.enable or true) cVals;
+              enable = activeVals != [ ];
               image = if nonNullImage != null then nonNullImage.image else null;
               clone = if nonNullClone != null then nonNullClone.clone else null;
               entry = if nonNullEntry != null then nonNullEntry.entry else null;
               distro = if nonAutoDistro != null then nonAutoDistro.distro else "auto";
               home = if nonNullHome != null then nonNullHome.home else null;
-              # Canonical merged fields (aliases already folded by normalizeCval).
-              packages = lib.unique (lib.concatLists (map (c: c.packages) cVals));
-              aurPackages = lib.unique (lib.concatLists (map (c: c.aurPackages) cVals));
-              preInitHooks = lib.unique (lib.concatLists (map (c: c.preInitHooks) cVals));
-              initHooks = lib.unique (lib.concatLists (map (c: c.initHooks) cVals));
-              exportedApps = lib.unique (lib.concatLists (map (c: c.exportedApps) cVals));
-              exportedBins = lib.unique (lib.concatLists (map (c: c.exportedBins) cVals));
-              volumes = lib.unique (lib.concatLists (map (c: c.volumes) cVals));
-              additionalFlags = lib.unique (lib.concatLists (map (c: c.additionalFlags) cVals));
-              env = lib.foldl (acc: c: acc // c.env) { } cVals;
-              isolatedHome = lib.any (c: c.isolatedHome) cVals;
-              init = lib.any (c: c.init) cVals;
-              pull = lib.any (c: c.pull) cVals;
-              nvidia = lib.any (c: c.nvidia) cVals;
-              root = lib.any (c: c.root) cVals;
-              replace = lib.any (c: c.replace) cVals;
-              startNow = lib.any (c: c.startNow) cVals;
-              deltaUpdates = lib.all (c: c.deltaUpdates) cVals;
+              # Canonical merged fields (only from active container declarations).
+              packages = lib.unique (lib.concatLists (map (c: c.packages) activeVals));
+              aurPackages = lib.unique (lib.concatLists (map (c: c.aurPackages) activeVals));
+              preInitHooks = lib.unique (lib.concatLists (map (c: c.preInitHooks) activeVals));
+              initHooks = lib.unique (lib.concatLists (map (c: c.initHooks) activeVals));
+              exportedApps = lib.unique (lib.concatLists (map (c: c.exportedApps) activeVals));
+              exportedBins = lib.unique (lib.concatLists (map (c: c.exportedBins) activeVals));
+              volumes = lib.unique (lib.concatLists (map (c: c.volumes) activeVals));
+              additionalFlags = lib.unique (lib.concatLists (map (c: c.additionalFlags) activeVals));
+              env = lib.foldl (acc: c: acc // c.env) { } activeVals;
+              isolatedHome = lib.any (c: c.isolatedHome) activeVals;
+              init = lib.any (c: c.init) activeVals;
+              pull = lib.any (c: c.pull) activeVals;
+              nvidia = lib.any (c: c.nvidia) activeVals;
+              root = lib.any (c: c.root) activeVals;
+              replace = lib.any (c: c.replace) activeVals;
+              startNow = lib.any (c: c.startNow) activeVals;
+              deltaUpdates = lib.all (c: c.deltaUpdates) activeVals;
               # Feature options merge
-              extraTesting = lib.any (c: c.extraTesting or false) cVals;
-              chaoticAur = lib.any (c: c.chaoticAur or false) cVals;
-              copr = lib.unique (lib.concatLists (map (c: c.copr or [ ]) cVals));
+              extraTesting = lib.any (c: c.extraTesting or false) activeVals;
+              chaoticAur = lib.any (c: c.chaoticAur or false) activeVals;
+              copr = lib.unique (lib.concatLists (map (c: c.copr or [ ]) activeVals));
               rpmfusion = {
-                free = lib.any (c: (c.rpmfusion or { }).free or false) cVals;
-                unfree = lib.any (c: (c.rpmfusion or { }).unfree or false) cVals;
+                free = lib.any (c: (c.rpmfusion or { }).free or false) activeVals;
+                unfree = lib.any (c: (c.rpmfusion or { }).unfree or false) activeVals;
               };
-              symlinks = lib.foldl (acc: c: acc // (c.symlinks or { })) { } cVals;
-              extraConfig = lib.foldl (acc: c: acc // c.extraConfig) { } cVals;
+              symlinks = lib.foldl (acc: c: acc // (c.symlinks or { })) { } activeVals;
+              extraConfig = lib.foldl (acc: c: acc // c.extraConfig) { } activeVals;
               # Reset alias fields after merge — they have been folded into the
               # canonical names above and must not leak downstream.
               additional_packages = [ ];

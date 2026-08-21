@@ -10,6 +10,7 @@
         inherit name text runtimeInputs;
         excludeShellChecks = [
           "SC2012"
+          "SC2016"
         ];
       };
     in
