@@ -15,6 +15,7 @@
 { lib, ... }:
 let
   mkModuleLib = import ./modules/mkModule { inherit lib; };
+  distroboxLib = import ./distrobox.nix { inherit lib; };
   shellLib = pkgs: import ./shell { inherit lib pkgs; };
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
@@ -26,6 +27,14 @@ in
   # ── Module builder ───────────────────────────────────────────────────────────
   # Primary API: wraps NixOS + Home Manager config under options.my.<name>.enable
   mkModule = mkModuleLib;
+
+  # ── Distrobox helpers ─────────────────────────────────────────────────────────
+  # Per-distro builders that produce valid distroboxCfg attrsets.
+  # Accepts Nix packages in `packages` — auto-extracts install names, binName, and
+  # native fallback package. Sets image and distro key automatically from helper name.
+  # Example: selfLib.distrobox.arch { packages = with pkgs; [ aria2 ]; ... }
+  # Example: selfLib.distrobox.debian { name = "firefox"; packages = with pkgs; [ firefox-esr ]; }
+  distrobox = distroboxLib;
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }

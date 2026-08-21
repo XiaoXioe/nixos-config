@@ -113,8 +113,32 @@ selfLib.mkModule {
               Type = "oneshot";
               ExecStart = "${pkgs.writeShellScript "distrobox-autoupdate" ''
                 set -euo pipefail
-                echo "==> Upgrading Distrobox containers..."
-                ${pkgs.distrobox}/bin/distrobox upgrade --all
+                echo "==> Upgrading Distrobox containers (official packages)..."
+                ${pkgs.distrobox}/bin/distrobox upgrade --all || true
+
+                # Check and update AUR packages on Arch Linux containers
+                existing_containers=$(${pkgs.distrobox}/bin/distrobox list --no-color 2>/dev/null | awk -F'|' 'NR>1 {gsub(/^[ \t]+|[ \t]+$/, "", $2); if ($2 != "") print $2}' || true)
+                for c in $existing_containers; do
+                  if ${pkgs.distrobox}/bin/distrobox enter "$c" -- sh -c "command -v pacman >/dev/null 2>&1"; then
+                    echo "==> [distrobox-autoupdate] Checking AUR updates for container '$c'..."
+                    ${pkgs.distrobox}/bin/distrobox enter "$c" -- bash -c '
+                      _buser=$(id -un 1000 2>/dev/null || whoami)
+                      aur_pkgs=$(pacman -Qm -q 2>/dev/null || true)
+                      if [ -n "$aur_pkgs" ]; then
+                        for pkg in $aur_pkgs; do
+                          echo "==> [distrobox-autoupdate] Checking AUR package: $pkg..."
+                          _aur_tmp=$(mktemp -d /tmp/aur-update-"$pkg"-XXXXXX)
+                          chown -R "$_buser" "$_aur_tmp"
+                          if sudo -u "$_buser" git clone --depth 1 "https://aur.archlinux.org/$pkg.git" "$_aur_tmp" 2>/dev/null; then
+                            (cd "$_aur_tmp" && sudo -u "$_buser" makepkg -si --noconfirm --skippgpcheck --needed) || true
+                          fi
+                          rm -rf "$_aur_tmp"
+                        done
+                      fi
+                    ' || true
+                  fi
+                done
+
                 ${lib.optionalString cfg.pruneOrphanContainers ''
                   echo "==> Pruning orphan containers..."
                   ${distroboxPruneScript}/bin/distrobox-prune
@@ -167,11 +191,73 @@ selfLib.mkModule {
           fi
         done
       '';
+      activeRegistries = builtins.attrValues (config.my._distroboxRegistry or { });
+      distroboxHelper = import ../_lib/modules/distrobox-helper { inherit lib; };
+      distrosModule = import ../_lib/modules/distrobox-helper/distros.nix { inherit lib; };
+      mergedContainerMap = distroboxHelper.mergeDistroboxContainers activeRegistries;
+      mergedDistroboxContainers = distroboxHelper.mkDistroboxContainers {
+        ctx = {
+          distroboxCfg = mergedContainerMap;
+        };
+        # useDistrobox is the partially-applied form: cId -> bool
+        useDistrobox = _cId: true;
+      };
+      distroboxSyncScript = pkgs.writeShellScriptBin "distrobox-sync" ''
+        set -euo pipefail
+
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (
+            cId: cDef:
+            let
+              # ──
+              rawCfg = mergedContainerMap.${cId};
+              targetDistro =
+                if rawCfg.distro != "auto" then rawCfg.distro else distrosModule.detectDistro rawCfg.image;
+              # getDistroInstallCmd returns { check, cmd } or null (for custom/unknown).
+              installInfo = distrosModule.getDistroInstallCmd { distro = targetDistro; };
+
+              hasPkgs = cDef ? additional_packages && cDef.additional_packages != "" && installInfo != null;
+              hasHooks = cDef ? init_hooks && cDef.init_hooks != [ ];
+              hooksCmd = lib.optionalString hasHooks (
+                lib.concatStringsSep "\n" (map (h: "  " + h) cDef.init_hooks)
+              );
+              hooksScript = pkgs.writeShellScript "distrobox-hooks-${cId}" ''
+                set -euo pipefail
+                ${hooksCmd}
+              '';
+            in
+            ''
+              echo "==> [distrobox-sync] Synchronizing container: ${cId} (${targetDistro})"
+              if ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- true 2>/dev/null; then
+                ${lib.optionalString hasPkgs ''
+                  if ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- sh -c "command -v ${installInfo.check} >/dev/null 2>&1"; then
+                    echo "==> [distrobox-sync] Installing packages for ${cId} (${installInfo.cmd})..."
+                    ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- sudo ${installInfo.cmd} ${cDef.additional_packages} || true
+                  fi
+                ''}
+                ${lib.optionalString hasHooks ''
+                  echo "==> [distrobox-sync] Running init hooks for ${cId}..."
+                  ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- ${hooksScript} || true
+                ''}
+              fi
+            ''
+          ) mergedDistroboxContainers
+        )}
+      '';
     in
     {
-      programs.distrobox.settings = {
-        container_image_default = lib.mkDefault cfg.defaultDistroboxImage;
-        container_generate_entry = lib.mkDefault 0;
+      home.packages = [
+        distroboxSyncScript
+      ];
+
+      programs.distrobox = {
+        enable = true;
+        enableSystemdUnit = true;
+        containers = mergedDistroboxContainers;
+        settings = {
+          container_image_default = lib.mkDefault cfg.defaultDistroboxImage;
+          container_generate_entry = lib.mkDefault 0;
+        };
       };
 
       systemd.user.services.distrobox-home-manager = {
@@ -182,10 +268,16 @@ selfLib.mkModule {
         Service = {
           Restart = "on-failure";
           RestartSec = "30s";
-        }
-        // (lib.optionalAttrs cfg.pruneOrphanContainers {
-          ExecStartPost = "${distroboxPruneScript}/bin/distrobox-prune";
-        });
+          ExecStartPost = "${pkgs.writeShellScript "distrobox-home-manager-post" ''
+            set -euo pipefail
+            echo "==> Synchronizing Distrobox container packages & hooks..."
+            ${distroboxSyncScript}/bin/distrobox-sync
+            ${lib.optionalString cfg.pruneOrphanContainers ''
+              echo "==> Pruning orphan containers..."
+              ${distroboxPruneScript}/bin/distrobox-prune
+            ''}
+          ''}";
+        };
       };
     };
 }

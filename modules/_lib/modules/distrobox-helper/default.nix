@@ -21,10 +21,8 @@ let
       inherit (singleContainerInfo) isSingleContainer singleContainerId;
       cVal = distroboxCfg.${cId};
     in
-    if !cVal.enable then
-      false
-    else if isSingleContainer && cId == singleContainerId then
-      enableState
+    if isSingleContainer && cId == singleContainerId then
+      enableState && cVal.enable
     else
       let
         optPath = optionPath ++ [
@@ -33,7 +31,7 @@ let
           "enable"
         ];
       in
-      if lib.hasAttrByPath optPath config.my then lib.getAttrFromPath optPath config.my else true;
+      if lib.hasAttrByPath optPath config.my then lib.getAttrFromPath optPath config.my else cVal.enable;
 
   useDistrobox =
     ctx@{
@@ -77,11 +75,18 @@ let
   packagesModule = import ./packages.nix { inherit lib; };
 
   inherit (optionsModule) mkDistroboxOptions;
-  inherit (containersModule) mkDistroboxContainers;
-  inherit (packagesModule) mkDistroboxPackagesList;
+  inherit (containersModule) mkDistroboxContainers mergeDistroboxContainers;
+  inherit (packagesModule) mkDistroboxPackagesList mkDistroboxHmProgramsConfig;
 in
 {
-  inherit mkDistroboxOptions containerSubmoduleType;
+  inherit
+    mkDistroboxOptions
+    containerSubmoduleType
+    mkDistroboxContainers
+    mergeDistroboxContainers
+    isContainerEnabled
+    useDistrobox
+    ;
 
   mkDistroboxConfigs =
     {
@@ -106,21 +111,37 @@ in
           ;
       };
 
+      # ── partial application — sub-modules only need cId ──────────
+      # Bind ctx once here so that mkDistroboxContainers, mkDistroboxPackagesList,
+      # and mkDistroboxHmProgramsConfig receive simple `cId -> bool` functions
+      # instead of having to thread `ctx` through every call site.
+      isEnabled = isContainerEnabled ctx;
+      useDB = useDistrobox ctx;
+
       distroboxContainers = mkDistroboxContainers {
-        inherit ctx useDistrobox;
+        inherit ctx;
+        useDistrobox = useDB;
       };
 
       distroboxPackagesList = mkDistroboxPackagesList {
-        inherit ctx isContainerEnabled useDistrobox;
+        inherit ctx;
+        isContainerEnabled = isEnabled;
+        useDistrobox = useDB;
       };
 
-      hasActiveContainers =
-        distroboxCfg != { } && lib.any (cId: useDistrobox ctx cId) (builtins.attrNames distroboxCfg);
+      hmProgramsConfig = mkDistroboxHmProgramsConfig {
+        inherit ctx;
+        isContainerEnabled = isEnabled;
+        useDistrobox = useDB;
+      };
+
+      hasActiveContainers = distroboxCfg != { } && lib.any useDB (builtins.attrNames distroboxCfg);
     in
     {
       inherit
         distroboxContainers
         distroboxPackagesList
+        hmProgramsConfig
         hasActiveContainers
         ;
     };

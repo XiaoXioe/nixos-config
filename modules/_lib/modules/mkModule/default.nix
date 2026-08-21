@@ -109,6 +109,18 @@ assert
           distroboxCfg = typedDistroboxCfg;
         };
 
+        resolvedDistroboxCfg = lib.mapAttrs (
+          cId: cVal:
+          let
+            containerEnabled = distroboxHelper.isContainerEnabled {
+              inherit name config singleContainerInfo;
+              distroboxCfg = typedDistroboxCfg;
+              enableState = cfg;
+            } cId;
+          in
+          cVal // { enable = containerEnabled; }
+        ) typedDistroboxCfg;
+
         resolvedNixosConfig =
           if builtins.isFunction nixosConfig then nixosConfig { inherit config lib pkgs; } else nixosConfig;
       in
@@ -191,14 +203,25 @@ assert
               };
             })
             (
-              lib.setAttrByPath optionPath (
-                let
-                  baseOptions = {
-                    enable = lib.mkEnableOption (if description != "" then description else name);
+              lib.recursiveUpdate
+                (lib.optionalAttrs (name == "virtualisation.podman") {
+                  _distroboxRegistry = lib.mkOption {
+                    type = lib.types.attrsOf (lib.types.attrsOf distroboxHelper.containerSubmoduleType);
+                    default = { };
+                    internal = true;
+                    description = "Internal registry of active Distrobox container configurations from modules.";
                   };
-                in
-                baseOptions // flatpakOptions // distroboxOptions // options
-              )
+                })
+                (
+                  lib.setAttrByPath optionPath (
+                    let
+                      baseOptions = {
+                        enable = lib.mkEnableOption (if description != "" then description else name);
+                      };
+                    in
+                    baseOptions // flatpakOptions // distroboxOptions // options
+                  )
+                )
             );
 
         config = lib.mkMerge [
@@ -207,6 +230,9 @@ assert
               enable = cfg;
               rule = preservation;
             };
+          })
+          (lib.mkIf (cfg && hasDistroboxes) {
+            my._distroboxRegistry."${name}" = resolvedDistroboxCfg;
           })
           (lib.mkIf cfg (
             let
@@ -218,27 +244,18 @@ assert
               (lib.mkIf (hmConfig != null && userName != null) {
                 home-manager.users.${userName} = if builtins.isFunction hmConfig then hmConfig else (_: hmConfig);
               })
-              # Distrobox Home Manager configuration
+              # Distrobox Home Manager configuration (wrappers & programs)
               (lib.mkIf (hasDistroboxes && userName != null) {
-                home-manager.users.${userName} = {
-                  programs.distrobox = lib.mkIf distroboxConfigs.hasActiveContainers {
-                    enable = true;
-                    enableSystemdUnit = true;
-                    containers = distroboxConfigs.distroboxContainers;
-                    # Inject default image from podman module option into native distrobox.conf
-                    settings = {
-                      container_image_default = lib.mkDefault (
-                        lib.attrByPath [
-                          "my"
-                          "virtualisation"
-                          "podman"
-                          "defaultDistroboxImage"
-                        ] "docker.io/library/debian:testing" config
-                      );
-                    };
-                  };
-                  home.packages = distroboxConfigs.distroboxPackagesList;
-                };
+                home-manager.users.${userName} =
+                  let
+                    programsConfig = distroboxConfigs.hmProgramsConfig pkgs;
+                  in
+                  {
+                    home.packages = distroboxConfigs.distroboxPackagesList;
+                  }
+                  // (lib.optionalAttrs (programsConfig != { }) {
+                    programs = programsConfig;
+                  });
               })
               # Flatpak-specific NixOS configuration
               (lib.mkIf (flatpakConfigs.flatpakPackages != [ ] || flatpakConfigs.flatpakOverrides != { }) {

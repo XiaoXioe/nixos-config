@@ -9,6 +9,12 @@
 let
   cfg = config.my.virtualisation.distrobox-pkg;
 
+  # ─────────────────
+  # detect_pkg_manager() is generated from the same distroDetectionRules table
+  # that distros.nix uses for Nix-side detection, so both stay in sync automatically.
+  distrosModule = import ../_lib/modules/distrobox-helper/distros.nix { inherit lib; };
+  detectPkgMgrBash = distrosModule.mkDetectPkgManagerBash distrosModule.distroDetectionRules;
+
   dboxPkgApp =
     selfLib.mkApp pkgs "dbox-pkg"
       ''
@@ -86,27 +92,12 @@ let
                   }' || true
                 }
 
-                detect_pkg_manager() {
-                  local image="$1"
-                  local lower_image
-                  lower_image="$(echo "$image" | tr '[:upper:]' '[:lower:]')"
+                # ──────────
+                # detect_pkg_manager() is no longer written by hand here — it is generated
+                # from the same data table used by the Nix-side detectDistro function.
+                # To add a new distro, edit distros/<name>/default.nix only.
+                ${detectPkgMgrBash}
 
-                  if [[ "$lower_image" == *"debian"* ]] || [[ "$lower_image" == *"ubuntu"* ]]; then
-                    echo "apt"
-                  elif [[ "$lower_image" == *"arch"* ]]; then
-                    echo "pacman"
-                  elif [[ "$lower_image" == *"fedora"* ]] || [[ "$lower_image" == *"ubi"* ]] || [[ "$lower_image" == *"centos"* ]] || [[ "$lower_image" == *"rocky"* ]] || [[ "$lower_image" == *"alma"* ]]; then
-                    echo "dnf"
-                  elif [[ "$lower_image" == *"alpine"* ]]; then
-                    echo "apk"
-                  elif [[ "$lower_image" == *"opensuse"* ]] || [[ "$lower_image" == *"tumbleweed"* ]] || [[ "$lower_image" == *"leap"* ]]; then
-                    echo "zypper"
-                  elif [[ "$lower_image" == *"void"* ]]; then
-                    echo "xbps"
-                  else
-                    echo "unknown"
-                  fi
-                }
 
                 # Parse options
                 TARGET_CONTAINER=""

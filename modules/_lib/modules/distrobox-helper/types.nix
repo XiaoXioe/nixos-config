@@ -1,6 +1,8 @@
 { lib }:
 
 let
+  features = import ./features { inherit lib; };
+
   # Type that accepts string or list of strings, coercing string to singleton list.
   # This eliminates the need for normalizeList — values are always lists after evaluation.
   strOrListOfStr = lib.types.coercedTo lib.types.str (s: if s == "" then [ ] else [ s ]) (
@@ -12,7 +14,7 @@ in
   # Provides validation, documentation, and default values for all supported keys.
   # Unknown keys will cause a type error at nix evaluation time.
   containerSubmoduleType = lib.types.submodule {
-    options = {
+    options = features.featureOptions // {
       # ── Core container settings ─────────────────────────────────────────
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -24,6 +26,12 @@ in
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "OCI image for the container. If null, uses global default from programs.distrobox.settings.container_image_default.";
+      };
+
+      clone = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Name of an existing container to clone instead of downloading a fresh image.";
       };
 
       distro = lib.mkOption {
@@ -54,7 +62,6 @@ in
         description = "Use Distrobox container (true) or native Nix package (false).";
       };
 
-      # ── Packages (with snake_case alias) ────────────────────────────────
       packages = lib.mkOption {
         type = strOrListOfStr;
         default = [ ];
@@ -65,6 +72,19 @@ in
         type = strOrListOfStr;
         default = [ ];
         description = "Alias for packages (snake_case convention). Both are merged.";
+      };
+
+      # ── AUR packages (Arch Linux containers) ────────────────────────────
+      aurPackages = lib.mkOption {
+        type = strOrListOfStr;
+        default = [ ];
+        description = "List of AUR packages to automatically build and install via makepkg inside Arch Linux containers.";
+      };
+
+      aur = lib.mkOption {
+        type = strOrListOfStr;
+        default = [ ];
+        description = "Alias for aurPackages (short/convenience convention). Both are merged.";
       };
 
       # ── Pre-init hooks (with snake_case alias) ──────────────────────────
@@ -122,6 +142,12 @@ in
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "Host directory for exported binary wrappers (distrobox export --bin).";
+      };
+
+      entry = lib.mkOption {
+        type = lib.types.nullOr lib.types.bool;
+        default = null;
+        description = "Whether to generate desktop application entries for exported applications on host.";
       };
 
       # ── Volumes and flags (with aliases) ────────────────────────────────
@@ -207,7 +233,7 @@ in
       start_now = lib.mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Alias for startNow (snake_case convention). Either being true starts the container.";
+        description = "Alias for startNow (snake_case convention). The effective value is (startNow || start_now). Setting either one to true starts the container immediately after creation.";
       };
 
       # ── Native package fallback options ─────────────────────────────────
@@ -253,6 +279,47 @@ in
         type = lib.types.bool;
         default = true;
         description = "Generate Nix writeShellScriptBin wrappers in home.packages for exported binaries.";
+      };
+
+      # ── Home Manager program integration ────────────────────────────────
+      hmProgram = lib.mkOption {
+        type = lib.types.nullOr (
+          lib.types.submodule {
+            options = {
+              name = lib.mkOption {
+                type = lib.types.str;
+                description = "Home Manager programs.<name> identifier.";
+              };
+              binName = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Binary name inside container for wrapper script.";
+              };
+              packagePath = lib.mkOption {
+                type = lib.types.str;
+                default = "package";
+                description = "Option key under programs.<name> for package override (default 'package').";
+              };
+              package = lib.mkOption {
+                type = lib.types.anything;
+                default = null;
+                description = "Explicit package override for container mode. If null and useDistrobox is true, uses null or generated wrapper.";
+              };
+              passWrapperAsPackage = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = "Whether to pass the generated Distrobox wrapper script as the HM programs.<name>.package instead of null (when package is null).";
+              };
+              extraConfig = lib.mkOption {
+                type = lib.types.attrsOf lib.types.anything;
+                default = { };
+                description = "Extra configuration attributes merged into programs.<name>.";
+              };
+            };
+          }
+        );
+        default = null;
+        description = "Home Manager programs.<name> integration config.";
       };
 
       # ── Escape hatch ────────────────────────────────────────────────────

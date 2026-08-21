@@ -14,7 +14,7 @@
       distroboxes = lib.mapAttrs (cId: cVal: {
         enable = lib.mkOption {
           type = lib.types.bool;
-          default = true;
+          default = cVal.enable;
           description = "Whether to enable Distrobox container '${cId}'.";
         };
         distrobox = {

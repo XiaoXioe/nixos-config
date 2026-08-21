@@ -1,209 +1,127 @@
 { lib }:
 
+# Aggregator for all per-distro modules.
+# Each distro lives in its own sub-directory under distros/ and exports:
+#   name             : string         — canonical distro key
+#   detectionPatterns: [string]       — substrings matched against lowercased image name
+#   pkgManager       : string         — bash pkg-manager name (apt/pacman/dnf/apk/zypper/xbps)
+#   checkCmd         : string | null  — binary to probe inside container
+#   installCmd       : string | null  — full install invocation (packages appended, sudo at call site)
+#   basePackages     : { deltaUpdates ? bool } -> [string]
+#   preInitHooks     : [string]
+# Arch-specific extras (only in distros/arch-linux/):
+#   aurBuildPrereqs  : [string]       — makepkg build dependencies
+#   mkAurBuildHook   : string -> string — generates single-line AUR build command
 let
-  # Detect distro type from container image name
+  allDistros = map (f: import f { inherit lib; }) [
+    ./distros/arch-linux
+    ./distros/debian
+    ./distros/ubuntu
+    ./distros/fedora
+    ./distros/alpine
+    ./distros/opensuse
+    ./distros/void
+    ./distros/custom
+  ];
+
+  # Lookup table: distro-name → distro-module attrset.
+  distroTable = lib.listToAttrs (map (d: lib.nameValuePair d.name d) allDistros);
+
+  # Detect distro from OCI image name string (case-insensitive substring match).
+  # Returns "debian" for null/empty images (system-wide default in this setup).
   detectDistro =
     image:
     if image == null || image == "" then
-      "debian" # Default base image in this system is debian:testing
+      "debian"
     else
       let
         lowerImage = lib.toLower image;
+        candidates = lib.filter (d: d.detectionPatterns != [ ]) allDistros;
+        found = lib.findFirst (
+          d: lib.any (p: lib.hasInfix p lowerImage) d.detectionPatterns
+        ) null candidates;
       in
-      if lib.hasInfix "debian" lowerImage then
-        "debian"
-      else if lib.hasInfix "ubuntu" lowerImage then
-        "ubuntu"
-      else if lib.hasInfix "arch" lowerImage then
-        "arch"
-      else if
-        lib.hasInfix "fedora" lowerImage
-        || lib.hasInfix "ubi" lowerImage
-        || lib.hasInfix "centos" lowerImage
-        || lib.hasInfix "rocky" lowerImage
-        || lib.hasInfix "alma" lowerImage
-      then
-        "fedora"
-      else if lib.hasInfix "alpine" lowerImage then
-        "alpine"
-      else if
-        lib.hasInfix "opensuse" lowerImage
-        || lib.hasInfix "tumbleweed" lowerImage
-        || lib.hasInfix "leap" lowerImage
-      then
-        "opensuse"
-      else if lib.hasInfix "void" lowerImage then
-        "void"
-      else
-        "custom";
+      if found != null then found.name else "custom";
 
-  # Base GUI, font, audio, and utility packages per distro package manager
-  distroPackages = {
-    debian =
-      {
-        deltaUpdates ? true,
-      }:
-      [
-        "ca-certificates"
-        "curl"
-        "gnupg"
-        "fonts-dejavu"
-        "fonts-noto-color-emoji"
-        "fonts-liberation"
-        "libgl1-mesa-dri"
-        "libgl1"
-        "libglx-mesa0"
-        "mesa-vulkan-drivers"
-        "libpipewire-0.3-0"
-        "libpulse0"
-        "libasound2t64"
-      ]
-      ++ lib.optionals deltaUpdates [ "debdelta" ];
+  # Detection rules table consumed by mkDetectPkgManagerBash for codegen.
+  distroDetectionRules = map (d: {
+    patterns = d.detectionPatterns;
+    distro = d.name;
+    pkgMgr = d.pkgManager;
+  }) (lib.filter (d: d.detectionPatterns != [ ]) allDistros);
 
-    ubuntu =
-      {
-        deltaUpdates ? false,
-      }:
-      [
-        "ca-certificates"
-        "curl"
-        "gnupg"
-        "fonts-dejavu"
-        "fonts-noto-color-emoji"
-        "fonts-liberation"
-        "libgl1-mesa-dri"
-        "libgl1"
-        "libglx-mesa0"
-        "mesa-vulkan-drivers"
-        "libpipewire-0.3-0"
-        "libpulse0"
-        "libasound2t64"
-      ]
-      ++ lib.optionals deltaUpdates [ "debdelta" ];
-
-    arch = _: [
-      "ca-certificates"
-      "curl"
-      "gnupg"
-      "ttf-dejavu"
-      "noto-fonts-emoji"
-      "ttf-liberation"
-      "mesa"
-      "vulkan-intel"
-      "vulkan-radeon"
-      "libpipewire"
-      "libpulse"
-      "alsa-lib"
-    ];
-
-    fedora = _: [
-      "ca-certificates"
-      "curl"
-      "gnupg2"
-      "dejavu-sans-fonts"
-      "google-noto-color-emoji-fonts"
-      "liberation-sans-fonts"
-      "mesa-dri-drivers"
-      "mesa-vulkan-drivers"
-      "mesa-libGL"
-      "pipewire-libs"
-      "pulseaudio-libs"
-      "alsa-lib"
-    ];
-
-    alpine = _: [
-      "ca-certificates"
-      "curl"
-      "gnupg"
-      "ttf-dejavu"
-      "font-noto-emoji"
-      "ttf-liberation"
-      "mesa-dri-gallium"
-      "mesa-vulkan-intel"
-      "mesa-vulkan-ati"
-      "pipewire"
-      "libpulse"
-      "alsa-lib"
-    ];
-
-    opensuse = _: [
-      "ca-certificates"
-      "curl"
-      "gpg2"
-      "dejavu-fonts"
-      "noto-coloremoji-fonts"
-      "liberation-fonts"
-      "Mesa"
-      "Mesa-dri"
-      "Mesa-vulkan-device-select"
-      "libpipewire-0_3-0"
-      "libpulse0"
-      "libasound2"
-    ];
-
-    void = _: [
-      "ca-certificates"
-      "curl"
-      "gnupg"
-      "dejavu-fonts"
-      "noto-fonts-emoji"
-      "font-liberation-ttf"
-      "MesaLib"
-      "vulkan-loader"
-      "pipewire"
-      "libpulseaudio"
-      "alsa-lib"
-    ];
-
-    custom = _: [ ];
-  };
-
-  # Essential systemd pre-init hooks to prevent permission/mount errors in rootless podman
-  systemdMountHook = "mkdir -p /run/systemd/journal /run/systemd/seats /run/systemd/sessions /run/systemd/users /var/lib/systemd/coredump 2>/dev/null || true";
-
-  debianTmpfilesDivertHook = "(dpkg-divert --local --rename --add /usr/bin/systemd-tmpfiles 2>/dev/null || true) && (ln -sf /bin/true /usr/bin/systemd-tmpfiles 2>/dev/null || true)";
-
-  distroPreInitHooks = {
-    debian = [
-      systemdMountHook
-      debianTmpfilesDivertHook
-    ];
-    ubuntu = [
-      systemdMountHook
-      debianTmpfilesDivertHook
-    ];
-    arch = [
-      systemdMountHook
-    ];
-    fedora = [
-      systemdMountHook
-    ];
-    alpine = [
-      systemdMountHook
-    ];
-    opensuse = [
-      systemdMountHook
-    ];
-    void = [
-      systemdMountHook
-    ];
-    custom = [ ];
-  };
 in
 {
-  inherit detectDistro;
+  inherit detectDistro distroDetectionRules;
 
+  # Returns the list of base packages for a given distro key.
   getDistroBasePackages =
     {
       distro,
       deltaUpdates ? true,
     }:
     let
-      pkgFn = distroPackages.${distro} or distroPackages.custom;
+      d = distroTable.${distro} or distroTable.custom;
     in
-    pkgFn { inherit deltaUpdates; };
+    d.basePackages { inherit deltaUpdates; };
 
+  # Returns the list of pre-init hook strings for a given distro key.
   getDistroPreInitHooks =
     { distro }:
-    distroPreInitHooks.${distro} or [ ];
+    let
+      d = distroTable.${distro} or distroTable.custom;
+    in
+    d.preInitHooks or [ ];
+
+  # Returns { check, cmd } for distrobox-sync package installation, or null
+  # when the distro has no known package manager (e.g. custom).
+  # `cmd` is the full install invocation; packages appended as trailing args.
+  # Sudo is applied at the call site.
+  getDistroInstallCmd =
+    { distro }:
+    let
+      d = distroTable.${distro} or distroTable.custom;
+    in
+    if d ? checkCmd && d.checkCmd != null && d ? installCmd && d.installCmd != null then
+      {
+        check = d.checkCmd;
+        cmd = d.installCmd;
+      }
+    else
+      null;
+
+  # Returns { mkAurBuildHook, aurBuildPrereqs } for distros that support AUR
+  # (currently only Arch Linux), or null for all other distros.
+  # Keeps AUR-specific logic inside the arch-linux module — not here.
+  getDistroAurSupport =
+    { distro }:
+    let
+      d = distroTable.${distro} or distroTable.custom;
+    in
+    if d ? mkAurBuildHook then { inherit (d) mkAurBuildHook aurBuildPrereqs; } else null;
+
+  # Generates bash detect_pkg_manager() from the distroDetectionRules table
+  # so that distrobox-pkg.nix never duplicates the detection logic in bash.
+  # Adding a new distro only requires editing its distros/<name>/default.nix.
+  mkDetectPkgManagerBash =
+    rules:
+    let
+      cases = lib.concatStringsSep "\n  " (
+        map (
+          rule:
+          let
+            conds = map (p: "[[ \"$lower_image\" == *\"${p}\"* ]]") rule.patterns;
+          in
+          "if ${lib.concatStringsSep " || " conds}; then echo \"${rule.pkgMgr}\"; return; fi"
+        ) rules
+      );
+    in
+    ''
+      detect_pkg_manager() {
+        local lower_image
+        lower_image="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+        ${cases}
+        echo "unknown"
+      }
+    '';
 }

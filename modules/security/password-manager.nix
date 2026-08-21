@@ -1,85 +1,128 @@
 {
+  config,
   pkgs,
+  lib,
   selfLib,
   ...
 }:
 
+let
+  cfg = config.my.security.password-manager;
+  bitwardenEnabled = cfg.bitwarden.enable or false;
+  protonPassEnabled = cfg.proton-pass.enable or false;
+  enteAuthEnabled = cfg.ente-auth.enable or true;
+in
 selfLib.mkModule {
   name = "security.password-manager";
-  description = "Password & 2FA manager desktop applications (Bitwarden, Proton Pass, Ente Auth)";
+  description = "Password & 2FA manager desktop applications (Bitwarden, Proton Pass, Ente Auth) via shared Arch Distrobox container";
 
-  flatpakCfg = {
-    "com.bitwarden.desktop" = {
-      enable = false;
-      binName = "bitwarden";
-      overrides = {
-        Context = {
-          sockets = [
-            "wayland"
-            "fallback-x11"
-          ];
-          shares = [ "ipc" ];
-        };
-        Environment = {
-          ELECTRON_OZONE_PLATFORM_HINT = "auto";
-        };
-        SessionBus = {
-          talk = [
-            "org.freedesktop.portal.Failsafe"
-            "org.freedesktop.portal.Secret"
-            "org.freedesktop.portal.Desktop"
-          ];
-        };
+  options = {
+    bitwarden = {
+      enable = lib.mkEnableOption "Bitwarden desktop password manager";
+    };
+    proton-pass = {
+      enable = lib.mkEnableOption "Proton Pass desktop password manager";
+    };
+    ente-auth = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to enable Ente Auth 2FA desktop authenticator.";
       };
-      symlinks = [
-        {
-          host = ".config/Bitwarden";
-          guest = "config/Bitwarden";
-        }
-      ];
-      nativePkgs = pkgs.bitwarden-desktop;
     };
+  };
 
-    "me.proton.Pass" = {
-      enable = false;
-      binName = "proton-pass";
-      overrides = {
-        Context = {
-          sockets = [
-            "wayland"
-            "fallback-x11"
-          ];
-          shares = [ "ipc" ];
-        };
-        Environment = {
-          ELECTRON_OZONE_PLATFORM_HINT = "auto";
-        };
-        SessionBus = {
-          talk = [
-            "org.freedesktop.portal.Failsafe"
-            "org.freedesktop.portal.Secret"
-            "org.freedesktop.portal.Desktop"
-          ];
-        };
+  preservation = {
+    userDirectories =
+      (lib.optionals bitwardenEnabled [
+        ".config/Bitwarden"
+      ])
+      ++ (lib.optionals protonPassEnabled [
+        ".config/Proton Pass"
+      ])
+      ++ (lib.optionals enteAuthEnabled [
+        ".local/share/io.ente.auth"
+        ".config/enteauth"
+      ]);
+  };
+
+  distroboxCfg = {
+    "arch" = {
+      image = "docker.io/library/archlinux:latest";
+      distro = "arch";
+      packages = lib.optionals bitwardenEnabled [
+        "bitwarden"
+      ];
+      aurPackages =
+        (lib.optionals protonPassEnabled [ "proton-pass-bin" ])
+        ++ (lib.optionals enteAuthEnabled [ "ente-auth-bin" ]);
+      # binName explicitly overrides the meta.mainProgram fallback ("bitwarden")
+      # so exactly one wrapper is generated for bitwarden: "bitwarden-desktop".
+      # This matches the binary name used in the xdg desktop entry below.
+      binName = lib.mkIf bitwardenEnabled "bitwarden-desktop";
+      exportedBins =
+        # "bitwarden-desktop" omitted — covered by binName above.
+        (lib.optionals protonPassEnabled [ "proton-pass" ])
+        ++ (lib.optionals enteAuthEnabled [ "enteauth" ]);
+      env = {
+        ELECTRON_OZONE_PLATFORM_HINT = "auto";
       };
-      symlinks = [
-        {
-          host = ".config/Proton Pass";
-          guest = "config/Proton Pass";
-        }
-      ];
-      nativePkgs = pkgs.proton-pass;
+      nativePkgs =
+        (lib.optionals bitwardenEnabled [ pkgs.bitwarden-desktop ])
+        ++ (lib.optionals protonPassEnabled [ pkgs.proton-pass ])
+        ++ (lib.optionals enteAuthEnabled [ pkgs.ente-auth ]);
     };
+  };
 
-    "io.ente.auth" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".local/share/io.ente.auth";
-          guest = "data/enteauth";
-        }
-      ];
-      nativePkgs = pkgs.ente-auth;
-    };
+  hmConfig = {
+    xdg.desktopEntries = lib.mkMerge [
+      (lib.mkIf bitwardenEnabled {
+        bitwarden = {
+          name = "Bitwarden";
+          genericName = "Password Manager";
+          comment = "A secure and free password manager for all of your devices";
+          exec = "bitwarden-desktop %U";
+          icon = "bitwarden";
+          terminal = false;
+          categories = [
+            "Utility"
+            "Security"
+          ];
+          mimeType = [ "x-scheme-handler/bitwarden" ];
+        };
+      })
+
+      (lib.mkIf protonPassEnabled {
+        proton-pass = {
+          name = "Proton Pass";
+          genericName = "Password Manager";
+          comment = "Proton Pass Desktop application";
+          exec = "proton-pass %U";
+          icon = "proton-pass";
+          terminal = false;
+          categories = [
+            "Utility"
+            "Security"
+          ];
+          mimeType = [ "x-scheme-handler/protonpass" ];
+        };
+      })
+
+      (lib.mkIf enteAuthEnabled {
+        ente-auth = {
+          name = "Ente Auth";
+          genericName = "2FA Authenticator";
+          comment = "End-to-end encrypted 2FA app";
+          exec = "enteauth %U";
+          icon = "io.ente.auth";
+          terminal = false;
+          categories = [
+            "Utility"
+            "Security"
+          ];
+          mimeType = [ "x-scheme-handler/enteauth" ];
+        };
+      })
+    ];
   };
 }
