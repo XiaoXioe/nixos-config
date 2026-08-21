@@ -46,32 +46,28 @@ selfLib.mkModule {
       ]);
   };
 
-  distroboxCfg = {
-    "arch" = {
-      image = "docker.io/library/archlinux:latest";
-      distro = "arch";
-      packages = lib.optionals bitwardenEnabled [
-        "bitwarden"
-      ];
-      aurPackages =
-        (lib.optionals protonPassEnabled [ "proton-pass-bin" ])
-        ++ (lib.optionals enteAuthEnabled [ "ente-auth-bin" ]);
-      # binName explicitly overrides the meta.mainProgram fallback ("bitwarden")
-      # so exactly one wrapper is generated for bitwarden: "bitwarden-desktop".
-      # This matches the binary name used in the xdg desktop entry below.
-      binName = lib.mkIf bitwardenEnabled "bitwarden-desktop";
-      exportedBins =
-        # "bitwarden-desktop" omitted — covered by binName above.
-        (lib.optionals protonPassEnabled [ "proton-pass" ])
-        ++ (lib.optionals enteAuthEnabled [ "enteauth" ]);
-      env = {
-        ELECTRON_OZONE_PLATFORM_HINT = "auto";
-      };
-      nativePkgs =
-        (lib.optionals bitwardenEnabled [ pkgs.bitwarden-desktop ])
-        ++ (lib.optionals protonPassEnabled [ pkgs.proton-pass ])
-        ++ (lib.optionals enteAuthEnabled [ pkgs.ente-auth ]);
+  distroboxCfg = selfLib.distrobox.arch {
+    extraTesting = true; # Aktifkan repositori [extra-testing] untuk mendapatkan paket bleeding-edge
+    # image, distro — auto dari helper
+    packages = lib.optionals bitwardenEnabled [ "bitwarden" ];
+    aur =
+      (lib.optionals protonPassEnabled [ "proton-pass-bin" ])
+      ++ (lib.optionals enteAuthEnabled [ "ente-auth-bin" ]);
+    # binName explicitly overrides the meta.mainProgram fallback ("bitwarden")
+    # so exactly one wrapper is generated for bitwarden: "bitwarden-desktop".
+    # This matches the binary name used in the xdg desktop entry below.
+    binName = lib.mkIf bitwardenEnabled "bitwarden-desktop";
+    exportedBins =
+      # "bitwarden-desktop" omitted — covered by binName above.
+      (lib.optionals protonPassEnabled [ "proton-pass" ])
+      ++ (lib.optionals enteAuthEnabled [ "enteauth" ]);
+    env = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
     };
+    nativePkgs =
+      (lib.optionals bitwardenEnabled [ pkgs.bitwarden-desktop ])
+      ++ (lib.optionals protonPassEnabled [ pkgs.proton-pass ])
+      ++ (lib.optionals enteAuthEnabled [ pkgs.ente-auth ]);
   };
 
   hmConfig = {

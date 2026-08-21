@@ -77,7 +77,6 @@
         };
         gthumb = true;
         ffmpeg = true;
-        zbar = true;
         downloader = true;
         music = true;
         dl-lagu = true;
@@ -111,6 +110,15 @@
             show-zombie-parents = true;
           };
         };
+      };
+    };
+
+    security = {
+      password-manager = {
+        enable = true;
+        bitwarden = true;
+        proton-pass = false;
+        ente-auth = true;
       };
     };
   };

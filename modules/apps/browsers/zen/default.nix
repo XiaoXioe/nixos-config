@@ -37,14 +37,27 @@ let
     OverridePostUpdatePage = "";
     Preferences = zenPolicies;
   };
+
+  # Instansiasi Zen Browser langsung menggunakan `pkgs` lokal.
+  # Diperlukan agar zen-browser-flake mengonsumsi overlay `pkgs` sistem (seperti kompatibilitas ffmpeg_9 di bawah).
+  zenPackage = (import "${inputs.zen-browser}/default.nix" { inherit pkgs; }).default;
 in
 selfLib.mkModule {
   name = "apps.browsers.zen";
   description = "Zen Browser configuration powered by zen-browser-flake";
 
   nixosConfig = {
+    # Upstream `zen-browser-flake` memerlukan dependensi `ffmpeg_9`.
+    # Karena sistem menggunakan channel stable (nixos-26.05) dengan `inputs.nixpkgs.follows = "nixpkgs"`,
+    # petakan `ffmpeg_9` ke `ffmpeg_7` / `ffmpeg` bawaan 26.05 agar evaluasi flake tidak error.
+    nixpkgs.overlays = [
+      (_final: prev: {
+        ffmpeg_9 = prev.ffmpeg_7 or prev.ffmpeg;
+      })
+    ];
+
     my.services.vmtouch.paths = [
-      inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+      zenPackage
     ];
 
     environment.sessionVariables = {
@@ -109,7 +122,7 @@ selfLib.mkModule {
       programs.zen-browser = {
         enable = true;
         setAsDefaultBrowser = true;
-        package = inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        package = zenPackage;
         policies = zenBrowserPolicies;
 
         profiles = {
