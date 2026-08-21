@@ -60,7 +60,8 @@ selfLib.mkModule {
             --lua-init="@$SHARE_DIR/lua/zapret-antidpi.lua" \
             --filter-tcp=80,443 \
             --filter-l7=tls,http \
-            --lua-desync=fake:blob=fake_default_tls:tcp_md5
+            --lua-desync=multisplit:pos=1 \
+            --lua-desync=http_domcase
         ''
         [
           pkgs.coreutils

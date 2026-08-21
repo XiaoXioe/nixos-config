@@ -16,16 +16,8 @@ selfLib.mkModule {
       ncdu
       btdu
       tldr
-      bat
       ookla-speedtest
-      bmon
-      bemoji
-      wtype
-      fuzzel
-      tesseract
-      slurp
-      grim
-      wl-clipboard
+      zbar
     ];
   };
 }

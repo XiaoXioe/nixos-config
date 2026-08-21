@@ -81,6 +81,7 @@
       osbuild = "nh os switch --no-nom --show-trace --diff auto --ask -L";
       ostest = "nh os test --no-nom --show-trace --diff auto --ask -L";
       osboot = "nh os boot --no-nom --show-trace --diff auto --ask -L";
+      osinfo = "nh os info";
     };
   };
 

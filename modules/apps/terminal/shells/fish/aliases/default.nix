@@ -1,20 +1,23 @@
 _: {
-  programs.fish.shellAliases = {
-    ls = "eza --icons -l -T -L=1";
+  programs = {
+    bat.enable = true;
+    fish.shellAliases = {
+      ls = "eza --icons -l -T -L=1";
 
-    cd = "z";
-    cat = "bat";
-    editnix = "codium ~/nixos-config";
+      cd = "z";
+      cat = "bat";
+      editnix = "codium ~/nixos-config";
 
-    ".." = "cd ..";
-    "..." = "cd ../..";
+      ".." = "cd ..";
+      "..." = "cd ../..";
 
-    c = "clear";
+      c = "clear";
 
-    sz = "sudo compsize -x";
+      sz = "sudo compsize -x";
 
-    squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
+      squeeze = "sudo btrfs filesystem defragment -r -v -czstd";
 
-    mpv = "mpv-wrapper";
+      mpv = "mpv-wrapper";
+    };
   };
 }

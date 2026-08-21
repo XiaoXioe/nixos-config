@@ -33,6 +33,10 @@ selfLib.mkModule {
 
       kernel = {
         sysctl = {
+          # Mengatasi silent drop paket TLS/NAR besar pada WireGuard / WARP
+          "net.ipv4.tcp_mtu_probing" = 1;
+          "net.ipv4.tcp_base_mss" = 1024;
+
           "net.core.default_qdisc" = "cake";
           "net.ipv4.tcp_congestion_control" = "bbr";
 

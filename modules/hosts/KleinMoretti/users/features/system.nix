@@ -101,7 +101,6 @@
     };
 
     security = {
-      password-manager = true;
       gnupg = true;
       compat = true;
       secrets = true;

@@ -40,7 +40,6 @@ selfLib.mkModule {
         ];
 
         trusted-users = [
-          "root"
           config.my.user.name
         ];
 
@@ -59,7 +58,7 @@ selfLib.mkModule {
         http-connections = 16;
         download-attempts = 3;
         connect-timeout = 10;
-        stalled-download-timeout = 300;
+        stalled-download-timeout = 30;
         keep-outputs = true;
         keep-derivations = true;
         eval-cache = true;
