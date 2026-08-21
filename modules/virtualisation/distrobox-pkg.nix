@@ -22,10 +22,10 @@ let
 
                 show_help() {
                   cat << 'EOF'
-        dbox-pkg - Unified package manager & container CLI for Distrobox
+        dbox - Unified Distrobox Container & Package Management CLI
 
         Usage:
-          dbox-pkg [OPTIONS] <ACTION|PACKAGE_MANAGER> [ARGS...]
+          dbox [OPTIONS] <ACTION|PACKAGE_MANAGER> [ARGS...]
           dbox-apt [ARGS...]
           dbox-pacman [ARGS...]
           dbox-dnf [ARGS...]
@@ -33,20 +33,26 @@ let
           dbox-zypper [ARGS...]
           dbox-xbps [ARGS...]
 
-        Universal Actions (auto-targets active container):
+        Container Management:
+          status, containers, list  List containers, running status, pkg managers & base images
+          enter [container]         Open interactive shell inside container
+          run, exec <c> <cmd...>    Execute arbitrary command inside specified container
+          build, assemble           Assemble containers declared in ~/.config/distrobox/containers.ini
+          sync                      Run distrobox-sync to install declared packages & init hooks
+          prune                     Remove unmanaged / orphan Distrobox containers
+          upgrade [c|--all]         Upgrade container packages via native package manager
+
+        Universal Package Actions (auto-targets active container):
           install, add <pkgs...>    Install packages
           update, refresh           Update package database / indexes
-          search <query>            Search for packages
+          search, find <query>      Search for packages
           remove, rm <pkgs...>      Remove packages
           packages, pkgs, installed List installed packages in container
           show, info <pkg>          Show package metadata
           clean                     Clean package manager caches
           autoremove                Remove orphan/unused dependencies
-          upgrade [container|--all] Upgrade container packages via native manager
 
-        Direct Commands:
-          containers, list          List active containers and their detected package managers
-          enter [container]         Open interactive shell inside container
+        Direct Distro Shortcuts:
           apt, debdelta-upgrade     Execute inside Debian / Ubuntu container
           pacman, yay, paru         Execute inside Arch Linux container
           dnf, yum                  Execute inside Fedora / RHEL container
@@ -83,21 +89,19 @@ let
                     ;;
                 esac
 
-                # Helper to get list of existing containers: name|image
+                # Helper to get list of existing containers: name|image|status
                 get_containers() {
                   distrobox list --no-color 2>/dev/null | awk -F'|' 'NR>1 {
                     gsub(/^[ \t]+|[ \t]+$/, "", $2);
+                    gsub(/^[ \t]+|[ \t]+$/, "", $3);
                     gsub(/^[ \t]+|[ \t]+$/, "", $4);
-                    if ($2 != "") print $2 "|" $4
+                    if ($2 != "") print $2 "|" $4 "|" $3
                   }' || true
                 }
 
                 # ──────────
-                # detect_pkg_manager() is no longer written by hand here — it is generated
-                # from the same data table used by the Nix-side detectDistro function.
-                # To add a new distro, edit distros/<name>/default.nix only.
+                # detect_pkg_manager() is generated from the data table used by detectDistro
                 ${detectPkgMgrBash}
-
 
                 # Parse options
                 TARGET_CONTAINER=""
@@ -125,17 +129,63 @@ let
                 CMD="$1"
                 shift
 
-                # Handle built-in action: list containers (if no extra arguments are given)
-                if [[ "$CMD" == "containers" || ( "$CMD" == "list" && $# -eq 0 ) ]]; then
+                # Handle built-in action: list/status containers
+                if [[ "$CMD" == "containers" || "$CMD" == "status" || ( "$CMD" == "list" && $# -eq 0 ) ]]; then
                   echo "=== Active Distrobox Containers ==="
-                  printf "%-20s %-15s %-40s\n" "CONTAINER" "PKG MANAGER" "BASE IMAGE"
-                  echo "-------------------------------------------------------------------------------"
-                  while IFS='|' read -r c_name c_image; do
+                  printf "%-20s %-12s %-15s %-35s\n" "CONTAINER" "STATUS" "PKG MANAGER" "BASE IMAGE"
+                  echo "--------------------------------------------------------------------------------------"
+                  while IFS='|' read -r c_name c_image c_status; do
                     [[ -z "$c_name" ]] && continue
                     pkg_m="$(detect_pkg_manager "$c_image")"
-                    printf "%-20s %-15s %-40s\n" "$c_name" "$pkg_m" "$c_image"
+                    printf "%-20s %-12s %-15s %-35s\n" "$c_name" "$c_status" "$pkg_m" "$c_image"
                   done < <(get_containers)
                   exit 0
+                fi
+
+                # Handle built-in action: build / assemble
+                if [[ "$CMD" == "build" || "$CMD" == "assemble" ]]; then
+                  containers_file="$HOME/.config/distrobox/containers.ini"
+                  if [[ ! -f "$containers_file" ]]; then
+                    containers_file="$HOME/.config/distrobox/distrobox.ini"
+                  fi
+                  if [[ -f "$containers_file" ]]; then
+                    echo "==> Assembling Distrobox containers from $containers_file..."
+                    exec distrobox assemble create --file "$containers_file" "$@"
+                  else
+                    echo "Error: No declarative configuration file found in ~/.config/distrobox/containers.ini" >&2
+                    exit 1
+                  fi
+                fi
+
+                # Handle built-in action: sync
+                if [[ "$CMD" == "sync" ]]; then
+                  if command -v distrobox-sync >/dev/null 2>&1; then
+                    exec distrobox-sync "$@"
+                  else
+                    echo "Error: distrobox-sync utility not found in PATH." >&2
+                    exit 1
+                  fi
+                fi
+
+                # Handle built-in action: prune
+                if [[ "$CMD" == "prune" ]]; then
+                  if command -v distrobox-prune >/dev/null 2>&1; then
+                    exec distrobox-prune "$@"
+                  else
+                    echo "Error: distrobox-prune utility not found in PATH." >&2
+                    exit 1
+                  fi
+                fi
+
+                # Handle built-in action: run / exec
+                if [[ "$CMD" == "run" || "$CMD" == "exec" ]]; then
+                  if [[ $# -lt 1 ]]; then
+                    echo "Error: Usage: dbox $CMD <container> <command...>" >&2
+                    exit 1
+                  fi
+                  target="$1"
+                  shift
+                  exec distrobox enter "$target" -- "$@"
                 fi
 
                 # Handle built-in action: enter
@@ -148,7 +198,7 @@ let
                     exec distrobox enter "$target" "$@"
                   else
                     containers=()
-                    while IFS='|' read -r c_name _; do
+                    while IFS='|' read -r c_name _ _; do
                       [[ -n "$c_name" ]] && containers+=("$c_name")
                     done < <(get_containers)
 
@@ -242,7 +292,7 @@ let
                 all_containers=()
                 all_images=()
 
-                while IFS='|' read -r c_name c_image; do
+                while IFS='|' read -r c_name c_image _; do
                   [[ -z "$c_name" ]] && continue
                   all_containers+=("$c_name")
                   all_images+=("$c_image")
@@ -267,7 +317,7 @@ let
                       exit 1
                     else
                       echo "Multiple containers found: ''${all_containers[*]}" >&2
-                      echo "Please specify target container using: dbox-pkg -c <container> $CMD $*" >&2
+                      echo "Please specify target container using: dbox -c <container> $CMD $*" >&2
                       exit 1
                     fi
                   else
@@ -277,7 +327,7 @@ let
                       RESOLVED_IMAGE="''${matching_images[0]}"
                     elif [[ ''${#matching_containers[@]} -gt 1 ]]; then
                       echo "Multiple ''${PKG_TYPE} containers found: ''${matching_containers[*]}" >&2
-                      echo "Please specify one using: dbox-pkg -c <container> $CMD $*" >&2
+                      echo "Please specify one using: dbox -c <container> $CMD $*" >&2
                       exit 1
                     elif [[ ''${#all_containers[@]} -eq 1 ]]; then
                       RESOLVED_CONTAINER="''${all_containers[0]}"

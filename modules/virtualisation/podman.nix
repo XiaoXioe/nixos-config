@@ -217,7 +217,17 @@ selfLib.mkModule {
               installInfo = distrosModule.getDistroInstallCmd { distro = targetDistro; };
 
               hasPkgs = cDef ? additional_packages && cDef.additional_packages != "" && installInfo != null;
+              hasPreHooks = cDef ? pre_init_hooks && cDef.pre_init_hooks != [ ];
               hasHooks = cDef ? init_hooks && cDef.init_hooks != [ ];
+
+              preHooksCmd = lib.optionalString hasPreHooks (
+                lib.concatStringsSep "\n" (map (h: "  " + h) cDef.pre_init_hooks)
+              );
+              preHooksScript = pkgs.writeShellScript "distrobox-pre-hooks-${cId}" ''
+                set -euo pipefail
+                ${preHooksCmd}
+              '';
+
               hooksCmd = lib.optionalString hasHooks (
                 lib.concatStringsSep "\n" (map (h: "  " + h) cDef.init_hooks)
               );
@@ -229,6 +239,10 @@ selfLib.mkModule {
             ''
               echo "==> [distrobox-sync] Synchronizing container: ${cId} (${targetDistro})"
               if ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- true 2>/dev/null; then
+                ${lib.optionalString hasPreHooks ''
+                  echo "==> [distrobox-sync] Running pre-init hooks for ${cId}..."
+                  ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- ${preHooksScript} || true
+                ''}
                 ${lib.optionalString hasPkgs ''
                   if ${pkgs.distrobox}/bin/distrobox enter "${cId}" -- sh -c "command -v ${installInfo.check} >/dev/null 2>&1"; then
                     echo "==> [distrobox-sync] Installing packages for ${cId} (${installInfo.cmd})..."
@@ -250,9 +264,19 @@ selfLib.mkModule {
         distroboxSyncScript
       ];
 
+      # Auto-authorize host display for container GUI applications
+      home.file.".distroboxrc" = {
+        text = ''
+          # Auto-authorize host display for container GUI applications (X11 / XWayland fallback)
+          if command -v ${pkgs.xhost}/bin/xhost >/dev/null 2>&1; then
+            ${pkgs.xhost}/bin/xhost +si:localuser:$USER >/dev/null 2>&1 || true
+          fi
+        '';
+      };
+
       programs.distrobox = {
         enable = true;
-        enableSystemdUnit = true;
+        enableSystemdUnit = false;
         containers = mergedDistroboxContainers;
         settings = {
           container_image_default = lib.mkDefault cfg.defaultDistroboxImage;
