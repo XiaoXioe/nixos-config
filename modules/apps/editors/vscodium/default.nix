@@ -9,27 +9,24 @@ let
   userSettings = import ./_settings { inherit pkgs; };
   appInfo = selfLib.appVersions.vscodium;
 
-  vscodiumNative =
-    ((selfLib.mkNativeApp pkgs) {
-      name = "codium";
-      inherit (appInfo) version;
-      src = selfLib.fetchApp pkgs "vscodium";
-      execPath = "usr/share/codium/bin/codium";
-      binName = "codium";
-      extraEnv = {
-        ELECTRON_OZONE_PLATFORM_HINT = "auto";
-        NIXOS_OZONE_WL = "1";
-      };
-    }).overrideAttrs
-      (old: {
-        postInstall = (old.postInstall or "") + ''
-          if [ -f "$out/opt/codium/usr/share/codium/bin/codium" ]; then
-            sed -i "/ELECTRON=/iVSCODE_PATH='$out/opt/codium/usr/share/codium'" "$out/opt/codium/usr/share/codium/bin/codium"
-            chmod +x "$out/opt/codium/usr/share/codium/bin/codium"
-            chmod +x "$out/opt/codium/usr/share/codium/codium"
-          fi
-        '';
-      });
+  vscodiumNative = (selfLib.mkNativeApp pkgs) {
+    name = "codium";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "vscodium";
+    execPath = "usr/share/codium/bin/codium";
+    binName = "codium";
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+      NIXOS_OZONE_WL = "1";
+    };
+    extraUnwrappedInstall = ''
+      if [ -f "$out/opt/codium/usr/share/codium/bin/codium" ]; then
+        sed -i "/ELECTRON=/iVSCODE_PATH='$out/opt/codium/usr/share/codium'" "$out/opt/codium/usr/share/codium/bin/codium"
+        chmod +x "$out/opt/codium/usr/share/codium/bin/codium"
+        chmod +x "$out/opt/codium/usr/share/codium/codium"
+      fi
+    '';
+  };
 in
 selfLib.mkModule {
   name = "apps.editors.vscodium";

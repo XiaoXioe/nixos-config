@@ -32,6 +32,46 @@ let
     '';
   };
 
+  retroarchRaw = (selfLib.mkNativeApp pkgs) {
+    name = "retroarch";
+    inherit (retroarchInfo) version;
+    src = selfLib.fetchApp pkgs "retroarch";
+    execPath = "RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage";
+    binName = "retroarch";
+  };
+
+  retroarchHome = "${retroarchRaw.unwrapped}/opt/retroarch/RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage.home/.config/retroarch";
+
+  retroarchAppendCfg = pkgs.writeText "retroarch-append.cfg" ''
+    assets_directory = "${retroarchHome}/assets"
+    joypad_autoconfig_dir = "${retroarchHome}/autoconfig"
+    cursor_directory = "${retroarchHome}/database/cursors"
+    cheat_database_path = "${retroarchHome}/database/cht"
+    content_database_path = "${retroarchHome}/database/rdb"
+    video_shader_dir = "${retroarchHome}/shaders"
+    overlay_directory = "${retroarchHome}/overlays"
+    video_filter_dir = "${retroarchHome}/filters"
+    libretro_directory = "${retroarchCores}/lib/retroarch/cores"
+    libretro_info_path = "${retroarchCores}/lib/retroarch/cores"
+    menu_driver = "ozone"
+  '';
+
+  retroarchDesktopItem = pkgs.makeDesktopItem {
+    name = "retroarch";
+    desktopName = "RetroArch";
+    genericName = "Frontend for emulators, game engines and media players";
+    comment = "Multi-system game and emulator frontend";
+    exec = "retroarch %U";
+    icon = "retroarch";
+    terminal = false;
+    type = "Application";
+    categories = [
+      "Game"
+      "Emulator"
+    ];
+    mimeTypes = [ "x-scheme-handler/retroarch" ];
+  };
+
   retroarchNative =
     ((selfLib.mkNativeApp pkgs) {
       name = "retroarch";
@@ -39,6 +79,16 @@ let
       src = selfLib.fetchApp pkgs "retroarch";
       execPath = "RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage";
       binName = "retroarch";
+      desktopItem = retroarchDesktopItem;
+      extraArgs = [
+        "--appendconfig"
+        "${retroarchAppendCfg}"
+      ];
+      extraPostInstall = ''
+        mkdir -p "$out/share/pixmaps" "$out/share/icons/hicolor/256x256/apps"
+        cp -f "${retroarchHome}/assets/ozone/png/icons/retroarch.png" "$out/share/pixmaps/retroarch.png" 2>/dev/null || true
+        cp -f "${retroarchHome}/assets/ozone/png/icons/retroarch.png" "$out/share/icons/hicolor/256x256/apps/retroarch.png" 2>/dev/null || true
+      '';
     })
     // {
       wrapper = _: retroarchNative;
@@ -76,10 +126,10 @@ selfLib.mkModule {
     hmOpts:
     let
       dataPath = hmOpts.osConfig.my.dataPath;
-      retroarchHome = "${retroarchNative}/opt/retroarch/RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage.home/.config/retroarch";
     in
     {
       home.packages = [
+        retroarchNative
         pcsx2Native
         ppssppNative
         dolphinNative
@@ -89,20 +139,7 @@ selfLib.mkModule {
         enable = true;
         package = retroarchNative;
         settings = {
-          # Path asset tema (Ozone/XMB), icon, database, autoconfig, shaders
-          "assets_directory" = "${retroarchHome}/assets";
-          "joypad_autoconfig_dir" = "${retroarchHome}/autoconfig";
-          "cursor_directory" = "${retroarchHome}/database/cursors";
-          "cheat_database_path" = "${retroarchHome}/database/cht";
-          "content_database_path" = "${retroarchHome}/database/rdb";
-          "video_shader_dir" = "${retroarchHome}/shaders";
-          "overlay_directory" = "${retroarchHome}/overlays";
-          "video_filter_dir" = "${retroarchHome}/filters";
-          "libretro_directory" = "${retroarchCores}/lib/retroarch/cores";
-          "libretro_info_path" = "${retroarchCores}/lib/retroarch/cores";
-
           # Antarmuka dan driver
-          "menu_driver" = "ozone";
           "video_driver" = "gl";
           "audio_driver" = "pulse";
           "input_joypad_driver" = "udev";
@@ -121,33 +158,6 @@ selfLib.mkModule {
           "savefile_directory" = "~/.local/share/retroarch/saves";
           "savestate_directory" = "~/.local/share/retroarch/states";
           "system_directory" = "${dataPath}/Emulation/Bios";
-        };
-      };
-
-      home.file = {
-        ".config/retroarch/cores" = {
-          source = "${retroarchCores}/lib/retroarch/cores";
-          force = true;
-        };
-        ".config/retroarch/assets" = {
-          source = "${retroarchHome}/assets";
-          force = true;
-        };
-        ".config/retroarch/autoconfig" = {
-          source = "${retroarchHome}/autoconfig";
-          force = true;
-        };
-        ".config/retroarch/overlays" = {
-          source = "${retroarchHome}/overlays";
-          force = true;
-        };
-        ".config/retroarch/shaders" = {
-          source = "${retroarchHome}/shaders";
-          force = true;
-        };
-        ".config/retroarch/database" = {
-          source = "${retroarchHome}/database";
-          force = true;
         };
       };
 
