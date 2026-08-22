@@ -94,9 +94,9 @@
   };
 
   proton-pass = rec {
-    version = "1.36.1";
-    url = "https://proton.me/download/pass/linux/x64/proton-pass_${version}_amd64.deb";
-    hash = "sha256-nKqsL/AA5GHvjeo7oMRBwUlj3hGS/LlTPSbE9Zf0huA=";
+    version = "1.39.1";
+    url = "https://proton.me/download/pass/linux/proton-pass_${version}_amd64.deb";
+    hash = "sha256-3Dtt6MG8kN7q7dqr4of/RoIf0fbl9hFFE1XHadpsW+A=";
   };
 
   ente-auth = rec {
@@ -106,9 +106,9 @@
   };
 
   dolphin-emu = rec {
-    version = "5.0-17995";
+    version = "2606.a+dfsg";
     url = "http://ftp.debian.org/debian/pool/main/d/dolphin-emu/dolphin-emu_${version}-1_amd64.deb";
-    hash = "sha256-1noZ2yH0iQeo0dysI0LanhlmR/zRtxhv57QEsm51dDA=";
+    hash = "sha256-u4xGFX7RgWmRPeVVn7V5ZiXPfAO0fAelU7/riRFv9n8=";
   };
 
   ppsspp = rec {
@@ -148,9 +148,9 @@
   };
 
   zathura = rec {
-    version = "0.5.11";
+    version = "2026.07.18";
     url = "http://ftp.debian.org/debian/pool/main/z/zathura/zathura_${version}-1_amd64.deb";
-    hash = "sha256-aN8fX5SqcJdjHzTGCYRg7Sz+Fd10ZJgpbUZN174Y4bs=";
+    hash = "sha256-WMeKyS6/WvUKpOdvjvM6dI+11EgOqvytNvc6+8Ekt8Y=";
   };
 
   yt-dlp = rec {
