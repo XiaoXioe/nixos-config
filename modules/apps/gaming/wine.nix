@@ -1,60 +1,41 @@
 {
   pkgs,
   selfLib,
-  lib,
-  config,
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.wine;
+
+  wineNative = (selfLib.mkNativeApp pkgs) {
+    name = "wine";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "wine";
+    execPath = "wine-${appInfo.version}-staging-amd64-wow64/bin/wine";
+    binName = "wine";
+    isDesktop = false;
+  };
+in
 selfLib.mkModule {
   name = "apps.gaming.wine";
-  description = "Wine and Bottles compatibility layer";
+  description = "Wine and compatibility layer with pure upstream binary";
 
-  flatpakCfg = {
-    "com.usebottles.bottles" = {
-      enable = true;
-      overrides = {
-        Context = {
-          filesystems = [
-            "${config.my.dataPath}/bottles"
-            "${config.my.dataPath}/wine-data"
-          ];
-        };
-      };
-      symlinks = [
-        {
-          host = ".local/share/bottles";
-          guest = "data/bottles";
-        }
-      ];
-      nativePkgs = pkgs.bottles;
-    };
-  };
-
-  hmConfig = hmOpts: {
-    home = {
-      packages =
-        with pkgs;
-        lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
-          wineWow64Packages.stable
-          winetricks
+  hmConfig =
+    hmOpts:
+    let
+      dataPath = hmOpts.osConfig.my.dataPath;
+    in
+    {
+      home = {
+        packages = [
+          wineNative
         ];
 
-      sessionVariables = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) {
-        WINEDLLOVERRIDES = "winemenubuilder.exe=d";
-        WINEPREFIX = "${hmOpts.osConfig.my.dataPath}/wine-data";
-        WINEARCH = "win64";
+        sessionVariables = {
+          WINEDLLOVERRIDES = "winemenubuilder.exe=d";
+          WINEPREFIX = "${dataPath}/wine-data";
+          WINEARCH = "win64";
+        };
       };
-
-      file = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) (
-        selfLib.mkHmSymlinks hmOpts.config {
-          ".local/share/bottles" = "${hmOpts.osConfig.my.dataPath}/bottles";
-        }
-      );
     };
-
-    systemd.user.tmpfiles.rules = lib.mkIf (!config.my.apps.gaming.wine.flatpak.enable) [
-      "d ${hmOpts.osConfig.my.dataPath}/bottles 0755 - - -"
-    ];
-  };
 }

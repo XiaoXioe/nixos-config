@@ -4,20 +4,29 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.tradingview;
+
+  tradingviewNative = (selfLib.mkNativeApp pkgs) {
+    name = "tradingview";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "tradingview";
+    execPath = "tradingview";
+    binName = "tradingview";
+    extraArgs = [
+      "--enable-features=UseOzonePlatform"
+      "--ozone-platform=wayland"
+    ];
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
+in
 selfLib.mkModule {
   name = "apps.custom.tradingview";
   description = "TradingView desktop charting client";
 
-  flatpakCfg = {
-    "com.tradingview.tradingview" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".config/TradingView";
-          guest = "config/TradingView";
-        }
-      ];
-      nativePkgs = pkgs.tradingview;
-    };
+  hmConfig = {
+    home.packages = [ tradingviewNative ];
   };
 }

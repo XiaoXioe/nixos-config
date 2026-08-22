@@ -4,47 +4,33 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.materialgram;
+
+  materialgramNative = (selfLib.mkNativeApp pkgs) {
+    name = "materialgram";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "materialgram";
+    execPath = "usr/bin/materialgram";
+    binName = "materialgram";
+  };
+in
 selfLib.mkModule {
   name = "apps.social.materialgram";
   description = "Materialgram Desktop Messaging application";
 
-  flatpakCfg = {
-    "io.github.kukuruzka165.materialgram" = {
-      enable = true;
-      overrides = {
-        Context = {
-          filesystems = [
-            "~/.local/share/materialgram:rw"
-            "/nix/store:ro"
-          ];
-        };
-      };
-      symlinks = [
-        {
-          host = ".local/share/materialgram";
-          guest = "data/materialgram";
-        }
-      ];
-      nativePkgs = pkgs.materialgram;
-    };
+  hmConfig = {
+    home.packages = [ materialgramNative ];
   };
 
   nixosConfig =
-    { config, pkgs, ... }:
-    let
-      cfg = config.my.apps.social.materialgram;
-      materialgramPath =
-        if cfg.flatpak.enable then
-          "/var/lib/flatpak/app/io.github.kukuruzka165.materialgram"
-        else
-          pkgs.materialgram;
-    in
+    { config, ... }:
     {
       my.services.storage.btrfs-nocow-migration.nocowDirectories = [
         ".local/share/materialgram/tdata"
       ];
       my.services.vmtouch.paths = [
-        materialgramPath
+        materialgramNative
         "/home/${config.my.user.name}/.local/share/materialgram"
       ];
     };

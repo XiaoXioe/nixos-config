@@ -11,6 +11,8 @@ let
     resolveAddons
     ;
 
+  appInfo = selfLib.appVersions.firefox;
+
   # Extensions resolved directly into .xpi derivation packages for native profile symlinking
   firefoxExtensions = resolveAddons (
     with amoAddons;
@@ -103,10 +105,22 @@ let
   userChrome = ''
     .tab-close-button { display: none !important; }
   '';
+
+  firefoxNative = (selfLib.mkNativeApp pkgs) {
+    name = "firefox";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "firefox";
+    execPath = "firefox/firefox";
+    binName = "firefox";
+    extraEnv = {
+      MOZ_ENABLE_WAYLAND = "1";
+      MOZ_LEGACY_PROFILES = "1";
+    };
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
-  description = "Firefox ESR inside Debian Distrobox with declarative Home Manager profile and direct native extensions";
+  description = "Firefox Native with declarative Home Manager profile and direct native extensions";
 
   preservation = {
     userDirectories = [
@@ -121,104 +135,43 @@ selfLib.mkModule {
     };
   };
 
-  distroboxCfg = selfLib.distrobox.debian {
-
-    packages = [ "firefox-esr" ];
-    package = pkgs.firefox-esr;
-    binName = "firefox-esr";
-    deltaUpdates = true;
-    env = {
-      MOZ_LEGACY_PROFILES = "1";
-      MOZ_ENABLE_WAYLAND = "1";
-    };
-    hmProgram = {
-      name = "firefox";
-      extraConfig = {
-        configPath = ".mozilla/firefox";
-        profiles = {
-          default = {
-            id = 0;
-            name = "default";
-            isDefault = true;
-            settings = baseSettings;
-            search = commonSearch;
-            inherit userChrome;
-
-            # Direct native .xpi extensions generation into ~/.mozilla/firefox/default/extensions/
-            extensions.packages = firefoxExtensions;
-          };
-
-          hardened = {
-            id = 1;
-            name = "hardened";
-            isDefault = false;
-            settings = baseSettings // {
-              "privacy.firstparty.isolate" = true;
-              "privacy.trackingprotection.fingerprinting.enabled" = true;
-              "privacy.trackingprotection.cryptomining.enabled" = true;
-              "dom.event.clipboardevents.enabled" = false;
-              "media.peerconnection.enabled" = false;
-            };
-            search = commonSearch;
-            inherit userChrome;
-            extensions.packages = firefoxExtensions;
-          };
-        };
-      };
-    };
-  };
-
   hmConfig = {
     home.sessionVariables = {
       MOZ_LEGACY_PROFILES = "1";
     };
 
-    # Multi-profile desktop entry with actions
-    xdg.desktopEntries.firefox = {
-      name = "Firefox ESR (Distrobox)";
-      genericName = "Web Browser";
-      comment = "Browse the World Wide Web via Debian Distrobox";
-      exec = "firefox-esr %u";
-      icon = "firefox-esr";
-      terminal = false;
-      categories = [
-        "Network"
-        "WebBrowser"
-      ];
-      mimeType = [
-        "text/html"
-        "text/xml"
-        "application/xhtml+xml"
-        "application/xml"
-        "application/vnd.mozilla.xul+xml"
-        "application/rss+xml"
-        "application/rdf+xml"
-        "image/gif"
-        "image/jpeg"
-        "image/png"
-        "x-scheme-handler/http"
-        "x-scheme-handler/https"
-      ];
-      actions = {
-        "new-window" = {
-          name = "New Window";
-          exec = "firefox-esr --new-window %u";
+    programs.firefox = {
+      enable = true;
+      package = firefoxNative;
+      configPath = ".mozilla/firefox";
+      profiles = {
+        default = {
+          id = 0;
+          name = "default";
+          isDefault = true;
+          settings = baseSettings;
+          search = commonSearch;
+          inherit userChrome;
+
+          # Direct native .xpi extensions generation into ~/.mozilla/firefox/default/extensions/
+          extensions.packages = firefoxExtensions;
         };
-        "new-private-window" = {
-          name = "New Private Window";
-          exec = "firefox-esr --private-window %u";
+
+        hardened = {
+          id = 1;
+          name = "hardened";
+          isDefault = false;
+          settings = baseSettings // {
+            "privacy.firstparty.isolate" = true;
+            "privacy.trackingprotection.fingerprinting.enabled" = true;
+            "privacy.trackingprotection.cryptomining.enabled" = true;
+            "dom.event.clipboardevents.enabled" = false;
+            "media.peerconnection.enabled" = false;
+          };
+          search = commonSearch;
+          inherit userChrome;
+          extensions.packages = firefoxExtensions;
         };
-        "profile-hardened" = {
-          name = "Open Hardened Profile";
-          exec = "firefox-esr -P hardened %u";
-        };
-        "profile-manager" = {
-          name = "Profile Manager";
-          exec = "firefox-esr --ProfileManager";
-        };
-      };
-      settings = {
-        StartupWMClass = "firefox-esr";
       };
     };
   };

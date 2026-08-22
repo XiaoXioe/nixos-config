@@ -11,10 +11,24 @@ let
     mkBookmarkPoliciesTemplate
     mkBookmarkSecret
     ;
+
+  appInfo = selfLib.appVersions.tor-browser;
+
+  torBrowserNative = (selfLib.mkNativeApp pkgs) {
+    name = "tor-browser";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "tor-browser";
+    execPath = "tor-browser/Browser/start-tor-browser";
+    binName = "tor-browser";
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.tor-browser";
   description = "Tor Browser configuration with sops-nix encrypted bookmarks";
+
+  hmConfig = {
+    home.packages = [ torBrowserNative ];
+  };
 
   nixosConfig = {
     environment.etc."tor-browser/policies/policies.json".source =
@@ -26,31 +40,6 @@ selfLib.mkModule {
         inherit (commonPrivacyPolicies) DisableTelemetry DisableFirefoxStudies DontCheckDefaultBrowser;
       };
       bookmarkPlaceholder = config.sops.placeholder."tor-browser-bookmarks";
-    };
-  };
-
-  flatpakCfg = {
-    "org.torproject.torbrowser-launcher" = {
-      enable = true;
-
-      overrides = {
-        Context = {
-          filesystems = [
-            "xdg-run/psd" # Profile Sync Daemon tmpfs
-          ];
-        };
-      };
-
-      # Symlinks to keep data persistent and synced between native and Flatpak
-      symlinks = [
-        {
-          host = ".local/share/torbrowser";
-          guest = "data/torbrowser";
-        }
-      ];
-
-      # Native package fallback if Flatpak is disabled
-      nativePkgs = pkgs.tor-browser;
     };
   };
 }

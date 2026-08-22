@@ -11,10 +11,59 @@ let
   bitwardenEnabled = cfg.bitwarden.enable or false;
   protonPassEnabled = cfg.proton-pass.enable or false;
   enteAuthEnabled = cfg.ente-auth.enable or true;
+
+  bitwardenInfo = selfLib.appVersions.bitwarden;
+  protonPassInfo = selfLib.appVersions.proton-pass;
+  enteAuthInfo = selfLib.appVersions.ente-auth;
+
+  bitwardenNative = (selfLib.mkNativeApp pkgs) {
+    name = "bitwarden";
+    inherit (bitwardenInfo) version;
+    src = selfLib.fetchApp pkgs "bitwarden";
+    execPath = "opt/Bitwarden/bitwarden";
+    binName = "bitwarden-desktop";
+    extraArgs = [
+      "--enable-features=UseOzonePlatform"
+      "--ozone-platform=wayland"
+    ];
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
+
+  protonPassNative = (selfLib.mkNativeApp pkgs) {
+    name = "proton-pass";
+    inherit (protonPassInfo) version;
+    src = selfLib.fetchApp pkgs "proton-pass";
+    execPath = "usr/lib/proton-pass/proton-pass";
+    binName = "proton-pass";
+    extraArgs = [
+      "--enable-features=UseOzonePlatform"
+      "--ozone-platform=wayland"
+    ];
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
+
+  enteAuthNative = (selfLib.mkNativeApp pkgs) {
+    name = "ente-auth";
+    inherit (enteAuthInfo) version;
+    src = selfLib.fetchApp pkgs "ente-auth";
+    execPath = "usr/share/enteauth/enteauth";
+    binName = "enteauth";
+    extraArgs = [
+      "--enable-features=UseOzonePlatform"
+      "--ozone-platform=wayland"
+    ];
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
 in
 selfLib.mkModule {
   name = "security.password-manager";
-  description = "Password & 2FA manager desktop applications (Bitwarden, Proton Pass, Ente Auth) via shared Arch Distrobox container";
+  description = "Native Password & 2FA manager desktop applications (Bitwarden, Proton Pass, Ente Auth) with pure upstream binaries";
 
   options = {
     bitwarden = {
@@ -46,31 +95,12 @@ selfLib.mkModule {
       ]);
   };
 
-  distroboxCfg = selfLib.distrobox.arch {
-    extraTesting = true; # Aktifkan repositori [extra-testing] untuk mendapatkan paket bleeding-edge
-    # image, distro — auto dari helper
-    packages = lib.optionals bitwardenEnabled [ "bitwarden" ];
-    aur =
-      (lib.optionals protonPassEnabled [ "proton-pass-bin" ])
-      ++ (lib.optionals enteAuthEnabled [ "ente-auth-bin" ]);
-    # binName explicitly overrides the meta.mainProgram fallback ("bitwarden")
-    # so exactly one wrapper is generated for bitwarden: "bitwarden-desktop".
-    # This matches the binary name used in the xdg desktop entry below.
-    binName = lib.mkIf bitwardenEnabled "bitwarden-desktop";
-    exportedBins =
-      # "bitwarden-desktop" omitted — covered by binName above.
-      (lib.optionals protonPassEnabled [ "proton-pass" ])
-      ++ (lib.optionals enteAuthEnabled [ "enteauth" ]);
-    env = {
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
-    };
-    nativePkgs =
-      (lib.optionals bitwardenEnabled [ pkgs.bitwarden-desktop ])
-      ++ (lib.optionals protonPassEnabled [ pkgs.proton-pass ])
-      ++ (lib.optionals enteAuthEnabled [ pkgs.ente-auth ]);
-  };
-
   hmConfig = {
+    home.packages =
+      (lib.optionals bitwardenEnabled [ bitwardenNative ])
+      ++ (lib.optionals protonPassEnabled [ protonPassNative ])
+      ++ (lib.optionals enteAuthEnabled [ enteAuthNative ]);
+
     xdg.desktopEntries = lib.mkMerge [
       (lib.mkIf bitwardenEnabled {
         bitwarden = {

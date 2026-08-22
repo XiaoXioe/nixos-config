@@ -4,24 +4,29 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.obsidian;
+
+  obsidianNative = (selfLib.mkNativeApp pkgs) {
+    name = "obsidian";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "obsidian";
+    execPath = "opt/Obsidian/obsidian";
+    binName = "obsidian";
+    extraArgs = [
+      "--enable-features=UseOzonePlatform"
+      "--ozone-platform=wayland"
+    ];
+    extraEnv = {
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    };
+  };
+in
 selfLib.mkModule {
   name = "apps.office.obsidian";
   description = "Obsidian Markdown note-taking and knowledge base application";
 
-  flatpakCfg = {
-    "md.obsidian.Obsidian" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".config/obsidian";
-          guest = "config/obsidian";
-        }
-        {
-          host = ".local/share/obsidian";
-          guest = "data/obsidian";
-        }
-      ];
-      nativePkgs = pkgs.obsidian;
-    };
+  hmConfig = {
+    home.packages = [ obsidianNative ];
   };
 }

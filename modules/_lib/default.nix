@@ -15,7 +15,7 @@
 { lib, ... }:
 let
   mkModuleLib = import ./modules/mkModule { inherit lib; };
-  distroboxLib = import ./distrobox.nix { inherit lib; };
+  nativeAppLib = pkgs: import ./modules/mkNativeApp { inherit lib pkgs; };
   shellLib = pkgs: import ./shell { inherit lib pkgs; };
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
@@ -28,13 +28,12 @@ in
   # Primary API: wraps NixOS + Home Manager config under options.my.<name>.enable
   mkModule = mkModuleLib;
 
-  # ── Distrobox helpers ─────────────────────────────────────────────────────────
-  # Per-distro builders that produce valid distroboxCfg attrsets.
-  # Accepts Nix packages in `packages` — auto-extracts install names, binName, and
-  # native fallback package. Sets image and distro key automatically from helper name.
-  # Example: selfLib.distrobox.arch { packages = with pkgs; [ aria2 ]; ... }
-  # Example: selfLib.distrobox.debian { name = "firefox"; packages = with pkgs; [ firefox-esr ]; }
-  distrobox = distroboxLib;
+  # ── Native App builder & Version Pinning ──────────────────────────────────────
+  # Builder universal untuk membungkus biner/arsip (.deb, .tar.*, .pkg.tar.zst, .snap, .AppImage)
+  # dengan runtime library host nix-ld, PATH wrapper, dan integrasi desktop.
+  mkNativeApp = pkgs: (nativeAppLib pkgs).mkNativeApp;
+  appVersions = import ./apps-versions.nix;
+  fetchApp = pkgs: name: pkgs.fetchurl (import ./apps-versions.nix).${name};
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }

@@ -3,7 +3,7 @@
     ai = {
       runtimes = {
         llama = true;
-        ollama = true;
+        ollama = false;
         ollama-to-llama = true;
       };
       agents = {
@@ -96,7 +96,6 @@
       };
       boot-speedup = true;
       vaultwarden = true;
-      flatpak = true;
       vmtouch = false;
     };
 
@@ -125,11 +124,7 @@
         autoUpdate = false;
         "9router" = false;
       };
-      podman = {
-        enable = true;
-        autoUpdate = true;
-      };
-      distrobox-pkg = true;
+      podman = true;
       libvirt = false;
       waydroid = true;
     };

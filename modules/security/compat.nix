@@ -32,6 +32,16 @@ selfLib.mkModule {
         pango
         cairo
         atk
+        at-spi2-core
+        dbus
+        libdbusmenu-gtk3
+        libsecret
+        cups
+        libnotify
+        libayatana-appindicator
+        libayatana-indicator
+        ayatana-ido
+        libepoxy
         libusb1
         libxml2
         libxslt
@@ -41,10 +51,50 @@ selfLib.mkModule {
         fontconfig
         alsa-lib
         libpulseaudio
+        pipewire
+        libjack2
+        portaudio
+        libsamplerate
+        SDL
+        SDL2
         libdrm
         mesa
+        libgbm
         libGL
+        libvdpau
+        libva
+        libdecor
+        libxcb
         libxkbcommon
+        libxkbfile
+        vulkan-loader
+        flac
+        harfbuzz
+        dav1d
+        double-conversion
+        lcms2
+        minizip
+        openh264
+        openjpeg
+        libopus
+        qt6.qtbase
+        qt6.qtsvg
+        qt6.qtwayland
+        bluez
+        cubeb
+        enet
+        libevdev
+        fmt_9
+        hidapi
+        lzo
+        mbedtls
+        mgba
+        miniupnpc
+        pugixml
+        sfml
+        stb
+        xxhash
+        ffmpeg
         wayland
         libX11
         libXcursor
@@ -56,6 +106,9 @@ selfLib.mkModule {
         libXext
         libXfixes
         libXtst
+        libXScrnSaver
+        libxshmfence
+        libXinerama
         systemd
       ];
     };
@@ -67,6 +120,12 @@ selfLib.mkModule {
       binutils
       file
       steam-run
+      xkeyboard_config
     ];
+
+    environment.sessionVariables = {
+      XKB_CONFIG_ROOT = "${pkgs.xkeyboard_config}/share/X11/xkb";
+      QT_XKB_CONFIG_ROOT = "${pkgs.xkeyboard_config}/share/X11/xkb";
+    };
   };
 }

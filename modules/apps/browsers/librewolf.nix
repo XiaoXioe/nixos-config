@@ -13,15 +13,28 @@ let
     }
     // extraAttrs;
   };
+
+  appInfo = selfLib.appVersions.librewolf;
+
+  librewolfNative = (selfLib.mkNativeApp pkgs) {
+    name = "librewolf";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "librewolf";
+    execPath = "librewolf";
+    binName = "librewolf";
+    extraEnv = {
+      MOZ_ENABLE_WAYLAND = "1";
+    };
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.librewolf";
-  description = "LibreWolf configuration for user";
+  description = "LibreWolf configuration for user with pure upstream binary";
 
   hmConfig = {
     programs.librewolf = {
       enable = true;
-      package = pkgs.librewolf;
+      package = librewolfNative;
       policies = {
         ExtensionSettings = {
           "*" = {

@@ -51,20 +51,6 @@ selfLib.mkModule {
           ];
         };
 
-        "/var/lib/flatpak" = {
-          device = "${config.my.dataPath}/flatpak-system";
-          fsType = "none";
-          options = [
-            "bind"
-            "nofail"
-            "x-systemd.requires=${
-              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
-            }.mount"
-            "x-systemd.after=${
-              lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
-            }.mount"
-          ];
-        };
       };
     };
 }

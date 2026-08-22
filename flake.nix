@@ -41,7 +41,6 @@
       url = "github:jacopone/antigravity-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     dms = {
       url = "github:AvengeMedia/DankMaterialShell";

@@ -12,7 +12,6 @@
       };
 
       custom = {
-        flatpak-repo = true;
         freqtrade = true;
         scrapers = true;
         tradingview = true;
@@ -36,6 +35,7 @@
           nix-tools = true;
           cek-cache = true;
           flake-update-interactive = true;
+          apps-updater = true;
         };
         vcs = {
           git = true;
@@ -64,7 +64,7 @@
 
       gaming = {
         game = true;
-        steam = true;
+        steam = false;
         emulators = true;
         wine = true;
       };
@@ -84,7 +84,7 @@
 
       terminal = {
         emulators = {
-          alacritty = true;
+          alacritty = false;
           foot = true;
           kitty = false;
           wezterm = false;

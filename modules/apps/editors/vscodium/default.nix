@@ -7,24 +7,39 @@
 let
   marketplaceExts = import ./_extensions { inherit pkgs; };
   userSettings = import ./_settings { inherit pkgs; };
-  flatpakCfg = import ./_flatpak { inherit pkgs; };
+  appInfo = selfLib.appVersions.vscodium;
+
+  vscodiumNative =
+    ((selfLib.mkNativeApp pkgs) {
+      name = "codium";
+      inherit (appInfo) version;
+      src = selfLib.fetchApp pkgs "vscodium";
+      execPath = "usr/share/codium/bin/codium";
+      binName = "codium";
+      extraEnv = {
+        ELECTRON_OZONE_PLATFORM_HINT = "auto";
+        NIXOS_OZONE_WL = "1";
+      };
+    }).overrideAttrs
+      (old: {
+        postInstall = (old.postInstall or "") + ''
+          if [ -f "$out/opt/codium/usr/share/codium/bin/codium" ]; then
+            sed -i "/ELECTRON=/iVSCODE_PATH='$out/opt/codium/usr/share/codium'" "$out/opt/codium/usr/share/codium/bin/codium"
+            chmod +x "$out/opt/codium/usr/share/codium/bin/codium"
+            chmod +x "$out/opt/codium/usr/share/codium/codium"
+          fi
+        '';
+      });
 in
 selfLib.mkModule {
   name = "apps.editors.vscodium";
   description = "Vscodium configuration";
 
-  inherit flatpakCfg;
-
   nixosConfig =
-    { config, pkgs, ... }:
-    let
-      cfg = config.my.apps.editors.vscodium;
-      vscodiumPath =
-        if cfg.flatpak.enable then "/var/lib/flatpak/app/com.vscodium.codium" else pkgs.vscodium;
-    in
+    { config, ... }:
     {
       my.services.vmtouch.paths = [
-        vscodiumPath
+        vscodiumNative
         "/home/${config.my.user.name}/.config/VSCodium"
         "/home/${config.my.user.name}/.vscode-oss"
       ];
@@ -46,6 +61,7 @@ selfLib.mkModule {
     ];
     programs.vscodium = {
       enable = true;
+      package = vscodiumNative;
       argvSettings = {
         ignore-gpu-blocklist = true;
         enable-crash-reporter = false;

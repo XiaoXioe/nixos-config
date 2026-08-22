@@ -44,25 +44,25 @@ selfLib.mkModule {
         ];
 
         # Ensure substitution is active
-        substitute = true;
+        # substitute = true;
 
-        # ── Build behavior ───────────────────────────────────────────
-        cores = 0;
-        max-jobs = "auto";
-        fallback = false;
-        builders-use-substitutes = true;
-        always-allow-substitutes = true;
+        # # ── Build behavior ───────────────────────────────────────────
+        # cores = 0;
+        # max-jobs = "auto";
+        # fallback = false;
+        # builders-use-substitutes = true;
+        # always-allow-substitutes = true;
 
-        # ── Performance & stability ──────────────────────────────────
-        max-substitution-jobs = 4;
-        http-connections = 16;
+        # # ── Performance & stability ──────────────────────────────────
+        max-substitution-jobs = 16;
+        http-connections = 50;
         download-attempts = 3;
         connect-timeout = 10;
         stalled-download-timeout = 30;
-        keep-outputs = true;
-        keep-derivations = true;
-        eval-cache = true;
-        log-lines = 50;
+        # keep-outputs = true;
+        # keep-derivations = true;
+        # eval-cache = true;
+        # log-lines = 50;
         narinfo-cache-negative-ttl = 60;
 
         experimental-features = [

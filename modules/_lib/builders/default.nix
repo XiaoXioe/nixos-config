@@ -50,7 +50,6 @@ let
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
-        inputs.nix-flatpak.nixosModules.nix-flatpak
         {
           home-manager = {
             useGlobalPkgs = true;

@@ -22,10 +22,24 @@ let
     lib.mapAttrs' (name: value: lib.nameValuePair "mail.server.${serverId}.${name}" value) (
       commonServerSettings // extraSettings
     );
+
+  appInfo = selfLib.appVersions.betterbird;
+
+  betterbirdNative = (selfLib.mkNativeApp pkgs) {
+    name = "betterbird";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "betterbird";
+    execPath = "betterbird/betterbird";
+    binName = "thunderbird";
+    extraEnv = {
+      MOZ_LEGACY_PROFILES = "1";
+      MOZ_ENABLE_WAYLAND = "1";
+    };
+  };
 in
 selfLib.mkModule {
   name = "apps.office.thunderbird";
-  description = "Thunderbird and Betterbird email client with optimized profiles";
+  description = "Betterbird / Thunderbird email client with optimized native profiles";
 
   preservation = {
     userDirectories = [
@@ -34,74 +48,53 @@ selfLib.mkModule {
   };
 
   nixosConfig =
-    { config, pkgs, ... }:
-    let
-      cfg = config.my.apps.office.thunderbird;
-      betterbirdPath =
-        if cfg.flatpak.enable then "/var/lib/flatpak/app/eu.betterbird.Betterbird" else pkgs.thunderbird;
-    in
+    { config, ... }:
     {
       my.services.vmtouch.paths = [
-        betterbirdPath
+        betterbirdNative
         "/home/${config.my.user.name}/.thunderbird"
       ];
     };
 
-  flatpakCfg = {
-    "eu.betterbird.Betterbird" = {
+  hmConfig = {
+    programs.thunderbird = {
       enable = true;
-      overrides = {
-        Environment = {
-          MOZ_LEGACY_PROFILES = "1";
-        };
-      };
-      symlinks = [
-        {
-          host = ".thunderbird";
-          guest = ".thunderbird";
-        }
-      ];
-      nativePkgs = pkgs.thunderbird;
-      hmProgram = {
-        name = "thunderbird";
-        extraConfig = {
-          profiles = {
-            default = {
-              isDefault = true;
-              settings =
-                (mkServerConfig "default" { })
-                // (mkServerConfig "server1" { })
-                // (mkServerConfig "server2" {
-                  daysToKeepHdrs = 7;
-                  retainBy = 2;
-                })
-                // {
-                  # Preferensi Kinerja & Telemetri
-                  "mailnews.database.global.indexer.enabled" = false;
-                  "datareporting.healthreport.uploadEnabled" = false;
-                  "toolkit.telemetry.enabled" = false;
+      package = betterbirdNative;
+      profiles = {
+        default = {
+          isDefault = true;
+          settings =
+            (mkServerConfig "default" { })
+            // (mkServerConfig "server1" { })
+            // (mkServerConfig "server2" {
+              daysToKeepHdrs = 7;
+              retainBy = 2;
+            })
+            // {
+              # Preferensi Kinerja & Telemetri
+              "mailnews.database.global.indexer.enabled" = false;
+              "datareporting.healthreport.uploadEnabled" = false;
+              "toolkit.telemetry.enabled" = false;
 
-                  # UI & System Tray
-                  "mailnews.start_page.enabled" = false;
-                  "toolkit.cosmeticAnimations.enabled" = false;
-                  "mail.minimizeToTray" = true;
+              # UI & System Tray
+              "mailnews.start_page.enabled" = false;
+              "toolkit.cosmeticAnimations.enabled" = false;
+              "mail.minimizeToTray" = true;
 
-                  # Auto Compact Storage
-                  "mail.purge_threshhold_mb" = 20;
-                  "mail.prompt_purge_threshold" = false;
+              # Auto Compact Storage
+              "mail.purge_threshhold_mb" = 20;
+              "mail.prompt_purge_threshold" = false;
 
-                  # Unified Folders
-                  "mail.folderpane.activeModes" = "0,1";
-                  "mail.folderpane.header.visible" = true;
-                }
-                // (lib.listToAttrs (
-                  map (n: {
-                    name = "mail.server.server${toString n}.max_cached_connections";
-                    value = 1;
-                  }) (lib.range 1 30)
-                ));
-            };
-          };
+              # Unified Folders
+              "mail.folderpane.activeModes" = "0,1";
+              "mail.folderpane.header.visible" = true;
+            }
+            // (lib.listToAttrs (
+              map (n: {
+                name = "mail.server.server${toString n}.max_cached_connections";
+                value = 1;
+              }) (lib.range 1 30)
+            ));
         };
       };
     };

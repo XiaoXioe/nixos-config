@@ -6,47 +6,28 @@
 
 let
   inherit (selfLib.browserAddonsFor { inherit pkgs; }) commonChromiumExtensions;
+  appInfo = selfLib.appVersions.chromium;
+
+  chromiumNative = (selfLib.mkNativeApp pkgs) {
+    name = "chromium";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "chromium";
+    execPath = "usr/lib/chromium/chromium";
+    binName = "chromium";
+    extraArgs = [
+      "--password-store=gnome-libsecret"
+      "--enable-gpu-rasterization"
+      "--ignore-gpu-blocklist"
+      "--disable-gpu-driver-bug-workarounds"
+    ];
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.chromium";
-  description = "Chromium browser configuration";
+  description = "Chromium browser native configuration with pure upstream binary";
 
-  flatpakCfg = {
-    "org.chromium.Chromium" = {
-      enable = true;
-
-      overrides = {
-        Context = {
-          filesystems = [
-            "/etc/chromium:ro"
-            "xdg-run/psd" # Profile Sync Daemon tmpfs
-          ];
-        };
-      };
-
-      symlinks = [
-        {
-          host = ".config/chromium";
-          guest = "config/chromium";
-        }
-      ];
-
-      flags = {
-        file = "config/chromium-flags.conf";
-        text = ''
-          --password-store=gnome-libsecret
-          --enable-gpu-rasterization
-          --ignore-gpu-blocklist
-          --disable-gpu-driver-bug-workarounds
-        '';
-      };
-
-      nativePkgs = pkgs.chromium;
-
-      hmProgram = {
-        name = "chromium";
-      };
-    };
+  hmConfig = {
+    home.packages = [ chromiumNative ];
   };
 
   nixosConfig = {

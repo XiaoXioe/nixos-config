@@ -6,58 +6,34 @@
 
 let
   inherit (selfLib.browserAddonsFor { inherit pkgs; }) commonChromiumExtensions;
+  appInfo = selfLib.appVersions.brave;
+
+  braveNative = (selfLib.mkNativeApp pkgs) {
+    name = "brave";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "brave";
+    execPath = "opt/brave.com/brave/brave";
+    binName = "brave";
+    extraArgs = [
+      "--password-store=gnome-libsecret"
+      "--enable-gpu-rasterization"
+      "--ignore-gpu-blocklist"
+      "--enable-features=WebUIDarkMode,Containers"
+      "--disable-gpu-driver-bug-workarounds"
+      "--disable-reading-from-canvas"
+      "--no-pings"
+    ];
+  };
 in
 selfLib.mkModule {
   name = "apps.browsers.brave";
-  description = "Brave browser configuration with maximal performance & privacy";
+  description = "Brave browser native configuration with maximal performance & privacy";
 
-  flatpakCfg = {
-    "com.brave.Browser" = {
-      enable = true;
-
-      # Overrides manual tambahan (seperti kebijakan sistem)
-      overrides = {
-        Context = {
-          filesystems = [
-            "/etc/brave:ro"
-            "xdg-run/psd" # Profile Sync Daemon tmpfs
-          ];
-        };
-      };
-
-      # Otomatis membuat symlink dan mendaftarkannya di sandbox filesystem overrides
-      symlinks = [
-        {
-          host = ".config/BraveSoftware";
-          guest = "config/BraveSoftware";
-        }
-      ];
-
-      # Menulis file flags
-      flags = {
-        file = "config/brave-flags.conf";
-        text = ''
-          --password-store=gnome-libsecret
-          --enable-gpu-rasterization
-          --ignore-gpu-blocklist
-          --enable-features=WebUIDarkMode,Containers
-          --disable-gpu-driver-bug-workarounds
-          --disable-reading-from-canvas
-          --no-pings
-        '';
-      };
-
-      # Paket native untuk fallback jika flatpak dinonaktifkan
-      nativePkgs = pkgs.brave;
-
-      # Integrasi Home Manager program
-      hmProgram = {
-        name = "brave";
-      };
-    };
+  hmConfig = {
+    home.packages = [ braveNative ];
   };
 
-  # Kebijakan sistem browser (berlaku universal baik Flatpak maupun Native)
+  # Kebijakan sistem browser (berlaku universal)
   nixosConfig = {
     environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
       ExtensionInstallForcelist = map (ext: ext.id) (

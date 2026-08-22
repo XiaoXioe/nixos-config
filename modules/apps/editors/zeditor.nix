@@ -4,6 +4,17 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.zed;
+
+  zedNative = (selfLib.mkNativeApp pkgs) {
+    name = "zed";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "zed";
+    execPath = "zed.app/bin/zed";
+    binName = "zed";
+  };
+in
 selfLib.mkModule {
   name = "apps.editors.zeditor";
   description = "Zed-editor configuration";
@@ -21,25 +32,18 @@ selfLib.mkModule {
       sqlfluff
       php
       clang-tools
-      # nodePackages.prettier
       fish
     ];
 
     programs.zed-editor = {
       enable = true;
-      package = pkgs.zed-editor-fhs;
+      package = zedNative;
 
       # Kunci file agar menjadi symlink Nix murni (Read-Only)
       mutableUserSettings = false;
       mutableUserKeymaps = false;
       mutableUserTasks = false;
 
-      # Ekstensi dasar agar pengalaman mendekati VSCodium.
-      # Catatan: "bash", "python", dan "yaml" TIDAK dimasukkan di sini karena
-      # ketiganya sudah built-in di Zed (crates/languages/src/{bash,python,yaml}.rs).
-      # Memasukkannya sebagai ekstensi menyebabkan Zed berulang kali mencoba
-      # mengunduh paket yang sudah tidak tersedia di marketplace, memicu error
-      # "Invalid gzip header" di log setiap kali Zed dijalankan.
       extensions = [
         "nix"
         "html"
@@ -50,7 +54,6 @@ selfLib.mkModule {
         "catppuccin-icons"
       ];
 
-      # Menggunakan Nix attribute set yang akan dikonversi ke JSON
       userSettings = {
         auto_update = false;
         base_keymap = "SublimeText";
@@ -66,7 +69,6 @@ selfLib.mkModule {
           metrics = false;
         };
 
-        # Layout mirip VSCodium
         project_panel = {
           dock = "right";
           default_width = 240;
@@ -81,7 +83,6 @@ selfLib.mkModule {
         git_panel = {
           dock = "right";
         };
-        # Panel chat/AI diletakkan di kiri, terpisah dari panel lain di kanan
         agent = {
           dock = "left";
           favorite_models = [ ];
@@ -104,8 +105,6 @@ selfLib.mkModule {
           quick_actions = false;
         };
 
-        # Mengurangi beban render mengingat hardware tanpa GPU diskrit
-        # (Zed jatuh ke backend OpenGL fallback pada iGPU Ivy Bridge).
         cursor_blink = false;
         reduce_motion = "on";
         hover_popover_enabled = false;
@@ -120,7 +119,6 @@ selfLib.mkModule {
           };
         };
 
-        # Konfigurasi Tema
         theme = {
           mode = "dark";
           light = "One Light";
@@ -132,7 +130,6 @@ selfLib.mkModule {
           dark = "Catppuccin Mocha";
         };
 
-        # Konfigurasi editor & penyimpanan
         autosave = "on_window_change";
         format_on_save = "on";
         remove_trailing_whitespace_on_save = true;
@@ -142,7 +139,6 @@ selfLib.mkModule {
         };
         scroll_beyond_last_line = "off";
 
-        # Konfigurasi Formatter per bahasa
         languages = {
           Nix = {
             format_on_save = "on";
@@ -242,7 +238,6 @@ selfLib.mkModule {
             format_on_save = "on";
             formatter = {
               external = {
-                # fish_indent otomatis membaca dari stdin dan menulis ke stdout
                 command = "fish_indent";
               };
             };

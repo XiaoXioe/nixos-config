@@ -4,20 +4,22 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.zathura;
+
+  zathuraNative = (selfLib.mkNativeApp pkgs) {
+    name = "zathura";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "zathura";
+    execPath = "usr/bin/zathura";
+    binName = "zathura";
+  };
+in
 selfLib.mkModule {
   name = "apps.office.zathura";
-  description = "Zathura lightweight PDF and document reader";
+  description = "Zathura lightweight PDF and document reader with pure upstream binary";
 
-  flatpakCfg = {
-    "org.pwmt.zathura" = {
-      enable = true;
-      symlinks = [
-        {
-          host = ".local/share/zathura";
-          guest = "data/zathura";
-        }
-      ];
-      nativePkgs = pkgs.zathura;
-    };
+  hmConfig = {
+    home.packages = [ zathuraNative ];
   };
 }
