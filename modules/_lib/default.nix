@@ -34,6 +34,14 @@ in
   mkNativeApp = pkgs: (nativeAppLib pkgs).mkNativeApp;
   appVersions = import ./apps-versions.nix;
   fetchApp = pkgs: name: pkgs.fetchurl (import ./apps-versions.nix).${name};
+  allAppSources =
+    pkgs:
+    pkgs.linkFarm "native-app-sources" (
+      lib.mapAttrsToList (name: info: {
+        name = "${name}-${info.version}";
+        path = pkgs.fetchurl info;
+      }) (import ./apps-versions.nix)
+    );
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }

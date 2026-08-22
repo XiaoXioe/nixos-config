@@ -121,6 +121,13 @@ selfLib.mkModule {
       file
       steam-run
       xkeyboard_config
+      (selfLib.allAppSources pkgs)
+    ];
+
+    # Kunci seluruh file sumber (.deb, .tar.xz, .AppImage) sebagai GC Root sistem
+    # agar kebal terhadap garbage collection (nh clean / nix-collect-garbage)
+    system.extraDependencies = [
+      (selfLib.allAppSources pkgs)
     ];
 
     environment.sessionVariables = {
