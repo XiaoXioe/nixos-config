@@ -54,11 +54,11 @@ selfLib.mkModule {
         # always-allow-substitutes = true;
 
         # # ── Performance & stability ──────────────────────────────────
-        max-substitution-jobs = 16;
-        http-connections = 50;
-        download-attempts = 3;
-        connect-timeout = 10;
-        stalled-download-timeout = 30;
+        max-substitution-jobs = 3; # Jumlah unduhan binary cache (substitusi) yang berjalan secara paralel/simultan
+        http-connections = 25;     # Batas maksimum koneksi HTTP simultan yang dibuka oleh Nix
+        download-attempts = 3;     # Jumlah percobaan ulang (retry) jika unduhan terputus atau gagal
+        connect-timeout = 10;      # Batas waktu timeout koneksi (detik)
+        stalled-download-timeout = 30; # Batas waktu jika proses unduhan terhenti/macet (detik)
         # keep-outputs = true;
         # keep-derivations = true;
         # eval-cache = true;
