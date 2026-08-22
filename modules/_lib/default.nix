@@ -42,6 +42,50 @@ in
         path = pkgs.fetchurl info;
       }) (import ./apps-versions.nix)
     );
+  activeAppSources =
+    { pkgs, config }:
+    let
+      allVersions = import ./apps-versions.nix;
+
+      # Alias jika nama modul sedikit berbeda dengan nama key di apps-versions.nix
+      aliases = {
+        zed = "zeditor";
+        betterbird = "thunderbird";
+        dolphin-emu = "emulators";
+        ppsspp = "emulators";
+        pcsx2 = "emulators";
+        retroarch = "emulators";
+        retroarch-cores = "emulators";
+        aria2 = "downloader";
+        tdl = "downloader";
+      };
+
+      isAppEnabled =
+        name:
+        let
+          targetKey = aliases.${name} or name;
+
+          checkSub =
+            depth: set:
+            if depth > 3 || !builtins.isAttrs set then
+              false
+            else if set ? ${targetKey} && builtins.isAttrs set.${targetKey} && set.${targetKey} ? enable then
+              set.${targetKey}.enable == true
+            else
+              lib.any (child: checkSub (depth + 1) child) (
+                lib.filter (v: builtins.isAttrs v && !(v ? _type)) (builtins.attrValues set)
+              );
+        in
+        checkSub 0 (config.my.apps or { }) || checkSub 0 (config.my.security or { });
+
+      activeEntries = lib.filterAttrs (name: _: isAppEnabled name) allVersions;
+    in
+    pkgs.linkFarm "native-app-sources" (
+      lib.mapAttrsToList (name: info: {
+        name = "${name}-${info.version}";
+        path = pkgs.fetchurl info;
+      }) activeEntries
+    );
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }
