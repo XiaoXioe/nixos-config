@@ -1,5 +1,4 @@
 {
-  config,
   selfLib,
   ...
 }:
@@ -30,86 +29,72 @@ selfLib.mkModule {
     ];
   };
 
-  nixosConfig = {
-    services.accounts-daemon.enable = true;
+  nixosConfig =
+    { config, lib, ... }:
+    let
+      userDirs = [
+        "Documents"
+        "Downloads"
+        "Pictures"
+        "Music"
+        "Videos"
+        "podman"
+        "PersistentData"
+      ];
+      mkUserDir = name: {
+        "${config.my.dataPath}/${name}".d = {
+          mode = "0755";
+          user = config.my.user.name;
+          group = "users";
+        };
+      };
+    in
+    {
+      services.accounts-daemon.enable = true;
 
-    systemd.tmpfiles.settings."10-user-directories" = {
-      "${config.my.dataPath}/Documents".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
+      systemd.tmpfiles.settings."10-user-directories" = lib.foldl' (
+        acc: dir: acc // (mkUserDir dir)
+      ) { } userDirs;
+
+      systemd.tmpfiles.settings."10-accounts-service" = {
+        "/var/lib/AccountsService".d = {
+          mode = "0755";
+          user = "root";
+          group = "root";
+        };
+        "/var/lib/AccountsService/icons".d = {
+          mode = "0755";
+          user = "root";
+          group = "root";
+        };
+        "/var/lib/AccountsService/users".d = {
+          mode = "0755";
+          user = "root";
+          group = "root";
+        };
+        "/var/lib/AccountsService/icons/${config.my.user.name}"."C+" = {
+          argument = config.sops.secrets."foto-profile".path;
+          mode = "0644";
+          user = "root";
+          group = "root";
+        };
+        "/var/lib/AccountsService/users/${config.my.user.name}"."f+" = {
+          argument = ''
+            [User]
+            Icon=/var/lib/AccountsService/icons/${config.my.user.name}
+          '';
+          mode = "0644";
+          user = "root";
+          group = "root";
+        };
       };
-      "${config.my.dataPath}/Downloads".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
-      };
-      "${config.my.dataPath}/Pictures".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
-      };
-      "${config.my.dataPath}/Music".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
-      };
-      "${config.my.dataPath}/Videos".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
-      };
-      "${config.my.dataPath}/podman".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
-      };
-      "${config.my.dataPath}/PersistentData".d = {
-        mode = "0755";
-        user = config.my.user.name;
-        group = "users";
+
+      sops.secrets."foto-profile" = {
+        format = "binary";
+        owner = config.my.user.name;
+        sopsFile = ./secrets/foto-profile.enc;
       };
     };
-
-    systemd.tmpfiles.settings."10-accounts-service" = {
-      "/var/lib/AccountsService".d = {
-        mode = "0755";
-        user = "root";
-        group = "root";
-      };
-      "/var/lib/AccountsService/icons".d = {
-        mode = "0755";
-        user = "root";
-        group = "root";
-      };
-      "/var/lib/AccountsService/users".d = {
-        mode = "0755";
-        user = "root";
-        group = "root";
-      };
-      "/var/lib/AccountsService/icons/${config.my.user.name}"."C+" = {
-        argument = config.sops.secrets."foto-profile".path;
-        mode = "0644";
-        user = "root";
-        group = "root";
-      };
-      "/var/lib/AccountsService/users/${config.my.user.name}"."f+" = {
-        argument = ''
-          [User]
-          Icon=/var/lib/AccountsService/icons/${config.my.user.name}
-        '';
-        mode = "0644";
-        user = "root";
-        group = "root";
-      };
-    };
-
-    sops.secrets."foto-profile" = {
-      format = "binary";
-      owner = config.my.user.name;
-      sopsFile = ./secrets/foto-profile.enc;
-    };
-  };
 
   hmConfig = hmOpts: {
     home.file = selfLib.mkHmSymlinks hmOpts.config {

@@ -113,6 +113,14 @@ selfLib.mkModule {
           libXScrnSaver
           libxshmfence
           libXinerama
+          libsm
+          libice
+          gmp
+          libgpg-error
+          libglvnd
+          libunwind
+          (lib.getLib e2fsprogs)
+          (lib.getLib krb5)
           systemd
         ];
       };
