@@ -1,4 +1,5 @@
 {
+  pkgs,
   config,
   lib,
   inputs,
@@ -15,6 +16,7 @@ selfLib.mkModule {
 
   nixosConfig = {
     nix = {
+      package = pkgs.lix;
       settings = {
         # Substituters + priority
         substituters = [
@@ -55,9 +57,9 @@ selfLib.mkModule {
 
         # # ── Performance & stability ──────────────────────────────────
         max-substitution-jobs = 3; # Jumlah unduhan binary cache (substitusi) yang berjalan secara paralel/simultan
-        http-connections = 25;     # Batas maksimum koneksi HTTP simultan yang dibuka oleh Nix
-        download-attempts = 3;     # Jumlah percobaan ulang (retry) jika unduhan terputus atau gagal
-        connect-timeout = 10;      # Batas waktu timeout koneksi (detik)
+        http-connections = 25; # Batas maksimum koneksi HTTP simultan yang dibuka oleh Nix
+        download-attempts = 3; # Jumlah percobaan ulang (retry) jika unduhan terputus atau gagal
+        connect-timeout = 10; # Batas waktu timeout koneksi (detik)
         stalled-download-timeout = 30; # Batas waktu jika proses unduhan terhenti/macet (detik)
         # keep-outputs = true;
         # keep-derivations = true;
@@ -68,7 +70,8 @@ selfLib.mkModule {
         experimental-features = [
           "nix-command"
           "flakes"
-          "ca-derivations"
+          "fetch-closure"
+          # "ca-derivations"
         ];
       };
 
