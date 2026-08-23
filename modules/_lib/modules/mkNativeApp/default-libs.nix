@@ -1,0 +1,74 @@
+# Universal base library pool for unpatched / native Linux binaries
+{
+  pkgs,
+  lib ? pkgs.lib,
+}:
+
+with pkgs;
+[
+  stdenv.cc.cc.lib
+  zlib
+  glib
+  gtk3
+  gtk4
+  cairo
+  pango
+  gdk-pixbuf
+  atk
+  at-spi2-core
+  dbus
+  libsecret
+  cups
+  libnotify
+  libepoxy
+  libusb1
+  libxml2
+  libxslt
+  libpng
+  libjpeg
+  freetype
+  fontconfig
+  alsa-lib
+  libpulseaudio
+  pipewire
+  SDL
+  SDL2
+  sdl3
+  libdrm
+  mesa
+  libgbm
+  libGL
+  libglvnd
+  vulkan-loader
+  libxcb
+  libxkbcommon
+  libxkbfile
+  wayland
+  libX11
+  libXcursor
+  libXi
+  libXrandr
+  libXrender
+  libXcomposite
+  libXdamage
+  libXext
+  libXfixes
+  libXtst
+  libXScrnSaver
+  libxshmfence
+  libXinerama
+  libsm
+  libice
+  gmp
+  libgpg-error
+  libunwind
+  (lib.getLib e2fsprogs)
+  (lib.getLib krb5)
+  systemd
+  nspr
+  nss
+  expat
+  icu
+  openssl
+  curl
+]

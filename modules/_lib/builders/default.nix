@@ -5,6 +5,7 @@
   inputs,
   selfLib,
   system,
+  flakeRoot,
   ...
 }:
 
@@ -19,7 +20,7 @@ let
   mkNixosConfiguration =
     hostName:
     let
-      userData = import ../../hosts/${hostName}/users;
+      userData = import (flakeRoot + "/modules/hosts/${hostName}/users") { inherit lib; };
       adminUser = userData.userName;
       flakePath = "/home/${adminUser}/nixos-config";
 
@@ -37,7 +38,7 @@ let
       };
 
       homeModules = [
-        (../../hosts + "/${hostName}/home")
+        (flakeRoot + "/modules/hosts/${hostName}/home")
         inputs.nix-index-database.homeModules.nix-index
       ]
       ++ lib.optionals (inputs ? noctalia) [
@@ -45,8 +46,8 @@ let
       ];
 
       commonModules = [
-        (../../hosts + "/${hostName}")
-        ../../../modules
+        (flakeRoot + "/modules/hosts/${hostName}")
+        (flakeRoot + "/modules")
         inputs.preservation.nixosModules.preservation
         inputs.sops-nix.nixosModules.sops
         inputs.home-manager.nixosModules.home-manager
@@ -75,7 +76,7 @@ let
 
   # Pre-commit / CI quality gate shell hook generator
   preCommitCheck = inputs.git-hooks.lib.${system}.run {
-    src = ../../..;
+    src = flakeRoot;
     hooks = {
       nixfmt.enable = true;
       statix.enable = true;

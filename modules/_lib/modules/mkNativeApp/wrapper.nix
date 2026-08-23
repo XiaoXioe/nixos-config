@@ -12,6 +12,7 @@
   extraArgs ? [ ],
   extraEnv ? { },
   extraPkgs ? [ ],
+  extraLibs ? [ ],
   extraWrapperArgs ? [ ],
   extraPostInstall ? "",
   passthru ? { },
@@ -27,8 +28,12 @@ let
     inherit
       pname
       version
-      meta
       ;
+
+    meta = {
+      mainProgram = binName;
+    }
+    // meta;
 
     passthru = {
       inherit unwrapped;
@@ -75,7 +80,12 @@ let
       ''}
 
       makeWrapper "${unwrapped}/opt/${name}/${execPath}" "$out/bin/${binName}" \
-        --prefix LD_LIBRARY_PATH : "/run/current-system/sw/share/nix-ld/lib" \
+        --prefix LD_LIBRARY_PATH : "${
+          lib.optionalString (extraLibs != [ ]) "${lib.makeLibraryPath extraLibs}:"
+        }/run/current-system/sw/share/nix-ld/lib" \
+        --prefix NIX_LD_LIBRARY_PATH : "${
+          lib.optionalString (extraLibs != [ ]) "${lib.makeLibraryPath extraLibs}:"
+        }/run/current-system/sw/share/nix-ld/lib" \
         --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$out/share" \
         --set-default GSETTINGS_SCHEMA_DIR "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas" \
         --set-default XKB_CONFIG_ROOT "${pkgs.xkeyboard_config}/share/X11/xkb" \

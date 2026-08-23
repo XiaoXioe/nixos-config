@@ -40,9 +40,9 @@
   };
 
   signal = rec {
-    version = "7.36.0";
+    version = "8.24.1";
     url = "https://updates.signal.org/desktop/apt/pool/s/signal-desktop/signal-desktop_${version}_amd64.deb";
-    hash = "sha256-exTRx9R+m+qSpcw9U20auAXLTSLirPaJa1rovoSwQEc=";
+    hash = "sha256-FkqbhpzFu26iSkUglSiC4SEE25PzZScjoAOCokKSiuY=";
   };
 
   materialgram = rec {
@@ -105,12 +105,6 @@
     hash = "sha256-AP8xXwQO5p3REA107PTd8Pq9JGx5bRfGFw3IQXLKOK8=";
   };
 
-  dolphin-emu = rec {
-    version = "2606.a+dfsg";
-    url = "http://ftp.debian.org/debian/pool/main/d/dolphin-emu/dolphin-emu_${version}-1_amd64.deb";
-    hash = "sha256-u4xGFX7RgWmRPeVVn7V5ZiXPfAO0fAelU7/riRFv9n8=";
-  };
-
   ppsspp = rec {
     version = "1.20.4";
     url = "https://github.com/hrydgard/ppsspp/releases/download/v${version}/PPSSPP-v${version}-anylinux-x86_64.AppImage";
@@ -141,16 +135,22 @@
     hash = "sha256-vx2fOG/IT0wiJN0XxFv/7PC9zriKArX1/L90ATQQFhM=";
   };
 
-  gthumb = rec {
-    version = "3.12.10";
-    url = "http://ftp.debian.org/debian/pool/main/g/gthumb/gthumb_${version}-1+b1_amd64.deb";
-    hash = "sha256-bVDTRiJrg5yeeOEvRsUbdx6qKzPgHeQUWUKV95xRk/8=";
-  };
-
   zathura = rec {
     version = "2026.07.18";
     url = "http://ftp.debian.org/debian/pool/main/z/zathura/zathura_${version}-1_amd64.deb";
     hash = "sha256-WMeKyS6/WvUKpOdvjvM6dI+11EgOqvytNvc6+8Ekt8Y=";
+  };
+
+  zathura-girara = rec {
+    version = "2026.07.18";
+    url = "http://ftp.debian.org/debian/pool/main/g/girara/libgirara5_${version}-1_amd64.deb";
+    hash = "sha256-oraViJYMvQAn4TdcY6EGMHYPduagx3G252HwHzsMJtU=";
+  };
+
+  zathura-pdf-poppler = rec {
+    version = "2026.07.18";
+    url = "http://ftp.debian.org/debian/pool/main/z/zathura-pdf-poppler/zathura-pdf-poppler_${version}-1_amd64.deb";
+    hash = "sha256-xMQKPuTVCV9tOhrkB+cXIrw3gyi4mUqs5wUyo9OOjgY=";
   };
 
   yt-dlp = rec {
@@ -165,15 +165,40 @@
     hash = "sha256-Kj3gbU+SZBcyOE9j7OcT4fCnqggsHAgMDGuQze1E0s8=";
   };
 
-  aria2 = rec {
-    version = "1.37.0";
-    url = "http://ftp.debian.org/debian/pool/main/a/aria2/aria2_${version}+debian-4+b1_amd64.deb";
-    hash = "sha256-/bae6pxbcmfgeUGazmDdGyxmE2JT8nnX4Yus625iav0=";
-  };
-
   tdl = rec {
     version = "0.20.3";
     url = "https://github.com/iyear/tdl/releases/download/v${version}/tdl_Linux_64bit.tar.gz";
     hash = "sha256-9p/gbBf3TDCjuJS1vgXFehsIL1azRsmUAlojAbJppxg=";
   };
+
+  zellij = rec {
+    version = "0.43.1";
+    url = "https://github.com/zellij-org/zellij/releases/download/v${version}/zellij-x86_64-unknown-linux-musl.tar.gz";
+    hash = "sha256-VB2Y7+9VWCk++FrZrNKeTZILbogVE7nnclXYIHAg11o=";
+  };
+
+  yazi = rec {
+    version = "26.8.15";
+    url = "https://github.com/sxyazi/yazi/releases/download/v${version}/yazi-x86_64-unknown-linux-musl.zip";
+    hash = "sha256-pnAgNHkK/Nu1Rrc7KIybGEp1H6Py8X8K1NJvwwL7jUU=";
+  };
+
+  opencode = rec {
+    version = "1.18.21";
+    url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
+    hash = "sha256-2RDD7XYTu1eRoyiQRhXUHMJbfTprRw4xmasEJqmVs4o=";
+    unpackedHash = "sha256-DCJ3tr53sWoHeiGe8Frox57xi+/CGyF9iO+93Laun6g=";
+  };
+
+  gthumb =
+    let
+      version = "3.12.10";
+      buildTag = "${version}-4%402026-08-22_1787395355";
+    in
+    {
+      inherit version;
+      url = "https://github.com/pkgforge-dev/gThumb-AppImage/releases/download/${buildTag}/gThumb-${version}-4-anylinux-x86_64.AppImage";
+      hash = "sha256-Nz3j+0e1wQer3hXAjFCj517EFTT4BqBTjX1DkQowBL8=";
+      unpackedHash = "sha256-HgYMrsNDZh4URC6uWjzrqbnvUt1FTDfUTfv4/5L0ktQ=";
+    };
 }

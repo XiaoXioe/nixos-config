@@ -43,7 +43,7 @@
 
       execCmd =
         if isFirefoxLike then
-          "${browserExe} --new-instance --class=\"${name}\" --profile /tmp/${name}-pwa${flagsParam} \"${url}\" \"\$@\""
+          "${browserExe} --new-instance --class=\"${name}\" --profile \"\${XDG_DATA_HOME:-$HOME/.local/share}/${name}-pwa\"${flagsParam} \"${url}\" \"\$@\""
         else
           "${browserExe} --app=\"${url}\"${flagsParam} \"\$@\"";
 

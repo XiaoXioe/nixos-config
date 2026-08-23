@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  defaultBaseLibs = import ./default-libs.nix { inherit pkgs lib; };
+in
 {
   pname ? name,
   name ? pname,
@@ -11,6 +14,11 @@
   src,
   execPath ? "usr/bin/${name}",
   isDesktop ? true,
+  autoPatchelf ? false,
+  autoPatchelfIgnoreMissingDeps ? [ ],
+  appendRunpaths ? [ ],
+  extraLibs ? [ ],
+  extraBuildInputs ? [ ],
   extraPostUnpack ? "",
   extraUnwrappedInstall ? "",
   meta ? { },
@@ -20,6 +28,11 @@
 pkgs.stdenv.mkDerivation {
   pname = "${name}-unwrapped";
   inherit version src meta;
+
+  inherit autoPatchelfIgnoreMissingDeps appendRunpaths;
+
+  buildInputs = lib.optionals autoPatchelf (defaultBaseLibs ++ extraLibs ++ extraBuildInputs);
+  runtimeDependencies = lib.optionals autoPatchelf (defaultBaseLibs ++ extraLibs);
 
   nativeBuildInputs = [
     pkgs.binutils-unwrapped
@@ -32,9 +45,11 @@ pkgs.stdenv.mkDerivation {
     pkgs.unzip
     pkgs.squashfsTools
     pkgs.p7zip
-  ];
+  ]
+  ++ lib.optional autoPatchelf pkgs.autoPatchelfHook;
+
   dontStrip = true;
-  dontPatchELF = true;
+  dontPatchELF = !autoPatchelf;
 
   unpackPhase = ''
     runHook preUnpack
