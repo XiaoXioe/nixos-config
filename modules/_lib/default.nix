@@ -22,6 +22,12 @@ let
   hmLib = import ./hm.nix { inherit lib; };
   shellCheckLib = import ./shell-check.nix { inherit lib; };
   webAppLib = pkgs: import ./webapp.nix { inherit lib pkgs; };
+  # Single import of version registry — avoids 4× redundant AST parsing
+  appVersionsData = import ./apps-versions.nix;
+  # Nix Binary Cache pin registry — store paths dari Hydra/cache.nixos.org
+  cachePinsData = import ./cache-pins.nix;
+  # fetchNixCache lib — pure builtins.fetchClosure, tidak butuh pkgs
+  nixCacheLib = import ./modules/fetchNixCache { inherit lib; };
 in
 {
   # ── Module builder ───────────────────────────────────────────────────────────
@@ -32,58 +38,74 @@ in
   # Builder universal untuk membungkus biner/arsip (.deb, .tar.*, .pkg.tar.zst, .snap, .AppImage)
   # dengan runtime library host nix-ld, PATH wrapper, dan integrasi desktop.
   mkNativeApp = pkgs: (nativeAppLib pkgs).mkNativeApp;
-  appVersions = import ./apps-versions.nix;
-  fetchApp = pkgs: name: pkgs.fetchurl (import ./apps-versions.nix).${name};
+  fetchUnpacked = pkgs: (nativeAppLib pkgs).fetchUnpacked;
+  appVersions = appVersionsData;
+  fetchApp = pkgs: name: pkgs.fetchurl appVersionsData.${name};
+  fetchUnpackedApp =
+    pkgs: name:
+    let
+      info = appVersionsData.${name};
+      hash = info.unpackedHash or info.hash;
+    in
+    (nativeAppLib pkgs).fetchUnpacked (
+      info
+      // {
+        pname = name;
+        inherit hash;
+      }
+    );
   allAppSources =
     pkgs:
     pkgs.linkFarm "native-app-sources" (
       lib.mapAttrsToList (name: info: {
         name = "${name}-${info.version}";
-        path = pkgs.fetchurl info;
-      }) (import ./apps-versions.nix)
+        path = pkgs.fetchurl {
+          inherit (info) url hash;
+        };
+      }) appVersionsData
     );
   activeAppSources =
     { pkgs, config }:
     let
-      allVersions = import ./apps-versions.nix;
-
       # Alias jika nama modul sedikit berbeda dengan nama key di apps-versions.nix
       aliases = {
         zed = "zeditor";
         betterbird = "thunderbird";
-        dolphin-emu = "emulators";
         ppsspp = "emulators";
         pcsx2 = "emulators";
         retroarch = "emulators";
         retroarch-cores = "emulators";
-        aria2 = "downloader";
         tdl = "downloader";
       };
 
-      isAppEnabled =
+      # Cek apakah modul dengan nama tertentu aktif di config.my tree.
+      # Melakukan traversal hingga kedalaman 3 untuk mendukung nested module paths.
+      isModuleEnabled =
         name:
         let
           targetKey = aliases.${name} or name;
 
-          checkSub =
+          checkAtDepth =
             depth: set:
             if depth > 3 || !builtins.isAttrs set then
               false
             else if set ? ${targetKey} && builtins.isAttrs set.${targetKey} && set.${targetKey} ? enable then
               set.${targetKey}.enable == true
             else
-              lib.any (child: checkSub (depth + 1) child) (
+              lib.any (child: checkAtDepth (depth + 1) child) (
                 lib.filter (v: builtins.isAttrs v && !(v ? _type)) (builtins.attrValues set)
               );
         in
-        checkSub 0 (config.my.apps or { }) || checkSub 0 (config.my.security or { });
+        checkAtDepth 0 (config.my.apps or { }) || checkAtDepth 0 (config.my.security or { });
 
-      activeEntries = lib.filterAttrs (name: _: isAppEnabled name) allVersions;
+      activeEntries = lib.filterAttrs (name: _: isModuleEnabled name) appVersionsData;
     in
     pkgs.linkFarm "native-app-sources" (
       lib.mapAttrsToList (name: info: {
         name = "${name}-${info.version}";
-        path = pkgs.fetchurl info;
+        path = pkgs.fetchurl {
+          inherit (info) url hash;
+        };
       }) activeEntries
     );
 
@@ -127,4 +149,19 @@ in
   # ── WebApp PWA Builder ──────────────────────────────────────────────────────
   # Generates desktop launcher + Chromium wrapper for PWAs
   mkWebApp = pkgs: (webAppLib pkgs).mkWebApp;
+
+  # ── Nix Binary Cache Direct Ingestion ────────────────────────────────────
+  # Fetch binary langsung dari cache.nixos.org via builtins.fetchClosure.
+  # Tidak ada pkgs dependency — pure builtins, zero nixpkgs closure overhead.
+  # Requires: nix.settings.experimental-features includes "fetch-closure"
+  #
+  # fetchFromNixCache { storePath, ?fromStore, ... } → store path string
+  # cachePins         → attrset dari cache-pins.nix (registry semua pins)
+  # fetchCachePinned  → name → store path (shorthand via registry)
+  #
+  # Contoh:
+  #   environment.systemPackages = [ (selfLib.fetchCachePinned "rclone") ];
+  inherit (nixCacheLib) fetchFromNixCache;
+  cachePins = cachePinsData;
+  fetchCachePinned = nixCacheLib.fetchCachePinned cachePinsData;
 }
