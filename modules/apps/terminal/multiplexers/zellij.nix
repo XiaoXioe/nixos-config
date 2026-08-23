@@ -1,18 +1,29 @@
 {
   pkgs,
   selfLib,
-  inputs,
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.zellij;
+
+  zellijNative = (selfLib.mkNativeApp pkgs) {
+    name = "zellij";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "zellij";
+    execPath = "zellij";
+    binName = "zellij";
+    isDesktop = false;
+  };
+in
 selfLib.mkModule {
   name = "apps.terminal.multiplexers.zellij";
-  description = "Zellij multiplexer configuration";
+  description = "Zellij multiplexer configuration with pure upstream MUSL binary";
 
   hmConfig = {
     programs.zellij = {
       enable = true;
-      package = inputs.nixpkgs-zellij-043.legacyPackages.${pkgs.stdenv.hostPlatform.system}.zellij; # pin ke 0.43.1 — 0.44.x menyebabkan CPU spike konstan
+      package = zellijNative; # pin ke 0.43.1 upstream musl binary
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;

@@ -4,13 +4,31 @@
   ...
 }:
 
+let
+  appInfo = selfLib.appVersions.yazi;
+
+  yaziNative = (selfLib.mkNativeApp pkgs) {
+    name = "yazi";
+    inherit (appInfo) version;
+    src = selfLib.fetchApp pkgs "yazi";
+    execPath = "yazi-x86_64-unknown-linux-musl/yazi";
+    binName = "yazi";
+    isDesktop = false;
+    extraPostInstall = ''
+      if [ -f "${yaziNative.unwrapped}/opt/yazi/yazi-x86_64-unknown-linux-musl/ya" ]; then
+        ln -sf "${yaziNative.unwrapped}/opt/yazi/yazi-x86_64-unknown-linux-musl/ya" "$out/bin/ya"
+      fi
+    '';
+  };
+in
 selfLib.mkModule {
   name = "apps.terminal.utilities.yazi";
-  description = "Yazi modern terminal file manager configuration";
+  description = "Yazi modern terminal file manager configuration with pure upstream MUSL binary";
 
   hmConfig = {
     programs.yazi = {
       enable = true;
+      package = yaziNative;
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;

@@ -6,7 +6,6 @@
 
 let
   tdlInfo = selfLib.appVersions.tdl;
-  aria2Info = selfLib.appVersions.aria2;
 
   tdlNative = (selfLib.mkNativeApp pkgs) {
     name = "tdl";
@@ -14,15 +13,6 @@ let
     src = selfLib.fetchApp pkgs "tdl";
     execPath = "tdl";
     binName = "tdl";
-    isDesktop = false;
-  };
-
-  aria2Native = (selfLib.mkNativeApp pkgs) {
-    name = "aria2";
-    inherit (aria2Info) version;
-    src = selfLib.fetchApp pkgs "aria2";
-    execPath = "usr/bin/aria2c";
-    binName = "aria2c";
     isDesktop = false;
   };
 in
@@ -41,7 +31,7 @@ selfLib.mkModule {
 
     programs.aria2 = {
       enable = true;
-      package = aria2Native;
+      package = selfLib.fetchCachePinned "aria2";
       settings = {
         max-connection-per-server = 4;
         split = 4;

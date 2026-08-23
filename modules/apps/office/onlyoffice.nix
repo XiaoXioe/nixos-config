@@ -13,6 +13,13 @@ let
     src = selfLib.fetchApp pkgs "onlyoffice";
     execPath = "opt/onlyoffice/desktopeditors/DesktopEditors";
     binName = "desktopeditors";
+    extraEnv = {
+      QT_PLUGIN_PATH = "${onlyofficeNative.unwrapped}/opt/onlyoffice-desktopeditors/opt/onlyoffice/desktopeditors";
+    };
+    extraWrapperArgs = [
+      "--prefix LD_LIBRARY_PATH : ${onlyofficeNative.unwrapped}/opt/onlyoffice-desktopeditors/opt/onlyoffice/desktopeditors"
+      "--prefix NIX_LD_LIBRARY_PATH : ${onlyofficeNative.unwrapped}/opt/onlyoffice-desktopeditors/opt/onlyoffice/desktopeditors"
+    ];
   };
 in
 selfLib.mkModule {

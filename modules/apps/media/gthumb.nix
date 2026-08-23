@@ -1,25 +1,16 @@
 {
-  pkgs,
   selfLib,
   ...
 }:
 
-let
-  appInfo = selfLib.appVersions.gthumb;
-
-  gthumbNative = (selfLib.mkNativeApp pkgs) {
-    name = "gthumb";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "gthumb";
-    execPath = "usr/bin/gthumb";
-    binName = "gthumb";
-  };
-in
 selfLib.mkModule {
   name = "apps.media.gthumb";
-  description = "gThumb image viewer with pure upstream binary";
+  description = "gThumb image viewer via Nix binary cache";
 
   hmConfig = {
-    home.packages = [ gthumbNative ];
+    home.packages = selfLib.fetchCachePinned [
+      "gthumb"
+      "gnome_calculator"
+    ];
   };
 }

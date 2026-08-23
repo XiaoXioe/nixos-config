@@ -8,9 +8,32 @@
 let
   pcsx2Info = selfLib.appVersions.pcsx2;
   ppssppInfo = selfLib.appVersions.ppsspp;
-  dolphinInfo = selfLib.appVersions.dolphin-emu;
   retroarchInfo = selfLib.appVersions.retroarch;
   retroarchCoresInfo = selfLib.appVersions.retroarch-cores;
+
+  ppssppIcon = pkgs.fetchurl {
+    url = "https://raw.githubusercontent.com/hrydgard/ppsspp/master/source_assets/image/icon_regular.png";
+    sha256 = "073mnmc2jimn9dr99zm5j07ys27harrclzq21flvk0xsr2d3nlxa";
+  };
+
+  ppssppDesktopItem = pkgs.makeDesktopItem {
+    name = "ppsspp";
+    desktopName = "PPSSPP";
+    genericName = "PSP Emulator";
+    comment = "Sony PlayStation Portable emulator";
+    exec = "ppsspp %f";
+    icon = "ppsspp";
+    terminal = false;
+    type = "Application";
+    categories = [
+      "Game"
+      "Emulator"
+    ];
+    mimeTypes = [
+      "application/x-iso9660-appimage"
+      "application/x-cso"
+    ];
+  };
 
   retroarchCores = pkgs.stdenv.mkDerivation {
     name = "retroarch-cores";
@@ -100,6 +123,23 @@ let
     src = selfLib.fetchApp pkgs "pcsx2";
     execPath = "usr/bin/pcsx2-qt";
     binName = "pcsx2";
+    extraLibs = [
+      pkgs.gmp
+      pkgs.libgpg-error
+      (lib.getLib pkgs.e2fsprogs)
+      pkgs.libsm
+      pkgs.libice
+      pkgs.libglvnd
+      (lib.getLib pkgs.krb5)
+      pkgs.libunwind
+    ];
+    extraEnv = {
+      QT_PLUGIN_PATH = "${pcsx2Native.unwrapped}/opt/pcsx2/usr/plugins";
+    };
+    extraWrapperArgs = [
+      "--prefix LD_LIBRARY_PATH : ${pcsx2Native.unwrapped}/opt/pcsx2/usr/lib"
+      "--prefix NIX_LD_LIBRARY_PATH : ${pcsx2Native.unwrapped}/opt/pcsx2/usr/lib"
+    ];
   };
 
   ppssppNative = (selfLib.mkNativeApp pkgs) {
@@ -108,15 +148,15 @@ let
     src = selfLib.fetchApp pkgs "ppsspp";
     execPath = "PPSSPP";
     binName = "ppsspp";
+    desktopItem = ppssppDesktopItem;
+    extraPostInstall = ''
+      mkdir -p "$out/share/pixmaps" "$out/share/icons/hicolor/512x512/apps"
+      cp -f "${ppssppIcon}" "$out/share/pixmaps/ppsspp.png"
+      cp -f "${ppssppIcon}" "$out/share/icons/hicolor/512x512/apps/ppsspp.png"
+    '';
   };
 
-  dolphinNative = (selfLib.mkNativeApp pkgs) {
-    name = "dolphin-emu";
-    inherit (dolphinInfo) version;
-    src = selfLib.fetchApp pkgs "dolphin-emu";
-    execPath = "usr/games/dolphin-emu";
-    binName = "dolphin-emu";
-  };
+  dolphinNative = pkgs.dolphin-emu;
 in
 selfLib.mkModule {
   name = "apps.gaming.emulators";
