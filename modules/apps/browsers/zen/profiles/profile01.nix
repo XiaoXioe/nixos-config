@@ -33,8 +33,6 @@
     "f7c71d9a-bce2-420f-ae44-a64bd92975ab" # Better Unloaded Tabs
   ];
 
-  presets.betterfox.enable = true;
-
   containersForce = true;
   containers = common.mkAccountContainers {
     startId = 1;

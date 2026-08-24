@@ -10,8 +10,6 @@
   id = 0;
   settings = baseSettings;
 
-  presets.betterfox.enable = true;
-
   extensions.packages = resolveAddons (
     with amoAddons;
     [
