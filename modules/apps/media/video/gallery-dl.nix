@@ -1,31 +1,17 @@
 {
   config,
-  pkgs,
   selfLib,
   ...
 }:
 
-let
-  appInfo = selfLib.appVersions.gallery-dl;
-
-  gallerydlNative = (selfLib.mkNativeApp pkgs) {
-    name = "gallery-dl";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "gallery-dl";
-    execPath = "bin/gallery-dl.bin";
-    binName = "gallery-dl";
-    isDesktop = false;
-    extraPkgs = [ pkgs.ffmpeg ];
-  };
-in
 selfLib.mkModule {
   name = "apps.media.video.gallery-dl";
-  description = "gallery-dl image and video batch downloader configuration with pure upstream binary";
+  description = "gallery-dl image and video batch downloader configuration via Nix binary cache";
 
   hmConfig = {
     programs.gallery-dl = {
       enable = true;
-      package = gallerydlNative;
+      package = selfLib.fetchCachePinned "gallery_dl";
       settings = {
         "extractor" = {
           "base-directory" = "~/CloudStorage/gdrive-akbar-68-decrypted/Gallery/";
