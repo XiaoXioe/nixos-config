@@ -1,7 +1,6 @@
 # Universal Fixed-Output Derivation (FOD) Recursive Unpacker
 {
   pkgs,
-  lib ? pkgs.lib,
 }:
 
 {

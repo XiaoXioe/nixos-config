@@ -14,7 +14,7 @@
 # (dikonfigurasi di modules/core/nix.nix)
 _:
 
-# Tidak ada argumen `pkgs` — pure builtins.fetchClosure, zero nixpkgs closure.
+# Pure builtins.fetchClosure, zero nixpkgs closure overhead by default.
 let
   # Error informatif jika feature belum aktif saat evaluasi
   checkFeature =
@@ -60,37 +60,117 @@ in
   # ── fetchCachePinned ──────────────────────────────────────────────────────
   # Shorthand: fetch dari registry cache-pins.nix secara fleksibel (Polymorphic).
   #
+  # Signatures:
+  #   1. (selfLib.fetchCachePinned "gthumb") -> derivation
+  #   2. (selfLib.fetchCachePinned [ "gthumb" "aria2" ]) -> list of derivations
+  #   3. (selfLib.fetchCachePinned pkgs "chromium") -> derivation with .override support
+  #   4. (selfLib.fetchCachePinned pkgs [ "gthumb" "aria2" ]) -> list of derivations with .override support
+  #
   # Args:
-  #   registry : attrset         — Isi dari cache-pins.nix
-  #   target   : string | [string] — Nama paket tunggal ("gthumb") ATAU daftar nama paket (["gthumb" "aria2"])
+  #   registry : attrset             — Isi dari cache-pins.nix
+  #   arg1     : pkgs | string | list — Instance `pkgs` ATAU nama paket / list paket
+  #   arg2     : string | list        — (Opsional jika arg1 adalah `pkgs`) nama paket / list paket
   #
   # Returns:
-  #   - Jika target string : mengembalikan store path string
-  #   - Jika target list   : mengembalikan list of store path strings
-  #
-  # Contoh di module NixOS / Home-Manager:
-  #   home.packages = [ (selfLib.fetchCachePinned "rclone") ];
-  #   ATAU
-  #   home.packages = selfLib.fetchCachePinned [ "gthumb" "rclone" "aria2" ];
+  #   - Jika target string : mengembalikan store path / derivation
+  #   - Jika target list   : mengembalikan list of store paths / derivations
   fetchCachePinned =
-    registry: target:
+    registry: arg1:
     assert checkFeature;
     let
-      fetchOne =
-        name:
-        assert
-          registry ? ${name}
-          || throw "fetchCachePinned: '${name}' tidak ditemukan di modules/_lib/cache-pins.nix";
-        builtins.fetchClosure {
-          fromStore = registry.${name}.fromStore or "https://cache.nixos.org";
-          fromPath = registry.${name}.storePath;
-          inputAddressed = true;
-        };
+      isPkgs = builtins.isAttrs arg1 && (arg1 ? runCommand || arg1 ? stdenv);
+
+      impl =
+        pkgsArg: targetArg:
+        let
+          fetchOne =
+            name:
+            assert
+              registry ? ${name}
+              || throw "fetchCachePinned: '${name}' tidak ditemukan di modules/_lib/cache-pins.nix";
+            let
+              entry = registry.${name};
+              storePath = builtins.fetchClosure {
+                fromStore = entry.fromStore or "https://cache.nixos.org";
+                fromPath = entry.storePath;
+                inputAddressed = true;
+              };
+              version = entry.version or "";
+              pname = entry.pname or name;
+              pkgName = if version != "" then "${pname}-${version}" else pname;
+              pkg = {
+                type = "derivation";
+                inherit pname version;
+                name = pkgName;
+                outPath = storePath;
+                out = pkg;
+                outputs = [ "out" ];
+                meta = {
+                  mainProgram = entry.mainProgram or pname;
+                };
+                __toString = self: self.outPath;
+              }
+              // (
+                if pkgsArg != null then
+                  {
+                    override =
+                      {
+                        commandLineArgs ? "",
+                        extraArgs ? [ ],
+                        ...
+                      }:
+                      let
+                        flagsList = (if commandLineArgs != "" then [ commandLineArgs ] else [ ]) ++ extraArgs;
+                        allFlags = builtins.concatStringsSep " " flagsList;
+                      in
+                      pkgsArg.runCommand pkgName
+                        {
+                          nativeBuildInputs = [ pkgsArg.makeWrapper ];
+                        }
+                        ''
+                          mkdir -p "$out/bin" "$out/share"
+                          if [ -d "${storePath}/share" ]; then
+                            for f in "${storePath}"/share/*; do
+                              ln -s "$f" "$out/share/"
+                            done
+                          fi
+                          if [ -d "${storePath}/bin" ]; then
+                            for b in "${storePath}"/bin/*; do
+                              binName="$(basename "$b")"
+                              makeWrapper "$b" "$out/bin/$binName" \
+                                --add-flags "${allFlags}"
+                            done
+                          fi
+                        '';
+                  }
+                else
+                  { }
+              );
+            in
+            pkg;
+          fetchItem =
+            item:
+            if
+              (builtins.isAttrs item || builtins.isFunction item)
+              && (item ? outPath || item ? type || item ? pname)
+            then
+              item
+            else if builtins.isString item then
+              fetchOne item
+            else
+              throw "fetchCachePinned: Setiap item harus berupa string (nama paket di cache-pins.nix) atau objek derivation paket.";
+        in
+        if builtins.isList targetArg then
+          map fetchItem targetArg
+        else if
+          (builtins.isAttrs targetArg || builtins.isFunction targetArg)
+          && (targetArg ? outPath || targetArg ? type || targetArg ? pname)
+        then
+          targetArg
+        else if builtins.isString targetArg then
+          fetchOne targetArg
+        else
+          throw "fetchCachePinned: Argumen target harus berupa string (nama paket), objek derivation paket, atau list.";
     in
-    if builtins.isList target then
-      map fetchOne target
-    else if builtins.isString target then
-      fetchOne target
-    else
-      throw "fetchCachePinned: Argumen harus berupa string (nama paket) atau list of strings (daftar paket).";
+    if isPkgs then (target: impl arg1 target) else impl null arg1;
 }

@@ -105,30 +105,6 @@
     hash = "sha256-AP8xXwQO5p3REA107PTd8Pq9JGx5bRfGFw3IQXLKOK8=";
   };
 
-  ppsspp = rec {
-    version = "1.20.4";
-    url = "https://github.com/hrydgard/ppsspp/releases/download/v${version}/PPSSPP-v${version}-anylinux-x86_64.AppImage";
-    hash = "sha256-ZhwJjmt/dhAXGle3xTPOi7pvIxK3HnbWHoUEYZc+uiE=";
-  };
-
-  pcsx2 = rec {
-    version = "2.6.3";
-    url = "https://github.com/PCSX2/pcsx2/releases/download/v${version}/pcsx2-v${version}-linux-appimage-x64-Qt.AppImage";
-    hash = "sha256-jOfehhPBewCwECilEt0bgZmLZibrvpOgZ+DrIK7t1b8=";
-  };
-
-  retroarch = rec {
-    version = "1.22.2";
-    url = "https://buildbot.libretro.com/stable/${version}/linux/x86_64/RetroArch.7z";
-    hash = "sha256-fWLamiE5fW4blJB4XO2+r9JieBtQEVB2c2++infvMOk=";
-  };
-
-  retroarch-cores = rec {
-    version = "1.22.2";
-    url = "https://buildbot.libretro.com/stable/${version}/linux/x86_64/RetroArch_cores.7z";
-    hash = "sha256-S37Y3JfUvwNfzhgsZLVljHZi4unl1CEpU4r71LYJYwc=";
-  };
-
   wine = rec {
     version = "11.15";
     url = "https://github.com/kron4ek/Wine-Builds/releases/download/${version}/wine-${version}-staging-amd64-wow64.tar.xz";
@@ -153,18 +129,6 @@
     hash = "sha256-xMQKPuTVCV9tOhrkB+cXIrw3gyi4mUqs5wUyo9OOjgY=";
   };
 
-  yt-dlp = rec {
-    version = "2026.08.19";
-    url = "https://github.com/yt-dlp/yt-dlp/releases/download/${version}/yt-dlp_linux";
-    hash = "sha256-WBYvm/3CdFjqR7/LMRz0cCjxfYFUqL99aJhh1GOZIwo=";
-  };
-
-  gallery-dl = rec {
-    version = "1.31.10";
-    url = "https://github.com/mikf/gallery-dl/releases/download/v${version}/gallery-dl.bin";
-    hash = "sha256-Kj3gbU+SZBcyOE9j7OcT4fCnqggsHAgMDGuQze1E0s8=";
-  };
-
   tdl = rec {
     version = "0.20.3";
     url = "https://github.com/iyear/tdl/releases/download/v${version}/tdl_Linux_64bit.tar.gz";
@@ -175,19 +139,6 @@
     version = "0.43.1";
     url = "https://github.com/zellij-org/zellij/releases/download/v${version}/zellij-x86_64-unknown-linux-musl.tar.gz";
     hash = "sha256-VB2Y7+9VWCk++FrZrNKeTZILbogVE7nnclXYIHAg11o=";
-  };
-
-  yazi = rec {
-    version = "26.8.15";
-    url = "https://github.com/sxyazi/yazi/releases/download/v${version}/yazi-x86_64-unknown-linux-musl.zip";
-    hash = "sha256-pnAgNHkK/Nu1Rrc7KIybGEp1H6Py8X8K1NJvwwL7jUU=";
-  };
-
-  opencode = rec {
-    version = "1.18.21";
-    url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
-    hash = "sha256-2RDD7XYTu1eRoyiQRhXUHMJbfTprRw4xmasEJqmVs4o=";
-    unpackedHash = "sha256-DCJ3tr53sWoHeiGe8Frox57xi+/CGyF9iO+93Laun6g=";
   };
 
   gthumb =
