@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   selfLib,
   ...
 }:
@@ -25,52 +24,9 @@ selfLib.mkModule {
     };
   };
 
-  hmConfig =
-    let
-      myPython = pkgs.python3.override {
-        packageOverrides = self: super: {
-          kagglesdk = super.kagglesdk.overrideAttrs (
-            finalAttrs: _: {
-              version = "0.1.34";
-              src = pkgs.fetchPypi {
-                pname = "kagglesdk";
-                inherit (finalAttrs) version;
-                hash = "sha256-DAp6Gp20d77k+hlOQR6A/Y2TunOXfaQAF1Ui8c+S2lg=";
-              };
-            }
-          );
-
-          kaggle = super.kaggle.overrideAttrs (
-            finalAttrs: oldAttrs: {
-              version = "2.2.3";
-              src = pkgs.fetchPypi {
-                pname = "kaggle";
-                inherit (finalAttrs) version;
-                hash = "sha256-ziksRZoTlQVT2JTuc2jWRUvlMpG9dcLSetK+0UnN1sQ=";
-              };
-              propagatedBuildInputs = with self; [
-                bleach
-                kagglesdk
-                python-slugify
-                requests
-                python-dateutil
-                tqdm
-                urllib3
-                packaging
-                protobuf
-                jupytext
-                python-dotenv
-              ];
-              nativeBuildInputs = [ self.hatchling ] ++ (oldAttrs.nativeBuildInputs or [ ]);
-            }
-          );
-        };
-      };
-      kaggle-app = myPython.pkgs.toPythonApplication myPython.pkgs.kaggle;
-    in
-    {
-      home.packages = [
-        kaggle-app
-      ];
-    };
+  hmConfig = {
+    home.packages = [
+      (selfLib.fetchCachePinned "kaggle")
+    ];
+  };
 }

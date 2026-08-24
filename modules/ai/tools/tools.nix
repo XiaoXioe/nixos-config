@@ -9,14 +9,6 @@ let
   system = pkgs.stdenv.hostPlatform.system;
   antigravity-cli = inputs.antigravity-nix.packages.${system}.google-antigravity-cli;
   # antigravity-ide = inputs.antigravity-nix.packages.${system}.google-antigravity-ide;
-
-  opencodeNative = (selfLib.mkNativeApp pkgs) {
-    name = "opencode";
-    isFOD = true;
-    execPath = "opencode";
-    binName = "opencode";
-    isDesktop = false;
-  };
 in
 selfLib.mkModule {
   name = "ai.tools.tools";
@@ -53,7 +45,7 @@ selfLib.mkModule {
       packages = [
         antigravity-cli
         # antigravity-ide
-        opencodeNative
+        (selfLib.fetchCachePinned "opencode")
       ];
 
       sessionVariables = {
