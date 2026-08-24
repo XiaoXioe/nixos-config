@@ -1,10 +1,24 @@
-"""Data models for Nix Binary Cache NarInfo, Closure Audits, and Downloads."""
+"""Data models for Nix Binary Cache NarInfo, Closure Audits, Downloads, and Pin Entries."""
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+class UpdateType(str, Enum):
+    """Classification of package update states."""
+
+    UP_TO_DATE = "up_to_date"
+    VERSION_BUMP = "version_bump"
+    REBUILD_UPDATE = "rebuild_update"
+    DOWNGRADE_BLOCKED = "downgrade_blocked"
+    CACHE_MISS = "cache_miss"
+    EVAL_FAILED = "eval_failed"
 
 
 @dataclass
 class NarInfo:
+    """Represents the parsed metadata of a .narinfo binary cache file."""
+
     store_path: str
     hash: str
     name: str
@@ -20,6 +34,8 @@ class NarInfo:
 
 @dataclass
 class ClosureAudit:
+    """Comprehensive analysis result of a package closure and its dependency DAG."""
+
     target_name: str
     store_path: str
     version: str
@@ -47,8 +63,24 @@ class ClosureAudit:
 
 @dataclass
 class DownloadItem:
+    """Represents an individual .nar archive file to be downloaded via aria2."""
+
     hash: str
     url: str
     filename: str
     file_size: int
     source_cache_url: str = "https://cache.nixos.org"
+
+
+@dataclass
+class PinEntry:
+    """Represents an entry in modules/_lib/cache-pins.nix."""
+
+    name: str
+    store_path: str
+    version: str = ""
+    system: str = "x86_64-linux"
+    channel: Optional[str] = None
+    main_program: Optional[str] = None
+    from_store: Optional[str] = None
+    raw_snippet: str = ""

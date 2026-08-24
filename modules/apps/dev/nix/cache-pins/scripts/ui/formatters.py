@@ -1,19 +1,14 @@
+"""Formatting functions for byte sizes, audit reports, and Nix snippet generation."""
 import datetime
 import os
-from pathlib import Path
 import re
-import sys
 from typing import Union
 
-_scripts_dir = str(Path(__file__).resolve().parent)
-if _scripts_dir not in sys.path:
-    sys.path.insert(0, _scripts_dir)
-
-from models import ClosureAudit
+from core.models import ClosureAudit
 
 
 def format_bytes(bytes_num: Union[int, float]) -> str:
-    """Format bytes into human-readable string (B, KiB, MiB, GiB)."""
+    """Format bytes into a human-readable string (B, KiB, MiB, GiB)."""
     if not isinstance(bytes_num, (int, float)) or bytes_num < 0:
         return "0 B"
     if bytes_num >= 1073741824:
@@ -70,7 +65,7 @@ def render_audit_report(audit: ClosureAudit, verbose: bool = False) -> str:
                 lines.append(f"  {prefix} {item['name']}")
     else:
         if audit.missing_count > 0:
-            extra_size_fmt = format_bytes(audit.missing_download if hasattr(audit, 'missing_download') else sum(i['file_size'] for i in audit.missing_items))
+            extra_size_fmt = format_bytes(sum(i['file_size'] for i in audit.missing_items))
             lines.append(f"  • Library/Dependensi Tambahan  : {audit.missing_count} paket yang belum ada di lokal (Total: {extra_size_fmt})")
             for item in audit.missing_items:
                 size_fmt = format_bytes(item["file_size"])
@@ -87,6 +82,21 @@ def render_audit_report(audit: ClosureAudit, verbose: bool = False) -> str:
     return "\n".join(lines)
 
 
+def normalize_channel_name(source_input: str) -> str:
+    """Extract clean shorthand channel name from source input URL."""
+    if not source_input:
+        return "nixpkgs"
+    s = source_input.strip()
+    if "nixos-unstable" in s or s in ("unstable", "nixpkgs-unstable"):
+        return "unstable"
+    match_ver = re.search(r"nixos-(\d{2}\.\d{2})", s)
+    if match_ver:
+        return match_ver.group(1)
+    if re.match(r"^\d{2}\.\d{2}$", s):
+        return s
+    return s
+
+
 def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
     """Generate Nix attrset snippet suitable for cache-pins.nix."""
     attr_key = audit.target_name.replace("pkgs.", "")
@@ -94,17 +104,24 @@ def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
 
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     missing_bytes = sum(i["file_size"] for i in audit.missing_items)
+    cache_info = f" | Cache: {audit.cache_url}" if audit.cache_url and "cache.nixos.org" not in audit.cache_url else ""
+    channel_name = normalize_channel_name(source_input)
 
     lines = []
     lines.append("")
-    lines.append(f"  # Generated: {today} | Source: {source_input}")
+    lines.append(f"  # Generated: {today} | Source: {source_input}{cache_info}")
     lines.append(f"  # Download Kotor (Full): {format_bytes(audit.gross_download)} | Download Bersih: {format_bytes(audit.net_download)}")
     lines.append(f"  # Library Lokal: {audit.local_count}/{audit.total_refs} ({audit.local_percent:.1f}%) | Missing: {audit.missing_count} paket ({format_bytes(missing_bytes)})")
     lines.append(f"  {attr_key_clean} = {{")
     lines.append(f'    storePath = "{audit.store_path}";')
-    lines.append(f'    version = "{audit.version}";')
-    if audit.main_program and audit.main_program != attr_key_clean:
+    if audit.version:
+        lines.append(f'    version = "{audit.version}";')
+    if audit.main_program:
         lines.append(f'    mainProgram = "{audit.main_program}";')
+    lines.append(f'    channel = "{channel_name}";')
+    if audit.cache_url and "cache.nixos.org" not in audit.cache_url:
+        lines.append(f'    fromStore = "{audit.cache_url}";')
     lines.append('    system = "x86_64-linux";')
     lines.append("  };")
+
     return "\n".join(lines)

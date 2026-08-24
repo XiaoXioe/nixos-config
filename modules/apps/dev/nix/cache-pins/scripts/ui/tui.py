@@ -1,24 +1,20 @@
 """Interactive FZF TUI Dashboard for inspecting and batch-downloading cache pins."""
-import os
 from pathlib import Path
 import subprocess
 import sys
 from typing import List, Optional
 
-_scripts_dir = str(Path(__file__).resolve().parent)
-if _scripts_dir not in sys.path:
-    sys.path.insert(0, _scripts_dir)
-
-from cache_client import NixCacheClient
-from nix_utils import find_cache_pins_file, is_path_in_nix_store, load_cache_pins
+from core.cache_client import NixCacheClient
+from core.nix_eval import find_cache_pins_file, is_path_in_nix_store
+from registry.store import load_cache_pins
 
 
 def launch_cache_dashboard(
     pins_file_path: Optional[str] = None,
-    cache_url: str = "https://cache.nixos.org",
+    cache_url: Optional[str] = None,
     nixpkgs_input: str = "nixpkgs",
 ) -> None:
-    """Launch the interactive FZF dashboard."""
+    """Launch the interactive FZF dashboard for browsing cache pins and downloading."""
     pins_file = find_cache_pins_file(pins_file_path)
     if not pins_file:
         print("❌ ERROR: Tidak dapat menemukan berkas modules/_lib/cache-pins.nix", file=sys.stderr)
@@ -34,7 +30,7 @@ def launch_cache_dashboard(
         print("❌ ERROR: Tidak ada entri valid ditemukan di cache-pins.nix", file=sys.stderr)
         sys.exit(1)
 
-    # Build lines for fzf
+    # Build rows for fzf
     rows: List[str] = []
     for key, data in sorted(pins_data.items()):
         if not isinstance(data, dict):
@@ -44,14 +40,15 @@ def launch_cache_dashboard(
         is_local = is_path_in_nix_store(store_path)
         status_tag = "✅ Di Store  " if is_local else "⬇️  Belum Ada"
 
-        # Format: key \t status \t version \t storePath
         row = f"{key:<20}  [{status_tag}]  v{version:<12}  {store_path}"
         rows.append(row)
 
     input_text = "\n".join(rows)
 
-    query_script = str(Path(_scripts_dir) / "query_pin.py")
-    preview_cmd = f"python3 {query_script} {{1}}"
+    scripts_dir = Path(__file__).resolve().parent.parent
+    query_script = str(scripts_dir / "query_pin.py")
+    cache_flag = f" --cache-url='{cache_url}'" if cache_url else ""
+    preview_cmd = f"python3 {query_script} {{1}}{cache_flag}"
 
     fzf_cmd = [
         "fzf",
@@ -86,13 +83,11 @@ def launch_cache_dashboard(
         print(f"  • {k}", file=sys.stderr)
     print("--------------------------------------------------------------------------------", file=sys.stderr)
 
-    aria2_script = str(Path(_scripts_dir) / "aria2_fetch.py")
+    aria2_script = str(scripts_dir / "aria2_fetch.py")
     for key in selected_keys:
-        cmd = ["python3", aria2_script, key, f"--cache-url={cache_url}"]
+        cmd = ["python3", aria2_script, key]
+        if cache_url:
+            cmd.append(f"--cache-url={cache_url}")
         if nixpkgs_input:
             cmd.append(f"--input={nixpkgs_input}")
         subprocess.run(cmd)
-
-
-if __name__ == "__main__":
-    launch_cache_dashboard()

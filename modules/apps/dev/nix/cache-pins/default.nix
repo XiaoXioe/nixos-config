@@ -22,6 +22,7 @@ let
       # query-cache-pin
       makeWrapper ${pythonEnv}/bin/python3 $out/bin/query-cache-pin \
         --add-flags "$out/lib/nix-cache-pin-tools/query_pin.py" \
+        --prefix PYTHONPATH : "$out/lib/nix-cache-pin-tools" \
         --prefix PATH : ${
           lib.makeBinPath [
             pkgs.nix
@@ -35,6 +36,7 @@ let
       # aria2-fetch-pin
       makeWrapper ${pythonEnv}/bin/python3 $out/bin/aria2-fetch-pin \
         --add-flags "$out/lib/nix-cache-pin-tools/aria2_fetch.py" \
+        --prefix PYTHONPATH : "$out/lib/nix-cache-pin-tools" \
         --prefix PATH : ${
           lib.makeBinPath [
             pkgs.nix
@@ -66,8 +68,16 @@ let
     complete -c query-cache-pin -s i -l interactive -d "Buka TUI Dashboard interaktif fzf"
     complete -c query-cache-pin -s s -l search-versions -d "Cari versi lain dari paket via FZF"
     complete -c query-cache-pin -l all -d "Verifikasi seluruh entri di cache-pins.nix"
+    complete -c query-cache-pin -l audit-unused -d "Audit penggunaan pin di codebase modules (deteksi dangling pins)"
+    complete -c query-cache-pin -l clean-unused -d "Hapus seluruh pin yang tidak lagi terpakai dari cache-pins.nix"
+    complete -c query-cache-pin -l adopt -d "Adopsi paket dari pkgs ke cache pin dan otomatis refactor modul target"
+    complete -c query-cache-pin -l stats -l summary -d "Tampilkan dashboard statistik dan kesiapan /nix/store"
+    complete -c query-cache-pin -l prefetch -d "Unduh massal seluruh pin aktif ke /nix/store via aria2c"
+    complete -c query-cache-pin -s d -l delete -x -a "(__fish_cache_pin_keys)" -d "Hapus entri paket dari cache-pins.nix"
+    complete -c query-cache-pin -s f -l force -d "Lewati konfirmasi saat membersihkan pin"
     complete -c query-cache-pin -l update -x -a "(__fish_cache_pin_keys)" -d "Perbarui paket tertentu dari upstream"
     complete -c query-cache-pin -l update-all -d "Perbarui seluruh entri cache-pins.nix dari upstream"
+    complete -c query-cache-pin -l version-only -l bump-only -d "Hanya perbarui jika versi naik (abaikan rebuild berversi sama)"
     complete -c query-cache-pin -l cache-url -d "Binary cache URL (multi-cache dipisahkan koma)"
     complete -c query-cache-pin -l input -d "Flake input target"
     complete -c query-cache-pin -l pins-file -r -d "Path ke berkas cache-pins.nix"
@@ -77,6 +87,8 @@ let
 
     # aria2-fetch-pin / afp completions
     complete -c aria2-fetch-pin -s c -l channel -x -a "unstable nixpkgs-unstable 26.05 25.11 25.05 24.11 24.05 master" -d "Shorthand channel Nixpkgs"
+    complete -c aria2-fetch-pin -l all-active -d "Unduh secara massal seluruh pin aktif ke /nix/store"
+    complete -c aria2-fetch-pin -l all-pins -d "Unduh secara massal seluruh pin terdaftar ke /nix/store"
     complete -c aria2-fetch-pin -s i -l interactive -d "Buka TUI Dashboard interaktif fzf"
     complete -c aria2-fetch-pin -s s -l search-versions -d "Cari versi lain dari paket via FZF sebelum mengunduh"
     complete -c aria2-fetch-pin -l keep-nar -d "Pertahankan arsip .nar di RAM setelah ingest selesai"
@@ -107,8 +119,13 @@ let
             return 0
         fi
 
+        if [[ "$prev" == "-d" || "$prev" == "--delete" || "$prev" == "--update" ]]; then
+            COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+            return 0
+        fi
+
         if [[ "$cur" == -* ]]; then
-            COMPREPLY=( $(compgen -W "-c --channel -v --verbose -w --write -i --interactive -s --search-versions --keep-nar --all --update --update-all --cache-url --input --pins-file --split -j --concurrent --cache-dir" -- "$cur") )
+            COMPREPLY=( $(compgen -W "-c --channel -v --verbose -w --write -d --delete -f --force --adopt --stats --summary --prefetch -i --interactive -s --search-versions --keep-nar --all --all-active --all-pins --audit-unused --clean-unused --update --update-all --version-only --bump-only --cache-url --input --pins-file --split -j --concurrent --cache-dir" -- "$cur") )
             return 0
         fi
 
