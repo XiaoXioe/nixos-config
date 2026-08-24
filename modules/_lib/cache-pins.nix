@@ -238,6 +238,15 @@
     system = "x86_64-linux";
   };
 
+  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
+  # Download Kotor (Full): 305.98 MiB | Download Bersih: 39.94 MiB
+  # Library Lokal: 259/260 (99.6%) | Missing: 1 paket (21.90 MiB)
+  noctalia = {
+    storePath = "/nix/store/j59q1n988kakwf32lsrim2dp40625d8b-noctalia-5.0.0-beta.9";
+    version = "5.0.0-beta.9";
+    system = "x86_64-linux";
+  };
+
   # ── Tambah entri lain dengan: query-cache-pin pkgs.<name> (atau: qcp pkgs.<name>) ───
   #
   # Contoh paket yang bisa di-pin:

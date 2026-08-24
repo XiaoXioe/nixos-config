@@ -2,7 +2,6 @@
   selfLib,
   lib,
   pkgs,
-  inputs,
   flakePath,
   ...
 }:
@@ -45,10 +44,9 @@ selfLib.mkModule {
         ./hyprland.nix
       ];
 
-      programs.noctalia = lib.mkIf (inputs ? noctalia) {
-        enable = true;
-        systemd.enable = false;
-      };
+      home.packages = [
+        (selfLib.fetchCachePinned "noctalia")
+      ];
 
       home.file.".local/state/noctalia/settings.toml".source =
         config.lib.file.mkOutOfStoreSymlink "${flakePath}/modules/desktop/shells/noctalia/settings.toml";

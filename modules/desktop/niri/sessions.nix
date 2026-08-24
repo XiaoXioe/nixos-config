@@ -23,11 +23,11 @@ let
     NOTIFY="${pkgs.libnotify}/bin/notify-send"
     NIRI="${pkgs.niri}/bin/niri"
 
-    # Detect current shell (NixOS wraps binaries, use -f for command matching)
+    # Detect current shell
     CURRENT="none"
-    if $PGREP -f "bin/noctalia" > /dev/null 2>&1; then
+    if $PGREP -x "noctalia" > /dev/null 2>&1 || $PGREP -f "noctalia" > /dev/null 2>&1; then
       CURRENT="noctalia"
-    elif $PGREP -f "bin/dms" > /dev/null 2>&1; then
+    elif $PGREP -x "dms" > /dev/null 2>&1 || $PGREP -f "dms" > /dev/null 2>&1 || $PGREP -f "quickshell" > /dev/null 2>&1; then
       CURRENT="dms"
     fi
 
@@ -50,11 +50,17 @@ let
 
     $NOTIFY -t 2000 "Shell Switch" "Switching: $CURRENT → $TARGET" 2>/dev/null
 
-    # Kill current shell and its children (use -f for NixOS wrapped binaries)
+    # Kill current shell and its children
     case "$CURRENT" in
-      noctalia) $PKILL -f "bin/noctalia" 2>/dev/null ;;
-      dms)      $PKILL -f "bin/dms" 2>/dev/null
-                $PKILL -f "quickshell.*dms" 2>/dev/null ;;
+      noctalia)
+        $PKILL -x "noctalia" 2>/dev/null
+        $PKILL -f "noctalia" 2>/dev/null
+        ;;
+      dms)
+        $PKILL -x "dms" 2>/dev/null
+        $PKILL -f "dms" 2>/dev/null
+        $PKILL -f "quickshell" 2>/dev/null
+        ;;
     esac
 
     # Wait for processes to fully terminate

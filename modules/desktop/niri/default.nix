@@ -41,6 +41,7 @@ selfLib.mkModule {
       home.packages = with pkgs; [
         bemoji
         wtype
+        fuzzel
       ];
     };
 }
