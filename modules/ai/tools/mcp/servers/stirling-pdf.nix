@@ -1,21 +1,26 @@
 {
   config,
-  pkgs,
+  selfLib,
   ...
 }:
 
 let
   port = config.my.services.documents.stirling-pdf.port or 8080;
   endpointUrl = "http://127.0.0.1:${toString port}/mcp";
+  apiKey = "stirling-local-internal-mcp-key";
+  mcpProxy = selfLib.fetchCachePinned "mcp_proxy";
 in
 {
   name = "stirling-pdf";
 
   commonSpec = {
-    command = "${pkgs.nodejs}/bin/npx";
+    command = "${mcpProxy}/bin/mcp-proxy";
     args = [
-      "-y"
-      "mcp-remote"
+      "--transport"
+      "streamablehttp"
+      "--headers"
+      "X-API-KEY"
+      apiKey
       endpointUrl
     ];
     env = {

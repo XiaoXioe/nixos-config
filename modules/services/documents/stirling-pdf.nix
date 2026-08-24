@@ -22,8 +22,14 @@ selfLib.mkModule {
 
     enableDesktop = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = false;
       description = "Whether to install Stirling-PDF native desktop application";
+    };
+
+    lightweight = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Exclude heavy dependencies like LibreOffice, OpenCV, and OCRmyPDF to save ~1.2+ GiB download";
     };
 
     locale = lib.mkOption {
@@ -35,7 +41,10 @@ selfLib.mkModule {
 
   preservation = {
     directories = [
-      "/var/lib/stirling-pdf"
+      {
+        directory = "/var/lib/private/stirling-pdf";
+        mode = "0700";
+      }
     ];
   };
 
@@ -43,17 +52,38 @@ selfLib.mkModule {
     # 1. Background Service Systemd (Local Engine)
     services.stirling-pdf = {
       enable = true;
+      package = selfLib.fetchCachePinned "stirling_pdf";
       environment = {
         SERVER_PORT = toString cfg.port;
         SECURITY_ENABLELOGIN = "false"; # Akses instan bebas auth untuk localhost
         MCP_ENABLED = "true"; # Mengaktifkan MCP endpoint (/mcp)
+        MCP_AUTH_MODE = "apikey"; # Gunakan mode API Key untuk MCP endpoint
+        SECURITY_CUSTOMGLOBALAPIKEY = "stirling-local-internal-mcp-key"; # Global API key untuk MCP internal
         SYSTEM_DEFAULTLOCALE = cfg.locale;
       };
     };
 
+    systemd.services.stirling-pdf = {
+      wantedBy = lib.mkForce [ ];
+      restartIfChanged = false;
+      path = lib.mkIf cfg.lightweight (
+        lib.mkForce (
+          with pkgs;
+          [
+            which
+            qpdf
+            poppler-utils
+            ghostscript_headless
+            tesseract
+            pngquant
+          ]
+        )
+      );
+    };
+
     # 2. Desktop GUI App
     environment.systemPackages = lib.optionals cfg.enableDesktop [
-      pkgs.stirling-pdf-desktop
+      (selfLib.fetchCachePinned "stirling_pdf_desktop")
     ];
   };
 }

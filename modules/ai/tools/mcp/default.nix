@@ -23,6 +23,7 @@ let
         pkgs
         lib
         inputs
+        selfLib
         ;
     }
   ) serverModules;

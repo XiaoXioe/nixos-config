@@ -92,7 +92,7 @@
         ssd-monitor = true;
       };
       documents = {
-        stirling-pdf = false;
+        stirling-pdf = true;
       };
       boot-speedup = true;
       vaultwarden = true;
