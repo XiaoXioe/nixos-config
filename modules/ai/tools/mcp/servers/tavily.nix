@@ -14,6 +14,9 @@ in
 {
   name = "tavily";
 
+  # Status toggle: dinonaktifkan (dibiarkan utuh tetapi nonaktif)
+  enable = false;
+
   geminiServer = {
     command = "${tavilyPkg}/bin/tavily-mcp";
     args = [ ];

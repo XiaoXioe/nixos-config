@@ -84,7 +84,7 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
 
 ### 7. AI Stack & MCP Infrastructure
 * **Ivy Bridge Llama.cpp (`modules/ai/runtimes/llama.nix`)** — Overrides the `llama-cpp` package to compile a localized build, disabling AVX2 and FMA (unsupported by Ivy Bridge CPUs) while target-optimizing with `-march=ivybridge`.
-* **Declarative MCP Setup (`modules/ai/tools/mcp.nix`)** — Provisions native Model Context Protocol servers (`nixos`, `tavily`, `github`, `server-memory`, etc.) for Gemini/Antigravity CLI. Wraps credential-heavy servers inside `exec` bash structures to avoid secret leakage in `/nix/store`, and uses a post-link activation script (`setupMcpConfig`) to dynamically merge Cloudflare tokens via `jq`.
+* **Declarative MCP Setup (`modules/ai/tools/mcp/`)** — Provisions native Model Context Protocol servers (`nixos`, `search` (free-search-mcp), `scrapling`, `ai-memory`, `cloudflare`, etc.) for Gemini/Antigravity CLI and OpenCode. Wraps stdio servers inside graceful exit traps (`mcpWrapper`) to handle session terminations cleanly.
 * **LLM Engine & Web UI** — Integrates Ollama and Open WebUI services, binding their systemd lifecycles (`bindsTo` / `wants`) so starting Ollama automatically launches the Web UI. Disables rebuild-induced service restarts (`restartIfChanged = false`).
 
 ### 8. Services & Cloud Backups
