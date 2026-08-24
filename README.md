@@ -29,7 +29,6 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
     ├── desktop/                 # Desktop Managers & Themes: KDE, GNOME, Niri, Hyprland, Themeing (Colloid/Vimix)
     ├── hardware/                # Hardware-level: mounting, preservation (impermanence)
     ├── hosts/                   # Host-specific configurations (KleinMoretti, hardware spec, single source of truth)
-    ├── scripts/                 # Custom CLI tools and utility scripts
     ├── security/                # Security & Secrets: sops, hardening, gnupg, auth (sudo-rs)
     ├── services/                # System services: networking (zapret, cloudflare-warp, dns, vpn), snapper, ssd-monitor, restic
     ├── settings/                # HM settings: identity, file symlinks

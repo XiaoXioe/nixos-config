@@ -36,6 +36,7 @@
           cek-cache = true;
           flake-update-interactive = true;
           apps-updater = true;
+          cache-pins = true;
         };
         vcs = {
           git = true;
@@ -64,7 +65,7 @@
 
       gaming = {
         game = true;
-        steam = false;
+        steam = true;
         emulators = true;
         wine = true;
       };
