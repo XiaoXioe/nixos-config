@@ -6,161 +6,13 @@
 }:
 
 let
-  pcsx2Info = selfLib.appVersions.pcsx2;
-  ppssppInfo = selfLib.appVersions.ppsspp;
-  retroarchInfo = selfLib.appVersions.retroarch;
-  retroarchCoresInfo = selfLib.appVersions.retroarch-cores;
-
-  ppssppIcon = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/hrydgard/ppsspp/master/source_assets/image/icon_regular.png";
-    sha256 = "073mnmc2jimn9dr99zm5j07ys27harrclzq21flvk0xsr2d3nlxa";
-  };
-
-  ppssppDesktopItem = pkgs.makeDesktopItem {
-    name = "ppsspp";
-    desktopName = "PPSSPP";
-    genericName = "PSP Emulator";
-    comment = "Sony PlayStation Portable emulator";
-    exec = "ppsspp %f";
-    icon = "ppsspp";
-    terminal = false;
-    type = "Application";
-    categories = [
-      "Game"
-      "Emulator"
-    ];
-    mimeTypes = [
-      "application/x-iso9660-appimage"
-      "application/x-cso"
-    ];
-  };
-
-  retroarchCores = pkgs.stdenv.mkDerivation {
-    name = "retroarch-cores";
-    inherit (retroarchCoresInfo) version;
-    src = selfLib.fetchApp pkgs "retroarch-cores";
-    nativeBuildInputs = [ pkgs.p7zip ];
-    dontStrip = true;
-    dontPatchELF = true;
-    unpackPhase = ''
-      runHook preUnpack
-      7z x "$src"
-      runHook postUnpack
-    '';
-    installPhase = ''
-      runHook preInstall
-      mkdir -p "$out/lib/retroarch/cores"
-      cp -r RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage.home/.config/retroarch/cores/* "$out/lib/retroarch/cores/"
-      runHook postInstall
-    '';
-  };
-
-  retroarchRaw = (selfLib.mkNativeApp pkgs) {
-    name = "retroarch";
-    inherit (retroarchInfo) version;
-    src = selfLib.fetchApp pkgs "retroarch";
-    execPath = "RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage";
-    binName = "retroarch";
-  };
-
-  retroarchHome = "${retroarchRaw.unwrapped}/opt/retroarch/RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage.home/.config/retroarch";
-
-  retroarchAppendCfg = pkgs.writeText "retroarch-append.cfg" ''
-    assets_directory = "${retroarchHome}/assets"
-    joypad_autoconfig_dir = "${retroarchHome}/autoconfig"
-    cursor_directory = "${retroarchHome}/database/cursors"
-    cheat_database_path = "${retroarchHome}/database/cht"
-    content_database_path = "${retroarchHome}/database/rdb"
-    video_shader_dir = "${retroarchHome}/shaders"
-    overlay_directory = "${retroarchHome}/overlays"
-    video_filter_dir = "${retroarchHome}/filters"
-    libretro_directory = "${retroarchCores}/lib/retroarch/cores"
-    libretro_info_path = "${retroarchCores}/lib/retroarch/cores"
-    menu_driver = "ozone"
-  '';
-
-  retroarchDesktopItem = pkgs.makeDesktopItem {
-    name = "retroarch";
-    desktopName = "RetroArch";
-    genericName = "Frontend for emulators, game engines and media players";
-    comment = "Multi-system game and emulator frontend";
-    exec = "retroarch %U";
-    icon = "retroarch";
-    terminal = false;
-    type = "Application";
-    categories = [
-      "Game"
-      "Emulator"
-    ];
-    mimeTypes = [ "x-scheme-handler/retroarch" ];
-  };
-
-  retroarchNative =
-    ((selfLib.mkNativeApp pkgs) {
-      name = "retroarch";
-      inherit (retroarchInfo) version;
-      src = selfLib.fetchApp pkgs "retroarch";
-      execPath = "RetroArch-Linux-x86_64/RetroArch-Linux-x86_64.AppImage";
-      binName = "retroarch";
-      desktopItem = retroarchDesktopItem;
-      extraArgs = [
-        "--appendconfig"
-        "${retroarchAppendCfg}"
-      ];
-      extraPostInstall = ''
-        mkdir -p "$out/share/pixmaps" "$out/share/icons/hicolor/256x256/apps"
-        cp -f "${retroarchHome}/assets/ozone/png/icons/retroarch.png" "$out/share/pixmaps/retroarch.png" 2>/dev/null || true
-        cp -f "${retroarchHome}/assets/ozone/png/icons/retroarch.png" "$out/share/icons/hicolor/256x256/apps/retroarch.png" 2>/dev/null || true
-      '';
-    })
-    // {
-      wrapper = _: retroarchNative;
-    };
-
-  pcsx2Native = (selfLib.mkNativeApp pkgs) {
-    name = "pcsx2";
-    inherit (pcsx2Info) version;
-    src = selfLib.fetchApp pkgs "pcsx2";
-    execPath = "usr/bin/pcsx2-qt";
-    binName = "pcsx2";
-    extraLibs = [
-      pkgs.gmp
-      pkgs.libgpg-error
-      (lib.getLib pkgs.e2fsprogs)
-      pkgs.libsm
-      pkgs.libice
-      pkgs.libglvnd
-      (lib.getLib pkgs.krb5)
-      pkgs.libunwind
-    ];
-    extraEnv = {
-      QT_PLUGIN_PATH = "${pcsx2Native.unwrapped}/opt/pcsx2/usr/plugins";
-    };
-    extraWrapperArgs = [
-      "--prefix LD_LIBRARY_PATH : ${pcsx2Native.unwrapped}/opt/pcsx2/usr/lib"
-      "--prefix NIX_LD_LIBRARY_PATH : ${pcsx2Native.unwrapped}/opt/pcsx2/usr/lib"
-    ];
-  };
-
-  ppssppNative = (selfLib.mkNativeApp pkgs) {
-    name = "ppsspp";
-    inherit (ppssppInfo) version;
-    src = selfLib.fetchApp pkgs "ppsspp";
-    execPath = "PPSSPP";
-    binName = "ppsspp";
-    desktopItem = ppssppDesktopItem;
-    extraPostInstall = ''
-      mkdir -p "$out/share/pixmaps" "$out/share/icons/hicolor/512x512/apps"
-      cp -f "${ppssppIcon}" "$out/share/pixmaps/ppsspp.png"
-      cp -f "${ppssppIcon}" "$out/share/icons/hicolor/512x512/apps/ppsspp.png"
-    '';
-  };
-
-  dolphinNative = pkgs.dolphin-emu;
+  pcsx2Pkg = selfLib.fetchCachePinned "pcsx2";
+  ppssppPkg = selfLib.fetchCachePinned "ppsspp";
+  dolphinPkg = selfLib.fetchCachePinned "dolphin_emu";
 in
 selfLib.mkModule {
   name = "apps.gaming.emulators";
-  description = "Console emulators and gaming clients (RetroArch, Dolphin, PPSSPP, PCSX2) with pure upstream binaries";
+  description = "Console emulators and gaming clients (RetroArch, Dolphin, PPSSPP, PCSX2)";
 
   hmConfig =
     hmOpts:
@@ -169,15 +21,50 @@ selfLib.mkModule {
     in
     {
       home.packages = [
-        retroarchNative
-        pcsx2Native
-        ppssppNative
-        dolphinNative
+        pcsx2Pkg
+        ppssppPkg
+        dolphinPkg
       ];
 
       programs.retroarch = {
         enable = true;
-        package = retroarchNative;
+        package = pkgs."retroarch-bare";
+        cores = {
+          # PlayStation 1 (psx/)
+          swanstation.enable = true;
+          beetle-psx.enable = true;
+          beetle-psx-hw.enable = true;
+          pcsx_rearmed.enable = true;
+
+          # Super Nintendo (snes/)
+          snes9x.enable = true;
+          bsnes.enable = true;
+
+          # Sega Genesis / Mega Drive (genesis/)
+          genesis-plus-gx.enable = true;
+          picodrive.enable = true;
+
+          # Nintendo Entertainment System (nes/)
+          nestopia.enable = true;
+          fceumm.enable = true;
+
+          # Nintendo DS (nds/)
+          melonds.enable = true;
+          desmume.enable = true;
+
+          # Atari 2600 (atari2600/)
+          stella.enable = true;
+
+          # Game Boy Advance / Color / Classic
+          mgba.enable = true;
+          gambatte.enable = true;
+          sameboy.enable = true;
+
+          # Nintendo 64 & Arcade / Dreamcast
+          mupen64plus.enable = true;
+          fbneo.enable = true;
+          flycast.enable = true;
+        };
         settings = {
           # Antarmuka dan driver
           "video_driver" = "gl";
@@ -194,10 +81,10 @@ selfLib.mkModule {
           "notification_show_autoconfig" = "false";
 
           # Direktori konten game dan BIOS
-          "content_directory" = "${dataPath}/Emulation/Roms";
+          "content_directory" = "${dataPath}/Games-retro";
           "savefile_directory" = "~/.local/share/retroarch/saves";
           "savestate_directory" = "~/.local/share/retroarch/states";
-          "system_directory" = "${dataPath}/Emulation/Bios";
+          "system_directory" = "${dataPath}/Games-retro/bios";
         };
       };
 
