@@ -26,7 +26,7 @@ selfLib.mkModule {
 
     home.packages = selfLib.fetchCachePinned [
       pkgs.python3
-      "uv"
+      pkgs.uv
       "ruff"
     ];
   };

@@ -1,6 +1,7 @@
 # Universal Fixed-Output Derivation (FOD) Recursive Unpacker
 {
   pkgs,
+  ...
 }:
 
 {
@@ -11,6 +12,7 @@
   isDesktop ? true,
   extraPostUnpack ? "",
   meta ? { },
+  ...
 }:
 
 pkgs.stdenvNoCC.mkDerivation {
