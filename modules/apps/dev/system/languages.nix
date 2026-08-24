@@ -24,9 +24,10 @@ selfLib.mkModule {
       "$HOME/.local/bin"
     ];
 
-    home.packages = with pkgs; [
-      python3
-      uv
+    home.packages = selfLib.fetchCachePinned [
+      pkgs.python3
+      "uv"
+      "ruff"
     ];
   };
 }

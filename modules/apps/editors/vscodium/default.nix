@@ -47,7 +47,6 @@ selfLib.mkModule {
       black
       shfmt
       nixfmt
-      ruff
       shellcheck
       nil
       nixd
