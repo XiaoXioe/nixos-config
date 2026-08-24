@@ -34,7 +34,13 @@ selfLib.mkModule {
       my.desktop.shells.noctalia.enable = lib.mkIf (config.my.desktop.niri.noctalia.enable or false) true;
     };
 
-  hmConfig = {
-    imports = selfLib.scanPaths ./settings;
-  };
+  hmConfig =
+    { pkgs, ... }:
+    {
+      imports = selfLib.scanPaths ./settings;
+      home.packages = with pkgs; [
+        bemoji
+        wtype
+      ];
+    };
 }
