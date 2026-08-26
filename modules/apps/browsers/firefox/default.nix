@@ -11,8 +11,6 @@ let
     resolveAddons
     ;
 
-  appInfo = selfLib.appVersions.firefox;
-
   # Extensions resolved directly into .xpi derivation packages for native profile symlinking
   firefoxExtensions = resolveAddons (
     with amoAddons;
@@ -105,18 +103,6 @@ let
   userChrome = ''
     .tab-close-button { display: none !important; }
   '';
-
-  firefoxNative = (selfLib.mkNativeApp pkgs) {
-    name = "firefox";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "firefox";
-    execPath = "firefox/firefox";
-    binName = "firefox";
-    extraEnv = {
-      MOZ_ENABLE_WAYLAND = "1";
-      MOZ_LEGACY_PROFILES = "1";
-    };
-  };
 in
 selfLib.mkModule {
   name = "apps.browsers.firefox";
@@ -142,7 +128,7 @@ selfLib.mkModule {
 
     programs.firefox = {
       enable = true;
-      package = firefoxNative;
+      package = selfLib.fetchCachePinned pkgs "firefox";
       configPath = ".mozilla/firefox";
       profiles = {
         default = {

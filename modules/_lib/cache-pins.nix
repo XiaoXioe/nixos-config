@@ -22,9 +22,9 @@
 #   - Zero Re-Unpack: store paths immutable di /nix/store selamanya
 #
 # Cara update:
-#   qcp --update-all        (Dry-run preview)
-#   qcp --update-all -w     (Terapkan perubahan ke file ini)
-#   qcp --update <pkg> -w   (Update paket spesifik)
+#   ncp update --all        (Dry-run preview)
+#   ncp update --all -w     (Terapkan perubahan ke file ini)
+#   ncp update <pkg> -w     (Update paket spesifik)
 {
   # ── CLI & Services ────────────────────────────────────────────────────────
 
@@ -94,12 +94,12 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 40.92 MiB | Download Bersih: 37.77 MiB
-  # Library Lokal: 3/14 (21.4%) | Missing: 11 paket (37.77 MiB)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 159.65 MiB | Download Bersih: 12.34 MiB
+  # Library Lokal: 178/182 (97.8%) | Missing: 4 paket (12.34 MiB)
   yazi = {
-    storePath = "/nix/store/w2ygw94b3qimz50pcmalqk5fw3sq80ls-yazi-26.8.15";
-    version = "26.8.15";
+    storePath = "/nix/store/f6xig5fc7n16f0ah6khy483w6ly3r3v9-yazi-26.5.6";
+    version = "26.5.6";
     mainProgram = "yazi";
     channel = "nixpkgs";
     system = "x86_64-linux";
@@ -175,14 +175,14 @@
 
   # ── Desktop Apps ──────────────────────────────────────────────────────────
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 402.18 MiB | Download Bersih: 95.61 MiB
-  # Library Lokal: 275/357 (77.0%) | Missing: 82 paket (95.61 MiB)
+  # Generated: 2026-08-26 | Source: github:NixOS/nixpkgs/nixos-unstable
+  # Download Kotor (Full): 402.18 MiB | Download Bersih: 0 B
+  # Library Lokal: 357/357 (100.0%) | Missing: 0 paket (0 B)
   gthumb = {
     storePath = "/nix/store/9vidvsna1r9r5v8005is72qs2ddplkjv-gthumb-3.12.10";
     version = "3.12.10";
     mainProgram = "gthumb";
-    channel = "nixpkgs";
+    channel = "unstable";
     system = "x86_64-linux";
   };
 
@@ -208,24 +208,114 @@
     system = "x86_64-linux";
   };
 
+  # Generated: 2026-08-25 | Source: nixpkgs
+  # Download Kotor (Full): 725.28 MiB | Download Bersih: 405.27 MiB
+  # Library Lokal: 221/229 (96.5%) | Missing: 8 paket (405.27 MiB)
+  onlyoffice = {
+    storePath = "/nix/store/q0hfwvlncxak4w4p9xg0kbvb58ybm4x8-onlyoffice-desktopeditors-9.1.0";
+    pname = "onlyoffice-desktopeditors";
+    version = "9.1.0";
+    mainProgram = "onlyoffice-desktopeditors";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-25 | Source: nixpkgs
+  # Download Kotor (Full): 555.19 MiB | Download Bersih: 154.27 MiB
+  # Library Lokal: 333/339 (98.2%) | Missing: 6 paket (154.27 MiB)
+  signal = {
+    storePath = "/nix/store/k215h10vki04jsd808kz76fi4rpmag3r-signal-desktop-8.21.0";
+    pname = "signal-desktop";
+    version = "8.21.0";
+    mainProgram = "signal-desktop";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-25 | Source: nixpkgs
+  # Download Kotor (Full): 433.11 MiB | Download Bersih: 150.24 MiB
+  # Library Lokal: 196/198 (99.0%) | Missing: 2 paket (150.24 MiB)
+  vscodium = {
+    storePath = "/nix/store/g80pwk7r7b25148rxz6wffvj3m8arn6x-vscodium-1.116.02821";
+    version = "1.116.02821";
+    mainProgram = "codium";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 494.95 MiB | Download Bersih: 0 B
+  # Library Lokal: 302/302 (100.0%) | Missing: 0 paket (0 B)
+  bitwarden = {
+    storePath = "/nix/store/8ybdisnb034z6ksgga0hijg46m02iadv-bitwarden-desktop-2026.7.0";
+    version = "2026.7.0";
+    mainProgram = "bitwarden";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 486.04 MiB | Download Bersih: 0 B
+  # Library Lokal: 302/302 (100.0%) | Missing: 0 paket (0 B)
+  proton_pass = {
+    storePath = "/nix/store/ns3bf502dgsdnr7mppzp3kjhlyp841gj-proton-pass-1.36.1";
+    version = "1.36.1";
+    mainProgram = "proton-pass";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 119.15 MiB | Download Bersih: 0 B
+  # Library Lokal: 118/118 (100.0%) | Missing: 0 paket (0 B)
+  ente_auth = {
+    storePath = "/nix/store/zmcpbnmp11n2lzv526ly0ldvkzpzn25g-ente-auth-4.4.17";
+    version = "4.4.17";
+    mainProgram = "enteauth";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
   # ── Browsers ──────────────────────────────────────────────────────────────
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 590.16 MiB | Download Bersih: 277.79 MiB
-  # Library Lokal: 297/382 (77.7%) | Missing: 85 paket (277.79 MiB)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 443.47 MiB | Download Bersih: 142.36 MiB
+  # Library Lokal: 316/320 (98.8%) | Missing: 4 paket (142.36 MiB)
+  firefox = {
+    storePath = "/nix/store/q311vc08d8airf0dml2301rwjb48iaiw-firefox-154.0";
+    version = "154.0";
+    mainProgram = "firefox";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 526.93 MiB | Download Bersih: 163.19 MiB
+  # Library Lokal: 312/313 (99.7%) | Missing: 1 paket (163.19 MiB)
+  tor_browser = {
+    storePath = "/nix/store/wfn8gsjzq1gw0b5ka2fgj03dh8rlhljr-tor-browser-15.0.20";
+    version = "15.0.20";
+    mainProgram = "tor-browser";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 583.91 MiB | Download Bersih: 186.12 MiB
+  # Library Lokal: 377/379 (99.5%) | Missing: 2 paket (186.12 MiB)
   brave = {
-    storePath = "/nix/store/v77xz9fj5467ylrqpmc0nbhm44sny1mv-brave-1.93.138";
+    storePath = "/nix/store/g2mvyrw3pzi0dfw7f281rj7g10vhmzcn-brave-1.93.138";
     version = "1.93.138";
     mainProgram = "brave";
     channel = "nixpkgs";
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 577.67 MiB | Download Bersih: 265.86 MiB
-  # Library Lokal: 290/356 (81.5%) | Missing: 66 paket (265.86 MiB)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 571.40 MiB | Download Bersih: 202.63 MiB
+  # Library Lokal: 349/353 (98.9%) | Missing: 4 paket (202.63 MiB)
   chromium = {
-    storePath = "/nix/store/rxf83sv2x0ja1hi6vdli6ijll5v15x9j-chromium-151.0.7922.173";
+    storePath = "/nix/store/53p8msmqxpi829zdrw6qkvaamidxy9cj-chromium-151.0.7922.173";
     version = "151.0.7922.173";
     mainProgram = "chromium";
     channel = "nixpkgs";
@@ -243,4 +333,5 @@
     channel = "unstable";
     system = "x86_64-linux";
   };
+
 }

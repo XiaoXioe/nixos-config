@@ -12,22 +12,14 @@ let
     mkBookmarkSecret
     ;
 
-  appInfo = selfLib.appVersions.tor-browser;
-
-  torBrowserNative = (selfLib.mkNativeApp pkgs) {
-    name = "tor-browser";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "tor-browser";
-    execPath = "tor-browser/Browser/start-tor-browser";
-    binName = "tor-browser";
-  };
+  torBrowserPkg = selfLib.fetchCachePinned "tor_browser";
 in
 selfLib.mkModule {
   name = "apps.browsers.tor-browser";
   description = "Tor Browser configuration with sops-nix encrypted bookmarks";
 
   hmConfig = {
-    home.packages = [ torBrowserNative ];
+    home.packages = [ torBrowserPkg ];
   };
 
   nixosConfig = {

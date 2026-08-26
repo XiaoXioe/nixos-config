@@ -12,54 +12,9 @@ let
   protonPassEnabled = cfg.proton-pass.enable or false;
   enteAuthEnabled = cfg.ente-auth.enable or true;
 
-  bitwardenInfo = selfLib.appVersions.bitwarden;
-  protonPassInfo = selfLib.appVersions.proton-pass;
-  enteAuthInfo = selfLib.appVersions.ente-auth;
-
-  bitwardenNative = (selfLib.mkNativeApp pkgs) {
-    name = "bitwarden";
-    inherit (bitwardenInfo) version;
-    src = selfLib.fetchApp pkgs "bitwarden";
-    execPath = "opt/Bitwarden/bitwarden";
-    binName = "bitwarden-desktop";
-    extraArgs = [
-      "--enable-features=UseOzonePlatform"
-      "--ozone-platform=wayland"
-    ];
-    extraEnv = {
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
-    };
-  };
-
-  protonPassNative = (selfLib.mkNativeApp pkgs) {
-    name = "proton-pass";
-    inherit (protonPassInfo) version;
-    src = selfLib.fetchApp pkgs "proton-pass";
-    execPath = "usr/lib/proton-pass/proton-pass";
-    binName = "proton-pass";
-    extraArgs = [
-      "--enable-features=UseOzonePlatform"
-      "--ozone-platform=wayland"
-    ];
-    extraEnv = {
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
-    };
-  };
-
-  enteAuthNative = (selfLib.mkNativeApp pkgs) {
-    name = "ente-auth";
-    inherit (enteAuthInfo) version;
-    src = selfLib.fetchApp pkgs "ente-auth";
-    execPath = "usr/share/enteauth/enteauth";
-    binName = "enteauth";
-    extraArgs = [
-      "--enable-features=UseOzonePlatform"
-      "--ozone-platform=wayland"
-    ];
-    extraEnv = {
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
-    };
-  };
+  bitwardenPkg = selfLib.fetchCachePinned "bitwarden";
+  protonPassPkg = selfLib.fetchCachePinned "proton_pass";
+  enteAuthPkg = selfLib.fetchCachePinned "ente_auth";
 in
 selfLib.mkModule {
   name = "security.password-manager";
@@ -97,9 +52,9 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages =
-      (lib.optionals bitwardenEnabled [ bitwardenNative ])
-      ++ (lib.optionals protonPassEnabled [ protonPassNative ])
-      ++ (lib.optionals enteAuthEnabled [ enteAuthNative ]);
+      (lib.optionals bitwardenEnabled [ bitwardenPkg ])
+      ++ (lib.optionals protonPassEnabled [ protonPassPkg ])
+      ++ (lib.optionals enteAuthEnabled [ enteAuthPkg ]);
 
     xdg.desktopEntries = lib.mkMerge [
       (lib.mkIf bitwardenEnabled {

@@ -17,9 +17,6 @@ selfLib.mkModule {
       package = selfLib.fetchCachePinned pkgs "chromium";
       commandLineArgs = [
         "--password-store=gnome-libsecret"
-        "--enable-gpu-rasterization"
-        "--ignore-gpu-blocklist"
-        "--disable-gpu-driver-bug-workarounds"
       ];
       extensions = [
         { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite

@@ -17,10 +17,7 @@ selfLib.mkModule {
       package = selfLib.fetchCachePinned pkgs "brave";
       commandLineArgs = [
         "--password-store=gnome-libsecret"
-        "--enable-gpu-rasterization"
-        "--ignore-gpu-blocklist"
         "--enable-features=WebUIDarkMode,Containers"
-        "--disable-gpu-driver-bug-workarounds"
         "--disable-reading-from-canvas"
         "--no-pings"
       ];
