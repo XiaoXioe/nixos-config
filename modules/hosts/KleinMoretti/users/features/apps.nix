@@ -2,8 +2,8 @@
   userFeatures = {
     apps = {
       browsers = {
-        firefox = true;
-        brave = true;
+        firefox = false;
+        brave = false;
         chromium = true;
         librewolf = false;
         tor-browser = true;
@@ -18,7 +18,7 @@
       };
       office = {
         thunderbird = true;
-        onlyoffice = true;
+        onlyoffice = false;
         protonmail = true;
         zathura = true;
         obsidian = true;
