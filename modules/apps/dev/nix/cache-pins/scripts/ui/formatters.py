@@ -37,8 +37,9 @@ def render_audit_report(audit: ClosureAudit, verbose: bool = False) -> str:
     lines.append(f"  • Biner Paket Ini (FileSize)   : {format_bytes(audit.file_size)} ({audit.compression}){local_tag}")
     lines.append(f"  • Ukuran Disk Paket (NarSize)  : {format_bytes(audit.nar_size)} (Uncompressed)")
     lines.append("")
-    lines.append("🌐 TOTAL KEBUTUHAN BANDWIDTH INTERNET (RIIL):")
-    lines.append(f"  • Total Download Kotor (Gross) : {format_bytes(audit.gross_download)} (Full Closure: Paket + 100% Semua Library)")
+    lines.append("🌐 TOTAL KEBUTUHAN DISK & BANDWIDTH INTERNET:")
+    lines.append(f"  • Total Ukuran Closure di Disk : {format_bytes(audit.gross_disk)} (Full Closure: Paket + 100% Semua Dependensi)")
+    lines.append(f"  • Total Download Kotor (Gross) : {format_bytes(audit.gross_download)} (Full Download jika belum ada di lokal)")
     if audit.net_download == 0:
         lines.append("  • Total Download Bersih (Net)   : 0 B (✅ Paket utama & seluruh library sudah ada di disk!)")
     else:
@@ -58,9 +59,10 @@ def render_audit_report(audit: ClosureAudit, verbose: bool = False) -> str:
         lines.append(f"📋 DAFTAR SELURUH DEPENDENSI ({audit.total_refs} PAKET) [VERBOSE MODE]:")
         for item in audit.all_items:
             size_fmt = format_bytes(item["file_size"])
+            disk_fmt = format_bytes(item.get("nar_size", 0))
             prefix = "[✅ Lokal]        " if item["is_local"] else "[⬇️  Perlu Diunduh]"
             if item["file_size"] > 0:
-                lines.append(f"  {prefix} {item['name']} ({size_fmt})")
+                lines.append(f"  {prefix} {item['name']} (DL: {size_fmt}, Disk: {disk_fmt})")
             else:
                 lines.append(f"  {prefix} {item['name']}")
     else:
@@ -99,7 +101,7 @@ def normalize_channel_name(source_input: str) -> str:
 
 def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
     """Generate Nix attrset snippet suitable for cache-pins.nix."""
-    attr_key = audit.target_name.replace("pkgs.", "")
+    attr_key = audit.target_name.replace("pkgs.", "").strip()
     attr_key_clean = re.sub(r"[^a-zA-Z0-9_]", "_", attr_key)
 
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
@@ -110,8 +112,8 @@ def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
     lines = []
     lines.append("")
     lines.append(f"  # Generated: {today} | Source: {source_input}{cache_info}")
-    lines.append(f"  # Download Kotor (Full): {format_bytes(audit.gross_download)} | Download Bersih: {format_bytes(audit.net_download)}")
-    lines.append(f"  # Library Lokal: {audit.local_count}/{audit.total_refs} ({audit.local_percent:.1f}%) | Missing: {audit.missing_count} paket ({format_bytes(missing_bytes)})")
+    lines.append(f"  # Ukuran Closure Disk: {format_bytes(audit.gross_disk)} (Uncompressed) | Download Kotor: {format_bytes(audit.gross_download)}")
+    lines.append(f"  # Download Bersih: {format_bytes(audit.net_download)} | Library Lokal: {audit.local_count}/{audit.total_refs} ({audit.local_percent:.1f}%) | Missing: {audit.missing_count} paket ({format_bytes(missing_bytes)})")
     lines.append(f"  {attr_key_clean} = {{")
     lines.append(f'    storePath = "{audit.store_path}";')
     if audit.version:

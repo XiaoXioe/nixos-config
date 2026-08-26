@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""nix-cache-pin (ncp) — Unified CLI for Nix binary cache pin management."""
+"""nix-cache-pin (ncp) — High-Performance CLI for Nix binary cache pin management (v3.0.0)."""
 import argparse
 import os
 from pathlib import Path
@@ -9,15 +9,16 @@ _scripts_dir = str(Path(__file__).resolve().parent.parent)
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-# Izinkan evaluasi paket berlisensi unfree dan insecure secara global
+# Global unfree and insecure evaluation support
 os.environ["NIXPKGS_ALLOW_UNFREE"] = "1"
 os.environ["NIXPKGS_ALLOW_INSECURE"] = "1"
+os.environ["NIXPKGS_ALLOW_BROKEN"] = "1"
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """Build the unified CLI argument parser with subcommands."""
+    """Build the unified CLI argument parser with subcommands and performance flags."""
     common_parser = argparse.ArgumentParser(add_help=False)
     global_group = common_parser.add_argument_group("global options")
     global_group.add_argument(
@@ -41,6 +42,20 @@ def create_parser() -> argparse.ArgumentParser:
         help="Path eksplisit ke berkas cache-pins.nix",
     )
     global_group.add_argument(
+        "--refresh", "--no-cache",
+        action="store_true",
+        dest="refresh",
+        default=False,
+        help="Abaikan cache evaluasi lokal dan paksa evaluasi ulang dari channel",
+    )
+    global_group.add_argument(
+        "-j", "--concurrency",
+        type=int,
+        default=16,
+        dest="concurrency",
+        help="Tingkat paralelisme koneksi HTTP probing / evaluasi (default: 16)",
+    )
+    global_group.add_argument(
         "-v", "--verbose",
         action="store_true",
         default=False,
@@ -49,7 +64,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="ncp",
-        description="nix-cache-pin (ncp) — Unified CLI untuk manajemen pin Nix binary cache: query, fetch, update, audit, adopt, dan lainnya.",
+        description="nix-cache-pin (ncp) — High-Performance CLI untuk manajemen pin Nix binary cache.",
         parents=[common_parser],
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -82,7 +97,7 @@ def create_parser() -> argparse.ArgumentParser:
     p_fetch.add_argument("--all-pins", action="store_true", help="Unduh massal seluruh pin terdaftar")
     p_fetch.add_argument("--keep-nar", action="store_true", help="Pertahankan file .nar di RAM setelah ingest")
     p_fetch.add_argument("--split", type=int, default=8, help="Koneksi paralel per file (default: 8)")
-    p_fetch.add_argument("-j", "--concurrent", type=int, default=4, help="Maksimum download bersamaan (default: 4)")
+    p_fetch.add_argument("--concurrent", type=int, default=4, help="Maksimum download bersamaan (default: 4)")
     p_fetch.add_argument("--cache-dir", default=None, help="Direktori cache lokal aria2 (default: RAM tmpfs)")
 
     # === ncp update ===
@@ -90,7 +105,7 @@ def create_parser() -> argparse.ArgumentParser:
         "update", aliases=["u"],
         parents=[common_parser],
         help="Periksa dan perbarui pin dari upstream channel",
-        description="Periksa pembaruan upstream untuk pin spesifik atau seluruh entri, dengan downgrade guard dan version-only filter.",
+        description="Periksa pembaruan upstream untuk pin spesifik atau seluruh entri dalam satu pass batch.",
     )
     p_update.add_argument("target", nargs="?", help="Key paket spesifik yang akan di-update")
     p_update.add_argument("--all", action="store_true", help="Perbarui seluruh entri cache-pins.nix dari upstream")
@@ -191,17 +206,21 @@ def main(argv=None):
         args.cache_url = None
     if not hasattr(args, "pins_file"):
         args.pins_file = None
+    if not hasattr(args, "refresh"):
+        args.refresh = False
+    if not hasattr(args, "concurrency"):
+        args.concurrency = 16
 
     # Set global verbose mode environment
     if getattr(args, "verbose", False):
         os.environ["NCP_VERBOSE"] = "1"
 
-    # Resolve channel shorthand (shared pre-processing)
+    # Resolve channel shorthand
     if hasattr(args, "channel") and args.channel:
-        from core.nix_eval import resolve_channel_input
+        from core.eval.channels import resolve_channel_input
         args.input = resolve_channel_input(args.channel)
 
-    # Dispatch to subcommand handler (lazy-loaded for fast startup)
+    # Dispatch to subcommand handler
     cmd = args.subcommand
     if cmd in ("query", "q"):
         from cli.commands.query import handle_query

@@ -24,7 +24,7 @@ let
 
   cachePinTools = pkgs.stdenv.mkDerivation {
     pname = "nix-cache-pin-tools";
-    version = "2.0.0";
+    version = "3.0.0";
     src = ./scripts;
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
@@ -70,6 +70,9 @@ let
     complete -c ncp -l cache-url -d "Binary cache URL"
     complete -c ncp -l input -d "Flake input target"
     complete -c ncp -l pins-file -r -d "Path ke berkas cache-pins.nix"
+    complete -c ncp -l refresh -l no-cache -d "Abaikan disk cache evaluasi lokal"
+    complete -c ncp -s j -l concurrency -d "Tingkat paralelisme worker/koneksi (default: 16)"
+    complete -c ncp -s v -l verbose -d "Tampilkan log stream evaluasi Nix lengkap"
 
     # ncp query
     complete -c ncp -n "__fish_seen_subcommand_from query q" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
@@ -92,6 +95,7 @@ let
     complete -c ncp -n "__fish_seen_subcommand_from update u" -s w -l write -d "Simpan perubahan ke file"
     complete -c ncp -n "__fish_seen_subcommand_from update u" -s f -l force -d "Izinkan downgrade"
     complete -c ncp -n "__fish_seen_subcommand_from update u" -l version-only -d "Hanya update jika versi naik"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -l refresh -l no-cache -d "Abaikan cache evaluasi lokal"
 
     # ncp audit
     complete -c ncp -n "__fish_seen_subcommand_from audit a" -l clean -d "Hapus pin yatim"
@@ -131,7 +135,7 @@ let
         local subcommands="query fetch update audit adopt diff tree tui stats delete search"
 
         if [[ $cword -eq 1 ]]; then
-            COMPREPLY=( $(compgen -W "$subcommands --help --version" -- "$cur") )
+            COMPREPLY=( $(compgen -W "$subcommands --help --version --refresh --no-cache -j --concurrency -v --verbose" -- "$cur") )
             return 0
         fi
 
@@ -140,7 +144,7 @@ let
         case "$subcmd" in
             query|q)
                 if [[ "$cur" == -* ]]; then
-                    COMPREPLY=( $(compgen -W "-v --verbose -w --write --all -c --channel --cache-url --input --pins-file" -- "$cur") )
+                    COMPREPLY=( $(compgen -W "-v --verbose -w --write --all -c --channel --cache-url --input --pins-file --refresh --no-cache -j --concurrency" -- "$cur") )
                 else
                     COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
                 fi
@@ -154,7 +158,7 @@ let
                 ;;
             update|u)
                 if [[ "$cur" == -* ]]; then
-                    COMPREPLY=( $(compgen -W "--all -w --write -f --force --version-only --bump-only -c --channel --cache-url --input --pins-file" -- "$cur") )
+                    COMPREPLY=( $(compgen -W "--all -w --write -f --force --version-only --bump-only --refresh --no-cache -c --channel --cache-url --input --pins-file -j --concurrency" -- "$cur") )
                 else
                     COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
                 fi
@@ -167,7 +171,7 @@ let
                 ;;
             diff|d)
                 if [[ "$cur" == -* ]]; then
-                    COMPREPLY=( $(compgen -W "--deep -c --channel --input --pins-file" -- "$cur") )
+                    COMPREPLY=( $(compgen -W "--deep -c --channel --input --pins-file --refresh --no-cache" -- "$cur") )
                 else
                     COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
                 fi
@@ -193,6 +197,12 @@ in
 selfLib.mkModule {
   name = "apps.dev.nix.cache-pins";
   description = "Unified Nix Binary Cache pin management CLI (nix-cache-pin / ncp): query, fetch, update, audit, adopt, diff, tree, and TUI dashboard";
+
+  preservation = {
+    userDirectories = [
+      ".cache/ncp"
+    ];
+  };
 
   hmConfig = {
     home.packages = [

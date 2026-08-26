@@ -1,12 +1,77 @@
 """Nix closure DAG traversal, local store auditing, and bandwidth calculation."""
 import concurrent.futures
+import json
 import os
+from pathlib import Path
 import re
+import subprocess
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from core.cache_client import NixCacheClient
+from core.eval.channels import get_nix_env
+from core.eval.resolver import is_path_in_nix_store
 from core.models import ClosureAudit, DownloadItem, NarInfo
-from core.nix_eval import is_path_in_nix_store
+
+
+def get_local_closure_sizes_batch(store_paths: List[str]) -> Dict[str, int]:
+    """Retrieve individual closure size in bytes for multiple local store paths in a single batch call."""
+    valid_paths = [sp for sp in store_paths if sp and is_path_in_nix_store(sp)]
+    if not valid_paths:
+        return {}
+
+    cmd = ["nix", "path-info", "--json", "--closure-size"] + valid_paths
+    try:
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env=get_nix_env(),
+        )
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            return {
+                sp: int(info.get("closureSize", 0))
+                for sp, info in data.items()
+                if isinstance(info, dict)
+            }
+    except Exception:
+        pass
+    return {}
+
+
+def get_local_unique_footprint(store_paths: List[str]) -> Tuple[int, int, int]:
+    """Calculate deduplicated disk footprint, unique store paths count, and cumulative closure size.
+
+    Returns:
+        Tuple of (deduplicated_disk_bytes, unique_paths_count, cumulative_closure_bytes)
+    """
+    valid_paths = [sp for sp in store_paths if sp and is_path_in_nix_store(sp)]
+    if not valid_paths:
+        return 0, 0, 0
+
+    cmd = ["nix", "path-info", "-r", "--json"] + valid_paths
+    dedup_bytes = 0
+    unique_count = 0
+    try:
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            env=get_nix_env(),
+        )
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            dedup_bytes = sum(int(info.get("narSize", 0)) for info in data.values() if isinstance(info, dict))
+            unique_count = len(data)
+    except Exception:
+        pass
+
+    closure_sizes = get_local_closure_sizes_batch(valid_paths)
+    cumulative_bytes = sum(closure_sizes.values())
+
+    return dedup_bytes, unique_count, cumulative_bytes
 
 
 class ClosureAuditor:
@@ -14,6 +79,7 @@ class ClosureAuditor:
 
     def __init__(self, cache_client: NixCacheClient):
         self.client = cache_client
+        self._shared_narinfos: Dict[str, NarInfo] = {}
 
     def audit_closure(
         self,
@@ -23,7 +89,7 @@ class ClosureAuditor:
         main_program: Optional[str] = None,
     ) -> ClosureAudit:
         """Analyze a store path's full closure, local reuse percentage, and bandwidth savings."""
-        target_hash = os.path.basename(store_path).split("-")[0]
+        target_hash = os.path.basename(store_path.rstrip("/")).split("-")[0]
         target_narinfo = self.client.fetch_narinfo(target_hash)
 
         if not target_narinfo:
@@ -32,16 +98,29 @@ class ClosureAuditor:
                 "💡 Catatan: Paket berlisensi 'unfree' (proprietary) atau paket kustom umumnya tidak di-build/di-cache oleh server Hydra resmi (cache.nixos.org)."
             )
 
-        # 1. Traverse closure DAG
+        # 1. Traverse closure DAG with shared node memoization
         visited_hashes: Set[str] = set()
         queue = [target_hash]
-        narinfos: Dict[str, NarInfo] = {}
+        local_narinfos: Dict[str, NarInfo] = {}
 
         while queue:
             current_batch = queue
             queue = []
-            to_fetch = [h for h in current_batch if h not in visited_hashes and h not in narinfos]
-            visited_hashes.update(to_fetch)
+            to_fetch = []
+
+            for h in current_batch:
+                if h in visited_hashes:
+                    continue
+                visited_hashes.add(h)
+                if h in self._shared_narinfos:
+                    info = self._shared_narinfos[h]
+                    local_narinfos[h] = info
+                    for ref in info.references:
+                        ref_hash = ref.split("-")[0]
+                        if ref_hash not in visited_hashes:
+                            queue.append(ref_hash)
+                else:
+                    to_fetch.append(h)
 
             if not to_fetch:
                 continue
@@ -52,10 +131,11 @@ class ClosureAuditor:
                     h = futures[f]
                     info = f.result()
                     if info:
-                        narinfos[h] = info
+                        self._shared_narinfos[h] = info
+                        local_narinfos[h] = info
                         for ref in info.references:
                             ref_hash = ref.split("-")[0]
-                            if ref_hash not in visited_hashes and ref_hash not in narinfos:
+                            if ref_hash not in visited_hashes:
                                 queue.append(ref_hash)
 
         # 2. Local vs Missing Partitioning
@@ -67,7 +147,7 @@ class ClosureAuditor:
         glibc_local = False
         target_is_local = is_path_in_nix_store(store_path)
 
-        for h, info in narinfos.items():
+        for h, info in local_narinfos.items():
             sp = f"/nix/store/{info.name}" if not info.store_path else info.store_path
             is_local = is_path_in_nix_store(sp)
 
@@ -139,8 +219,21 @@ class ClosureAuditor:
         while queue:
             current_batch = queue
             queue = []
-            to_fetch = [h for h in current_batch if h not in visited_hashes and h not in narinfos]
-            visited_hashes.update(to_fetch)
+            to_fetch = []
+
+            for h in current_batch:
+                if h in visited_hashes:
+                    continue
+                visited_hashes.add(h)
+                if h in self._shared_narinfos:
+                    info = self._shared_narinfos[h]
+                    narinfos[h] = info
+                    for ref in info.references:
+                        ref_hash = ref.split("-")[0]
+                        if ref_hash not in visited_hashes:
+                            queue.append(ref_hash)
+                else:
+                    to_fetch.append(h)
 
             if not to_fetch:
                 continue
@@ -151,10 +244,11 @@ class ClosureAuditor:
                     h = futures[f]
                     info = f.result()
                     if info:
+                        self._shared_narinfos[h] = info
                         narinfos[h] = info
                         for ref in info.references:
                             ref_hash = ref.split("-")[0]
-                            if ref_hash not in visited_hashes and ref_hash not in narinfos:
+                            if ref_hash not in visited_hashes:
                                 queue.append(ref_hash)
 
         items_to_download: List[DownloadItem] = []

@@ -5,8 +5,11 @@ import sys
 from typing import List, Optional
 
 from core.cache_client import NixCacheClient
-from core.nix_eval import find_cache_pins_file, is_path_in_nix_store
+from core.closure import get_local_closure_sizes_batch
+from core.eval.channels import find_cache_pins_file
+from core.eval.resolver import is_path_in_nix_store
 from registry.store import load_cache_pins
+from ui.formatters import format_bytes
 
 
 def launch_cache_dashboard(
@@ -30,6 +33,13 @@ def launch_cache_dashboard(
         print("❌ ERROR: Tidak ada entri valid ditemukan di cache-pins.nix", file=sys.stderr)
         sys.exit(1)
 
+    all_store_paths = [
+        data["storePath"]
+        for data in pins_data.values()
+        if isinstance(data, dict) and "storePath" in data and data["storePath"]
+    ]
+    closure_sizes = get_local_closure_sizes_batch(all_store_paths)
+
     # Build rows for fzf
     rows: List[str] = []
     for key, data in sorted(pins_data.items()):
@@ -39,8 +49,10 @@ def launch_cache_dashboard(
         version = data.get("version", "unknown")
         is_local = is_path_in_nix_store(store_path)
         status_tag = "✅ Di Store  " if is_local else "⬇️  Belum Ada"
+        c_size = closure_sizes.get(store_path, 0)
+        size_fmt = format_bytes(c_size) if c_size > 0 else "-"
 
-        row = f"{key:<20}  [{status_tag}]  v{version:<12}  {store_path}"
+        row = f"{key:<18}  [{status_tag}]  {size_fmt:<10}  v{version:<12}  {store_path}"
         rows.append(row)
 
     input_text = "\n".join(rows)

@@ -1,11 +1,14 @@
-"""CRUD operations for modules/_lib/cache-pins.nix file with automatic nixfmt formatting."""
+"""CRUD operations and atomic file management for modules/_lib/cache-pins.nix."""
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import tempfile
 from typing import Any, Dict, List, Optional
+
+from core.eval.channels import get_nix_env
 
 
 def load_cache_pins(pins_file: Path) -> Dict[str, Dict[str, Any]]:
@@ -19,6 +22,7 @@ def load_cache_pins(pins_file: Path) -> Dict[str, Dict[str, Any]]:
             capture_output=True,
             text=True,
             timeout=30,
+            env=get_nix_env(),
         )
         if res.returncode == 0:
             return json.loads(res.stdout)
@@ -56,57 +60,86 @@ def load_pin_sources(pins_file: Path) -> Dict[str, str]:
     return sources
 
 
-def write_or_update_pin(pins_file: Path, target_key: str, snippet: str) -> bool:
-    """Write or update a pin entry in cache-pins.nix and re-format with nixfmt."""
+def _atomic_write_and_format(pins_file: Path, content: str) -> bool:
+    """Write content to a temporary file in the same directory, format with nixfmt, and atomically replace."""
+    parent_dir = pins_file.parent
+    tmp_path = parent_dir / f".{pins_file.name}.tmp.{os.getpid()}"
+
+    try:
+        tmp_path.write_text(content, encoding="utf-8")
+
+        # Run nixfmt if available
+        try:
+            subprocess.run(
+                ["nixfmt", str(tmp_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+            )
+        except Exception:
+            pass
+
+        # Atomic replacement
+        tmp_path.replace(pins_file)
+        return True
+    except Exception as e:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+        raise IOError(f"Gagal menulis berkas pin secara atomik: {e}")
+
+
+def write_or_update_pins_batch(pins_file: Path, snippets_map: Dict[str, str]) -> bool:
+    """Write or update multiple pin entries in cache-pins.nix in a single atomic pass."""
     if not pins_file.is_file():
         raise FileNotFoundError(f"Berkas pin tidak ditemukan: {pins_file}")
+    if not snippets_map:
+        return True
 
     content = pins_file.read_text(encoding="utf-8")
-    clean_key = re.sub(r"[^a-zA-Z0-9_]", "_", target_key.replace("pkgs.", ""))
 
-    # Regex matching existing block with preceding comments
-    pattern = re.compile(
-        rf"(?m)((?:^[ \t]*#[^\n]*\n)*^[ \t]*{re.escape(clean_key)}\s*=\s*\{{.*?\n[ \t]*\}};\n?)",
-        re.DOTALL,
-    )
-    match = pattern.search(content)
+    for target_key, snippet in snippets_map.items():
+        clean_key = re.sub(r"[^a-zA-Z0-9_]", "_", target_key.replace("pkgs.", "").strip())
+        formatted_snippet = "\n" + snippet.strip() + "\n"
 
-    formatted_snippet = "\n" + snippet.strip() + "\n"
+        pattern = re.compile(
+            rf"(?m)((?:^[ \t]*#[^\n]*\n)*^[ \t]*{re.escape(clean_key)}\s*=\s*\{{.*?\n[ \t]*\}};\n?)",
+            re.DOTALL,
+        )
+        match = pattern.search(content)
 
-    if match:
-        new_content = content[: match.start()] + formatted_snippet + content[match.end() :]
-    else:
-        footer_comment_match = re.search(r"(?m)^[ \t]*#[ \t]*──[ \t]*Tambah entri lain", content)
-        if footer_comment_match:
-            insert_pos = footer_comment_match.start()
-            new_content = content[:insert_pos] + formatted_snippet + "\n" + content[insert_pos:]
+        if match:
+            content = content[: match.start()] + formatted_snippet + content[match.end() :]
         else:
-            last_brace_idx = content.rfind("}")
-            if last_brace_idx != -1:
-                new_content = content[:last_brace_idx] + formatted_snippet + content[last_brace_idx:]
+            footer_comment_match = re.search(r"(?m)^[ \t]*#[ \t]*──[ \t]*Tambah entri lain", content)
+            if footer_comment_match:
+                insert_pos = footer_comment_match.start()
+                content = content[:insert_pos] + formatted_snippet + "\n" + content[insert_pos:]
             else:
-                new_content = content + "\n" + formatted_snippet
+                last_brace_idx = content.rfind("}")
+                if last_brace_idx != -1:
+                    content = content[:last_brace_idx] + formatted_snippet + content[last_brace_idx:]
+                else:
+                    content = content + "\n" + formatted_snippet
 
-    pins_file.write_text(new_content, encoding="utf-8")
+    return _atomic_write_and_format(pins_file, content)
 
-    # Run nixfmt if available
-    try:
-        subprocess.run(["nixfmt", str(pins_file)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
-        pass
 
-    return True
+def write_or_update_pin(pins_file: Path, target_key: str, snippet: str) -> bool:
+    """Write or update a single pin entry in cache-pins.nix atomically."""
+    return write_or_update_pins_batch(pins_file, {target_key: snippet})
 
 
 def delete_pin_entry(pins_file: Path, target_key: str) -> bool:
-    """Delete a pin entry and its preceding comment block from cache-pins.nix and re-format with nixfmt."""
+    """Delete a pin entry and its preceding comment block from cache-pins.nix atomically."""
     if not pins_file.is_file():
         raise FileNotFoundError(f"Berkas pin tidak ditemukan: {pins_file}")
 
     content = pins_file.read_text(encoding="utf-8")
-    clean_key = re.sub(r"[^a-zA-Z0-9_]", "_", target_key.replace("pkgs.", ""))
+    clean_key = re.sub(r"[^a-zA-Z0-9_]", "_", target_key.replace("pkgs.", "").strip())
 
-    # Regex matching existing block with comments
     pattern = re.compile(
         rf"(?m)((?:^[ \t]*#[^\n]*\n)*^[ \t]*{re.escape(clean_key)}\s*=\s*\{{.*?\n[ \t]*\}};\n?)",
         re.DOTALL,
@@ -116,12 +149,4 @@ def delete_pin_entry(pins_file: Path, target_key: str) -> bool:
         return False
 
     new_content = content[: match.start()] + content[match.end() :]
-    pins_file.write_text(new_content, encoding="utf-8")
-
-    # Run nixfmt if available
-    try:
-        subprocess.run(["nixfmt", str(pins_file)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
-        pass
-
-    return True
+    return _atomic_write_and_format(pins_file, new_content)

@@ -2,9 +2,12 @@
 from pathlib import Path
 import sys
 
-from core.nix_eval import find_flake_dir, is_path_in_nix_store
+from core.closure import get_local_closure_sizes_batch, get_local_unique_footprint
+from core.eval.channels import find_flake_dir
+from core.eval.resolver import is_path_in_nix_store
 from registry.audit import find_unused_pins
 from registry.store import load_cache_pins
+from ui.formatters import format_bytes
 
 
 def render_stats_dashboard(pins_file: Path):
@@ -23,6 +26,15 @@ def render_stats_dashboard(pins_file: Path):
     active_count = len(used)
     unused_count = len(unused)
 
+    all_store_paths = [
+        data["storePath"]
+        for data in pins_data.values()
+        if isinstance(data, dict) and "storePath" in data and data["storePath"]
+    ]
+
+    closure_sizes = get_local_closure_sizes_batch(all_store_paths)
+    dedup_bytes, unique_paths, cumulative_bytes = get_local_unique_footprint(all_store_paths)
+
     print("================================================================================", file=sys.stderr)
     print("                 STATISTIK & FOOTPRINT CACHE PINS                              ", file=sys.stderr)
     print("================================================================================", file=sys.stderr)
@@ -32,8 +44,8 @@ def render_stats_dashboard(pins_file: Path):
         print(f"  • Pin Aktif      : {active_count} paket ({active_count / total_pins * 100:.1f}%)", file=sys.stderr)
         print(f"  • Pin Yatim      : {unused_count} paket ({unused_count / total_pins * 100:.1f}%)", file=sys.stderr)
     print("--------------------------------------------------------------------------------", file=sys.stderr)
-    hdr_p, hdr_v, hdr_s, hdr_l, hdr_m = "PAKET", "VERSI", "STATUS", "LOKAL STORE", "MODUL REF"
-    print(f"{hdr_p:<22} {hdr_v:<14} {hdr_s:<12} {hdr_l:<14} {hdr_m}", file=sys.stderr)
+    hdr_p, hdr_v, hdr_s, hdr_c, hdr_l, hdr_m = "PAKET", "VERSI", "STATUS", "UKURAN CLOSURE", "LOKAL STORE", "MODUL REF"
+    print(f"{hdr_p:<20} {hdr_v:<14} {hdr_s:<10} {hdr_c:<15} {hdr_l:<14} {hdr_m}", file=sys.stderr)
     print("--------------------------------------------------------------------------------", file=sys.stderr)
 
     local_hits = 0
@@ -47,8 +59,11 @@ def render_stats_dashboard(pins_file: Path):
         if is_local:
             local_hits += 1
             local_str = "✅ Ada (0 B)"
+            c_size = closure_sizes.get(sp, 0)
+            c_size_str = format_bytes(c_size) if c_size > 0 else "-"
         else:
             local_str = "⬇️  Missing"
+            c_size_str = "⬇️  Unknown"
 
         refs = used.get(key, [])
         if len(refs) > 1:
@@ -58,12 +73,19 @@ def render_stats_dashboard(pins_file: Path):
         else:
             ref_display = "-"
 
-        print(f"{key:<22} {ver:<14} {status_str:<12} {local_str:<14} {ref_display}", file=sys.stderr)
+        print(f"{key:<20} {ver:<14} {status_str:<10} {c_size_str:<15} {local_str:<14} {ref_display}", file=sys.stderr)
 
     print("--------------------------------------------------------------------------------", file=sys.stderr)
     if total_pins > 0:
         print(
-            f"📊 Kesiapan /nix/store: {local_hits}/{total_pins} ({local_hits / total_pins * 100:.1f}%) paket sudah tersimpan di disk lokal.",
+            f"📊 Kesiapan /nix/store      : {local_hits}/{total_pins} ({local_hits / total_pins * 100:.1f}%) paket tersimpan di disk lokal.",
             file=sys.stderr,
         )
+        if cumulative_bytes > 0:
+            print(f"📦 Total Akumulasi Closure   : {format_bytes(cumulative_bytes)} (Jumlah closure individual)", file=sys.stderr)
+        if dedup_bytes > 0:
+            saved_disk = max(0, cumulative_bytes - dedup_bytes)
+            saved_pct = (saved_disk / cumulative_bytes * 100) if cumulative_bytes > 0 else 0
+            print(f"💾 Total Footprint Riil Disk : {format_bytes(dedup_bytes)} ({unique_paths} unique store paths)", file=sys.stderr)
+            print(f"⚡ Penghematan Shared Library : {format_bytes(saved_disk)} ({saved_pct:.1f}% dihemat berkat shared glibc/libs)", file=sys.stderr)
     print("================================================================================", file=sys.stderr)

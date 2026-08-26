@@ -1,5 +1,5 @@
 """Data models for Nix Binary Cache NarInfo, Closure Audits, Downloads, and Pin Entries."""
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -13,6 +13,46 @@ class UpdateType(str, Enum):
     DOWNGRADE_BLOCKED = "downgrade_blocked"
     CACHE_MISS = "cache_miss"
     EVAL_FAILED = "eval_failed"
+
+
+@dataclass
+class PackageMeta:
+    """Evaluated metadata for a package from upstream or local cache."""
+
+    store_path: str
+    version: str = "unknown"
+    main_program: Optional[str] = None
+    pname: Optional[str] = None
+    system: str = "x86_64-linux"
+    channel: Optional[str] = None
+    from_store: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {k: v for k, v in asdict(self).items() if v is not None}
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PackageMeta":
+        return cls(
+            store_path=data.get("storePath") or data.get("store_path", ""),
+            version=data.get("version", "unknown"),
+            main_program=data.get("mainProgram") or data.get("main_program"),
+            pname=data.get("pname"),
+            system=data.get("system", "x86_64-linux"),
+            channel=data.get("channel"),
+            from_store=data.get("fromStore") or data.get("from_store"),
+        )
+
+
+@dataclass
+class ChannelRevInfo:
+    """Channel commit revision and tracking identifier."""
+
+    channel_input: str
+    channel_key: str
+    revision: str
+    last_modified: Optional[int] = None
+    nar_hash: Optional[str] = None
+    is_local_flake: bool = False
 
 
 @dataclass
@@ -82,6 +122,7 @@ class PinEntry:
     system: str = "x86_64-linux"
     channel: Optional[str] = None
     main_program: Optional[str] = None
+    pname: Optional[str] = None
     from_store: Optional[str] = None
     raw_snippet: str = ""
 
@@ -89,6 +130,7 @@ class PinEntry:
 @dataclass
 class UpdateResult:
     """Result of checking a single pin against upstream."""
+
     key: str
     current_store_path: str
     current_version: str

@@ -1,6 +1,4 @@
-"""Compatibility facade module for Nix evaluation utilities, candidate resolution, and channel discovery."""
-from core.cache.disk_store import LocalDiskCache, get_cache_root_dir
-from core.cache.tracker import get_channel_revision_info
+"""Core Nix evaluation engine: batch evaluation, dynamic scoping, and channel resolution."""
 from core.eval.channels import (
     find_cache_pins_file,
     find_flake_dir,
@@ -39,7 +37,4 @@ __all__ = [
     "evaluate_single_package",
     "evaluate_upstream_package",
     "resolve_target_to_store_path",
-    "LocalDiskCache",
-    "get_cache_root_dir",
-    "get_channel_revision_info",
 ]
