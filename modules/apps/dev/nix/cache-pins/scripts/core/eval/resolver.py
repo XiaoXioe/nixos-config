@@ -14,7 +14,7 @@ def extract_version_from_store_path(store_path: str) -> str:
     if len(parts) < 2:
         return "unknown"
     pkg_full_name = parts[1]
-    match = re.search(r"-(\d[\w\.\-]+)$", pkg_full_name)
+    match = re.search(r"-(\d[\w\.\-\+]+)$", pkg_full_name)
     if match:
         return match.group(1)
     return "pinned"
@@ -62,24 +62,44 @@ def generate_candidate_names(target_key: str, pname: Optional[str] = None) -> Li
     """Generate ordered list of candidate attribute names for Nixpkgs scope resolution."""
     candidates: List[str] = []
 
+    def add_variants(base: str) -> None:
+        if not base:
+            return
+        b_clean = base.replace("pkgs.", "").strip()
+        b_dash = b_clean.replace("_", "-")
+        b_under = b_clean.replace("-", "_")
+        for v in [b_clean, b_dash, b_under]:
+            if v and v not in candidates:
+                candidates.append(v)
+        # Prefix stripping for nested scopes like nerd-fonts, pythonPackages, etc.
+        prefixes = [
+            "nerd-fonts-",
+            "nerd_fonts_",
+            "nerdfonts-",
+            "nerdfonts_",
+            "python3Packages.",
+            "python3Packages-",
+            "python3Packages_",
+            "nodePackages.",
+            "nodePackages-",
+            "nodePackages_",
+            "gnome.",
+            "kdePackages.",
+            "libsForQt5.",
+        ]
+        for pfx in prefixes:
+            if b_clean.startswith(pfx):
+                sub = b_clean[len(pfx):]
+                sub_dash = sub.replace("_", "-")
+                sub_under = sub.replace("-", "_")
+                for sv in [sub, sub_dash, sub_under]:
+                    if sv and sv not in candidates:
+                        candidates.append(sv)
+
     if pname:
-        clean_pname = pname.replace("pkgs.", "").strip()
-        if clean_pname:
-            candidates.append(clean_pname)
-            p_dash = clean_pname.replace("_", "-")
-            p_under = clean_pname.replace("-", "_")
-            if p_dash not in candidates:
-                candidates.append(p_dash)
-            if p_under not in candidates:
-                candidates.append(p_under)
+        add_variants(pname)
 
-    clean_key = target_key.replace("pkgs.", "").strip()
-    var_dash = clean_key.replace("_", "-")
-    var_under = clean_key.replace("-", "_")
-
-    for k in [clean_key, var_dash, var_under]:
-        if k and k not in candidates:
-            candidates.append(k)
+    add_variants(target_key)
 
     # Common Nixpkgs alias suffixes
     common_suffixes = [
@@ -109,8 +129,8 @@ def build_nix_batch_eval_expression(
 ) -> str:
     """Construct a high-performance, single-pass Nix batch evaluation expression.
 
-    Safely traverses dynamic package scopes (top-level, python3Packages, nodePackages,
-    gnome, kdePackages, libsForQt5, linuxPackages) using builtins.tryEval.
+    Safely traverses dynamic package scopes (top-level, nerd-fonts, python3Packages,
+    nodePackages, gnome, kdePackages, libsForQt5, linuxPackages) using builtins.tryEval.
     """
     entries_nix = []
     for key, cands in target_candidates_map.items():
@@ -131,8 +151,10 @@ let
     in
       if res.success then res.value else null;
 
-  # Scope sets to search dynamically
+  # Scope sets to search dynamically (specialized scopes first, then top-level pkgs)
   scopes = [
+    (safeGet pkgs "nerd-fonts")
+    (safeGet pkgs "nerdfonts")
     pkgs
     (safeGet pkgs "python3Packages")
     (safeGet pkgs "python314Packages")
