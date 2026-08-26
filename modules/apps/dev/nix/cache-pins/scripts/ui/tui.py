@@ -46,9 +46,9 @@ def launch_cache_dashboard(
     input_text = "\n".join(rows)
 
     scripts_dir = Path(__file__).resolve().parent.parent
-    query_script = str(scripts_dir / "query_pin.py")
+    main_script = str(scripts_dir / "cli" / "main.py")
     cache_flag = f" --cache-url='{cache_url}'" if cache_url else ""
-    preview_cmd = f"python3 {query_script} {{1}}{cache_flag}"
+    preview_cmd = f"python3 {main_script} query {{1}}{cache_flag}"
 
     fzf_cmd = [
         "fzf",
@@ -83,9 +83,9 @@ def launch_cache_dashboard(
         print(f"  • {k}", file=sys.stderr)
     print("--------------------------------------------------------------------------------", file=sys.stderr)
 
-    aria2_script = str(scripts_dir / "aria2_fetch.py")
+    main_script_path = str(scripts_dir / "cli" / "main.py")
     for key in selected_keys:
-        cmd = ["python3", aria2_script, key]
+        cmd = ["python3", main_script_path, "fetch", key]
         if cache_url:
             cmd.append(f"--cache-url={cache_url}")
         if nixpkgs_input:

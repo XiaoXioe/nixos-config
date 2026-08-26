@@ -6,10 +6,15 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-import time
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-import urllib.error
-import urllib.request
+
+try:
+    import urllib3
+    _HAS_URLLIB3 = True
+except ImportError:
+    import urllib.error
+    import urllib.request
+    _HAS_URLLIB3 = False
 
 from core.models import NarInfo
 
@@ -87,6 +92,17 @@ class NixCacheClient:
         self.max_retries = max_retries
         self._narinfo_cache: Dict[str, Optional[NarInfo]] = {}
 
+        if _HAS_URLLIB3:
+            self._pool = urllib3.PoolManager(
+                num_pools=len(self.cache_urls) + 2,
+                maxsize=max_workers,
+                retries=urllib3.Retry(total=max_retries, backoff_factor=0.2, status_forcelist=[500, 502, 503]),
+                timeout=urllib3.Timeout(connect=5.0, read=timeout),
+                headers={"User-Agent": "NixCacheTools/2.0"},
+            )
+        else:
+            self._pool = None
+
     @property
     def cache_url(self) -> str:
         """Comma-separated string of all configured binary caches."""
@@ -101,8 +117,20 @@ class NixCacheClient:
 
     def _fetch_from_single_cache(self, base_url: str, hash_str: str) -> Optional[NarInfo]:
         url = f"{base_url}/{hash_str}.narinfo"
-        req = urllib.request.Request(url, headers={"User-Agent": "NixCacheTools/1.0"})
+        if self._pool is not None:
+            try:
+                resp = self._pool.request("GET", url)
+                if resp.status == 200:
+                    content = resp.data.decode("utf-8")
+                    return self._parse_narinfo(content, hash_str, source_cache_url=base_url)
+                elif resp.status == 404:
+                    return None
+            except Exception:
+                pass
+            return None
 
+        # Fallback to urllib.request
+        req = urllib.request.Request(url, headers={"User-Agent": "NixCacheTools/2.0"})
         for attempt in range(self.max_retries):
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
@@ -112,9 +140,6 @@ class NixCacheClient:
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     return None
-            except (urllib.error.URLError, TimeoutError):
-                if attempt < self.max_retries - 1:
-                    time.sleep(0.3 * (2**attempt))
             except Exception:
                 pass
         return None

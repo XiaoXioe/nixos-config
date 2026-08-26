@@ -114,34 +114,36 @@ in
                 if pkgsArg != null then
                   {
                     override =
-                      {
-                        commandLineArgs ? "",
-                        extraArgs ? [ ],
-                        ...
-                      }:
+                      args:
                       let
+                        resolvedArgs = if builtins.isFunction args then args { } else args;
+                        commandLineArgs = resolvedArgs.commandLineArgs or "";
+                        extraArgs = resolvedArgs.extraArgs or [ ];
                         flagsList = (if commandLineArgs != "" then [ commandLineArgs ] else [ ]) ++ extraArgs;
                         allFlags = builtins.concatStringsSep " " flagsList;
                       in
-                      pkgsArg.runCommand pkgName
-                        {
-                          nativeBuildInputs = [ pkgsArg.makeWrapper ];
-                        }
-                        ''
-                          mkdir -p "$out/bin" "$out/share"
-                          if [ -d "${storePath}/share" ]; then
-                            for f in "${storePath}"/share/*; do
-                              ln -s "$f" "$out/share/"
-                            done
-                          fi
-                          if [ -d "${storePath}/bin" ]; then
-                            for b in "${storePath}"/bin/*; do
-                              binName="$(basename "$b")"
-                              makeWrapper "$b" "$out/bin/$binName" \
-                                --add-flags "${allFlags}"
-                            done
-                          fi
-                        '';
+                      if flagsList == [ ] then
+                        pkg
+                      else
+                        pkgsArg.runCommand pkgName
+                          {
+                            nativeBuildInputs = [ pkgsArg.makeWrapper ];
+                          }
+                          ''
+                            mkdir -p "$out/bin" "$out/share"
+                            if [ -d "${storePath}/share" ]; then
+                              for f in "${storePath}"/share/*; do
+                                ln -s "$f" "$out/share/"
+                              done
+                            fi
+                            if [ -d "${storePath}/bin" ]; then
+                              for b in "${storePath}"/bin/*; do
+                                binName="$(basename "$b")"
+                                makeWrapper "$b" "$out/bin/$binName" \
+                                  --add-flags "${allFlags}"
+                              done
+                            fi
+                          '';
                   }
                 else
                   { }

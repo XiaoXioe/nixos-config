@@ -89,11 +89,15 @@ def fetch_flake_package_variants(
           map getInfo (lib.unique allNames)
         """
         try:
+            nix_env = os.environ.copy()
+            nix_env["NIXPKGS_ALLOW_UNFREE"] = "1"
+            nix_env["NIXPKGS_ALLOW_INSECURE"] = "1"
             res = subprocess.run(
                 ["nix", "eval", "--json", "--impure", "--expr", expr],
                 capture_output=True,
                 text=True,
                 timeout=10,
+                env=nix_env,
             )
             if res.returncode == 0:
                 data = json.loads(res.stdout)
@@ -321,18 +325,26 @@ def interactive_version_picker(
 
     input_text = "\n".join(rows)
 
-    scripts_dir = Path(__file__).resolve().parent.parent
-    query_script = str(scripts_dir / "query_pin.py")
-    cache_flag = f" --cache-url='{cache_url}'" if cache_url else ""
-    preview_cmd = f"python3 {query_script} {{3}} --input {{-1}}{cache_flag}"
+    preview_cmd = (
+        'echo -e "\\033[1;36m===================================================\\033[0m\\n'
+        '\\033[1;32m📦 Paket Target :\\033[0m {3}\\n'
+        '\\033[1;33m🏷️  Versi Rilis  :\\033[0m {1}\\n'
+        '\\033[1;34m📅 Tanggal/Info :\\033[0m {2}\\n'
+        '\\033[1;35m🌐 Flake Input  :\\033[0m {4}\\n'
+        '\\033[1;36m===================================================\\033[0m\\n\\n'
+        '\\033[90m💡 Tekan [ENTER] untuk memilih versi ini.\\n'
+        '   ncp akan mengevaluasi store path, closure size,\\n'
+        '   dan membuat snippet konfigurasi Nix.\\033[0m"'
+    )
 
     fzf_cmd = [
         "fzf",
         "--ansi",
+        "--delimiter=\\|",
         f"--prompt=📦 Pilih Versi {clean_pkg} > ",
         "--header=Navigasi: ↑↓ | Pilih Versi: ENTER | Batal: Esc/Ctrl-C",
         f"--preview={preview_cmd}",
-        "--preview-window=right:55%:wrap",
+        "--preview-window=right:50%:wrap",
         "--layout=reverse",
         "--height=85%",
         "--border",

@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
 from typing import Any, Dict, Optional, Tuple
 
 
@@ -41,6 +42,7 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
         return val
 
     mapping = {
+        "nixpkgs": "nixpkgs",
         "unstable": "github:NixOS/nixpkgs/nixos-unstable",
         "nixos-unstable": "github:NixOS/nixpkgs/nixos-unstable",
         "nixpkgs-unstable": "github:NixOS/nixpkgs/nixpkgs-unstable",
@@ -55,13 +57,13 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
     if val.lower() in mapping:
         return mapping[val.lower()]
 
-    # Format XX.YY (e.g. 26.05, 25.11, 25.05, 24.11, 24.05, 23.11)
-    if re.match(r"^\d{2}\.\d{2}$", val):
-        return f"github:NixOS/nixpkgs/nixos-{val}"
-
-    # Format nixos-XX.YY
-    if re.match(r"^nixos-\d{2}\.\d{2}$", val):
-        return f"github:NixOS/nixpkgs/{val}"
+    # Format XX.YY, nixos-XX.YY, nixpkgs-XX.YY (e.g. 26.05, nixpkgs-25.11, nixos-24.05)
+    m = re.match(r"^(?:nixos-|nixpkgs-)?(\d{2}\.\d{2}(?:-small|-darwin)?)$", val, re.IGNORECASE)
+    if m:
+        sub = m.group(1)
+        if sub.endswith("-darwin"):
+            return f"github:NixOS/nixpkgs/nixpkgs-{sub}"
+        return f"github:NixOS/nixpkgs/nixos-{sub}"
 
     # Check flake.lock for matching input name via root inputs mapping
     flake_dir = find_flake_dir()
@@ -73,6 +75,10 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
                 nodes = data.get("nodes", {})
                 root_node = nodes.get(data.get("root", "root"), {})
                 root_inputs = root_node.get("inputs", {})
+
+                if val in root_inputs:
+                    # Valid local input name in flake.lock root inputs
+                    return val
 
                 target_id = root_inputs.get(val, val)
                 if target_id in nodes:
@@ -86,8 +92,15 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
                         ref = f"/{orig.get('ref')}" if orig.get("ref") else ""
                         return f"gitlab:{orig.get('owner')}/{orig.get('repo')}{ref}"
                     elif t == "git" and orig.get("url"):
-                        ref = f"/{orig.get('ref')}" if orig.get("ref") else ""
-                        return f"git+{orig.get('url')}{ref}"
+                        url = orig.get("url", "")
+                        ref = orig.get("ref", "")
+                        if "github.com/" in url:
+                            parts = url.split("github.com/")[-1].rstrip("/").replace(".git", "").split("/")
+                            if len(parts) >= 2:
+                                ref_part = f"/{ref}" if ref else ""
+                                return f"github:{parts[0]}/{parts[1]}{ref_part}"
+                        ref_suffix = f"?ref={ref}" if ref else ""
+                        return f"git+{url}{ref_suffix}"
                     elif orig.get("url"):
                         return orig.get("url")
             except Exception:
@@ -130,15 +143,24 @@ def find_cache_pins_file(custom_path: Optional[str] = None) -> Optional[Path]:
     return None
 
 
-def eval_nix_raw(expr: str, flake_input: Optional[str] = None) -> Optional[str]:
-    """Evaluate a raw Nix expression via 'nix eval --raw' and return trimmed string."""
+def _get_nix_env() -> Dict[str, str]:
+    """Return environment dictionary with unfree and insecure evaluation enabled."""
+    env = os.environ.copy()
+    env["NIXPKGS_ALLOW_UNFREE"] = "1"
+    env["NIXPKGS_ALLOW_INSECURE"] = "1"
+    env["NIXPKGS_ALLOW_BROKEN"] = "1"
+    return env
+
+
+def eval_nix_raw(expr: str, flake_input: Optional[str] = None, verbose: Optional[bool] = None) -> Optional[str]:
+    """Evaluate a raw Nix expression via 'nix eval --raw' with real-time progress feedback and return trimmed string."""
     flake_dir = find_flake_dir()
     flake_prefix = f"{flake_dir}#" if flake_dir else ""
 
     cmd = ["nix", "eval", "--raw", "--impure"]
 
     if flake_input and not expr.startswith("builtins.") and not expr.startswith("import"):
-        if flake_input.startswith("github:") or flake_input.startswith("gitlab:") or flake_input.startswith("path:"):
+        if any(flake_input.startswith(prefix) for prefix in ["github:", "gitlab:", "path:", "git+", "git:"]):
             eval_expr = f'(builtins.getFlake "{flake_input}").legacyPackages.x86_64-linux.{expr}'
         else:
             eval_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{flake_input}.legacyPackages.x86_64-linux.{expr}'
@@ -146,12 +168,66 @@ def eval_nix_raw(expr: str, flake_input: Optional[str] = None) -> Optional[str]:
     else:
         cmd.extend(["--expr", expr])
 
+    is_verbose = verbose if verbose is not None else (os.environ.get("NCP_VERBOSE") == "1")
+    is_tty = sys.stderr.isatty()
+
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        if res.returncode == 0:
-            return res.stdout.strip()
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            env=_get_nix_env(),
+        )
+
+        stdout_chunks = []
+
+        def handle_stderr():
+            for raw_line in iter(proc.stderr.readline, ""):
+                if not raw_line:
+                    break
+                line = raw_line.strip()
+                if not line:
+                    continue
+                if is_verbose:
+                    print(f"  [nix] {line}", file=sys.stderr, flush=True)
+                elif is_tty:
+                    # Ambil cuplikan ringkas progress dari Nix stderr
+                    short_line = line[:80]
+                    print(f"\033[2K\r  ⏳ {short_line}", file=sys.stderr, end="", flush=True)
+
+        def handle_stdout():
+            for raw_line in iter(proc.stdout.readline, ""):
+                if not raw_line:
+                    break
+                stdout_chunks.append(raw_line)
+
+        t_err = threading.Thread(target=handle_stderr, daemon=True)
+        t_out = threading.Thread(target=handle_stdout, daemon=True)
+        t_err.start()
+        t_out.start()
+
+        proc.wait(timeout=180)
+        t_err.join(timeout=2)
+        t_out.join(timeout=2)
+
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
+
+        if proc.returncode == 0:
+            return "".join(stdout_chunks).strip()
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
     except Exception:
-        pass
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
+
     return None
 
 
@@ -170,19 +246,10 @@ def extract_version_from_store_path(store_path: str) -> str:
 
 
 def is_path_in_nix_store(store_path: str) -> bool:
-    """Check if a store path physically exists and is genuinely valid in the Nix SQLite database."""
-    if not store_path or not store_path.startswith("/nix/store/") or not os.path.exists(store_path):
+    """Check if a store path physically exists in /nix/store (zero subprocess / zero daemon connection overhead)."""
+    if not store_path or not store_path.startswith("/nix/store/"):
         return False
-    try:
-        res = subprocess.run(
-            ["nix-store", "--query", "--references", store_path],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=3,
-        )
-        return res.returncode == 0
-    except Exception:
-        return False
+    return os.path.exists(store_path)
 
 
 def compare_versions(v1: str, v2: str) -> int:
@@ -216,46 +283,181 @@ def compare_versions(v1: str, v2: str) -> int:
     return 1 if v1 > v2 else -1
 
 
+def eval_nix_package_info(
+    candidates: list,
+    flake_input: str = "nixpkgs",
+    verbose: Optional[bool] = None,
+) -> Tuple[Optional[str], str, Optional[str]]:
+    """Evaluate package store path, version, and mainProgram in a SINGLE atomic Nix eval call."""
+    flake_dir = find_flake_dir()
+    flake_prefix = f"{flake_dir}#" if flake_dir else ""
+
+    if any(flake_input.startswith(prefix) for prefix in ["github:", "gitlab:", "path:", "git+", "git:"]):
+        flake_target_expr = f'(builtins.getFlake "{flake_input}")'
+    else:
+        flake_target_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{flake_input}'
+
+    candidates_nix = " ".join(f'"{c}"' for c in candidates if c)
+
+    expr = f"""
+    let
+      fl = {flake_target_expr};
+      pkgs = fl.legacyPackages.x86_64-linux or fl.packages.x86_64-linux or {{}};
+      candidates = [ {candidates_nix} ];
+
+      getAttr = p: name:
+        let r = builtins.tryEval (p.${{name}} or null); in if r.success then r.value else null;
+
+      tryPkg = name:
+        let
+          p1 = getAttr pkgs name;
+          p2 = getAttr (pkgs.python3Packages or {{}}) name;
+          p3 = getAttr (pkgs.python314Packages or {{}}) name;
+          p4 = getAttr (pkgs.python313Packages or {{}}) name;
+          p5 = getAttr (pkgs.python312Packages or {{}}) name;
+          p6 = getAttr (pkgs.linuxPackages or {{}}) name;
+          found = if p1 != null then p1
+                  else if p2 != null then p2
+                  else if p3 != null then p3
+                  else if p4 != null then p4
+                  else if p5 != null then p5
+                  else p6;
+        in
+          if found != null && (found ? outPath || builtins.isPath found) then
+            let
+              drv = if found ? kernel then found.kernel else found;
+              v = drv.version or "unknown";
+              mp = drv.meta.mainProgram or null;
+              sp = builtins.unsafeDiscardStringContext (toString drv.outPath or drv);
+            in
+              {{
+                storePath = sp;
+                version = v;
+                mainProgram = mp;
+              }}
+          else null;
+
+      results = builtins.filter (x: x != null) (map tryPkg candidates);
+    in
+      if results != [] then builtins.head results else null
+    """
+
+    cmd = ["nix", "eval", "--json", "--impure", "--expr", expr]
+
+    is_verbose = verbose if verbose is not None else (os.environ.get("NCP_VERBOSE") == "1")
+    is_tty = sys.stderr.isatty()
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            env=_get_nix_env(),
+        )
+
+        stdout_chunks = []
+
+        def handle_stderr():
+            for raw_line in iter(proc.stderr.readline, ""):
+                if not raw_line:
+                    break
+                line = raw_line.strip()
+                if not line:
+                    continue
+                if is_verbose:
+                    print(f"  [nix] {line}", file=sys.stderr, flush=True)
+                elif is_tty:
+                    short_line = line[:80]
+                    print(f"\033[2K\r  ⏳ {short_line}", file=sys.stderr, end="", flush=True)
+
+        def handle_stdout():
+            for raw_line in iter(proc.stdout.readline, ""):
+                if not raw_line:
+                    break
+                stdout_chunks.append(raw_line)
+
+        t_err = threading.Thread(target=handle_stderr, daemon=True)
+        t_out = threading.Thread(target=handle_stdout, daemon=True)
+        t_err.start()
+        t_out.start()
+
+        proc.wait(timeout=180)
+        t_err.join(timeout=2)
+        t_out.join(timeout=2)
+
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
+
+        if proc.returncode == 0:
+            raw_out = "".join(stdout_chunks).strip()
+            if raw_out and raw_out != "null":
+                data = json.loads(raw_out)
+                if isinstance(data, dict) and "storePath" in data:
+                    sp = data["storePath"]
+                    ver = data.get("version") or extract_version_from_store_path(sp)
+                    main_prog = data.get("mainProgram")
+                    return sp, ver, main_prog
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
+    except Exception:
+        if is_tty and not is_verbose:
+            print("\033[2K\r", file=sys.stderr, end="", flush=True)
+
+    return None, "unknown", None
+
+
 def evaluate_upstream_package(
     target_key: str,
     nixpkgs_input: str = "nixpkgs",
+    pname: Optional[str] = None,
+    verbose: Optional[bool] = None,
 ) -> Tuple[Optional[str], str, Optional[str]]:
-    """Smart evaluator for upstream packages that handles underscores, dashes, python packages, and flake expressions."""
+    """Smart evaluator for upstream packages that handles pname, underscores, dashes, python packages, and flake expressions."""
+    candidates = []
+
+    if pname:
+        clean_pname = pname.replace("pkgs.", "").strip()
+        if clean_pname:
+            candidates.append(clean_pname)
+            p_dash = clean_pname.replace("_", "-")
+            p_under = clean_pname.replace("-", "_")
+            if p_dash not in candidates:
+                candidates.append(p_dash)
+            if p_under not in candidates:
+                candidates.append(p_under)
+
     clean_key = target_key.replace("pkgs.", "")
     var_dash = clean_key.replace("_", "-")
     var_under = clean_key.replace("-", "_")
 
-    candidates = [clean_key]
-    if var_dash not in candidates:
-        candidates.append(var_dash)
-    if var_under not in candidates:
-        candidates.append(var_under)
+    for k in [clean_key, var_dash, var_under]:
+        if k not in candidates:
+            candidates.append(k)
 
-    prefixes = [
-        "",
-        "pkgs.",
-        "python3Packages.",
-        "pkgs.python3Packages.",
-        "python314Packages.",
-        "pkgs.python314Packages.",
-        "python313Packages.",
-        "pkgs.python313Packages.",
-        "python312Packages.",
-        "pkgs.python312Packages.",
-        "linuxPackages.",
-        "pkgs.linuxPackages.",
+    # Tambahkan variasi alias umum di Nixpkgs jika belum ada
+    common_suffixes = [
+        "-desktop",
+        "-desktopeditors",
+        "_desktop",
+        "-bin",
+        "-cli",
+        "-gui",
+        "-with-plugins",
     ]
+    for k in list(candidates):
+        for suf in common_suffixes:
+            candidate_variant = f"{k}{suf}"
+            if candidate_variant not in candidates:
+                candidates.append(candidate_variant)
 
-    for attr in candidates:
-        for prefix in prefixes:
-            base_expr = f"{prefix}{attr}"
-            sp = eval_nix_raw(f"{base_expr}.outPath", nixpkgs_input)
-            if sp and sp.startswith("/nix/store/"):
-                ver = eval_nix_raw(f"{base_expr}.version", nixpkgs_input) or extract_version_from_store_path(sp)
-                main_prog = eval_nix_raw(f"{base_expr}.meta.mainProgram", nixpkgs_input)
-                return sp, ver, main_prog
-
-    return None, "unknown", None
+    return eval_nix_package_info(candidates, nixpkgs_input, verbose=verbose)
 
 
 def resolve_target_to_store_path(
@@ -274,7 +476,9 @@ def resolve_target_to_store_path(
     var_dash = clean_target.replace("_", "-")
     var_under = clean_target.replace("-", "_")
 
-    # 2. Check local pins_file registry
+    # Ambil metadata cached (seperti pname) dari pins_file jika ada
+    cached_pname = None
+    cached_entry = None
     if pins_file and pins_file.is_file():
         try:
             expr = f"import {pins_file}"
@@ -283,30 +487,34 @@ def resolve_target_to_store_path(
                 capture_output=True,
                 text=True,
                 timeout=10,
+                env=_get_nix_env(),
             )
             if res.returncode == 0:
                 data = json.loads(res.stdout)
                 for key_candidate in [clean_target, var_dash, var_under]:
                     if key_candidate in data:
-                        entry = data[key_candidate]
-                        if isinstance(entry, dict) and "storePath" in entry:
-                            sp = entry["storePath"]
-                            ver = entry.get("version") or extract_version_from_store_path(sp)
-                            main_prog = entry.get("mainProgram")
-                            return sp, ver, main_prog
+                        cached_entry = data[key_candidate]
+                        if isinstance(cached_entry, dict):
+                            cached_pname = cached_entry.get("pname")
+                        break
         except Exception:
             pass
 
-    # 3. Flake evaluation with channel target
-    for attr in [clean_target, var_dash, var_under]:
-        store_path = eval_nix_raw(f"{attr}.outPath", nixpkgs_input)
-        if store_path and store_path.startswith("/nix/store/"):
-            version = (
-                eval_nix_raw(f"{attr}.version", nixpkgs_input)
-                or extract_version_from_store_path(store_path)
-            )
-            main_program = eval_nix_raw(f"{attr}.meta.mainProgram", nixpkgs_input)
-            return store_path, version, main_program
+    # 2. Utamakan evaluasi dari channel / input yang diminta pengguna
+    sp, ver, main_prog = evaluate_upstream_package(
+        target_key=clean_target,
+        nixpkgs_input=nixpkgs_input,
+        pname=cached_pname,
+    )
+    if sp and sp.startswith("/nix/store/"):
+        return sp, ver, main_prog
+
+    # 3. Fallback: gunakan entri pin lokal jika evaluasi upstream gagal
+    if cached_entry and isinstance(cached_entry, dict) and "storePath" in cached_entry:
+        sp = cached_entry["storePath"]
+        ver = cached_entry.get("version") or extract_version_from_store_path(sp)
+        main_prog = cached_entry.get("mainProgram")
+        return sp, ver, main_prog
 
     # 4. Smart recursive search in flake inputs and configs
     flake_dir = find_flake_dir()
@@ -362,6 +570,6 @@ def resolve_target_to_store_path(
             return store_path, version, None
 
     raise RuntimeError(
-        f"Tidak dapat menemukan store path untuk '{target}'. "
-        "Pastikan nama valid atau terdaftar di modules/_lib/cache-pins.nix."
+        f"Tidak dapat menemukan store path untuk '{target}' pada channel/input '{nixpkgs_input}'. "
+        "Pastikan nama atribut valid atau terdaftar di modules/_lib/cache-pins.nix."
     )

@@ -28,7 +28,8 @@ class ClosureAuditor:
 
         if not target_narinfo:
             raise RuntimeError(
-                f"Biner untuk store path {store_path} tidak ditemukan di binary cache ({self.client.summary_display})."
+                f"Biner untuk store path {store_path} tidak ditemukan di binary cache ({self.client.summary_display}).\n"
+                "💡 Catatan: Paket berlisensi 'unfree' (proprietary) atau paket kustom umumnya tidak di-build/di-cache oleh server Hydra resmi (cache.nixos.org)."
             )
 
         # 1. Traverse closure DAG

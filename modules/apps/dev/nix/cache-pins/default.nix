@@ -6,11 +6,25 @@
 }:
 
 let
-  pythonEnv = pkgs.python3;
+  pythonEnv = pkgs.python3.withPackages (ps: [ ps.urllib3 ]);
+
+  runtimeDeps = lib.makeBinPath [
+    pkgs.nix
+    pkgs.aria2
+    pkgs.curl
+    pkgs.fzf
+    pkgs.git
+    pkgs.nixfmt
+    pkgs.coreutils
+    pkgs.nix-tree
+    pkgs.nvd
+    pkgs.nix-diff
+    pkgs.nurl
+  ];
 
   cachePinTools = pkgs.stdenv.mkDerivation {
     pname = "nix-cache-pin-tools";
-    version = "1.0.0";
+    version = "2.0.0";
     src = ./scripts;
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
@@ -19,37 +33,14 @@ let
       mkdir -p $out/lib/nix-cache-pin-tools $out/bin
       cp -r * $out/lib/nix-cache-pin-tools/
 
-      # query-cache-pin
-      makeWrapper ${pythonEnv}/bin/python3 $out/bin/query-cache-pin \
-        --add-flags "$out/lib/nix-cache-pin-tools/query_pin.py" \
+      # Unified entry point: nix-cache-pin (ncp)
+      makeWrapper ${pythonEnv}/bin/python3 $out/bin/nix-cache-pin \
+        --add-flags "$out/lib/nix-cache-pin-tools/cli/main.py" \
         --prefix PYTHONPATH : "$out/lib/nix-cache-pin-tools" \
-        --prefix PATH : ${
-          lib.makeBinPath [
-            pkgs.nix
-            pkgs.curl
-            pkgs.fzf
-            pkgs.nixfmt
-            pkgs.coreutils
-          ]
-        }
+        --prefix PATH : ${runtimeDeps}
 
-      # aria2-fetch-pin
-      makeWrapper ${pythonEnv}/bin/python3 $out/bin/aria2-fetch-pin \
-        --add-flags "$out/lib/nix-cache-pin-tools/aria2_fetch.py" \
-        --prefix PYTHONPATH : "$out/lib/nix-cache-pin-tools" \
-        --prefix PATH : ${
-          lib.makeBinPath [
-            pkgs.nix
-            pkgs.aria2
-            pkgs.fzf
-            pkgs.nixfmt
-            pkgs.coreutils
-          ]
-        }
-
-      # Aliases
-      ln -s $out/bin/query-cache-pin $out/bin/qcp
-      ln -s $out/bin/aria2-fetch-pin $out/bin/afp
+      # Short alias
+      ln -s $out/bin/nix-cache-pin $out/bin/ncp
     '';
   };
 
@@ -61,50 +52,73 @@ let
         end
     end
 
-    # query-cache-pin / qcp completions
-    complete -c query-cache-pin -s c -l channel -x -a "unstable nixpkgs-unstable 26.05 25.11 25.05 24.11 24.05 master" -d "Shorthand channel Nixpkgs"
-    complete -c query-cache-pin -s v -l verbose -d "Tampilkan seluruh daftar dependensi"
-    complete -c query-cache-pin -s w -l write -d "Tulis/perbarui entri di cache-pins.nix"
-    complete -c query-cache-pin -s i -l interactive -d "Buka TUI Dashboard interaktif fzf"
-    complete -c query-cache-pin -s s -l search-versions -d "Cari versi lain dari paket via FZF"
-    complete -c query-cache-pin -l all -d "Verifikasi seluruh entri di cache-pins.nix"
-    complete -c query-cache-pin -l audit-unused -d "Audit penggunaan pin di codebase modules (deteksi dangling pins)"
-    complete -c query-cache-pin -l clean-unused -d "Hapus seluruh pin yang tidak lagi terpakai dari cache-pins.nix"
-    complete -c query-cache-pin -l adopt -d "Adopsi paket dari pkgs ke cache pin dan otomatis refactor modul target"
-    complete -c query-cache-pin -l stats -l summary -d "Tampilkan dashboard statistik dan kesiapan /nix/store"
-    complete -c query-cache-pin -l prefetch -d "Unduh massal seluruh pin aktif ke /nix/store via aria2c"
-    complete -c query-cache-pin -s d -l delete -x -a "(__fish_cache_pin_keys)" -d "Hapus entri paket dari cache-pins.nix"
-    complete -c query-cache-pin -s f -l force -d "Lewati konfirmasi saat membersihkan pin"
-    complete -c query-cache-pin -l update -x -a "(__fish_cache_pin_keys)" -d "Perbarui paket tertentu dari upstream"
-    complete -c query-cache-pin -l update-all -d "Perbarui seluruh entri cache-pins.nix dari upstream"
-    complete -c query-cache-pin -l version-only -l bump-only -d "Hanya perbarui jika versi naik (abaikan rebuild berversi sama)"
-    complete -c query-cache-pin -l cache-url -d "Binary cache URL (multi-cache dipisahkan koma)"
-    complete -c query-cache-pin -l input -d "Flake input target"
-    complete -c query-cache-pin -l pins-file -r -d "Path ke berkas cache-pins.nix"
-    complete -c query-cache-pin -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    # ncp subcommand completions
+    complete -c ncp -n __fish_use_subcommand -a "query" -d "Cek status cache, closure, narinfo"
+    complete -c ncp -n __fish_use_subcommand -a "fetch" -d "Download NAR closure via aria2c"
+    complete -c ncp -n __fish_use_subcommand -a "update" -d "Update pin dari upstream"
+    complete -c ncp -n __fish_use_subcommand -a "audit" -d "Audit pin unused/orphan"
+    complete -c ncp -n __fish_use_subcommand -a "adopt" -d "Adopsi paket ke cache-pin"
+    complete -c ncp -n __fish_use_subcommand -a "diff" -d "Bandingkan closure pin lokal vs upstream"
+    complete -c ncp -n __fish_use_subcommand -a "tree" -d "Visualisasi grafik dependensi via nix-tree"
+    complete -c ncp -n __fish_use_subcommand -a "tui" -d "FZF Dashboard interaktif"
+    complete -c ncp -n __fish_use_subcommand -a "stats" -d "Dashboard statistik"
+    complete -c ncp -n __fish_use_subcommand -a "delete" -d "Hapus pin dari registry"
+    complete -c ncp -n __fish_use_subcommand -a "search" -d "Cari versi paket via FZF"
 
-    complete -c qcp -w query-cache-pin
+    # Global options
+    complete -c ncp -s c -l channel -x -a "unstable nixpkgs-unstable 26.05 25.11 25.05 24.11 24.05 master" -d "Shorthand channel Nixpkgs"
+    complete -c ncp -l cache-url -d "Binary cache URL"
+    complete -c ncp -l input -d "Flake input target"
+    complete -c ncp -l pins-file -r -d "Path ke berkas cache-pins.nix"
 
-    # aria2-fetch-pin / afp completions
-    complete -c aria2-fetch-pin -s c -l channel -x -a "unstable nixpkgs-unstable 26.05 25.11 25.05 24.11 24.05 master" -d "Shorthand channel Nixpkgs"
-    complete -c aria2-fetch-pin -l all-active -d "Unduh secara massal seluruh pin aktif ke /nix/store"
-    complete -c aria2-fetch-pin -l all-pins -d "Unduh secara massal seluruh pin terdaftar ke /nix/store"
-    complete -c aria2-fetch-pin -s i -l interactive -d "Buka TUI Dashboard interaktif fzf"
-    complete -c aria2-fetch-pin -s s -l search-versions -d "Cari versi lain dari paket via FZF sebelum mengunduh"
-    complete -c aria2-fetch-pin -l keep-nar -d "Pertahankan arsip .nar di RAM setelah ingest selesai"
-    complete -c aria2-fetch-pin -l split -d "Koneksi paralel per file (default: 8)"
-    complete -c aria2-fetch-pin -s j -l concurrent -d "Maksimum download bersamaan (default: 4)"
-    complete -c aria2-fetch-pin -l cache-url -d "Binary cache URL"
-    complete -c aria2-fetch-pin -l input -d "Flake input target"
-    complete -c aria2-fetch-pin -l cache-dir -r -d "Direktori cache lokal aria2 (default: RAM tmpfs)"
-    complete -c aria2-fetch-pin -l pins-file -r -d "Path ke berkas cache-pins.nix"
-    complete -c aria2-fetch-pin -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    # ncp query
+    complete -c ncp -n "__fish_seen_subcommand_from query q" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    complete -c ncp -n "__fish_seen_subcommand_from query q" -s v -l verbose -d "Tampilkan seluruh daftar dependensi"
+    complete -c ncp -n "__fish_seen_subcommand_from query q" -s w -l write -d "Tulis/perbarui entri di cache-pins.nix"
+    complete -c ncp -n "__fish_seen_subcommand_from query q" -l all -d "Verifikasi seluruh entri"
 
-    complete -c afp -w aria2-fetch-pin
+    # ncp fetch
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l all-active -d "Unduh massal pin aktif"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l all-pins -d "Unduh massal seluruh pin"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l keep-nar -d "Pertahankan .nar di RAM setelah ingest"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l split -d "Koneksi paralel per file (default: 8)"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -s j -l concurrent -d "Download bersamaan (default: 4)"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l cache-dir -r -d "Direktori cache lokal"
+
+    # ncp update
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -l all -d "Perbarui seluruh pin"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -s w -l write -d "Simpan perubahan ke file"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -s f -l force -d "Izinkan downgrade"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -l version-only -d "Hanya update jika versi naik"
+
+    # ncp audit
+    complete -c ncp -n "__fish_seen_subcommand_from audit a" -l clean -d "Hapus pin yatim"
+    complete -c ncp -n "__fish_seen_subcommand_from audit a" -s f -l force -d "Lewati konfirmasi"
+
+    # ncp adopt
+    complete -c ncp -n "__fish_seen_subcommand_from adopt" -a "(__fish_cache_pin_keys)" -d "Paket target"
+
+    # ncp diff
+    complete -c ncp -n "__fish_seen_subcommand_from diff d" -a "(__fish_cache_pin_keys)" -d "Paket target"
+    complete -c ncp -n "__fish_seen_subcommand_from diff d" -l deep -d "Gunakan nix-diff untuk analisis semantik mendalam"
+
+    # ncp tree
+    complete -c ncp -n "__fish_seen_subcommand_from tree t" -a "(__fish_cache_pin_keys)" -d "Paket target"
+
+    # ncp delete
+    complete -c ncp -n "__fish_seen_subcommand_from delete rm del" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+
+    # ncp search
+    complete -c ncp -n "__fish_seen_subcommand_from search s" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+
+    # nix-cache-pin wraps ncp
+    complete -c nix-cache-pin -w ncp
   '';
 
   bashCompletions = ''
-    _cache_pins_complete() {
+    _ncp_complete() {
         local cur prev words cword
         _init_completion || return
 
@@ -114,33 +128,79 @@ let
             keys=$(grep -E '^[ ]{2}[a-zA-Z0-9_-]+[ ]*=[ ]*\{' "$pins_file" | sed -E 's/^[ ]*([a-zA-Z0-9_-]+).*/\1/')
         fi
 
-        if [[ "$prev" == "-c" || "$prev" == "--channel" ]]; then
-            COMPREPLY=( $(compgen -W "unstable nixpkgs-unstable 26.05 25.11 25.05 24.11 24.05 master" -- "$cur") )
+        local subcommands="query fetch update audit adopt diff tree tui stats delete search"
+
+        if [[ $cword -eq 1 ]]; then
+            COMPREPLY=( $(compgen -W "$subcommands --help --version" -- "$cur") )
             return 0
         fi
 
-        if [[ "$prev" == "-d" || "$prev" == "--delete" || "$prev" == "--update" ]]; then
-            COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
-            return 0
-        fi
+        local subcmd="''${words[1]}"
 
-        if [[ "$cur" == -* ]]; then
-            COMPREPLY=( $(compgen -W "-c --channel -v --verbose -w --write -d --delete -f --force --adopt --stats --summary --prefetch -i --interactive -s --search-versions --keep-nar --all --all-active --all-pins --audit-unused --clean-unused --update --update-all --version-only --bump-only --cache-url --input --pins-file --split -j --concurrent --cache-dir" -- "$cur") )
-            return 0
-        fi
-
-        COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+        case "$subcmd" in
+            query|q)
+                if [[ "$cur" == -* ]]; then
+                    COMPREPLY=( $(compgen -W "-v --verbose -w --write --all -c --channel --cache-url --input --pins-file" -- "$cur") )
+                else
+                    COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                fi
+                ;;
+            fetch|f)
+                if [[ "$cur" == -* ]]; then
+                    COMPREPLY=( $(compgen -W "--all-active --all-pins --keep-nar --split -j --concurrent --cache-dir -c --channel --cache-url --input --pins-file" -- "$cur") )
+                else
+                    COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                fi
+                ;;
+            update|u)
+                if [[ "$cur" == -* ]]; then
+                    COMPREPLY=( $(compgen -W "--all -w --write -f --force --version-only --bump-only -c --channel --cache-url --input --pins-file" -- "$cur") )
+                else
+                    COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                fi
+                ;;
+            audit|a)
+                COMPREPLY=( $(compgen -W "--clean -f --force --pins-file" -- "$cur") )
+                ;;
+            adopt)
+                COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                ;;
+            diff|d)
+                if [[ "$cur" == -* ]]; then
+                    COMPREPLY=( $(compgen -W "--deep -c --channel --input --pins-file" -- "$cur") )
+                else
+                    COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                fi
+                ;;
+            tree|t)
+                if [[ "$cur" == -* ]]; then
+                    COMPREPLY=( $(compgen -W "-c --channel --input --pins-file" -- "$cur") )
+                else
+                    COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                fi
+                ;;
+            delete|rm|del)
+                COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                ;;
+            search|s)
+                COMPREPLY=( $(compgen -W "$keys" -- "$cur") )
+                ;;
+        esac
     }
-    complete -F _cache_pins_complete query-cache-pin qcp aria2-fetch-pin afp
+    complete -F _ncp_complete ncp nix-cache-pin
   '';
 in
 selfLib.mkModule {
   name = "apps.dev.nix.cache-pins";
-  description = "Modular Nix Binary Cache auditing (query-cache-pin / qcp) and multi-connection aria2 closure downloader (aria2-fetch-pin / afp)";
+  description = "Unified Nix Binary Cache pin management CLI (nix-cache-pin / ncp): query, fetch, update, audit, adopt, diff, tree, and TUI dashboard";
 
   hmConfig = {
     home.packages = [
       cachePinTools
+      pkgs.nix-tree
+      pkgs.nvd
+      pkgs.nix-diff
+      pkgs.nurl
     ];
 
     xdg.configFile =
@@ -150,10 +210,8 @@ selfLib.mkModule {
         bash = bashCompletions;
       })
       // {
-        "fish/completions/query-cache-pin.fish".text = fishCompletions;
-        "fish/completions/qcp.fish".text = fishCompletions;
-        "fish/completions/aria2-fetch-pin.fish".text = fishCompletions;
-        "fish/completions/afp.fish".text = fishCompletions;
+        "fish/completions/ncp.fish".text = fishCompletions;
+        "fish/completions/nix-cache-pin.fish".text = fishCompletions;
       };
   };
 }

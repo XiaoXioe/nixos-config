@@ -84,3 +84,16 @@ class PinEntry:
     main_program: Optional[str] = None
     from_store: Optional[str] = None
     raw_snippet: str = ""
+
+
+@dataclass
+class UpdateResult:
+    """Result of checking a single pin against upstream."""
+    key: str
+    current_store_path: str
+    current_version: str
+    new_store_path: Optional[str] = None
+    new_version: str = "unknown"
+    main_program: Optional[str] = None
+    update_type: UpdateType = UpdateType.UP_TO_DATE
+    effective_input: str = "nixpkgs"
