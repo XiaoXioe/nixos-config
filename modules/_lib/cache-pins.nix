@@ -162,12 +162,12 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 435.19 MiB | Download Bersih: 139.02 MiB
-  # Library Lokal: 265/352 (75.3%) | Missing: 87 paket (139.02 MiB)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.22 GiB (Uncompressed) | Download Kotor: 427.72 MiB
+  # Download Bersih: 28.42 MiB | Library Lokal: 346/349 (99.1%) | Missing: 3 paket (28.42 MiB)
   dolphin_emu = {
-    storePath = "/nix/store/598854dk4lfhl26xpz74x2qql0688hjp-dolphin-emu-2606";
-    version = "2606";
+    storePath = "/nix/store/3hq9jpjxh0rcmc4is4dvy8g2nnl0r6ss-dolphin-emu-2603a";
+    version = "2603a";
     mainProgram = "dolphin-emu";
     channel = "nixpkgs";
     system = "x86_64-linux";
@@ -334,4 +334,204 @@
     system = "x86_64-linux";
   };
 
+  # ── Development & Linters (Batch A) ───────────────────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 2010.97 MiB | NAR: 47.40 MiB
+  clang_tools = {
+    storePath = "/nix/store/1hjdy9l0r3zh4j3rdl984n1gx7fdgk5l-clang-tools-21.1.8";
+    version = "21.1.8";
+    mainProgram = "clang-tools";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 696.85 MiB | NAR: 2.36 MiB
+  nixd = {
+    storePath = "/nix/store/z7gvh80g5ni3i3cr2fm613fpz6dcjam3-nixd-2.9.1";
+    version = "2.9.1";
+    mainProgram = "nixd";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 243.89 MiB | NAR: 11.56 MiB
+  sqlfluff = {
+    storePath = "/nix/store/7icxzbpc60b4fmb0bm0ag8wk02nx6pl5-sqlfluff-4.2.1";
+    version = "4.2.1";
+    mainProgram = "sqlfluff";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 205.66 MiB | NAR: 2.01 MiB
+  black = {
+    storePath = "/nix/store/q2z1k40qjmlqlkjl27mgmyjlmlnxn7ja-python3.13-black-25.1.0";
+    version = "25.1.0";
+    mainProgram = "black";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # ── Media & Processing (Batch A) ──────────────────────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 1045.10 MiB | NAR: 1.04 MiB
+  ffmpeg = {
+    storePath = "/nix/store/gqvsn463s7nx9aaxbmp9fjy1n2zx4php-ffmpeg-8.1.2-bin";
+    version = "8.1.2";
+    mainProgram = "ffmpeg";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 218.70 MiB | NAR: 8.14 MiB
+  imagemagick = {
+    storePath = "/nix/store/irnr8lky602v33p8042qp8y3xxa9lg61-imagemagick-7.1.2-29";
+    version = "7.1.2-29";
+    mainProgram = "magick";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 515.27 MiB | NAR: 164.97 MiB
+  lsp_plugins = {
+    storePath = "/nix/store/dj6246p871i5d6phxvjwv98ff8179gv7-lsp-plugins-1.2.29";
+    version = "1.2.29";
+    pname = "lsp-plugins";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # ── OCR, Scanning & Desktop Utilities (Batch A) ───────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 1105.68 MiB | NAR: 4.38 MiB
+  tesseract = {
+    storePath = "/nix/store/k7v448ggp0yii5blnp0ibgnyad3kdnzx-tesseract-5.5.2";
+    version = "5.5.2";
+    mainProgram = "tesseract";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 998.43 MiB | NAR: 5.86 MiB
+  satty = {
+    storePath = "/nix/store/wvdnv97ml3cfyj7b880rvjb0kapwjlbs-satty-0.20.1";
+    version = "0.20.1";
+    mainProgram = "satty";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 594.09 MiB | NAR: 0.25 MiB
+  zbar = {
+    storePath = "/nix/store/1jjdamf57jwd9dcp61xjzhhnqsrfl7cn-zbar-0.23.93";
+    version = "0.23.93";
+    mainProgram = "zbarimg";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 203.57 MiB | NAR: 0.19 MiB
+  wl_clipboard = {
+    storePath = "/nix/store/0kw6lhibiflzxrnv3rcpp3zn5i7vbrdq-wl-clipboard-2.3.0";
+    version = "2.3.0";
+    mainProgram = "wl-clipboard";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 1086.53 MiB | NAR: 0.32 MiB
+  scrcpy = {
+    storePath = "/nix/store/bsgqh30fyad6r1qswah6y6cwggq8971s-scrcpy-4.1";
+    version = "4.1";
+    mainProgram = "scrcpy";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 1001.46 MiB | NAR: 8.88 MiB
+  zenity = {
+    storePath = "/nix/store/4b9b1qp88gdpbim1l4fn7a3hfq1hw8gd-zenity-4.2.2";
+    version = "4.2.2";
+    mainProgram = "zenity";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 387.93 MiB | NAR: 7.70 MiB
+  seahorse = {
+    storePath = "/nix/store/6966njaxakigkxw9lyqjyf7ib67y756j-seahorse-47.0.1";
+    version = "47.0.1";
+    mainProgram = "seahorse";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # ── Storage & Cloud (Batch A) ─────────────────────────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 158.80 MiB | NAR: 106.37 MiB
+  rclone = {
+    storePath = "/nix/store/86nhn0hbzqww5s85573nyfw5ci1xc882-rclone-1.75.0";
+    version = "1.75.0";
+    mainProgram = "rclone";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 250.16 MiB | NAR: 48.17 MiB
+  restic = {
+    storePath = "/nix/store/j6gf70r6d1p0gng0wr18lvdgcgprynlk-restic-0.18.1";
+    version = "0.18.1";
+    mainProgram = "restic";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # ── Gaming & Emulators (Batch A) ──────────────────────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 570.23 MiB | NAR: 22.67 KiB
+  retroarch = {
+    storePath = "/nix/store/13y35y5lsjginq2h8a69wv6dygrjfav2-retroarch-with-cores-1.22.2";
+    version = "1.22.2";
+    mainProgram = "retroarch";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 389.36 MiB | NAR: 6.57 MiB
+  antimicrox = {
+    storePath = "/nix/store/jgx2gy52scyv4afnwnplhzj705vg28r5-antimicrox-3.5.1";
+    version = "3.5.1";
+    mainProgram = "antimicrox";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # ── Heavy Runtimes & Toolchains (Large NAR Batch) ─────────────────────────
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 114.27 MiB | NAR: 65.44 MiB
+  uv = {
+    storePath = "/nix/store/lzg7xzpjhirf2a7msf2rlwv7dphj2fa2-uv-0.11.21";
+    version = "0.11.21";
+    mainProgram = "uv";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 200.17 MiB | NAR: 127.50 MiB
+  python3 = {
+    storePath = "/nix/store/xqnbm0vgqcq9b1b54c80qj9s0qhbwa08-python3-3.13.15";
+    version = "3.13.15";
+    mainProgram = "python3.13";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Download Kotor (Full): 222.53 MiB | NAR: 222.53 MiB
+  nerd_fonts_jetbrains_mono = {
+    storePath = "/nix/store/qmw1z6j4z3ja83cr3kx9azv3z56ads3m-nerd-fonts-jetbrains-mono-3.4.0+2.304";
+    version = "3.4.0+2.304";
+    pname = "nerd-fonts-jetbrains-mono";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
 }
