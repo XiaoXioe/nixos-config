@@ -25,7 +25,6 @@ selfLib.mkModule {
         "black"
         "nixd"
         "sqlfluff"
-        "clang_tools"
       ])
       ++ (with pkgs; [
         shfmt

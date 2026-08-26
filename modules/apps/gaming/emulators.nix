@@ -9,6 +9,9 @@ let
   pcsx2Pkg = selfLib.fetchCachePinned "pcsx2";
   ppssppPkg = selfLib.fetchCachePinned "ppsspp";
   dolphinPkg = selfLib.fetchCachePinned "dolphin_emu";
+  retroarchPkg = (selfLib.fetchCachePinned pkgs "retroarch_bare") // {
+    wrapper = pkgs.retroarch-bare.wrapper;
+  };
 in
 selfLib.mkModule {
   name = "apps.gaming.emulators";
@@ -28,7 +31,7 @@ selfLib.mkModule {
 
       programs.retroarch = {
         enable = true;
-        package = pkgs."retroarch-bare";
+        package = retroarchPkg;
         cores = {
           # PlayStation 1 (psx/)
           swanstation.enable = true;

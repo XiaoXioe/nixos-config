@@ -116,25 +116,25 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 889.77 MiB | Download Bersih: 0 B
-  # Library Lokal: 107/107 (100.0%) | Missing: 0 paket (0 B)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.27 GiB (Uncompressed) | Download Kotor: 888.56 MiB
+  # Download Bersih: 801.02 MiB | Library Lokal: 104/107 (97.2%) | Missing: 3 paket (801.02 MiB)
   stirling_pdf = {
-    storePath = "/nix/store/nrxbzcv28zwb5xsg8ci852662rdwp7as-stirling-pdf-2.14.3";
+    storePath = "/nix/store/azsmf5sci4c118fb5q9lrf7cg7sr5h6x-stirling-pdf-2.14.3";
     version = "2.14.3";
     mainProgram = "Stirling-PDF";
-    channel = "unstable";
+    channel = "nixpkgs";
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 585.46 MiB | Download Bersih: 0 B
-  # Library Lokal: 186/186 (100.0%) | Missing: 0 paket (0 B)
+  # Generated: 2026-08-26 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.19 GiB (Uncompressed) | Download Kotor: 583.88 MiB
+  # Download Bersih: 0 B | Library Lokal: 190/190 (100.0%) | Missing: 0 paket (0 B)
   stirling_pdf_desktop = {
-    storePath = "/nix/store/k802w6y92gzddwb0mv0661x40rfxlnxx-stirling-pdf-desktop-2.14.3";
+    storePath = "/nix/store/hykha9bijag2agvxqshzi83i79qxhhs7-stirling-pdf-desktop-2.14.3";
     version = "2.14.3";
     mainProgram = "stirling-pdf";
-    channel = "unstable";
+    channel = "nixpkgs";
     system = "x86_64-linux";
   };
 
@@ -334,16 +334,6 @@
     system = "x86_64-linux";
   };
 
-  # ── Development & Linters (Batch A) ───────────────────────────────────────
-  # Generated: 2026-08-26 | Source: nixpkgs
-  # Download Kotor (Full): 2010.97 MiB | NAR: 47.40 MiB
-  clang_tools = {
-    storePath = "/nix/store/1hjdy9l0r3zh4j3rdl984n1gx7fdgk5l-clang-tools-21.1.8";
-    version = "21.1.8";
-    mainProgram = "clang-tools";
-    channel = "nixpkgs";
-    system = "x86_64-linux";
-  };
   # Generated: 2026-08-26 | Source: nixpkgs
   # Download Kotor (Full): 696.85 MiB | NAR: 2.36 MiB
   nixd = {
@@ -488,9 +478,8 @@
 
   # ── Gaming & Emulators (Batch A) ──────────────────────────────────────────
   # Generated: 2026-08-26 | Source: nixpkgs
-  # Download Kotor (Full): 570.23 MiB | NAR: 22.67 KiB
-  retroarch = {
-    storePath = "/nix/store/13y35y5lsjginq2h8a69wv6dygrjfav2-retroarch-with-cores-1.22.2";
+  retroarch_bare = {
+    storePath = "/nix/store/nwjskxi9dxm7iv52712kjipk2mnll3if-retroarch-bare-1.22.2";
     version = "1.22.2";
     mainProgram = "retroarch";
     channel = "nixpkgs";
