@@ -29,9 +29,9 @@ selfLib.mkModule {
   };
 
   hmConfig = {
-    home.packages = with pkgs; [
-      android-tools
-      scrcpy
+    home.packages = [
+      (selfLib.fetchCachePinned "scrcpy")
+      pkgs.android-tools
     ];
   };
 }

@@ -9,7 +9,10 @@ selfLib.mkModule {
   description = "Modern command-line utilities and tools for terminal productivity";
 
   hmConfig = {
-    home.packages = with pkgs; [
+    home.packages = [
+      (selfLib.fetchCachePinned "zbar")
+    ]
+    ++ (with pkgs; [
       ripgrep
       fd
       jq
@@ -17,7 +20,6 @@ selfLib.mkModule {
       btdu
       tldr
       ookla-speedtest
-      zbar
-    ];
+    ]);
   };
 }

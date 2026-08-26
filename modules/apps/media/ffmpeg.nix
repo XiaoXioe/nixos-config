@@ -1,5 +1,4 @@
 {
-  pkgs,
   selfLib,
   ...
 }:
@@ -9,8 +8,8 @@ selfLib.mkModule {
   description = "FFmpeg multimedia encoding and processing suite";
 
   hmConfig = {
-    home.packages = with pkgs; [
-      ffmpeg
+    home.packages = [
+      (selfLib.fetchCachePinned "ffmpeg")
     ];
   };
 }

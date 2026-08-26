@@ -24,18 +24,21 @@ selfLib.mkModule {
     };
 
   hmConfig = {
-    home.packages = with pkgs; [
-      black
-      shfmt
-      nixfmt
-      shellcheck
-      nil
-      nixd
-      sqlite
-      sqlfluff
-      php
-      clang-tools
-    ];
+    home.packages =
+      (selfLib.fetchCachePinned [
+        "black"
+        "nixd"
+        "sqlfluff"
+        "clang_tools"
+      ])
+      ++ (with pkgs; [
+        shfmt
+        nixfmt
+        shellcheck
+        nil
+        sqlite
+        php
+      ]);
     programs.vscodium = {
       enable = true;
       package = vscodiumPkg;

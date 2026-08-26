@@ -20,19 +20,22 @@ selfLib.mkModule {
   description = "Zed-editor configuration";
 
   hmConfig = {
-    home.packages = with pkgs; [
-      black
-      shfmt
-      nixfmt
-      shellcheck
-      nil
-      nixd
-      sqlite
-      sqlfluff
-      php
-      clang-tools
-      fish
-    ];
+    home.packages =
+      (selfLib.fetchCachePinned [
+        "black"
+        "nixd"
+        "sqlfluff"
+        "clang_tools"
+      ])
+      ++ (with pkgs; [
+        shfmt
+        nixfmt
+        shellcheck
+        nil
+        sqlite
+        php
+        fish
+      ]);
 
     programs.zed-editor = {
       enable = true;
@@ -249,7 +252,7 @@ selfLib.mkModule {
         lsp = {
           nixd = {
             binary = {
-              path = "${pkgs.nixd}/bin/nixd";
+              path = "${selfLib.fetchCachePinned "nixd"}/bin/nixd";
             };
           };
           nil = {

@@ -33,24 +33,22 @@ selfLib.mkModule {
       cfg = config.my.desktop.greeter;
     in
     {
-      environment.systemPackages =
-        with pkgs;
-        [
-          seahorse
-          polkit_gnome
-        ]
-        ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") pkgs.vimix-cursors
-        ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") (
-          pkgs.writeTextFile {
-            name = "default-cursor-theme";
-            destination = "/share/icons/default/index.theme";
-            text = ''
-              [Icon Theme]
-              Inherits=Vimix-white-cursors
-            '';
-          }
-        )
-        ++ lib.optional (cfg.backend == "sddm") pkgs.sddm-astronaut;
+      environment.systemPackages = [
+        (selfLib.fetchCachePinned "seahorse")
+        pkgs.polkit_gnome
+      ]
+      ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") pkgs.vimix-cursors
+      ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") (
+        pkgs.writeTextFile {
+          name = "default-cursor-theme";
+          destination = "/share/icons/default/index.theme";
+          text = ''
+            [Icon Theme]
+            Inherits=Vimix-white-cursors
+          '';
+        }
+      )
+      ++ lib.optional (cfg.backend == "sddm") pkgs.sddm-astronaut;
 
       services = {
         displayManager = {

@@ -9,6 +9,8 @@
 let
   resticRepo = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
   mountPoint = "/home/${config.my.user.name}/ResticBackup";
+  resticPkg = selfLib.fetchCachePinned "restic";
+  rclonePkg = selfLib.fetchCachePinned "rclone";
 
   resticFlockWrapper =
     selfLib.mkApp pkgs "restic"
@@ -19,7 +21,7 @@ let
       ''
       [
         pkgs.util-linux
-        pkgs.restic
+        resticPkg
       ];
 in
 
@@ -120,7 +122,7 @@ selfLib.mkModule {
                   ''
                   [
                     pkgs.coreutils
-                    pkgs.rclone
+                    rclonePkg
                   ]
                 }"
               ];
@@ -189,7 +191,7 @@ selfLib.mkModule {
         environment.systemPackages = [
           (pkgs.symlinkJoin {
             name = "rclone-proxy-wrapper";
-            paths = [ pkgs.rclone ];
+            paths = [ rclonePkg ];
             buildInputs = [ pkgs.makeWrapper ];
             postBuild =
               let
@@ -239,7 +241,7 @@ selfLib.mkModule {
               --password-file "${hmOpts.osConfig.sops.secrets."restic-password".path}"
           ''
           [
-            pkgs.restic
+            resticPkg
             pkgs.coreutils
           ]
         }";

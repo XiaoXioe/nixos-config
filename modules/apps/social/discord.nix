@@ -14,7 +14,7 @@ let
     execPath = "usr/bin/discord";
     binName = "discord";
     extraPkgs = [
-      pkgs.zenity
+      (selfLib.fetchCachePinned "zenity")
       pkgs.curl
     ];
     extraArgs = [

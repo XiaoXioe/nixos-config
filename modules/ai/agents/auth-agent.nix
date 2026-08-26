@@ -56,6 +56,8 @@ selfLib.mkModule {
       timeoutMinutes = toString cfg.timeoutMinutes;
       showNotification = if cfg.showNotification then "1" else "0";
 
+      zenityPkg = selfLib.fetchCachePinned "zenity";
+
       # Private helper executable (kept in Nix Store, not exposed to user PATH)
       authAgentHelper =
         selfLib.mkApp pkgs "auth-agent-helper"
@@ -130,7 +132,7 @@ selfLib.mkModule {
 
             if [ "$IS_VALID" -eq 1 ] && [ "$AUTH_MODE" != "strict" ]; then
               if [ "$AUTH_MODE" = "cache-confirm" ]; then
-                if ! ${pkgs.zenity}/bin/zenity --question --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nIzinkan eksekusi menggunakan otentikasi ter-cache?" --ok-label="Izinkan" --cancel-label="Batal" </dev/null 2>/dev/null; then
+                if ! ${zenityPkg}/bin/zenity --question --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nIzinkan eksekusi menggunakan otentikasi ter-cache?" --ok-label="Izinkan" --cancel-label="Batal" </dev/null 2>/dev/null; then
                   echo "auth-agent: Otorisasi dibatalkan oleh pengguna." >&2
                   exit 1
                 fi
@@ -146,7 +148,7 @@ selfLib.mkModule {
             else
               # Force password invalidation if expired or strict
               "$SUDO_BIN" -k 2>/dev/null || true
-              if ! PASS=$(${pkgs.zenity}/bin/zenity --entry --hide-text --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nMasukkan password Anda:" </dev/null 2>/dev/null); then
+              if ! PASS=$(${zenityPkg}/bin/zenity --entry --hide-text --title="Otorisasi AI (auth-agent)" --text="Agent meminta akses root untuk menjalankan perintah:\n\n[ $DISPLAY_CMD ]\n\nMasukkan password Anda:" </dev/null 2>/dev/null); then
                 echo "auth-agent: Otorisasi dibatalkan oleh pengguna." >&2
                 exit 1
               fi
@@ -193,7 +195,7 @@ selfLib.mkModule {
           ''
           [
             pkgs.coreutils
-            pkgs.zenity
+            zenityPkg
             pkgs.libnotify
             pkgs.bash
           ];
