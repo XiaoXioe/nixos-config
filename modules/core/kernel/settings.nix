@@ -33,6 +33,9 @@ selfLib.mkModule {
 
       kernel = {
         sysctl = {
+          # Aktifkan Magic SysRq penuh untuk penanganan darurat/freeze kernel
+          "kernel.sysrq" = 1;
+
           # Mengatasi silent drop paket TLS/NAR besar pada WireGuard / WARP
           "net.ipv4.tcp_mtu_probing" = 1;
           "net.ipv4.tcp_base_mss" = 1024;
