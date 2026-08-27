@@ -33,9 +33,9 @@ in
   (mkExtension {
     name = "sqlite-viewer";
     publisher = "qwtel";
-    version = "26.2.5";
-    hash = "sha256-fAhUWv2hyoh2G9EXQwKeBuMEwp+1kjBl12WM8/W/4zs=";
-    arch = "";
+    version = "26.8.2";
+    hash = "sha256-8B3h45lK4irs4Y0Kk+g4w+KsGxIyXSwWiLlAm6ed5bY=";
+    arch = "linux-x64";
   })
   (mkExtension {
     name = "vscode-sqlfluff";
@@ -70,23 +70,16 @@ in
   (mkExtension {
     name = "python";
     publisher = "ms-python";
-    version = "2026.5.2026070801";
-    hash = "sha256-ldivXRExJPh5WjH//p6udfr8ftTec64akGVs8Wauvvo=";
-    arch = "";
-  })
-  (mkExtension {
-    name = "vscode-python-envs";
-    publisher = "ms-python";
-    version = "1.37.2026072401";
-    hash = "sha256-E0/lVkJ4hRpzC9/nPLM+LuCEfIHLWjjluSv4IbmzH9U=";
-    arch = "";
+    version = "2026.7.2026082601";
+    hash = "sha256-JAQbRaOx6bJLv66uZWs4Pa00y3V9gOV5sX4zYZoThrw=";
+    arch = "linux-x64";
   })
   (mkExtension {
     name = "debugpy";
     publisher = "ms-python";
-    version = "2026.7.12031010";
-    hash = "sha256-QVq0jHAatQcUGx3nXxdcClIgTHAHWIsn6ZOkdG0WtXk=";
-    arch = "";
+    version = "2026.7.12371009";
+    hash = "sha256-fXX8DpfkdCufLPhxKpsdj3dH5U/PUSIgvzexyUe5oQ0=";
+    arch = "linux-x64";
   })
   (mkExtension {
     name = "nix-ide";
@@ -135,8 +128,8 @@ in
   (mkExtension {
     name = "black-formatter";
     publisher = "ms-python";
-    version = "2026.7.12041005";
-    hash = "sha256-O6rvFG585SKumoOL2iIPU2Qhe19upYj/mKowU+/w24E=";
+    version = "2026.7.12371004";
+    hash = "sha256-gxWLSZyy1tal3aPFEWMhRIGJeia21Dinuv7mcZ8Dviw=";
     arch = "";
   })
   (mkExtension {
@@ -151,9 +144,9 @@ in
   (mkExtension {
     name = "ruff";
     publisher = "charliermarsh";
-    version = "2026.64.0";
-    hash = "sha256-V8/OneJfARt9G1c4z+oyMlndIGtg/Zqrp2JnZ8YElXA=";
-    arch = "";
+    version = "2026.74.0";
+    hash = "sha256-19D0nudX3NWF8dtkfkbXctb/BtPr4VuIVGXLBcg9JzQ=";
+    arch = "linux-x64";
   })
   (mkExtension {
     name = "shellcheck";
