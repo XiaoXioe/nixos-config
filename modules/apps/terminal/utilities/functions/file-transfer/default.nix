@@ -5,66 +5,51 @@
   ...
 }:
 
+let
+  tools = [
+    "ambil"
+    "kirim"
+  ];
+
+  mkToolPkg =
+    name:
+    pkgs.writers.writePython3Bin name { flakeIgnore = [ "E501" ]; } (
+      builtins.readFile (./scripts + "/${name}.py")
+    );
+
+  mkCompletion =
+    name:
+    selfLib.mkShellCompletions pkgs {
+      inherit name;
+      fish = ''
+        complete -c ${name} -a "(grep '^Host ' ~/.ssh/config | awk '{print \$2}')"
+      '';
+      bash = ''
+        _${name}() {
+          local cur="''${COMP_WORDS[COMP_CWORD]}"
+          hosts=$(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}')
+          COMPREPLY=( $(compgen -W "$hosts" -- "$cur") )
+        }
+        complete -F _${name} ${name}
+      '';
+      zsh = ''
+        _${name}() {
+          local hosts
+          hosts=($(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}'))
+          compadd -a hosts
+        }
+        compdef _${name} ${name}
+      '';
+    };
+in
 selfLib.mkModule {
   name = "apps.terminal.utilities.functions.file-transfer";
   description = "File transfer scripts (ambil & kirim)";
 
   hmConfig = {
-    home.packages = [
-      (pkgs.writers.writePython3Bin "ambil" { flakeIgnore = [ "E501" ]; } (
-        builtins.readFile ./scripts/ambil.py
-      ))
-      (pkgs.writers.writePython3Bin "kirim" { flakeIgnore = [ "E501" ]; } (
-        builtins.readFile ./scripts/kirim.py
-      ))
-    ];
+    home.packages = map mkToolPkg tools;
 
-    # Integrasi autocompletion langsung ke konfigurasi Shell di Home Manager
-    xdg.configFile = lib.mkMerge [
-      (selfLib.mkShellCompletions pkgs {
-        name = "ambil";
-        fish = ''
-          complete -c ambil -a "(grep '^Host ' ~/.ssh/config | awk '{print \$2}')"
-        '';
-        bash = ''
-          _ambil() {
-            local cur="''${COMP_WORDS[COMP_CWORD]}"
-            hosts=$(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}')
-            COMPREPLY=( $(compgen -W "$hosts" -- "$cur") )
-          }
-          complete -F _ambil ambil
-        '';
-        zsh = ''
-          _ambil() {
-            local hosts
-            hosts=($(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}'))
-            compadd -a hosts
-          }
-          compdef _ambil ambil
-        '';
-      })
-      (selfLib.mkShellCompletions pkgs {
-        name = "kirim";
-        fish = ''
-          complete -c kirim -a "(grep '^Host ' ~/.ssh/config | awk '{print \$2}')"
-        '';
-        bash = ''
-          _kirim() {
-            local cur="''${COMP_WORDS[COMP_CWORD]}"
-            hosts=$(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}')
-            COMPREPLY=( $(compgen -W "$hosts" -- "$cur") )
-          }
-          complete -F _kirim kirim
-        '';
-        zsh = ''
-          _kirim() {
-            local hosts
-            hosts=($(grep '^Host ' ~/.ssh/config 2>/dev/null | awk '{print $2}'))
-            _describe 'hosts' hosts
-          }
-        '';
-      })
-    ];
+    xdg.configFile = lib.mkMerge (map mkCompletion tools);
 
     programs.zsh.initExtra = ''
       fpath+=($HOME/.config/zsh/completions)
