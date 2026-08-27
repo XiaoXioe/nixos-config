@@ -30,6 +30,12 @@ selfLib.mkModule {
   description = "Restic Backup Service via Rclone (Domain-Separated)";
 
   nixosConfig =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       # Shared exclude list across domains
       commonExcludes = [
@@ -45,6 +51,7 @@ selfLib.mkModule {
       mkBackupConfig =
         {
           name,
+          enabled ? true,
           paths,
           onCalendar,
           backupPrepareCommand ? null,
@@ -84,7 +91,10 @@ selfLib.mkModule {
           // (lib.optionalAttrs (backupPrepareCommand != null) { inherit backupPrepareCommand; })
           // (lib.optionalAttrs (backupCleanupCommand != null) { inherit backupCleanupCommand; });
 
+          systemd.timers."restic-backups-${name}".enable = enabled;
+
           systemd.services."restic-backups-${name}" = {
+            enable = enabled;
             onFailure = [ "status-alert@restic-backups-${name}.service" ];
             restartIfChanged = false;
             after = [
@@ -130,86 +140,86 @@ selfLib.mkModule {
           };
         };
 
-      # Domain 1: Vaultwarden (Setiap 3 jam: 00:00, 03:00, 06:00, dst) - Zero Downtime Online Backup
-      vaultwardenBackup = mkBackupConfig {
-        name = "vaultwarden";
-        paths = [
-          "/run/vaultwarden-backup"
-        ];
-        onCalendar = "00/3:00:00";
-        backupPrepareCommand = ''
-          ${pkgs.coreutils}/bin/mkdir -p /run/vaultwarden-backup
-          ${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup/*
-          ${pkgs.coreutils}/bin/cp -a /persist/var/lib/vaultwarden/. /run/vaultwarden-backup/
-          ${pkgs.sqlite}/bin/sqlite3 /persist/var/lib/vaultwarden/db.sqlite3 ".backup '/run/vaultwarden-backup/db.sqlite3'"
-          ${pkgs.coreutils}/bin/rm -f /run/vaultwarden-backup/db.sqlite3-wal /run/vaultwarden-backup/db.sqlite3-shm
-        '';
-        backupCleanupCommand = "${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup";
-      };
-
-      # Domain 2: System & Nix Configuration (Setiap 3 jam + offset 15 menit: 00:15, 03:15, dst)
-      systemConfigBackup = mkBackupConfig {
-        name = "system-config";
-        paths = [
-          "/var/lib/vnstat"
-          "/persist/etc/ssh"
-          "/persist/home/${config.my.user.name}/nixos-config"
-          "/persist/home/${config.my.user.name}/nix-custompkgs"
-          "/persist/home/${config.my.user.name}/nix-custompkg-priv"
-          "/persist/home/${config.my.user.name}/nix-mcp"
-        ];
-        onCalendar = "00/3:15:00";
-      };
-
-      # Domain 3: User Personal Data & Files (Setiap 3 jam + offset 30 menit: 00:30, 03:30, dst)
-      userDataBackup = mkBackupConfig {
-        name = "user-data";
-        paths = [
-          "/home/${config.my.user.name}/.gemini"
-          "/home/${config.my.user.name}/.ssh"
-          "/home/${config.my.user.name}/.gnupg"
-          "/home/${config.my.user.name}/.thunderbird"
-          "/persist/home/${config.my.user.name}/pentest"
-          "${config.my.dataPath}/Documents"
-          "${config.my.dataPath}/Pictures"
-          "${config.my.dataPath}/Music"
-          "${config.my.dataPath}/PersistentData"
-          "${config.my.dataPath}/backup-cloud"
-        ];
-        onCalendar = "00/3:30:00";
-      };
-    in
-    lib.mkMerge [
-      {
-        # Secret declaration for restic password
-        sops.secrets."restic-password" = {
-          sopsFile = ./secrets.yaml;
-          owner = config.my.user.name;
-          mode = "0400";
+      # Declarative Backup Domains Registry
+      backupDomains = {
+        # Domain 1: Vaultwarden (Setiap 3 jam: 00:00, 03:00, 06:00, dst) - Zero Downtime Online Backup
+        vaultwarden = {
+          enabled = config.my.services.vaultwarden.enable or false;
+          paths = [ "/run/vaultwarden-backup" ];
+          onCalendar = "00/3:00:00";
+          backupPrepareCommand = ''
+            ${pkgs.coreutils}/bin/mkdir -p /run/vaultwarden-backup
+            ${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup/*
+            ${pkgs.coreutils}/bin/cp -a /persist/var/lib/vaultwarden/. /run/vaultwarden-backup/
+            ${pkgs.sqlite}/bin/sqlite3 /persist/var/lib/vaultwarden/db.sqlite3 ".backup '/run/vaultwarden-backup/db.sqlite3'"
+            ${pkgs.coreutils}/bin/rm -f /run/vaultwarden-backup/db.sqlite3-wal /run/vaultwarden-backup/db.sqlite3-shm
+          '';
+          backupCleanupCommand = "${pkgs.coreutils}/bin/rm -rf /run/vaultwarden-backup";
         };
 
-        environment.systemPackages = [
-          (pkgs.symlinkJoin {
-            name = "rclone-proxy-wrapper";
-            paths = [ rclonePkg ];
-            buildInputs = [ pkgs.makeWrapper ];
-            postBuild =
-              let
-                proxyEnv = selfLib.warpProxyEnv config.my.services.networking.cloudflare-warp.port;
-              in
-              ''
-                wrapProgram $out/bin/rclone \
-                  --set HTTP_PROXY "${proxyEnv.HTTP_PROXY}" \
-                  --set HTTPS_PROXY "${proxyEnv.HTTPS_PROXY}" \
-                  --set ALL_PROXY "${proxyEnv.ALL_PROXY}"
-              '';
-          })
-        ];
-      }
-      vaultwardenBackup
-      systemConfigBackup
-      userDataBackup
-    ];
+        # Domain 2: System & Nix Configuration (Setiap 3 jam + offset 15 menit: 00:15, 03:15, dst)
+        system-config = {
+          paths = [
+            "/var/lib/vnstat"
+            "/persist/etc/ssh"
+            "/persist/home/${config.my.user.name}/nixos-config"
+            "/persist/home/${config.my.user.name}/nix-custompkgs"
+            "/persist/home/${config.my.user.name}/nix-custompkg-priv"
+            "/persist/home/${config.my.user.name}/nix-mcp"
+          ];
+          onCalendar = "00/3:15:00";
+        };
+
+        # Domain 3: User Personal Data & Files (Setiap 3 jam + offset 30 menit: 00:30, 03:30, dst)
+        user-data = {
+          paths = [
+            "/home/${config.my.user.name}/.gemini"
+            "/home/${config.my.user.name}/.ssh"
+            "/home/${config.my.user.name}/.gnupg"
+            "/persist/home/${config.my.user.name}/pentest"
+            "${config.my.dataPath}/Documents"
+            "${config.my.dataPath}/Pictures"
+            "${config.my.dataPath}/Music"
+            "${config.my.dataPath}/PersistentData"
+            "${config.my.dataPath}/backup-cloud"
+          ]
+          ++ (lib.optional (config.my.apps.office.thunderbird.enable or false
+          ) "/home/${config.my.user.name}/.thunderbird");
+          onCalendar = "00/3:30:00";
+        };
+      };
+    in
+    lib.mkMerge (
+      [
+        {
+          # Secret declaration for restic password
+          sops.secrets."restic-password" = {
+            sopsFile = ./secrets.yaml;
+            owner = config.my.user.name;
+            mode = "0400";
+          };
+
+          environment.systemPackages = [
+            (pkgs.symlinkJoin {
+              name = "rclone-proxy-wrapper";
+              paths = [ rclonePkg ];
+              buildInputs = [ pkgs.makeWrapper ];
+              postBuild =
+                let
+                  proxyEnv = selfLib.warpProxyEnv config.my.services.networking.cloudflare-warp.port;
+                in
+                ''
+                  wrapProgram $out/bin/rclone \
+                    --set HTTP_PROXY "${proxyEnv.HTTP_PROXY}" \
+                    --set HTTPS_PROXY "${proxyEnv.HTTPS_PROXY}" \
+                    --set ALL_PROXY "${proxyEnv.ALL_PROXY}"
+                '';
+            })
+          ];
+        }
+      ]
+      ++ (lib.mapAttrsToList (name: conf: mkBackupConfig (conf // { inherit name; })) backupDomains)
+    );
 
   hmConfig = hmOpts: {
     systemd.user.services.restic-mount = {
