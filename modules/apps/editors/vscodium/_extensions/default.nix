@@ -7,7 +7,7 @@ let
       publisher,
       version,
       hash,
-      arch ? "linux-x64",
+      arch ? "",
     }:
     pkgs.vscode-utils.buildVscodeMarketplaceExtension {
       mktplcRef = {
@@ -23,12 +23,13 @@ let
 in
 [
   # Utilities & Keymaps
-  # (mkExtension {
-  #   name = "sublime-keybindings";
-  #   publisher = "ms-vscode";
-  #   version = "4.1.10";
-  #   hash = "sha256-XlogenuBmP+tE18VLH4lUSpOq/7d022n8HgXnKjY3n0=";
-  # })
+  (mkExtension {
+    name = "sublime-keybindings";
+    publisher = "ms-vscode";
+    version = "4.1.10";
+    hash = "sha256-XlogenuBmP+tE18VLH4lUSpOq/7d022n8HgXnKjY3n0=";
+    arch = "";
+  })
   (mkExtension {
     name = "sqlite-viewer";
     publisher = "qwtel";
@@ -66,20 +67,20 @@ in
   })
 
   # Languages
-  # (mkExtension {
-  #   name = "python";
-  #   publisher = "ms-python";
-  #   version = "2026.5.2026070801";
-  #   hash = "sha256-ft9F6Ok/0VU3P9+AAAxW51NE5RlEK6VwtFPaMYq+GLg=";
-  #   arch = "";
-  # })
-  # (mkExtension {
-  #   name = "vscode-python-envs";
-  #   publisher = "ms-python";
-  #   version = "1.37.2026072401";
-  #   hash = "sha256-E/DDoOQ/StQLsiAomhaCcz2hqprkPdEdJoTXdt+UrEs=";
-  #   arch = "";
-  # })
+  (mkExtension {
+    name = "python";
+    publisher = "ms-python";
+    version = "2026.5.2026070801";
+    hash = "sha256-ldivXRExJPh5WjH//p6udfr8ftTec64akGVs8Wauvvo=";
+    arch = "";
+  })
+  (mkExtension {
+    name = "vscode-python-envs";
+    publisher = "ms-python";
+    version = "1.37.2026072401";
+    hash = "sha256-E0/lVkJ4hRpzC9/nPLM+LuCEfIHLWjjluSv4IbmzH9U=";
+    arch = "";
+  })
   (mkExtension {
     name = "debugpy";
     publisher = "ms-python";
