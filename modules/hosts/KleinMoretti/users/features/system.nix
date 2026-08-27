@@ -96,6 +96,7 @@
       };
       boot-speedup = true;
       vaultwarden = true;
+      flatpak = true;
       vmtouch = false;
     };
 
