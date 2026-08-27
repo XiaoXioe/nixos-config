@@ -39,6 +39,20 @@ def handle_fetch(args) -> None:
         )
         sys.exit(0)
 
+    if args.target and args.target.endswith(".drv"):
+        from downloader.orchestrator import download_fod_target
+
+        download_fod_target(
+            drv_path=args.target,
+            cache_dir=args.cache_dir,
+            split=args.split,
+            concurrent=args.concurrent,
+            keep_nar=args.keep_nar,
+            verbose=getattr(args, "verbose", False),
+            dry_run=getattr(args, "dry_run", False),
+        )
+        sys.exit(0)
+
     if not args.target:
         print(
             "❌ ERROR: Diperlukan nama paket, target 'system', atau flag --all-active/--all-pins.",

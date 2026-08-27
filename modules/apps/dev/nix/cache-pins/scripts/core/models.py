@@ -113,6 +113,20 @@ class DownloadItem:
 
 
 @dataclass
+class FodDownloadItem:
+    """Represents a Fixed-Output Derivation (FOD / fetchurl) to be downloaded directly from upstream."""
+
+    drv_path: str
+    out_path: str
+    url: str
+    filename: str
+    hash_algo: str
+    hash_value: str
+    hash_mode: str = "flat"
+    file_size: int = 0
+
+
+@dataclass
 class PinEntry:
     """Represents an entry in modules/_lib/cache-pins.nix."""
 

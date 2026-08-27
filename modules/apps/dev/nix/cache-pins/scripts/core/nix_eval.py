@@ -25,6 +25,7 @@ from core.eval.resolver import (
 )
 from core.eval.system_eval import (
     evaluate_system_missing_paths,
+    extract_missing_fods,
     get_system_hostname,
     get_system_toplevel_attr,
 )
@@ -51,4 +52,5 @@ __all__ = [
     "get_system_hostname",
     "get_system_toplevel_attr",
     "evaluate_system_missing_paths",
+    "extract_missing_fods",
 ]

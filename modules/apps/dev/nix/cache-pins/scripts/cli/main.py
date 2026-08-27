@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""nix-cache-pin (ncp) — High-Performance CLI for Nix binary cache pin management (v3.1.0)."""
+"""nix-cache-pin (ncp) — High-Performance CLI for Nix binary cache pin management (v3.2.0)."""
 import argparse
 import os
 import sys
@@ -14,7 +14,7 @@ os.environ["NIXPKGS_ALLOW_UNFREE"] = "1"
 os.environ["NIXPKGS_ALLOW_INSECURE"] = "1"
 os.environ["NIXPKGS_ALLOW_BROKEN"] = "1"
 
-__version__ = "3.1.0"
+__version__ = "3.2.0"
 
 
 def create_parser() -> argparse.ArgumentParser:
