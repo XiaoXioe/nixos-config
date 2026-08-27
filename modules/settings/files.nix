@@ -1,8 +1,20 @@
 {
+  lib,
   selfLib,
   ...
 }:
 
+let
+  userSymlinkDirs = [
+    "Documents"
+    "Downloads"
+    "Pictures"
+    "Videos"
+    "Music"
+    "PersistentData"
+  ];
+  userDirs = userSymlinkDirs ++ [ "podman" ];
+in
 selfLib.mkModule {
   name = "settings.files";
   description = "Home file settings";
@@ -30,31 +42,20 @@ selfLib.mkModule {
   };
 
   nixosConfig =
-    { config, lib, ... }:
-    let
-      userDirs = [
-        "Documents"
-        "Downloads"
-        "Pictures"
-        "Music"
-        "Videos"
-        "podman"
-        "PersistentData"
-      ];
-      mkUserDir = name: {
-        "${config.my.dataPath}/${name}".d = {
-          mode = "0755";
-          user = config.my.user.name;
-          group = "users";
-        };
-      };
-    in
+    { config, ... }:
     {
       services.accounts-daemon.enable = true;
 
-      systemd.tmpfiles.settings."10-user-directories" = lib.foldl' (
-        acc: dir: acc // (mkUserDir dir)
-      ) { } userDirs;
+      systemd.tmpfiles.settings."10-user-directories" = lib.listToAttrs (
+        map (dir: {
+          name = "${config.my.dataPath}/${dir}";
+          value.d = {
+            mode = "0755";
+            user = config.my.user.name;
+            group = "users";
+          };
+        }) userDirs
+      );
 
       systemd.tmpfiles.settings."10-accounts-service" = {
         "/var/lib/AccountsService".d = {
@@ -96,16 +97,18 @@ selfLib.mkModule {
       };
     };
 
-  hmConfig = hmOpts: {
-    home.file = selfLib.mkHmSymlinks hmOpts.config {
-      "Documents" = "${hmOpts.osConfig.my.dataPath}/Documents";
-      "Downloads" = "${hmOpts.osConfig.my.dataPath}/Downloads";
-      "Pictures" = "${hmOpts.osConfig.my.dataPath}/Pictures";
-      "Videos" = "${hmOpts.osConfig.my.dataPath}/Videos";
-      "Music" = "${hmOpts.osConfig.my.dataPath}/Music";
-      "PersistentData" = "${hmOpts.osConfig.my.dataPath}/PersistentData";
-      ".face.icon" = hmOpts.osConfig.sops.secrets."foto-profile".path;
-      ".face" = hmOpts.osConfig.sops.secrets."foto-profile".path;
+  hmConfig =
+    hmOpts:
+    let
+      photoPath = hmOpts.osConfig.sops.secrets."foto-profile".path;
+    in
+    {
+      home.file = selfLib.mkHmSymlinks hmOpts.config (
+        (lib.genAttrs userSymlinkDirs (dir: "${hmOpts.osConfig.my.dataPath}/${dir}"))
+        // {
+          ".face.icon" = photoPath;
+          ".face" = photoPath;
+        }
+      );
     };
-  };
 }
