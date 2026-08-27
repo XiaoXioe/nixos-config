@@ -6,9 +6,6 @@
 }:
 
 let
-  pcsx2Pkg = selfLib.fetchCachePinned "pcsx2";
-  ppssppPkg = selfLib.fetchCachePinned "ppsspp";
-  dolphinPkg = selfLib.fetchCachePinned "dolphin_emu";
   retroarchPkg = (selfLib.fetchCachePinned pkgs "retroarch_bare") // {
     wrapper = pkgs.retroarch-bare.wrapper;
   };
@@ -23,10 +20,10 @@ selfLib.mkModule {
       dataPath = hmOpts.osConfig.my.dataPath;
     in
     {
-      home.packages = [
-        pcsx2Pkg
-        ppssppPkg
-        dolphinPkg
+      home.packages = selfLib.fetchCachePinned [
+        "pcsx2"
+        "ppsspp"
+        "dolphin_emu"
       ];
 
       programs.retroarch = {

@@ -103,20 +103,23 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    environment.systemPackages = [
-      sattyPkg
-      wlClipboardPkg
-      zbarPkg
-      tesseractPkg
-      magickPkg
-      scanOcrText
-      scanQrCode
-      scanAnnotate
-    ]
-    ++ (with pkgs; [
-      grim
-      slurp
-      libnotify
-    ]);
+    environment.systemPackages =
+      (selfLib.fetchCachePinned [
+        "satty"
+        "wl_clipboard"
+        "zbar"
+        "tesseract"
+        "imagemagick"
+      ])
+      ++ [
+        scanOcrText
+        scanQrCode
+        scanAnnotate
+      ]
+      ++ (with pkgs; [
+        grim
+        slurp
+        libnotify
+      ]);
   };
 }
