@@ -243,12 +243,12 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-26 | Source: nixpkgs
-  # Download Kotor (Full): 494.95 MiB | Download Bersih: 0 B
-  # Library Lokal: 302/302 (100.0%) | Missing: 0 paket (0 B)
+  # Generated: 2026-08-27 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.44 GiB (Uncompressed) | Download Kotor: 511.09 MiB
+  # Download Bersih: 42.04 MiB | Library Lokal: 301/302 (99.7%) | Missing: 1 paket (42.04 MiB)
   bitwarden = {
-    storePath = "/nix/store/8ybdisnb034z6ksgga0hijg46m02iadv-bitwarden-desktop-2026.7.0";
-    version = "2026.7.0";
+    storePath = "/nix/store/gz6dcrvvrahmdwa5mw900hjsncrnwqrm-bitwarden-desktop-2026.8.0";
+    version = "2026.8.0";
     mainProgram = "bitwarden";
     channel = "nixpkgs";
     system = "x86_64-linux";

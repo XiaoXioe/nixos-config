@@ -1,4 +1,5 @@
 """Dynamic package candidate resolution, scope traversal, and version parsing utilities."""
+
 import os
 import re
 from typing import Dict, List, Optional
@@ -21,10 +22,19 @@ def extract_version_from_store_path(store_path: str) -> str:
 
 
 def is_path_in_nix_store(store_path: str) -> bool:
-    """Check if a store path physically exists in /nix/store (zero subprocess overhead)."""
+    """Check if a store path physically exists and is registered valid in SQLite db."""
     if not store_path or not store_path.startswith("/nix/store/"):
         return False
-    return os.path.exists(store_path)
+    if not os.path.exists(store_path):
+        return False
+    import subprocess
+
+    res = subprocess.run(
+        ["nix-store", "--query", "--references", store_path],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return res.returncode == 0
 
 
 def compare_versions(v1: str, v2: str) -> int:
@@ -89,7 +99,7 @@ def generate_candidate_names(target_key: str, pname: Optional[str] = None) -> Li
         ]
         for pfx in prefixes:
             if b_clean.startswith(pfx):
-                sub = b_clean[len(pfx):]
+                sub = b_clean[len(pfx) :]
                 sub_dash = sub.replace("_", "-")
                 sub_under = sub.replace("-", "_")
                 for sv in [sub, sub_dash, sub_under]:

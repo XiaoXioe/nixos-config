@@ -24,7 +24,7 @@ let
 
   cachePinTools = pkgs.stdenv.mkDerivation {
     pname = "nix-cache-pin-tools";
-    version = "3.0.0";
+    version = "3.1.0";
     src = ./scripts;
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
@@ -81,7 +81,9 @@ let
     complete -c ncp -n "__fish_seen_subcommand_from query q" -l all -d "Verifikasi seluruh entri"
 
     # ncp fetch
-    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -a "system (__fish_cache_pin_keys)" -d "Paket cache-pin atau sistem"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l system -d "Unduh seluruh biner closure sistem NixOS"
+    complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l dry-run -d "Hanya tampilkan biner sistem tanpa mengunduh"
     complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l all-active -d "Unduh massal pin aktif"
     complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l all-pins -d "Unduh massal seluruh pin"
     complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l keep-nar -d "Pertahankan .nar di RAM setelah ingest"
@@ -90,7 +92,10 @@ let
     complete -c ncp -n "__fish_seen_subcommand_from fetch f" -l cache-dir -r -d "Direktori cache lokal"
 
     # ncp update
-    complete -c ncp -n "__fish_seen_subcommand_from update u" -a "(__fish_cache_pin_keys)" -d "Paket cache-pin"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -a "system (__fish_cache_pin_keys)" -d "Paket cache-pin atau sistem"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -l system -d "Perbarui flake.lock dan unduh closure sistem via aria2c"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -s i -l flake-input -d "Flake input spesifik yang akan di-update"
+    complete -c ncp -n "__fish_seen_subcommand_from update u" -l dry-run -d "Hanya evaluasi tanpa mengunduh"
     complete -c ncp -n "__fish_seen_subcommand_from update u" -l all -d "Perbarui seluruh pin"
     complete -c ncp -n "__fish_seen_subcommand_from update u" -s w -l write -d "Simpan perubahan ke file"
     complete -c ncp -n "__fish_seen_subcommand_from update u" -s f -l force -d "Izinkan downgrade"

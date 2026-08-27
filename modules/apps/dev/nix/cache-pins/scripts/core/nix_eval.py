@@ -1,4 +1,5 @@
 """Compatibility facade module for Nix evaluation utilities, candidate resolution, and channel discovery."""
+
 from core.cache.disk_store import LocalDiskCache, get_cache_root_dir
 from core.cache.tracker import get_channel_revision_info
 from core.eval.channels import (
@@ -22,6 +23,11 @@ from core.eval.resolver import (
     generate_candidate_names,
     is_path_in_nix_store,
 )
+from core.eval.system_eval import (
+    evaluate_system_missing_paths,
+    get_system_hostname,
+    get_system_toplevel_attr,
+)
 
 __all__ = [
     "find_flake_dir",
@@ -42,4 +48,7 @@ __all__ = [
     "LocalDiskCache",
     "get_cache_root_dir",
     "get_channel_revision_info",
+    "get_system_hostname",
+    "get_system_toplevel_attr",
+    "evaluate_system_missing_paths",
 ]

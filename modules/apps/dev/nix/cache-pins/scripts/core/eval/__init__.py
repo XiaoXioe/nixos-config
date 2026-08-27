@@ -1,4 +1,5 @@
 """Core Nix evaluation engine: batch evaluation, dynamic scoping, and channel resolution."""
+
 from core.eval.channels import (
     find_cache_pins_file,
     find_flake_dir,
@@ -20,6 +21,11 @@ from core.eval.resolver import (
     generate_candidate_names,
     is_path_in_nix_store,
 )
+from core.eval.system_eval import (
+    evaluate_system_missing_paths,
+    get_system_hostname,
+    get_system_toplevel_attr,
+)
 
 __all__ = [
     "find_flake_dir",
@@ -37,4 +43,7 @@ __all__ = [
     "evaluate_single_package",
     "evaluate_upstream_package",
     "resolve_target_to_store_path",
+    "get_system_hostname",
+    "get_system_toplevel_attr",
+    "evaluate_system_missing_paths",
 ]

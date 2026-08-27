@@ -53,9 +53,15 @@ def handle_update(args) -> None:
         )
         sys.exit(0)
 
+    if getattr(args, "system", False) or (args.target and args.target.lower() in ("system", "sys", "toplevel", "host")):
+        _handle_update_system(args, cache_client)
+        sys.exit(0)
+
     if not args.target:
-        print("❌ ERROR: Tentukan nama paket yang ingin diperbarui atau gunakan flag '--all'.", file=sys.stderr)
+        print("❌ ERROR: Tentukan nama paket, target 'system', atau gunakan flag '--all'.", file=sys.stderr)
         print("   Contoh: ncp update aria2 -w", file=sys.stderr)
+        print("   Contoh: ncp update system", file=sys.stderr)
+        print("   Contoh: ncp update system --input nix-cachyos-kernel", file=sys.stderr)
         print("   Contoh: ncp update --all -w", file=sys.stderr)
         sys.exit(1)
 
@@ -362,3 +368,49 @@ def _handle_update_all(
         if ready_count > 0:
             print(f"💡 Untuk menyimpan pembaruan ke {pins_file.name}, jalankan kembali dengan flag '-w' / '--write':", file=sys.stderr)
             print("   ncp update --all -w", file=sys.stderr)
+
+
+def _handle_update_system(args, cache_client: NixCacheClient) -> None:
+    """Handle `ncp update system` workflow: update flake.lock and pre-fetch system closure via aria2."""
+    import subprocess
+    from core.eval.channels import find_flake_dir
+    from downloader.orchestrator import download_system_targets
+
+    flake_dir = find_flake_dir()
+    if not flake_dir:
+        print("❌ ERROR: Direktori flake (berisi flake.nix) tidak ditemukan.", file=sys.stderr)
+        sys.exit(1)
+
+    flake_input = getattr(args, "flake_input", None)
+    if not flake_input and "--input" in sys.argv:
+        # User passed --input explicitly on CLI
+        flake_input = getattr(args, "input", None)
+
+    print("================================================================================", file=sys.stderr)
+    if flake_input:
+        print(f"🔄 Memperbarui Flake Input: '{flake_input}' di {flake_dir}...", file=sys.stderr)
+        cmd = ["nix", "flake", "update", flake_input]
+    else:
+        print(f"🔄 Memperbarui seluruh dependensi di flake.lock ({flake_dir})...", file=sys.stderr)
+        cmd = ["nix", "flake", "update"]
+    print("================================================================================", file=sys.stderr)
+
+    res = subprocess.run(cmd, cwd=str(flake_dir))
+    if res.returncode != 0:
+        print(f"❌ ERROR: 'nix flake update' gagal dengan kode keluar {res.returncode}.", file=sys.stderr)
+        sys.exit(res.returncode)
+
+    print("\n✅ Pembaruan flake.lock selesai dengan sukses!", file=sys.stderr)
+    print("🚀 Melanjutkan ke pre-fetching biner closure sistem via aria2c...\n", file=sys.stderr)
+
+    download_system_targets(
+        cache_client=cache_client,
+        hostname=getattr(args, "host", None),
+        cache_dir=getattr(args, "cache_dir", None),
+        split=getattr(args, "split", 8),
+        concurrent=getattr(args, "concurrent", 4),
+        keep_nar=getattr(args, "keep_nar", False),
+        verbose=getattr(args, "verbose", False),
+        dry_run=getattr(args, "dry_run", False),
+    )
+

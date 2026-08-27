@@ -1,7 +1,6 @@
 """ncp fetch — Download NAR closure via aria2c to RAM tmpfs and ingest to /nix/store."""
-import os
+
 import sys
-from typing import Optional
 
 
 def handle_fetch(args) -> None:
@@ -23,8 +22,30 @@ def handle_fetch(args) -> None:
         )
         sys.exit(0)
 
+    if getattr(args, "system", False) or (
+        args.target and args.target.lower() in ("system", "sys", "toplevel", "host")
+    ):
+        from downloader.orchestrator import download_system_targets
+
+        download_system_targets(
+            cache_client=cache_client,
+            hostname=getattr(args, "host", None),
+            cache_dir=args.cache_dir,
+            split=args.split,
+            concurrent=args.concurrent,
+            keep_nar=args.keep_nar,
+            verbose=getattr(args, "verbose", False),
+            dry_run=getattr(args, "dry_run", False),
+        )
+        sys.exit(0)
+
     if not args.target:
-        print("❌ ERROR: Diperlukan nama paket atau flag --all-active/--all-pins. Contoh: ncp fetch firefox", file=sys.stderr)
+        print(
+            "❌ ERROR: Diperlukan nama paket, target 'system', atau flag --all-active/--all-pins.",
+            file=sys.stderr,
+        )
+        print("   Contoh: ncp fetch firefox", file=sys.stderr)
+        print("   Contoh: ncp fetch system", file=sys.stderr)
         sys.exit(1)
 
     download_single_target(
