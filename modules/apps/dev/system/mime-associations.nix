@@ -114,47 +114,73 @@ selfLib.mkModule {
 
       browserDesktopMap = {
         zen-beta = "app.zen_browser.zen.desktop";
+        zen = "app.zen_browser.zen.desktop";
         firefox = "firefox.desktop";
         brave = "brave-browser.desktop";
+        chromium = "chromium-browser.desktop";
+        librewolf = "librewolf.desktop";
       };
       editorDesktopMap = {
         codium = "codium.desktop";
         vscodium = "codium.desktop";
+        neovim = "nvim.desktop";
+        zeditor = "dev.zed.Zed.desktop";
       };
       fileManagerDesktopMap = {
         dolphin = "org.kde.dolphin.desktop";
         nemo = "nemo.desktop";
       };
 
+      activeBrowsersList = lib.concatLists [
+        (lib.optional (osConfig.my.apps.browsers.zen.enable or false) "app.zen_browser.zen.desktop")
+        (lib.optional (osConfig.my.apps.browsers.chromium.enable or false) "chromium-browser.desktop")
+        (lib.optional (osConfig.my.apps.browsers.brave.enable or false) "brave-browser.desktop")
+        (lib.optional (osConfig.my.apps.browsers.firefox.enable or false) "firefox.desktop")
+        (lib.optional (osConfig.my.apps.browsers.librewolf.enable or false) "librewolf.desktop")
+      ];
+
+      preferredBrowser =
+        browserDesktopMap.${osConfig.my.defaultApps.browser}
+          or "${osConfig.my.defaultApps.browser}.desktop";
+
+      browserOrder = lib.unique ([ preferredBrowser ] ++ activeBrowsersList);
+
       defaultApps = {
         text = [
           (editorDesktopMap.${osConfig.my.defaultApps.editor} or "${osConfig.my.defaultApps.editor}.desktop")
         ];
-        image = [ "org.gnome.gThumb.desktop" ];
-        audio = [ "mpv.desktop" ];
-        video = [ "mpv.desktop" ];
+        image = lib.optional (osConfig.my.apps.media.gthumb.enable or false) "org.gnome.gThumb.desktop";
+        audio = lib.optional (osConfig.my.apps.media.video.mpv.enable or false) "mpv.desktop";
+        video = lib.optional (osConfig.my.apps.media.video.mpv.enable or false) "mpv.desktop";
         directory = [
           (fileManagerDesktopMap.${osConfig.my.defaultApps.fileManager}
             or "${osConfig.my.defaultApps.fileManager}.desktop"
           )
         ];
-        office = [ "org.onlyoffice.desktopeditors.desktop" ];
-        pdf = [ "org.pwmt.zathura.desktop" ];
+        office = lib.optional (osConfig.my.apps.office.onlyoffice.enable or false
+        ) "org.onlyoffice.desktopeditors.desktop";
+        pdf =
+          if (osConfig.my.apps.office.zathura.enable or false) then
+            [ "org.pwmt.zathura.desktop" ]
+          else
+            lib.take 1 activeBrowsersList;
         terminal = [ terminalDesktop ];
         archive = [ "org.kde.ark.desktop" ];
-        discord = [ "com.discordapp.Discord.desktop" ];
-        link = [
-          (browserDesktopMap.${osConfig.my.defaultApps.browser}
-            or "${osConfig.my.defaultApps.browser}.desktop"
-          )
-          "org.mozilla.firefox.desktop"
-        ];
+        discord = lib.optional (osConfig.my.apps.social.discord.enable or false
+        ) "com.discordapp.Discord.desktop";
+        link = browserOrder;
       };
+
+      filteredDefaultApps = lib.filterAttrs (_: apps: apps != [ ]) defaultApps;
 
       associations = lib.listToAttrs (
         lib.flatten (
           lib.mapAttrsToList (
-            key: mimeTypes: map (type: lib.nameValuePair type defaultApps."${key}") mimeTypes
+            key: mimeTypes:
+            if filteredDefaultApps ? ${key} then
+              map (type: lib.nameValuePair type filteredDefaultApps.${key}) mimeTypes
+            else
+              [ ]
           ) mimeMap
         )
       );
