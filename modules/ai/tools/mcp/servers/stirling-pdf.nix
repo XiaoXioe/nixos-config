@@ -12,6 +12,7 @@ let
 in
 {
   name = "stirling-pdf";
+  enable = config.my.services.documents.stirling-pdf.enable or false;
 
   commonSpec = {
     command = "${mcpProxy}/bin/mcp-proxy";
