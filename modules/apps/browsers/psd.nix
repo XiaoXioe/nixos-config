@@ -99,10 +99,15 @@ selfLib.mkModule {
               EOF
 
               cat << 'EOF' > $out/share/psd/browsers/firefox
-              DIRArr[0]="$HOME/.config/mozilla/firefox/$USER"
-              DIRArr[1]="$HOME/.config/mozilla/firefox/$USER-hardened"
+              DIRArr[0]="$HOME/.mozilla/firefox/default"
+              DIRArr[1]="$HOME/.mozilla/firefox/hardened"
               PSNAME="firefox"
               check_suffix="yes"
+              EOF
+
+              cat << 'EOF' > $out/share/psd/browsers/librewolf
+              DIRArr[0]="$HOME/.librewolf/$USER"
+              PSNAME="librewolf"
               EOF
             '';
           }
@@ -111,26 +116,53 @@ selfLib.mkModule {
     ];
   };
 
-  hmConfig = hmOpts: {
-    services.psd = {
-      enable = true;
-      browsers = [
-        "zen"
-        "torbrowser"
-        "brave"
-        "chromium"
+  hmConfig =
+    hmOpts:
+    let
+      browserMap = [
+        {
+          name = "zen";
+          enable = config.my.apps.browsers.zen.enable or false;
+        }
+        {
+          name = "torbrowser";
+          enable = config.my.apps.browsers.tor-browser.enable or false;
+        }
+        {
+          name = "brave";
+          enable = config.my.apps.browsers.brave.enable or false;
+        }
+        {
+          name = "chromium";
+          enable = config.my.apps.browsers.chromium.enable or false;
+        }
+        {
+          name = "firefox";
+          enable = config.my.apps.browsers.firefox.enable or false;
+        }
+        {
+          name = "librewolf";
+          enable = config.my.apps.browsers.librewolf.enable or false;
+        }
       ];
-    };
 
-    xdg.configFile."psd/psd.conf".text = hmOpts.lib.mkForce ''
-      BROWSERS=(${hmOpts.lib.concatStringsSep " " hmOpts.config.services.psd.browsers})
-      USE_BACKUP="${if hmOpts.config.services.psd.useBackup then "yes" else "no"}"
-      BACKUP_LIMIT=${toString hmOpts.config.services.psd.backupLimit}
-      USE_OVERLAYFS="yes"
-    '';
+      activeBrowsers = map (b: b.name) (builtins.filter (b: b.enable) browserMap);
+    in
+    {
+      services.psd = {
+        enable = true;
+        browsers = activeBrowsers;
+      };
 
-    systemd.user.services.psd = {
-      Service.TimeoutStopSec = "5m";
+      xdg.configFile."psd/psd.conf".text = hmOpts.lib.mkForce ''
+        BROWSERS=(${hmOpts.lib.concatStringsSep " " hmOpts.config.services.psd.browsers})
+        USE_BACKUP="${if hmOpts.config.services.psd.useBackup then "yes" else "no"}"
+        BACKUP_LIMIT=${toString hmOpts.config.services.psd.backupLimit}
+        USE_OVERLAYFS="yes"
+      '';
+
+      systemd.user.services.psd = {
+        Service.TimeoutStopSec = "5m";
+      };
     };
-  };
 }
