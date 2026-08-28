@@ -89,11 +89,12 @@ in
       Service = {
         WorkingDirectory = "%h/.local/share/ai-memory";
         EnvironmentFile = [ "%h/.config/ai-memory/env" ];
-        ExecStart = "${mcpPkg}/bin/ai-memory --data-dir %h/.local/share/ai-memory --config %h/.config/ai-memory/config.toml serve --bind 127.0.0.1:49374 --transport http --enable-web";
+        ExecStart = "${mcpPkg}/bin/ai-memory --data-dir %h/.local/share/ai-memory serve --bind 127.0.0.1:49374 --transport http --enable-web";
         Restart = "on-failure";
         RestartSec = 5;
-        StandardOutput = "null";
-        StandardError = "null";
+        StandardOutput = "journal";
+        StandardError = "journal";
+        SyslogIdentifier = "ai-memory";
         Environment = [
           "HOME=%h"
           "PATH=/etc/profiles/per-user/%u/bin:/run/current-system/sw/bin"
