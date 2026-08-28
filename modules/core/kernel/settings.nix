@@ -53,6 +53,11 @@ selfLib.mkModule {
           "net.ipv4.tcp_fastopen" = 3;
           "fs.inotify.max_user_watches" = 524288;
           "fs.inotify.max_user_instances" = 8192;
+
+          # Reservasi port layanan lokal agar tidak bentrok dengan rentang port efemeral keluar (32768-60999)
+          # 40000: wireproxy Cloudflare WARP proxy
+          # 49374: ai-memory MCP server & web viewer
+          "net.ipv4.ip_local_reserved_ports" = "40000,49374";
         };
       };
     };
