@@ -44,7 +44,11 @@ selfLib.mkModule {
           osd-font = "sans-serif";
           sub-font = "sans-serif";
           ytdl-format = "bestvideo[height<=?1080][vcodec^=avc]+(bestaudio[language=id]/bestaudio[language=ind]/bestaudio)/bestvideo[height<=?1080][vcodec^=vp9]+(bestaudio[language=id]/bestaudio[language=ind]/bestaudio)/best[height<=?1080]/best";
-          ytdl-raw-options = "audio-multistreams=,force-ipv4=,extractor-args=youtube:player_client=mweb+web";
+          ytdl-raw-options-append = [
+            "audio-multistreams="
+            "force-ipv4="
+            "extractor-args=youtube:player_client=default,web_creator,web"
+          ];
         };
         bindings = {
           RIGHT = "seek 2";
