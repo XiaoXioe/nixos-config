@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 from typing import Dict, List, Optional, Tuple
 
-from core.nix_eval import find_flake_dir
+from core.eval.channels import find_flake_dir
 from registry.store import load_cache_pins
 
 
@@ -67,6 +67,18 @@ def find_unused_pins(
             k = match.group(1) or match.group(2)
             if k in used_map:
                 used_map[k].append(rel_path)
+
+        # 3. Cari pola Declarative Table Registry (e.g. pkgKey = "bitwarden", pin = "ente_auth")
+        for match in re.finditer(
+            r"(?:pkgKey|packageKey|pinKey|cachePin|pin|pkg)\s*=\s*\"([a-zA-Z0-9_-]+)\"",
+            content,
+        ):
+            s = match.group(1)
+            clean_s = s.replace("-", "_")
+            if s in used_map:
+                used_map[s].append(rel_path)
+            elif clean_s in used_map:
+                used_map[clean_s].append(rel_path)
 
     # Deduplikasi daftar file referensi
     for k in used_map:

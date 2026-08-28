@@ -46,7 +46,21 @@ let
 
   fishCompletions = ''
     function __fish_cache_pin_keys
-        set -l pins_file "$HOME/nixos-config/modules/_lib/cache-pins.nix"
+        set -l pins_file $NCP_PINS_FILE
+        if not test -n "$pins_file" -a -f "$pins_file"
+            set -l git_root (git rev-parse --show-toplevel 2>/dev/null)
+            if test -n "$git_root" -a -f "$git_root/modules/_lib/cache-pins.nix"
+                set pins_file "$git_root/modules/_lib/cache-pins.nix"
+            else if test -f "$PWD/modules/_lib/cache-pins.nix"
+                set pins_file "$PWD/modules/_lib/cache-pins.nix"
+            else if test -f "$HOME/.config/nixos/modules/_lib/cache-pins.nix"
+                set pins_file "$HOME/.config/nixos/modules/_lib/cache-pins.nix"
+            else if test -f "/etc/nixos/modules/_lib/cache-pins.nix"
+                set pins_file "/etc/nixos/modules/_lib/cache-pins.nix"
+            else
+                set pins_file "$HOME/nixos-config/modules/_lib/cache-pins.nix"
+            end
+        end
         if test -f "$pins_file"
             grep -E '^[ ]{2}[a-zA-Z0-9_-]+[ ]*=[ ]*\{' "$pins_file" | sed -E 's/^[ ]*([a-zA-Z0-9_-]+).*/\1/'
         end
@@ -131,7 +145,23 @@ let
         local cur prev words cword
         _init_completion || return
 
-        local pins_file="$HOME/nixos-config/modules/_lib/cache-pins.nix"
+        local pins_file="''${NCP_PINS_FILE:-}"
+        if [[ -z "$pins_file" || ! -f "$pins_file" ]]; then
+            local git_root
+            git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+            if [[ -n "$git_root" && -f "$git_root/modules/_lib/cache-pins.nix" ]]; then
+                pins_file="$git_root/modules/_lib/cache-pins.nix"
+            elif [[ -f "$PWD/modules/_lib/cache-pins.nix" ]]; then
+                pins_file="$PWD/modules/_lib/cache-pins.nix"
+            elif [[ -f "$HOME/.config/nixos/modules/_lib/cache-pins.nix" ]]; then
+                pins_file="$HOME/.config/nixos/modules/_lib/cache-pins.nix"
+            elif [[ -f "/etc/nixos/modules/_lib/cache-pins.nix" ]]; then
+                pins_file="/etc/nixos/modules/_lib/cache-pins.nix"
+            else
+                pins_file="$HOME/nixos-config/modules/_lib/cache-pins.nix"
+            fi
+        fi
+
         local keys=""
         if [[ -f "$pins_file" ]]; then
             keys=$(grep -E '^[ ]{2}[a-zA-Z0-9_-]+[ ]*=[ ]*\{' "$pins_file" | sed -E 's/^[ ]*([a-zA-Z0-9_-]+).*/\1/')

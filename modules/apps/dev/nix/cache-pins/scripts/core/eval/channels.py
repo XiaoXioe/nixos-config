@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 from typing import Dict, Optional
 
+from core.platform import get_current_system
+
 
 def find_flake_dir() -> Optional[Path]:
     """Find root directory containing flake.nix / flake.lock."""
@@ -31,15 +33,23 @@ def find_cache_pins_file(custom_path: Optional[str] = None) -> Optional[Path]:
             return p.resolve()
         return None
 
-    # Check environment variable
-    env_path = os.environ.get("PINS_FILE")
-    if env_path and Path(env_path).is_file():
-        return Path(env_path).resolve()
+    # Check environment variable (NCP_PINS_FILE or PINS_FILE)
+    for env_var in ["NCP_PINS_FILE", "PINS_FILE"]:
+        env_path = os.environ.get(env_var)
+        if env_path and Path(env_path).is_file():
+            return Path(env_path).resolve()
 
     # Search upwards from current working directory
     cwd = Path.cwd()
     for parent in [cwd] + list(cwd.parents):
         candidate = parent / "modules" / "_lib" / "cache-pins.nix"
+        if candidate.is_file():
+            return candidate.resolve()
+
+    # Check via flake_dir
+    flake_dir = find_flake_dir()
+    if flake_dir:
+        candidate = flake_dir / "modules" / "_lib" / "cache-pins.nix"
         if candidate.is_file():
             return candidate.resolve()
 

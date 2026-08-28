@@ -467,11 +467,12 @@ def download_system_targets(
 
     if missing_fods:
         for f in missing_fods:
+            fn = f.download_filename or f.filename
             all_download_items.append(
                 DownloadItem(
-                    hash=f.filename,
+                    hash=fn,
                     url=f.url,
-                    filename=f.filename,
+                    filename=fn,
                     file_size=f.file_size,
                     source_cache_url="upstream",
                 )
@@ -584,10 +585,11 @@ def download_fod_target(
     local_cache_dir = Path(cache_dir or get_default_ram_cache_dir()).resolve()
     local_cache_dir, nar_dir = setup_ram_cache_dir(local_cache_dir)
 
+    fn = fod.download_filename or fod.filename
     dl_item = DownloadItem(
-        hash=fod.filename,
+        hash=fn,
         url=fod.url,
-        filename=fod.filename,
+        filename=fn,
         file_size=fod.file_size,
         source_cache_url="upstream",
     )

@@ -4,6 +4,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 
+from core.platform import get_current_system
+
+
 class UpdateType(str, Enum):
     """Classification of package update states."""
 
@@ -23,7 +26,7 @@ class PackageMeta:
     version: str = "unknown"
     main_program: Optional[str] = None
     pname: Optional[str] = None
-    system: str = "x86_64-linux"
+    system: str = field(default_factory=get_current_system)
     channel: Optional[str] = None
     from_store: Optional[str] = None
 
@@ -37,7 +40,7 @@ class PackageMeta:
             version=data.get("version", "unknown"),
             main_program=data.get("mainProgram") or data.get("main_program"),
             pname=data.get("pname"),
-            system=data.get("system", "x86_64-linux"),
+            system=data.get("system") or get_current_system(),
             channel=data.get("channel"),
             from_store=data.get("fromStore") or data.get("from_store"),
         )
@@ -99,6 +102,7 @@ class ClosureAudit:
     local_percent: float
     missing_items: List[Dict[str, Any]]
     all_items: List[Dict[str, Any]]
+    system: str = field(default_factory=get_current_system)
 
 
 @dataclass
@@ -114,7 +118,7 @@ class DownloadItem:
 
 @dataclass
 class FodDownloadItem:
-    """Represents a Fixed-Output Derivation (FOD / fetchurl) to be downloaded directly from upstream."""
+    """Represents a Fixed-Output Derivation (FOD / fetchurl / fetchzip) to be downloaded directly from upstream."""
 
     drv_path: str
     out_path: str
@@ -124,6 +128,10 @@ class FodDownloadItem:
     hash_value: str
     hash_mode: str = "flat"
     file_size: int = 0
+    download_filename: Optional[str] = None
+    strip_root: bool = True
+    post_fetch: Optional[str] = None
+
 
 
 @dataclass
@@ -133,7 +141,7 @@ class PinEntry:
     name: str
     store_path: str
     version: str = ""
-    system: str = "x86_64-linux"
+    system: str = field(default_factory=get_current_system)
     channel: Optional[str] = None
     main_program: Optional[str] = None
     pname: Optional[str] = None

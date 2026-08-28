@@ -87,6 +87,7 @@ class ClosureAuditor:
         store_path: str,
         version: str = "",
         main_program: Optional[str] = None,
+        system: Optional[str] = None,
     ) -> ClosureAudit:
         """Analyze a store path's full closure, local reuse percentage, and bandwidth savings."""
         target_hash = os.path.basename(store_path.rstrip("/")).split("-")[0]
@@ -181,31 +182,35 @@ class ClosureAuditor:
         saved_percent = (saved_bandwidth / gross_download * 100.0) if gross_download > 0 else 0.0
         local_percent = (len(local_items) / len(all_items) * 100.0) if all_items else 0.0
 
-        return ClosureAudit(
-            target_name=target_name,
-            store_path=store_path,
-            version=version,
-            main_program=main_program,
-            cache_url=target_narinfo.source_cache_url,
-            compression=target_narinfo.compression or "xz",
-            file_size=target_narinfo.file_size,
-            nar_size=target_narinfo.nar_size,
-            total_refs=len(all_items),
-            local_count=len(local_items),
-            missing_count=len(missing_items),
-            target_glibc=target_glibc,
-            glibc_local=glibc_local,
-            target_is_local=target_is_local,
-            gross_download=gross_download,
-            gross_disk=gross_disk,
-            net_download=net_download,
-            net_disk=net_disk,
-            saved_bandwidth=saved_bandwidth,
-            saved_percent=saved_percent,
-            local_percent=local_percent,
-            missing_items=missing_items,
-            all_items=all_items,
-        )
+        closure_kwargs = {
+            "target_name": target_name,
+            "store_path": store_path,
+            "version": version,
+            "main_program": main_program,
+            "cache_url": target_narinfo.source_cache_url,
+            "compression": target_narinfo.compression or "xz",
+            "file_size": target_narinfo.file_size,
+            "nar_size": target_narinfo.nar_size,
+            "total_refs": len(all_items),
+            "local_count": len(local_items),
+            "missing_count": len(missing_items),
+            "target_glibc": target_glibc,
+            "glibc_local": glibc_local,
+            "target_is_local": target_is_local,
+            "gross_download": gross_download,
+            "gross_disk": gross_disk,
+            "net_download": net_download,
+            "net_disk": net_disk,
+            "saved_bandwidth": saved_bandwidth,
+            "saved_percent": saved_percent,
+            "local_percent": local_percent,
+            "missing_items": missing_items,
+            "all_items": all_items,
+        }
+        if system:
+            closure_kwargs["system"] = system
+
+        return ClosureAudit(**closure_kwargs)
 
     def traverse_closure_for_download(
         self, store_name: str

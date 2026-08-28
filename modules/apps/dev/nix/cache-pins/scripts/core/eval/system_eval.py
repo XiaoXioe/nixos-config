@@ -15,20 +15,52 @@ from core.models import FodDownloadItem
 
 
 def get_system_hostname(flake_dir: Optional[Path] = None) -> str:
-    """Resolve current NixOS hostname."""
+    """Resolve current NixOS hostname dynamically from environment, /etc/hostname, socket, or flake configurations."""
+    # 1. Environment override
     env_host = os.environ.get("NIXOS_HOST") or os.environ.get("HOSTNAME")
-    if env_host:
-        return env_host
+    if env_host and env_host.strip():
+        return env_host.strip()
 
+    # 2. Read /etc/hostname directly
     try:
-        host = socket.gethostname()
-        if host:
-            return host
+        etc_host_file = Path("/etc/hostname")
+        if etc_host_file.is_file():
+            host = etc_host_file.read_text(encoding="utf-8").strip()
+            if host:
+                return host
     except Exception:
         pass
 
-    # Default fallback
-    return "KleinMoretti"
+    # 3. Socket hostname
+    socket_host = None
+    try:
+        sh = socket.gethostname()
+        if sh and sh.strip():
+            socket_host = sh.strip()
+    except Exception:
+        pass
+
+    # 4. Flake configuration discovery
+    root_dir = flake_dir or find_flake_dir()
+    if root_dir:
+        flake_nix = root_dir / "flake.nix"
+        if flake_nix.is_file():
+            try:
+                content = flake_nix.read_text(encoding="utf-8")
+                matches = re.findall(r"nixosConfigurations\.([a-zA-Z0-9_-]+)", content)
+                if matches:
+                    if socket_host and socket_host in matches:
+                        return socket_host
+                    # If socket hostname matches case-insensitively
+                    if socket_host:
+                        for m in matches:
+                            if m.lower() == socket_host.lower():
+                                return m
+                    return matches[0]
+            except Exception:
+                pass
+
+    return socket_host or "nixos"
 
 
 def get_system_toplevel_attr(
@@ -95,14 +127,36 @@ def extract_missing_fods(
         parts = filename.split("-", 1)
         pure_filename = parts[1] if len(parts) == 2 and len(parts[0]) == 32 else filename
 
+        url = urls[0]
+        url_path = url.split("?")[0].split("#")[0]
+        url_file = os.path.basename(url_path)
+        download_filename = url_file if url_file else pure_filename
+
+        post_fetch = attrs.get("postFetch") or env_map.get("postFetch")
+        strip_root_val = attrs.get("stripRoot") if "stripRoot" in attrs else env_map.get("stripRoot")
+        if strip_root_val is not None:
+            if isinstance(strip_root_val, bool):
+                strip_root = strip_root_val
+            elif isinstance(strip_root_val, str):
+                strip_root = strip_root_val.lower() not in ("0", "false", "no")
+            elif isinstance(strip_root_val, int):
+                strip_root = bool(strip_root_val)
+            else:
+                strip_root = True
+        else:
+            strip_root = True
+
         item = FodDownloadItem(
             drv_path=drv_path,
             out_path=out_path,
-            url=urls[0],
+            url=url,
             filename=pure_filename,
             hash_algo=output_hash_algo,
             hash_value=output_hash,
             hash_mode=output_hash_mode,
+            download_filename=download_filename,
+            strip_root=strip_root,
+            post_fetch=post_fetch,
         )
         missing_fods.append(item)
 

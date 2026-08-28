@@ -4,6 +4,8 @@ import os
 import re
 from typing import Dict, List, Optional
 
+from core.platform import get_current_system
+
 
 def extract_version_from_store_path(store_path: str) -> str:
     """Extract human-readable version from a Nix store path string."""
@@ -22,19 +24,10 @@ def extract_version_from_store_path(store_path: str) -> str:
 
 
 def is_path_in_nix_store(store_path: str) -> bool:
-    """Check if a store path physically exists and is registered valid in SQLite db."""
+    """Check if a store path physically exists in /nix/store/ without spawning daemon connections."""
     if not store_path or not store_path.startswith("/nix/store/"):
         return False
-    if not os.path.exists(store_path):
-        return False
-    import subprocess
-
-    res = subprocess.run(
-        ["nix-store", "--query", "--references", store_path],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    return res.returncode == 0
+    return os.path.exists(store_path)
 
 
 def compare_versions(v1: str, v2: str) -> int:
@@ -135,13 +128,16 @@ def generate_candidate_names(target_key: str, pname: Optional[str] = None) -> Li
 def build_nix_batch_eval_expression(
     target_candidates_map: Dict[str, List[str]],
     flake_target_expr: str,
-    system: str = "x86_64-linux",
+    system: Optional[str] = None,
 ) -> str:
     """Construct a high-performance, single-pass Nix batch evaluation expression.
 
-    Safely traverses dynamic package scopes (top-level, nerd-fonts, python3Packages,
-    nodePackages, gnome, kdePackages, libsForQt5, linuxPackages) using builtins.tryEval.
+    Uses strictly lazy recursive early-exit evaluation to resolve package candidates across scopes
+    (top-level pkgs, nerd-fonts, python3Packages, nodePackages, gnome, kdePackages, libsForQt5, linuxPackages)
+    without forcing evaluation of unused thunks or unrelated attribute sets.
     """
+    effective_system = system or get_current_system()
+
     entries_nix = []
     for key, cands in target_candidates_map.items():
         cands_str = " ".join(f'"{c}"' for c in cands if c)
@@ -153,38 +149,19 @@ def build_nix_batch_eval_expression(
     return f"""
 let
   fl = {flake_target_expr};
-  pkgs = fl.legacyPackages.{system} or fl.packages.{system} or {{}};
+  targetSystem = "{effective_system}";
+  pkgs = fl.legacyPackages.${{targetSystem}} or fl.packages.${{targetSystem}} or (
+    if builtins ? currentSystem then
+      fl.legacyPackages.${{builtins.currentSystem}} or fl.packages.${{builtins.currentSystem}} or {{}}
+    else {{}}
+  );
 
-  safeGet = obj: attr:
+  extractMeta = drvRaw:
     let
-      res = builtins.tryEval (obj.${{attr}} or null);
-    in
-      if res.success then res.value else null;
-
-  # Scope sets to search dynamically (specialized scopes first, then top-level pkgs)
-  scopes = [
-    (safeGet pkgs "nerd-fonts")
-    (safeGet pkgs "nerdfonts")
-    pkgs
-    (safeGet pkgs "python3Packages")
-    (safeGet pkgs "python314Packages")
-    (safeGet pkgs "python313Packages")
-    (safeGet pkgs "python312Packages")
-    (safeGet pkgs "nodePackages")
-    (safeGet pkgs "nodePackages_latest")
-    (safeGet pkgs "gnome")
-    (safeGet pkgs "kdePackages")
-    (safeGet pkgs "libsForQt5")
-    (safeGet pkgs "linuxPackages")
-    (safeGet pkgs "linuxPackages_cachyos")
-  ];
-
-  extractMeta = raw:
-    let
-      chk = builtins.tryEval (
-        if raw != null && (raw ? outPath || builtins.isPath raw) then
+      res = builtins.tryEval (
+        if drvRaw != null && (drvRaw ? outPath || builtins.isPath drvRaw) then
           let
-            drv = if raw ? kernel then raw.kernel else raw;
+            drv = if drvRaw ? kernel then drvRaw.kernel else drvRaw;
             sp = builtins.unsafeDiscardStringContext (toString (drv.outPath or drv));
             v = drv.version or (if drv ? pname then "pinned" else "unknown");
             mp = drv.meta.mainProgram or (drv.pname or null);
@@ -198,27 +175,58 @@ let
         else null
       );
     in
-      if chk.success then chk.value else null;
+      if res.success then res.value else null;
 
-  resolveCandidates = candNames:
-    let
-      results = builtins.concatLists (
-        builtins.map (name:
-          builtins.filter (x: x != null) (
-            builtins.map (scope:
-              if scope != null then
-                extractMeta (safeGet scope name)
-              else null
-            ) scopes
-          )
-        ) candNames
-      );
-    in
-      if results != [] then builtins.head results else null;
+  # Scope getter yang dievaluasi secara thunked/lazy
+  getScope = scopeName:
+    if scopeName == "pkgs" then pkgs
+    else if pkgs ? ${{scopeName}} then
+      let r = builtins.tryEval pkgs.${{scopeName}}; in if r.success then r.value else null
+    else null;
+
+  scopeNames = [
+    "nerd-fonts"
+    "nerdfonts"
+    "pkgs"
+    "python3Packages"
+    "python314Packages"
+    "python313Packages"
+    "python312Packages"
+    "nodePackages"
+    "nodePackages_latest"
+    "gnome"
+    "kdePackages"
+    "libsForQt5"
+    "linuxPackages"
+    "linuxPackages_cachyos"
+  ];
+
+  # Recursive early-exit traversal: berhenti segera setelah kandidat pertama ditemukan di suatu scope
+  findCandidate = candList:
+    if candList == [] then null
+    else
+      let
+        cand = builtins.head candList;
+        findInScope = sList:
+          if sList == [] then null
+          else
+            let
+              sName = builtins.head sList;
+              scope = getScope sName;
+              meta = if scope != null && (scope ? ${{cand}}) then
+                extractMeta (let r = builtins.tryEval scope.${{cand}}; in if r.success then r.value else null)
+              else null;
+            in
+              if meta != null then meta
+              else findInScope (builtins.tail sList);
+        res = findInScope scopeNames;
+      in
+        if res != null then res
+        else findCandidate (builtins.tail candList);
 
   targetMap = {{
 {targets_block}
   }};
 in
-  builtins.mapAttrs (k: cands: resolveCandidates cands) targetMap
+  builtins.mapAttrs (k: cands: findCandidate cands) targetMap
 """

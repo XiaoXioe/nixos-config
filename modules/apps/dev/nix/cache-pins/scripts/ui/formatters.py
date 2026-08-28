@@ -2,8 +2,9 @@
 import datetime
 import os
 import re
-from typing import Union
+from typing import Optional, Union
 
+from core.platform import get_current_system
 from core.models import ClosureAudit
 
 
@@ -99,7 +100,11 @@ def normalize_channel_name(source_input: str) -> str:
     return s
 
 
-def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
+def render_nix_snippet(
+    audit: ClosureAudit,
+    source_input: str,
+    system: Optional[str] = None,
+) -> str:
     """Generate Nix attrset snippet suitable for cache-pins.nix."""
     attr_key = audit.target_name.replace("pkgs.", "").strip()
     attr_key_clean = re.sub(r"[^a-zA-Z0-9_]", "_", attr_key)
@@ -108,6 +113,7 @@ def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
     missing_bytes = sum(i["file_size"] for i in audit.missing_items)
     cache_info = f" | Cache: {audit.cache_url}" if audit.cache_url and "cache.nixos.org" not in audit.cache_url else ""
     channel_name = normalize_channel_name(source_input)
+    target_system = system or getattr(audit, "system", None) or get_current_system()
 
     lines = []
     lines.append("")
@@ -123,7 +129,7 @@ def render_nix_snippet(audit: ClosureAudit, source_input: str) -> str:
     lines.append(f'    channel = "{channel_name}";')
     if audit.cache_url and "cache.nixos.org" not in audit.cache_url:
         lines.append(f'    fromStore = "{audit.cache_url}";')
-    lines.append('    system = "x86_64-linux";')
+    lines.append(f'    system = "{target_system}";')
     lines.append("  };")
 
     return "\n".join(lines)

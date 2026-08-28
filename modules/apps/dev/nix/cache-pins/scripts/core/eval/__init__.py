@@ -1,5 +1,3 @@
-"""Core Nix evaluation engine: batch evaluation, dynamic scoping, and channel resolution."""
-
 from core.eval.channels import (
     find_cache_pins_file,
     find_flake_dir,
@@ -7,6 +5,7 @@ from core.eval.channels import (
     normalize_channel_name,
     resolve_channel_input,
 )
+from core.platform import get_current_system
 from core.eval.evaluator import (
     eval_nix_raw,
     evaluate_batch,
@@ -31,6 +30,7 @@ from core.eval.system_eval import (
 __all__ = [
     "find_flake_dir",
     "find_cache_pins_file",
+    "get_current_system",
     "get_nix_env",
     "resolve_channel_input",
     "normalize_channel_name",

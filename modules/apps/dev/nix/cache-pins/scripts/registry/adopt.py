@@ -4,7 +4,7 @@ import re
 import subprocess
 from typing import List, Optional
 
-from core.nix_eval import find_flake_dir
+from core.eval.channels import find_flake_dir
 
 
 def find_modules_referencing_pkg(pkg_name: str, base_dir: Optional[Path] = None) -> List[Path]:

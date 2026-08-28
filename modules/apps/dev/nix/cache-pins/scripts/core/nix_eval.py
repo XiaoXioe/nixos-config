@@ -5,6 +5,7 @@ from core.cache.tracker import get_channel_revision_info
 from core.eval.channels import (
     find_cache_pins_file,
     find_flake_dir,
+    get_current_system,
     get_nix_env,
     normalize_channel_name,
     resolve_channel_input,
@@ -33,6 +34,7 @@ from core.eval.system_eval import (
 __all__ = [
     "find_flake_dir",
     "find_cache_pins_file",
+    "get_current_system",
     "get_nix_env",
     "resolve_channel_input",
     "normalize_channel_name",

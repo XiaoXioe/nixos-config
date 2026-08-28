@@ -8,7 +8,12 @@ import sys
 import threading
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.eval.channels import find_flake_dir, get_nix_env, resolve_channel_input
+from core.eval.channels import (
+    find_flake_dir,
+    get_nix_env,
+    resolve_channel_input,
+)
+from core.platform import get_current_system
 from core.eval.resolver import (
     build_nix_batch_eval_expression,
     extract_version_from_store_path,
@@ -21,20 +26,22 @@ from core.models import PackageMeta
 def eval_nix_raw(
     expr: str,
     flake_input: Optional[str] = None,
+    system: Optional[str] = None,
     verbose: Optional[bool] = None,
     timeout: int = 180,
 ) -> Optional[str]:
     """Evaluate a raw Nix expression via 'nix eval --raw' with progress feedback and return trimmed string."""
     flake_dir = find_flake_dir()
     flake_prefix = f"{flake_dir}#" if flake_dir else ""
+    target_system = system or get_current_system()
 
     cmd = ["nix", "eval", "--raw", "--impure"]
 
     if flake_input and not expr.startswith("builtins.") and not expr.startswith("import"):
         if any(flake_input.startswith(prefix) for prefix in ["github:", "gitlab:", "path:", "git+", "git:"]):
-            eval_expr = f'(builtins.getFlake "{flake_input}").legacyPackages.x86_64-linux.{expr}'
+            eval_expr = f'(builtins.getFlake "{flake_input}").legacyPackages.{target_system}.{expr}'
         else:
-            eval_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{flake_input}.legacyPackages.x86_64-linux.{expr}'
+            eval_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{flake_input}.legacyPackages.{target_system}.{expr}'
         cmd.extend(["--expr", eval_expr])
     else:
         cmd.extend(["--expr", expr])
@@ -104,7 +111,7 @@ def eval_nix_raw(
 def evaluate_batch(
     targets: Dict[str, Optional[str]],
     nixpkgs_input: str = "nixpkgs",
-    system: str = "x86_64-linux",
+    system: Optional[str] = None,
     verbose: Optional[bool] = None,
     timeout: int = 180,
 ) -> Dict[str, Optional[PackageMeta]]:
@@ -112,6 +119,7 @@ def evaluate_batch(
     if not targets:
         return {}
 
+    effective_system = system or get_current_system()
     flake_dir = find_flake_dir()
     flake_prefix = f"{flake_dir}#" if flake_dir else ""
 
@@ -129,7 +137,7 @@ def evaluate_batch(
         target_candidates_map[clean_key] = cands
         clean_to_orig_key[clean_key] = orig_key
 
-    expr = build_nix_batch_eval_expression(target_candidates_map, flake_target_expr, system=system)
+    expr = build_nix_batch_eval_expression(target_candidates_map, flake_target_expr, system=effective_system)
     cmd = ["nix", "eval", "--json", "--impure", "--expr", expr]
 
     is_verbose = verbose if verbose is not None else (os.environ.get("NCP_VERBOSE") == "1")
@@ -195,7 +203,7 @@ def evaluate_batch(
                                 version=ver,
                                 main_program=meta.get("mainProgram"),
                                 pname=meta.get("pname"),
-                                system=system,
+                                system=effective_system,
                                 channel=nixpkgs_input,
                             )
     except subprocess.TimeoutExpired:
@@ -218,7 +226,7 @@ def evaluate_single_package(
     target_key: str,
     nixpkgs_input: str = "nixpkgs",
     pname: Optional[str] = None,
-    system: str = "x86_64-linux",
+    system: Optional[str] = None,
     verbose: Optional[bool] = None,
 ) -> Tuple[Optional[str], str, Optional[str]]:
     """Evaluate a single package and return (store_path, version, main_program) tuple."""
@@ -238,6 +246,7 @@ def evaluate_upstream_package(
     target_key: str,
     nixpkgs_input: str = "nixpkgs",
     pname: Optional[str] = None,
+    system: Optional[str] = None,
     verbose: Optional[bool] = None,
 ) -> Tuple[Optional[str], str, Optional[str]]:
     """Compatibility alias for evaluate_single_package."""
@@ -245,6 +254,7 @@ def evaluate_upstream_package(
         target_key=target_key,
         nixpkgs_input=nixpkgs_input,
         pname=pname,
+        system=system,
         verbose=verbose,
     )
 
@@ -253,6 +263,7 @@ def resolve_target_to_store_path(
     target: str,
     nixpkgs_input: str = "nixpkgs",
     pins_file: Optional[Path] = None,
+    system: Optional[str] = None,
 ) -> Tuple[str, str, Optional[str]]:
     """Resolve a target name, attr, or store path into a validated (store_path, version, main_program) tuple."""
     # 1. Direct Store Path
@@ -270,22 +281,14 @@ def resolve_target_to_store_path(
 
     if pins_file and pins_file.is_file():
         try:
-            expr = f"import {pins_file}"
-            res = subprocess.run(
-                ["nix", "eval", "--json", "--impure", "--expr", expr],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                env=get_nix_env(),
-            )
-            if res.returncode == 0:
-                data = json.loads(res.stdout)
-                for key_candidate in [clean_target, var_dash, var_under]:
-                    if key_candidate in data:
-                        cached_entry = data[key_candidate]
-                        if isinstance(cached_entry, dict):
-                            cached_pname = cached_entry.get("pname")
-                        break
+            from registry.store import load_cache_pins
+            pins_data = load_cache_pins(pins_file)
+            for key_candidate in [clean_target, var_dash, var_under]:
+                if key_candidate in pins_data:
+                    cached_entry = pins_data[key_candidate]
+                    if isinstance(cached_entry, dict):
+                        cached_pname = cached_entry.get("pname")
+                    break
         except Exception:
             pass
 
@@ -294,6 +297,7 @@ def resolve_target_to_store_path(
         target_key=clean_target,
         nixpkgs_input=nixpkgs_input,
         pname=cached_pname,
+        system=system,
     )
     if sp and sp.startswith("/nix/store/"):
         return sp, ver, main_prog

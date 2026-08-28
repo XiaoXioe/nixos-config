@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import urllib.error
 import urllib.request
 
-from core.nix_eval import find_flake_dir
+from core.nix_eval import find_flake_dir, get_current_system
 
 
 def fetch_git_tags(repo_url: str) -> List[Tuple[str, str]]:
@@ -56,10 +56,13 @@ def fetch_git_tags(repo_url: str) -> List[Tuple[str, str]]:
 
 
 def fetch_flake_package_variants(
-    clean_pkg: str, matching_input_names: List[str], flake_dir: Path
+    clean_pkg: str,
+    matching_input_names: List[str],
+    flake_dir: Path,
+    system: Optional[str] = None,
 ) -> List[Dict[str, str]]:
     """Discover all package attributes and versions exported by matching flake inputs."""
-    system = "x86_64-linux"
+    target_system = system or get_current_system()
     all_results: List[Dict[str, str]] = []
 
     for input_name in matching_input_names:
@@ -68,7 +71,7 @@ def fetch_flake_package_variants(
         expr = f"""
         let
           f = builtins.getFlake (toString {flake_dir});
-          system = "{system}";
+          system = "{target_system}";
           lib = f.inputs.nixpkgs.lib or (import <nixpkgs> {{}}).lib;
           inp = f.inputs."{input_name}" or {{}};
           pkgs = inp.packages.${{system}} or {{}};
@@ -111,9 +114,10 @@ def fetch_flake_package_variants(
     return all_results
 
 
-def fetch_package_versions(pkg_name: str) -> List[Dict[str, str]]:
+def fetch_package_versions(pkg_name: str, system: Optional[str] = None) -> List[Dict[str, str]]:
     """Fetch package version history from local flake inputs, Git tags, NixHub, and standard channels."""
     clean_pkg = pkg_name.replace("pkgs.", "").strip()
+    target_system = system or get_current_system()
     results: List[Dict[str, str]] = []
     seen_attrs = set()
 
@@ -138,7 +142,7 @@ def fetch_package_versions(pkg_name: str) -> List[Dict[str, str]]:
                 matching_input_names = [name for name, _ in matching_nodes]
 
                 # 1.1 Discover variants
-                variants = fetch_flake_package_variants(clean_pkg, matching_input_names, flake_dir)
+                variants = fetch_flake_package_variants(clean_pkg, matching_input_names, flake_dir, system=target_system)
                 for var in variants:
                     attr = var["attrName"]
                     input_name = var["inputName"]
@@ -293,7 +297,9 @@ def fetch_package_versions(pkg_name: str) -> List[Dict[str, str]]:
 
 
 def interactive_version_picker(
-    pkg_name: str, cache_url: Optional[str] = None
+    pkg_name: str,
+    cache_url: Optional[str] = None,
+    system: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """Open an interactive FZF menu allowing user to select a specific package version."""
     clean_pkg = pkg_name.replace("pkgs.", "").strip()
@@ -304,7 +310,7 @@ def interactive_version_picker(
         sys.exit(1)
 
     print(f"🔍 Mengambil riwayat rilis untuk '{clean_pkg}'...", file=sys.stderr)
-    versions = fetch_package_versions(clean_pkg)
+    versions = fetch_package_versions(clean_pkg, system=system)
 
     if not versions:
         print(f"❌ ERROR: Tidak ditemukan riwayat versi untuk '{clean_pkg}'", file=sys.stderr)
