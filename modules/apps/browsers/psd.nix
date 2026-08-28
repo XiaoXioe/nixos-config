@@ -87,8 +87,10 @@ selfLib.mkModule {
               EOF
 
               cat << 'EOF' > $out/share/psd/browsers/torbrowser
-              DIRArr[0]="$HOME/.local/share/torbrowser"
+              DIRArr[0]="$HOME/.tor project/firefox"
+              DIRArr[1]="$HOME/.tor project/Tor"
               PSNAME="firefox"
+              check_suffix="yes"
               EOF
 
               cat << 'EOF' > $out/share/psd/browsers/zen
