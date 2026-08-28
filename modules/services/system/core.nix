@@ -55,6 +55,11 @@ selfLib.mkModule {
     };
 
     systemd = {
+      tmpfiles.rules = [
+        "Z /var/lib/vnstat 0755 vnstatd vnstatd -"
+        "Z /persist/var/lib/vnstat 0755 vnstatd vnstatd -"
+      ];
+
       timers = {
         fstrim.timerConfig.Persistent = false;
         # mkForce diperlukan karena nixpkgs default Persistent=true pada btrfs-scrub.
