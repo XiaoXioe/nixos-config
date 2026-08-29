@@ -37,13 +37,16 @@ selfLib.mkModule {
           TIMELINE_CREATE = true;
           TIMELINE_CLEANUP = true;
 
-          # Simpan 3 snapshot per jam
-          # so recently deleted files can be restored
-          TIMELINE_LIMIT_HOURLY = "12";
-          TIMELINE_LIMIT_DAILY = "7"; # 1 minggu harian
-          TIMELINE_LIMIT_WEEKLY = "4";
-          TIMELINE_LIMIT_MONTHLY = "1";
+          # Restore point jangka pendek yang hemat ruang disk (Balanced Lean)
+          TIMELINE_LIMIT_HOURLY = "5"; # 5 jam terakhir untuk undo cepat
+          TIMELINE_LIMIT_DAILY = "4"; # 4 hari terakhir untuk rollback sesi kemarin
+          TIMELINE_LIMIT_WEEKLY = "1"; # 1 checkpoint minggu ini
+          TIMELINE_LIMIT_MONTHLY = "0"; # Jangka panjang didelegasikan ke Restic
           TIMELINE_LIMIT_YEARLY = "0";
+
+          # Guardrails penghematan ruang disk BTRFS
+          SPACE_LIMIT = "0.3"; # Maksimal snapshot menggunakan 30% kapasitas partisi
+          FREE_LIMIT = "0.2"; # Picu cleanup agresif jika sisa kapasitas disk < 20%
         };
       };
     };
