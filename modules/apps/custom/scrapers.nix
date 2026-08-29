@@ -16,6 +16,7 @@ selfLib.mkModule {
   hmConfig = {
     home.packages = [
       custom.streambert
+      priv.burpsuitepro
       priv.anichin-scraper
       priv.lk21-scraper
     ];
