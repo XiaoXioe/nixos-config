@@ -23,11 +23,22 @@ def extract_version_from_store_path(store_path: str) -> str:
     return "pinned"
 
 
-def is_path_in_nix_store(store_path: str) -> bool:
-    """Check if a store path physically exists in /nix/store/ without spawning daemon connections."""
+def is_path_in_nix_store(store_path: str, verify_validity: bool = True) -> bool:
+    """Check if a store path physically exists and is registered valid in Nix SQLite db."""
     if not store_path or not store_path.startswith("/nix/store/"):
         return False
-    return os.path.exists(store_path)
+    if not os.path.exists(store_path):
+        return False
+    if not verify_validity:
+        return True
+    import subprocess
+
+    res = subprocess.run(
+        ["nix-store", "--check-validity", store_path],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return res.returncode == 0
 
 
 def compare_versions(v1: str, v2: str) -> int:

@@ -27,6 +27,7 @@ def find_unused_pins(
     ignore_files = {
         pins_file.resolve(),
         (root / "modules" / "_lib" / "default.nix").resolve(),
+        (root / "modules" / "_lib" / "cache" / "default.nix").resolve(),
         (root / "modules" / "_lib" / "modules" / "fetchNixCache" / "default.nix").resolve(),
     }
 

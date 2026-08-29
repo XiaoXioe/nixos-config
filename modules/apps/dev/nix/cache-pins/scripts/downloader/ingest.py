@@ -55,10 +55,9 @@ def ingest_fod_items(
     all_ok = True
     for item in fod_items:
         # 1. Cari berkas hasil unduhan di download_dir
-        candidate_names = []
-        if getattr(item, "download_filename", None):
+        candidate_names = [item.filename]
+        if getattr(item, "download_filename", None) and item.download_filename != item.filename:
             candidate_names.append(item.download_filename)
-        candidate_names.append(item.filename)
 
         file_path = None
         for name in candidate_names:
@@ -141,6 +140,19 @@ def ingest_fod_items(
 
                 # Set permissions standar
                 os.chmod(final_target, 0o755)
+                target_path_for_nix = final_target
+            elif file_path.name != item.filename:
+                # Jika berkas flat memiliki nama berbeda dari item.filename (misal 'download'),
+                # lakukan staging ke target_path_for_nix dengan nama item.filename
+                stage_dir = download_dir / f"_fod_stage_{item.filename}"
+                if stage_dir.exists():
+                    shutil.rmtree(stage_dir, ignore_errors=True)
+                stage_dir.mkdir(parents=True, exist_ok=True)
+                final_target = stage_dir / item.filename
+                if file_path.is_file():
+                    shutil.copy2(file_path, final_target)
+                elif file_path.is_dir():
+                    shutil.copytree(file_path, final_target)
                 target_path_for_nix = final_target
 
             # 3. Eksekusi nix-store --add-fixed
