@@ -3,8 +3,8 @@
     apps = {
       browsers = {
         firefox = false;
-        brave = false;
-        chromium = true;
+        brave = true;
+        chromium = false;
         librewolf = false;
         tor-browser = true;
         zen = true;
@@ -33,14 +33,11 @@
         nix = {
           nh = true;
           nix-tools = true;
-          cek-cache = true;
-          flake-update-interactive = true;
           apps-updater = true;
           cache-pins = true;
         };
         vcs = {
           git = true;
-          git-commits = true;
         };
         environment = {
           direnv = true;
