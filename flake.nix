@@ -17,7 +17,7 @@
     custompkgs-priv = {
       url = "github:XiaoXioe/nix-custompkg-priv";
       # url = "path:/home/klein-moretti/nix-custompkg-priv";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "nixpkgs";
     };
 
     preservation.url = "github:nix-community/preservation";

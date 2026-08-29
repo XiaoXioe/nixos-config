@@ -43,16 +43,14 @@
     },
     "custompkgs-priv": {
       "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1786340628,
-        "narHash": "sha256-jfnb3A1ljITkCKomqgfJQrUbPEpIlXVmFKSRdXw8R7Q=",
+        "lastModified": 1787986976,
+        "narHash": "sha256-dTLZusZFYWZumPCFmvaRK3jC6pjD22LR30mepy9t/+k=",
         "owner": "XiaoXioe",
         "repo": "nix-custompkg-priv",
-        "rev": "c59ff727ad5064c9f64e3c259b7c40a8bf9591d7",
+        "rev": "05836b8e2dd3eee1509ea00a8de9b20e29eade04",
         "type": "github"
       },
       "original": {
@@ -107,11 +105,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787966256,
-        "narHash": "sha256-Lmy6PYq1HG/CHBgpnkcpRnVDCqBOq6s4IkRS+j377TM=",
+        "lastModified": 1787978810,
+        "narHash": "sha256-j/EDPIkAbBdqQLcEiyvCIr2li28F7ujTVlcmU92Cq/I=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "3306772f97a233c6295fd82e3ee7850331045511",
+        "rev": "104bbebbc22159fe6c96678529b2616721ad5a73",
         "type": "github"
       },
       "original": {
@@ -128,11 +126,11 @@
       },
       "locked": {
         "dir": "pkgs/firefox-addons",
-        "lastModified": 1787889772,
-        "narHash": "sha256-MyfXK0XhiyO1n6IiboOicBmAOb73okNBkUK+2qKZfKQ=",
+        "lastModified": 1787976477,
+        "narHash": "sha256-N4ljMPGSikj3Yl4EZv7xa6KSGkmm+G5wFZBhnOCwqZw=",
         "owner": "rycee",
         "repo": "nur-expressions",
-        "rev": "cd1f64713631dc6296e9c3eb9993f46696d202b4",
+        "rev": "2e2c50de599df9787f6aa735ceea0a7aabcfae2a",
         "type": "gitlab"
       },
       "original": {
@@ -443,7 +441,7 @@
       "inputs": {
         "flake-compat": "flake-compat_3",
         "flake-parts": "flake-parts_2",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1787881163,
@@ -488,11 +486,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787820173,
-        "narHash": "sha256-/Qy+2I2Sef+TAA3+qA3TcwgJpvQir7ssldXvU6pywRo=",
+        "lastModified": 1787985714,
+        "narHash": "sha256-epy5mTo+NnNK+O2X8VKsHMayrL2jvU5mjCXKQonoc30=",
         "owner": "XiaoXioe",
         "repo": "nix-mcp",
-        "rev": "6f74f3c68b78e2617c9b3dc0ce8a290b5cf66696",
+        "rev": "fc1f6a6c0d5e3949bb49fc052c47a0712e71935e",
         "type": "github"
       },
       "original": {
@@ -503,16 +501,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1787848627,
-        "narHash": "sha256-t3XgpB1iCGH5mR6cXVbwC9II2JdajaPqnlIHvh/unlI=",
+        "lastModified": 1787848966,
+        "narHash": "sha256-7gDpu5hpq0rOYnYMcOWqSzquK4HA/xU8Xf3CjUBOOJA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7e0fb958bbf98c835549713f15243aabcf9ce741",
+        "rev": "d57af924f160a5084293c71c2043f058bd1cdb60",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-unstable-small",
+        "ref": "nixos-26.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -564,6 +562,22 @@
       }
     },
     "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1787848627,
+        "narHash": "sha256-t3XgpB1iCGH5mR6cXVbwC9II2JdajaPqnlIHvh/unlI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7e0fb958bbf98c835549713f15243aabcf9ce741",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable-small",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1787848966,
         "narHash": "sha256-7gDpu5hpq0rOYnYMcOWqSzquK4HA/xU8Xf3CjUBOOJA=",
@@ -631,7 +645,7 @@
         "nix-cachyos-kernel": "nix-cachyos-kernel",
         "nix-index-database": "nix-index-database",
         "nix-mcp": "nix-mcp",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs_3",
         "nvf": "nvf",
         "preservation": "preservation",
         "sops-nix": "sops-nix",
