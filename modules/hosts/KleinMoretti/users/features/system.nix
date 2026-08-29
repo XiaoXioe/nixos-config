@@ -4,7 +4,6 @@
       runtimes = {
         llama = true;
         ollama = false;
-        ollama-to-llama = true;
       };
       agents = {
         agy-profile = true;
