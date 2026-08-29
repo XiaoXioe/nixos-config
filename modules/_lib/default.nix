@@ -7,27 +7,31 @@
 #   fs.nix            → scanPaths, getVpnFiles (filesystem helpers)
 #   audio.nix         → mkEqFilterString (PipeWire EQ renderer)
 #   shell-check.nix   → isShellEnabled (compositor shell detection helper)
+#   webapp.nix        → mkWebApp (PWA desktop app builder)
 #   shell/            → mkApp, mkShellCompletions (shell app builders)
 #   network/          → warpProxyEnv, mkWarpWaitScript (WARP helpers)
 #   browser-addons/   → browserAddonsFor (Firefox/Zen/Tor policy builders)
-#   modules/mkModule/ → mkModule (unified NixOS + HM module builder)
+#   mk-module/        → mkModule (unified NixOS + HM module builder)
+#   native-app/       → mkNativeApp, fetchApp, fetchUnpackedApp, allAppSources, activeAppSources
+#   cache/            → fetchFromNixCache, fetchCachePinned (Nix cache ingestion)
 #   builders/         → mkNixosConfiguration (used directly by flake.nix)
 { lib, ... }:
 let
-  mkModuleLib = import ./modules/mkModule { inherit lib; };
-  nativeAppLib = pkgs: import ./modules/mkNativeApp { inherit lib pkgs; };
-  shellLib = pkgs: import ./shell { inherit lib pkgs; };
+  mkModuleLib = import ./mk-module { inherit lib; };
+  nativeAppLib = import ./native-app { inherit lib; };
+  shellLib = import ./shell { inherit lib; };
+  networkLib = import ./network { };
+  nixCacheLib = import ./cache { inherit lib; };
+
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
   hmLib = import ./hm.nix { inherit lib; };
   shellCheckLib = import ./shell-check.nix { inherit lib; };
   webAppLib = pkgs: import ./webapp.nix { inherit lib pkgs; };
-  # Single import of version registry — avoids 4× redundant AST parsing
+
+  # Single import of version registries — avoids redundant AST parsing
   appVersionsData = import ./apps-versions.nix;
-  # Nix Binary Cache pin registry — store paths dari Hydra/cache.nixos.org
   cachePinsData = import ./cache-pins.nix;
-  # fetchNixCache lib — pure builtins.fetchClosure, tidak butuh pkgs
-  nixCacheLib = import ./modules/fetchNixCache { inherit lib; };
 in
 {
   # ── Module builder ───────────────────────────────────────────────────────────
@@ -40,74 +44,10 @@ in
   mkNativeApp = pkgs: (nativeAppLib pkgs).mkNativeApp;
   fetchUnpacked = pkgs: (nativeAppLib pkgs).fetchUnpacked;
   appVersions = appVersionsData;
-  fetchApp = pkgs: name: pkgs.fetchurl appVersionsData.${name};
-  fetchUnpackedApp =
-    pkgs: name:
-    let
-      info = appVersionsData.${name};
-      hash = info.unpackedHash or info.hash;
-    in
-    (nativeAppLib pkgs).fetchUnpacked (
-      info
-      // {
-        pname = name;
-        inherit hash;
-      }
-    );
-  allAppSources =
-    pkgs:
-    pkgs.linkFarm "native-app-sources" (
-      lib.mapAttrsToList (name: info: {
-        name = "${name}-${info.version}";
-        path = pkgs.fetchurl {
-          inherit (info) url hash;
-        };
-      }) appVersionsData
-    );
-  activeAppSources =
-    { pkgs, config }:
-    let
-      # Alias jika nama modul sedikit berbeda dengan nama key di apps-versions.nix
-      aliases = {
-        zed = "zeditor";
-        betterbird = "thunderbird";
-        ppsspp = "emulators";
-        pcsx2 = "emulators";
-        retroarch = "emulators";
-        retroarch-cores = "emulators";
-        tdl = "downloader";
-      };
-
-      # Cek apakah modul dengan nama tertentu aktif di config.my tree.
-      # Melakukan traversal hingga kedalaman 3 untuk mendukung nested module paths.
-      isModuleEnabled =
-        name:
-        let
-          targetKey = aliases.${name} or name;
-
-          checkAtDepth =
-            depth: set:
-            if depth > 3 || !builtins.isAttrs set then
-              false
-            else if set ? ${targetKey} && builtins.isAttrs set.${targetKey} && set.${targetKey} ? enable then
-              set.${targetKey}.enable == true
-            else
-              lib.any (child: checkAtDepth (depth + 1) child) (
-                lib.filter (v: builtins.isAttrs v && !(v ? _type)) (builtins.attrValues set)
-              );
-        in
-        checkAtDepth 0 (config.my.apps or { }) || checkAtDepth 0 (config.my.security or { });
-
-      activeEntries = lib.filterAttrs (name: _: isModuleEnabled name) appVersionsData;
-    in
-    pkgs.linkFarm "native-app-sources" (
-      lib.mapAttrsToList (name: info: {
-        name = "${name}-${info.version}";
-        path = pkgs.fetchurl {
-          inherit (info) url hash;
-        };
-      }) activeEntries
-    );
+  fetchApp = pkgs: (nativeAppLib pkgs).fetchApp;
+  fetchUnpackedApp = pkgs: (nativeAppLib pkgs).fetchUnpackedApp;
+  allAppSources = pkgs: (nativeAppLib pkgs).allAppSources;
+  activeAppSources = { pkgs, config }: (nativeAppLib pkgs).activeAppSources config;
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }
@@ -119,15 +59,10 @@ in
 
   # ── Shell app builders ────────────────────────────────────────────────────────
   # mkApp: pkgs.writeShellApplication wrapper with __toString for string coercion
-  mkApp = pkgs: (shellLib pkgs).mkApp;
-  mkShellCompletions = pkgs: (shellLib pkgs).mkShellCompletions;
+  inherit (shellLib) mkApp mkShellCompletions;
 
   # ── Network / WARP helpers ────────────────────────────────────────────────────
-  # warpProxyEnv: static socks5h://127.0.0.1:40000 env-var set (no pkgs needed)
-  warpProxyEnv = port: (import ./network { pkgs = null; }).warpProxyEnv port;
-  mkWarpWaitScript =
-    pkgs: port: name:
-    (import ./network { inherit pkgs; }).mkWarpWaitScript port name;
+  inherit (networkLib) warpProxyEnv mkWarpWaitScript;
 
   # ── Browser addons ────────────────────────────────────────────────────────────
   # Call with { inherit pkgs inputs; } — see lib/browser-addons/default.nix
@@ -151,16 +86,6 @@ in
   mkWebApp = pkgs: (webAppLib pkgs).mkWebApp;
 
   # ── Nix Binary Cache Direct Ingestion ────────────────────────────────────
-  # Fetch binary langsung dari cache.nixos.org via builtins.fetchClosure.
-  # Tidak ada pkgs dependency — pure builtins, zero nixpkgs closure overhead.
-  # Requires: nix.settings.experimental-features includes "fetch-closure"
-  #
-  # fetchFromNixCache { storePath, ?fromStore, ... } → store path string
-  # cachePins         → attrset dari cache-pins.nix (registry semua pins)
-  # fetchCachePinned  → name → store path (shorthand via registry)
-  #
-  # Contoh:
-  #   environment.systemPackages = [ (selfLib.fetchCachePinned "rclone") ];
   inherit (nixCacheLib) fetchFromNixCache;
   cachePins = cachePinsData;
   fetchCachePinned = nixCacheLib.fetchCachePinned cachePinsData;

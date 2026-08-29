@@ -1,5 +1,9 @@
-_:
+{ lib, ... }:
 
+let
+  # Memoized preservation aspect type schema — evaluated once instead of 132x per module
+  preservationAspectType = import ./preservation-schema.nix { inherit lib; };
+in
 # Unified module builder for NixOS and Home Manager.
 # Automatically creates 'options.my.${name}.enable' for global NixOS state.
 {
@@ -21,7 +25,6 @@ assert
     (
       {
         config,
-        lib,
         pkgs,
         ...
       }:
@@ -31,9 +34,6 @@ assert
 
         resolvedNixosConfig =
           if builtins.isFunction nixosConfig then nixosConfig { inherit config lib pkgs; } else nixosConfig;
-
-        # Preservation schema type — extracted to standalone file for maintainability
-        preservationAspectType = import ./preservation-schema.nix { inherit lib; };
       in
       {
         options.my =

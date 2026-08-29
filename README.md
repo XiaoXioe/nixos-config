@@ -27,10 +27,10 @@ Modular, declarative NixOS flake featuring Home Manager integration, an ephemera
     │   ├── cache-pins.nix       # Single source of truth for Hydra binary cache store paths
     │   ├── browser-addons/      # Firefox/Zen/Tor/Chromium policy-locks and addon builders
     │   ├── builders/            # mkNixosConfiguration builder extracted from flake.nix
-    │   ├── modules/
-    │   │   ├── fetchNixCache/   # Pure builtins.fetchClosure binary ingestion engine
-    │   │   ├── mkModule/        # Unified builder with co-located preservation schema
-    │   │   └── mkNativeApp/     # nix-ld universal wrapper for .deb/.tar.*/.snap/.AppImage
+    │   ├── cache/               # Pure builtins.fetchClosure binary ingestion engine
+    │   ├── mk-module/           # Unified builder with co-located preservation schema
+    │   ├── native-app/          # nix-ld universal wrapper for .deb/.tar.*/.snap/.AppImage & sources
+    │   ├── network/             # WARP SOCKS5 proxy env & readiness check scripts
     │   └── shell/               # mkApp and mkShellCompletions wrappers
     ├── ai/                      # AI stack & tools:
     │   ├── agents/              # agy-profile, agy-ide-profile, auth-agent GUI escalation

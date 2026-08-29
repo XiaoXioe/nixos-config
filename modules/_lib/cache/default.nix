@@ -1,4 +1,4 @@
-# modules/_lib/modules/fetchNixCache/default.nix
+# modules/_lib/cache/default.nix
 #
 # fetchFromNixCache — Wrapper builtins.fetchClosure untuk Nix Binary Cache.
 #
@@ -14,7 +14,6 @@
 # (dikonfigurasi di modules/core/nix.nix)
 _:
 
-# Pure builtins.fetchClosure, zero nixpkgs closure overhead by default.
 let
   # Error informatif jika feature belum aktif saat evaluasi
   checkFeature =

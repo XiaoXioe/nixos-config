@@ -1,13 +1,31 @@
-{ pkgs, lib }:
+# Compose layer for Native App packaging, unpackers, and sources
+{ lib, ... }:
 
+let
+  appVersionsData = import ../apps-versions.nix;
+in
+pkgs:
 let
   mkUnwrapped = import ./unwrapped.nix { inherit pkgs lib; };
   fetchUnpacked = import ./fetch-unpacked.nix { inherit pkgs lib; };
   mkWrapped = import ./wrapper.nix { inherit pkgs lib; };
-  appVersionsData = import ../../apps-versions.nix;
+  sourcesLib = import ./sources.nix {
+    inherit
+      lib
+      pkgs
+      fetchUnpacked
+      appVersionsData
+      ;
+  };
 in
 {
   inherit mkUnwrapped fetchUnpacked mkWrapped;
+  inherit (sourcesLib)
+    fetchApp
+    fetchUnpackedApp
+    allAppSources
+    activeAppSources
+    ;
 
   mkNativeApp =
     args@{
