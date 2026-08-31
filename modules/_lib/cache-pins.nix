@@ -50,12 +50,12 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 73.29 MiB | Download Bersih: 56.81 MiB
-  # Library Lokal: 8/9 (88.9%) | Missing: 1 paket (56.81 MiB)
+  # Generated: 2026-08-31 | Source: git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-unstable
+  # Ukuran Closure Disk: 238.59 MiB (Uncompressed) | Download Kotor: 73.30 MiB
+  # Download Bersih: 73.30 MiB | Library Lokal: 0/9 (0.0%) | Missing: 9 paket (73.30 MiB)
   opencode = {
-    storePath = "/nix/store/897y0qxdg55xaa985v7sw6wqql7frnxh-opencode-1.18.21";
-    version = "1.18.21";
+    storePath = "/nix/store/89s5dglfs84sk22y6mp8f0paszs25zjy-opencode-1.18.25";
+    version = "1.18.25";
     mainProgram = "opencode";
     channel = "unstable";
     system = "x86_64-linux";
