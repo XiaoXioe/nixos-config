@@ -55,6 +55,8 @@ class ChannelRevInfo:
     revision: str
     last_modified: Optional[int] = None
     nar_hash: Optional[str] = None
+    store_path: Optional[str] = None
+    locked_url: Optional[str] = None
     is_local_flake: bool = False
 
 

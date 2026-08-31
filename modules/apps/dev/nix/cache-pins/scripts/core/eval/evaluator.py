@@ -28,7 +28,7 @@ def eval_nix_raw(
     flake_input: Optional[str] = None,
     system: Optional[str] = None,
     verbose: Optional[bool] = None,
-    timeout: int = 180,
+    timeout: Optional[int] = None,
 ) -> Optional[str]:
     """Evaluate a raw Nix expression via 'nix eval --raw' with progress feedback and return trimmed string."""
     flake_dir = find_flake_dir()
@@ -38,7 +38,10 @@ def eval_nix_raw(
     cmd = ["nix", "eval", "--raw", "--impure"]
 
     if flake_input and not expr.startswith("builtins.") and not expr.startswith("import"):
-        if any(flake_input.startswith(prefix) for prefix in ["github:", "gitlab:", "path:", "git+", "git:"]):
+        if flake_input.startswith("/nix/store/") or flake_input.startswith("path:"):
+            clean_path = flake_input.replace("path:", "")
+            eval_expr = f'(builtins.getFlake "path:{clean_path}").legacyPackages.{target_system}.{expr}'
+        elif any(flake_input.startswith(prefix) for prefix in ["github:", "gitlab:", "git+", "git:"]):
             eval_expr = f'(builtins.getFlake "{flake_input}").legacyPackages.{target_system}.{expr}'
         else:
             eval_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{flake_input}.legacyPackages.{target_system}.{expr}'
@@ -60,6 +63,7 @@ def eval_nix_raw(
         )
 
         stdout_chunks = []
+        stderr_lines = []
 
         def handle_stderr():
             for raw_line in iter(proc.stderr.readline, ""):
@@ -68,6 +72,7 @@ def eval_nix_raw(
                 line = raw_line.strip()
                 if not line:
                     continue
+                stderr_lines.append(line)
                 if is_verbose:
                     print(f"  [nix] {line}", file=sys.stderr, flush=True)
                 elif is_tty:
@@ -85,7 +90,11 @@ def eval_nix_raw(
         t_err.start()
         t_out.start()
 
-        proc.wait(timeout=timeout)
+        if timeout is not None:
+            proc.wait(timeout=timeout)
+        else:
+            proc.wait()
+
         t_err.join(timeout=2)
         t_out.join(timeout=2)
 
@@ -94,6 +103,9 @@ def eval_nix_raw(
 
         if proc.returncode == 0:
             return "".join(stdout_chunks).strip()
+        elif not is_verbose and stderr_lines:
+            err_summary = "\n".join(stderr_lines[-3:])
+            print(f"  ⚠️  [nix eval error]: {err_summary}", file=sys.stderr)
     except subprocess.TimeoutExpired:
         try:
             proc.kill()
@@ -113,7 +125,7 @@ def evaluate_batch(
     nixpkgs_input: str = "nixpkgs",
     system: Optional[str] = None,
     verbose: Optional[bool] = None,
-    timeout: int = 180,
+    timeout: Optional[int] = None,
 ) -> Dict[str, Optional[PackageMeta]]:
     """Evaluate multiple package targets in a single-pass atomic Nix expression."""
     if not targets:
@@ -123,7 +135,10 @@ def evaluate_batch(
     flake_dir = find_flake_dir()
     flake_prefix = f"{flake_dir}#" if flake_dir else ""
 
-    if any(nixpkgs_input.startswith(prefix) for prefix in ["github:", "gitlab:", "path:", "git+", "git:"]):
+    if nixpkgs_input.startswith("/nix/store/") or nixpkgs_input.startswith("path:"):
+        clean_path = nixpkgs_input.replace("path:", "")
+        flake_target_expr = f'(builtins.getFlake "path:{clean_path}")'
+    elif any(nixpkgs_input.startswith(prefix) for prefix in ["github:", "gitlab:", "git+", "git:"]):
         flake_target_expr = f'(builtins.getFlake "{nixpkgs_input}")'
     else:
         flake_target_expr = f'(builtins.getFlake "{flake_prefix}").inputs.{nixpkgs_input}'
@@ -156,6 +171,7 @@ def evaluate_batch(
         )
 
         stdout_chunks = []
+        stderr_lines = []
 
         def handle_stderr():
             for raw_line in iter(proc.stderr.readline, ""):
@@ -164,6 +180,7 @@ def evaluate_batch(
                 line = raw_line.strip()
                 if not line:
                     continue
+                stderr_lines.append(line)
                 if is_verbose:
                     print(f"  [nix eval] {line}", file=sys.stderr, flush=True)
                 elif is_tty:
@@ -181,7 +198,11 @@ def evaluate_batch(
         t_err.start()
         t_out.start()
 
-        proc.wait(timeout=timeout)
+        if timeout is not None:
+            proc.wait(timeout=timeout)
+        else:
+            proc.wait()
+
         t_err.join(timeout=2)
         t_out.join(timeout=2)
 
@@ -206,6 +227,9 @@ def evaluate_batch(
                                 system=effective_system,
                                 channel=nixpkgs_input,
                             )
+        elif not is_verbose and stderr_lines:
+            err_summary = "\n".join(stderr_lines[-3:])
+            print(f"  ⚠️  [nix eval error]: {err_summary}", file=sys.stderr)
     except subprocess.TimeoutExpired:
         try:
             proc.kill()
@@ -230,9 +254,21 @@ def evaluate_single_package(
     verbose: Optional[bool] = None,
 ) -> Tuple[Optional[str], str, Optional[str]]:
     """Evaluate a single package and return (store_path, version, main_program) tuple."""
+    eval_target = nixpkgs_input
+    if not (nixpkgs_input.startswith("/nix/store/") or nixpkgs_input.startswith("path:")):
+        try:
+            from core.cache.tracker import get_channel_revision_info
+            rev_info = get_channel_revision_info(nixpkgs_input)
+            if rev_info.store_path and os.path.exists(rev_info.store_path):
+                eval_target = rev_info.store_path
+            elif rev_info.locked_url:
+                eval_target = rev_info.locked_url
+        except Exception:
+            pass
+
     batch_res = evaluate_batch(
         targets={target_key: pname},
-        nixpkgs_input=nixpkgs_input,
+        nixpkgs_input=eval_target,
         system=system,
         verbose=verbose,
     )
@@ -264,6 +300,8 @@ def resolve_target_to_store_path(
     nixpkgs_input: str = "nixpkgs",
     pins_file: Optional[Path] = None,
     system: Optional[str] = None,
+    prefer_pin: bool = False,
+    explicit_input: bool = False,
 ) -> Tuple[str, str, Optional[str]]:
     """Resolve a target name, attr, or store path into a validated (store_path, version, main_program) tuple."""
     # 1. Direct Store Path
@@ -278,6 +316,7 @@ def resolve_target_to_store_path(
 
     cached_pname = None
     cached_entry = None
+    cached_channel = None
 
     if pins_file and pins_file.is_file():
         try:
@@ -288,21 +327,35 @@ def resolve_target_to_store_path(
                     cached_entry = pins_data[key_candidate]
                     if isinstance(cached_entry, dict):
                         cached_pname = cached_entry.get("pname")
+                        cached_channel = cached_entry.get("channel")
                     break
         except Exception:
             pass
 
-    # 2. Evaluate from requested channel/input
+    # 2. Prioritaskan pin lokal jika prefer_pin=True dan tidak ada override channel eksplisit
+    if prefer_pin and not explicit_input and cached_entry and isinstance(cached_entry, dict) and "storePath" in cached_entry:
+        sp = cached_entry["storePath"]
+        ver = cached_entry.get("version") or extract_version_from_store_path(sp)
+        main_prog = cached_entry.get("mainProgram")
+        return sp, ver, main_prog
+
+    # 3. Tentukan effective input channel
+    if not explicit_input and cached_channel:
+        effective_input = resolve_channel_input(cached_channel)
+    else:
+        effective_input = nixpkgs_input
+
+    # 4. Evaluate from requested channel/input
     sp, ver, main_prog = evaluate_single_package(
         target_key=clean_target,
-        nixpkgs_input=nixpkgs_input,
+        nixpkgs_input=effective_input,
         pname=cached_pname,
         system=system,
     )
     if sp and sp.startswith("/nix/store/"):
         return sp, ver, main_prog
 
-    # 3. Fallback: use local pin entry if upstream evaluation is unresolvable
+    # 5. Fallback: use local pin entry if upstream evaluation is unresolvable
     if cached_entry and isinstance(cached_entry, dict) and "storePath" in cached_entry:
         sp = cached_entry["storePath"]
         ver = cached_entry.get("version") or extract_version_from_store_path(sp)
@@ -310,6 +363,6 @@ def resolve_target_to_store_path(
         return sp, ver, main_prog
 
     raise RuntimeError(
-        f"Tidak dapat menemukan store path untuk '{target}' pada channel/input '{nixpkgs_input}'. "
+        f"Tidak dapat menemukan store path untuk '{target}' pada channel/input '{effective_input}'. "
         "Pastikan nama atribut valid atau terdaftar di modules/_lib/cache-pins.nix."
     )

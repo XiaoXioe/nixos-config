@@ -6,6 +6,7 @@ import sys
 from typing import Dict, List, Optional, Tuple
 
 from core.cache.disk_store import LocalDiskCache
+from core.cache.tracker import get_channel_revision_info
 from core.cache_client import NixCacheClient
 from core.closure import ClosureAuditor
 from core.eval.channels import (
@@ -119,10 +120,13 @@ def _handle_update_single(
     meta = disk_cache.get(effective_input, attr_key, bypass_cache=refresh)
 
     if not meta:
-        print(f"🔍 Mengevaluasi upstream untuk '{attr_key}' dari {effective_input}...", file=sys.stderr)
+        chan_label = normalize_channel_name(effective_input)
+        print(f"🔍 Mengevaluasi upstream untuk '{attr_key}' dari {chan_label}...", file=sys.stderr)
+        rev_info = get_channel_revision_info(effective_input)
+        eval_target = rev_info.store_path if (rev_info.store_path and os.path.exists(rev_info.store_path)) else (rev_info.locked_url or effective_input)
         sp, ver, main_prog = evaluate_single_package(
             target_key=attr_key,
-            nixpkgs_input=effective_input,
+            nixpkgs_input=eval_target,
             pname=pname,
         )
         if sp:
@@ -272,10 +276,16 @@ def _handle_update_all(
             chan_label = normalize_channel_name(chan_input)
             print(f"⚡ Batch Nix evaluation: {len(missing)} paket dari '{chan_label}'...", file=sys.stderr)
             missing_targets = {k: target_dict[k] for k in missing}
-            new_evals = evaluate_batch(missing_targets, nixpkgs_input=chan_input)
+            rev_info = get_channel_revision_info(chan_input)
+            eval_target = rev_info.store_path if (rev_info.store_path and os.path.exists(rev_info.store_path)) else (rev_info.locked_url or chan_input)
+            new_evals = evaluate_batch(missing_targets, nixpkgs_input=eval_target)
 
             # Store to disk cache
-            valid_new_evals = {k: m for k, m in new_evals.items() if m and m.store_path}
+            valid_new_evals = {}
+            for k, m in new_evals.items():
+                if m and m.store_path:
+                    m.channel = chan_input
+                    valid_new_evals[k] = m
             if valid_new_evals:
                 disk_cache.set_batch(chan_input, valid_new_evals)
                 all_evaluated.update(valid_new_evals)

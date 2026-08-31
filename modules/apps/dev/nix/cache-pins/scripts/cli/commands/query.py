@@ -27,11 +27,20 @@ def handle_query(args) -> None:
         sys.exit(1)
 
     pins_file = find_cache_pins_file(args.pins_file)
+    explicit_input = (
+        bool(getattr(args, "channel", None))
+        or ("--input" in sys.argv)
+        or ("-c" in sys.argv)
+        or ("--channel" in sys.argv)
+    )
 
-    print(f"🔍 [1/3] Mengevaluasi target '{args.target}' (Channel: {args.input})...", file=sys.stderr)
+    print(f"🔍 [1/3] Mengevaluasi target '{args.target}'...", file=sys.stderr)
     try:
         store_path, version, main_program = resolve_target_to_store_path(
-            target=args.target, nixpkgs_input=args.input, pins_file=pins_file,
+            target=args.target,
+            nixpkgs_input=args.input,
+            pins_file=pins_file,
+            explicit_input=explicit_input,
         )
     except Exception as e:
         print(f"❌ ERROR: {e}", file=sys.stderr)
@@ -57,7 +66,17 @@ def handle_query(args) -> None:
     report_text = render_audit_report(audit, verbose=getattr(args, "verbose", False))
     print(report_text, file=sys.stderr)
 
-    nix_snippet = render_nix_snippet(audit, source_input=args.input)
+    effective_source = args.input
+    if not explicit_input and pins_file and pins_file.is_file():
+        try:
+            pins_data = load_cache_pins(pins_file)
+            clean_target = args.target.replace("pkgs.", "").strip()
+            if clean_target in pins_data and pins_data[clean_target].get("channel"):
+                effective_source = pins_data[clean_target]["channel"]
+        except Exception:
+            pass
+
+    nix_snippet = render_nix_snippet(audit, source_input=effective_source)
     print(nix_snippet)
 
     if getattr(args, "write", False):

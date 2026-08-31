@@ -66,7 +66,7 @@ def get_channel_revision_info(channel_or_input: Optional[str] = None) -> Channel
             cmd,
             capture_output=True,
             text=True,
-            timeout=15,
+            timeout=None,
             env=get_nix_env(),
         )
         if res.returncode == 0:
@@ -80,6 +80,8 @@ def get_channel_revision_info(channel_or_input: Optional[str] = None) -> Channel
             )
             last_mod = locked.get("lastModified") or meta.get("lastModified")
             nar_hash = locked.get("narHash")
+            store_path = meta.get("path")
+            locked_url = meta.get("url")
 
             if rev:
                 info = ChannelRevInfo(
@@ -88,6 +90,8 @@ def get_channel_revision_info(channel_or_input: Optional[str] = None) -> Channel
                     revision=str(rev),
                     last_modified=last_mod,
                     nar_hash=nar_hash,
+                    store_path=store_path,
+                    locked_url=locked_url,
                     is_local_flake=False,
                 )
                 _REV_CACHE[resolved_input] = info

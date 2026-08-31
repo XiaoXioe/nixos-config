@@ -42,6 +42,9 @@ def download_single_target(
     split: int = 8,
     concurrent: int = 4,
     keep_nar: bool = False,
+    explicit_input: bool = False,
+    verbose: bool = False,
+    dry_run: bool = False,
 ):
     """Download and ingest a single package and its complete closure into /nix/store."""
     ensure_aria2_installed()
@@ -55,6 +58,8 @@ def download_single_target(
             target=target_input,
             nixpkgs_input=nixpkgs_input,
             pins_file=pins_file,
+            prefer_pin=True,
+            explicit_input=explicit_input,
         )
     except Exception as e:
         print(f"❌ ERROR: {e}", file=sys.stderr)
@@ -99,15 +104,29 @@ def download_single_target(
     auditor = ClosureAuditor(cache_client)
     narinfos, items_to_download = auditor.traverse_closure_for_download(store_name)
 
-    for h, info in narinfos.items():
-        (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
-
     total_items = len(items_to_download)
     total_size_bytes = sum(item.file_size for item in items_to_download)
     print(
         f"📋 Ditemukan {total_items} paket closure yang perlu diunduh (Total: {format_bytes(total_size_bytes)})",
         file=sys.stderr,
     )
+
+    if dry_run:
+        if items_to_download:
+            print("\n[DRY RUN] Biner closure yang perlu diunduh:", file=sys.stderr)
+            for item in items_to_download:
+                print(
+                    f"   - {item.filename} ({format_bytes(item.file_size)})",
+                    file=sys.stderr,
+                )
+        print(
+            "\n(Mode dry-run: Tidak ada biner yang diunduh atau di-ingest)",
+            file=sys.stderr,
+        )
+        sys.exit(0)
+
+    for h, info in narinfos.items():
+        (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
 
     # 5. Generate Aria2 Batch
     aria2_input_file = local_cache_dir / "aria2_batch.txt"
@@ -182,6 +201,8 @@ def download_batch_targets(
     split: int = 8,
     concurrent: int = 4,
     keep_nar: bool = False,
+    verbose: bool = False,
+    dry_run: bool = False,
 ):
     """Batch prefetch and ingest missing closures for active pins (or all pins)."""
     pins_file = find_cache_pins_file(pins_file_path)
@@ -248,6 +269,16 @@ def download_batch_targets(
         )
         print(
             "   Rebuild sistem ('nh os switch') akan berjalan instan (0 ms download delay).",
+            file=sys.stderr,
+        )
+        sys.exit(0)
+
+    if dry_run:
+        print("\n[DRY RUN] Paket yang perlu diunduh:", file=sys.stderr)
+        for name, sp in missing_targets:
+            print(f"   - [{name}] {sp}", file=sys.stderr)
+        print(
+            "\n(Mode dry-run: Tidak ada biner yang diunduh atau di-ingest)",
             file=sys.stderr,
         )
         sys.exit(0)

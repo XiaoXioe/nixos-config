@@ -14,6 +14,12 @@ def handle_tree(args) -> None:
     from core.nix_eval import find_cache_pins_file, resolve_target_to_store_path
 
     pins_file = find_cache_pins_file(args.pins_file)
+    explicit_input = (
+        bool(getattr(args, "channel", None))
+        or ("--input" in sys.argv)
+        or ("-c" in sys.argv)
+        or ("--channel" in sys.argv)
+    )
 
     print(f"🔍 Mengevaluasi target '{args.target}'...", file=sys.stderr)
     try:
@@ -21,6 +27,8 @@ def handle_tree(args) -> None:
             target=args.target,
             nixpkgs_input=args.input if args.input else "nixpkgs",
             pins_file=pins_file,
+            prefer_pin=True,
+            explicit_input=explicit_input,
         )
     except Exception as e:
         print(f"❌ ERROR: {e}", file=sys.stderr)

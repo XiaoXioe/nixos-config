@@ -93,13 +93,13 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
 
     mapping = {
         "nixpkgs": "nixpkgs",
-        "unstable": "github:NixOS/nixpkgs/nixos-unstable",
-        "nixos-unstable": "github:NixOS/nixpkgs/nixos-unstable",
-        "nixpkgs-unstable": "github:NixOS/nixpkgs/nixpkgs-unstable",
-        "pkgs-unstable": "github:NixOS/nixpkgs/nixpkgs-unstable",
-        "master": "github:NixOS/nixpkgs/master",
-        "staging": "github:NixOS/nixpkgs/staging",
-        "staging-next": "github:NixOS/nixpkgs/staging-next",
+        "unstable": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-unstable",
+        "nixos-unstable": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-unstable",
+        "nixpkgs-unstable": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixpkgs-unstable",
+        "pkgs-unstable": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixpkgs-unstable",
+        "master": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=master",
+        "staging": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=staging",
+        "staging-next": "git+https://github.com/NixOS/nixpkgs?shallow=1&ref=staging-next",
         "cachyos": "github:xddxdd/nix-cachyos-kernel/release",
         "nix-cachyos-kernel": "github:xddxdd/nix-cachyos-kernel/release",
     }
@@ -111,9 +111,8 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
     m = re.match(r"^(?:nixos-|nixpkgs-)?(\d{2}\.\d{2}(?:-small|-darwin)?)$", val, re.IGNORECASE)
     if m:
         sub = m.group(1)
-        if sub.endswith("-darwin"):
-            return f"github:NixOS/nixpkgs/nixpkgs-{sub}"
-        return f"github:NixOS/nixpkgs/nixos-{sub}"
+        ref_branch = f"nixpkgs-{sub}" if sub.endswith("-darwin") else f"nixos-{sub}"
+        return f"git+https://github.com/NixOS/nixpkgs?shallow=1&ref={ref_branch}"
 
     # Check flake.lock for matching input name via root inputs mapping
     flake_dir = find_flake_dir()
@@ -163,7 +162,7 @@ def normalize_channel_name(source_input: str) -> str:
     if not source_input:
         return "nixpkgs"
     s = source_input.strip()
-    if "nixos-unstable" in s or s in ("unstable", "nixpkgs-unstable"):
+    if "nixos-unstable" in s or s in ("unstable", "nixpkgs-unstable") or "ref=nixos-unstable" in s or "ref=nixpkgs-unstable" in s:
         return "unstable"
     match_ver = re.search(r"nixos-(\d{2}\.\d{2})", s)
     if match_ver:

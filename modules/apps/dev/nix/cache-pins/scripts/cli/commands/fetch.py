@@ -9,6 +9,14 @@ def handle_fetch(args) -> None:
     from downloader.orchestrator import download_batch_targets, download_single_target
 
     cache_client = NixCacheClient(cache_url=args.cache_url)
+    explicit_input = (
+        bool(getattr(args, "channel", None))
+        or ("--input" in sys.argv)
+        or ("-c" in sys.argv)
+        or ("--channel" in sys.argv)
+    )
+    dry_run = getattr(args, "dry_run", False)
+    verbose = getattr(args, "verbose", False)
 
     if getattr(args, "all_active", False) or getattr(args, "all_pins", False):
         download_batch_targets(
@@ -19,6 +27,8 @@ def handle_fetch(args) -> None:
             split=args.split,
             concurrent=args.concurrent,
             keep_nar=args.keep_nar,
+            verbose=verbose,
+            dry_run=dry_run,
         )
         sys.exit(0)
 
@@ -34,8 +44,8 @@ def handle_fetch(args) -> None:
             split=args.split,
             concurrent=args.concurrent,
             keep_nar=args.keep_nar,
-            verbose=getattr(args, "verbose", False),
-            dry_run=getattr(args, "dry_run", False),
+            verbose=verbose,
+            dry_run=dry_run,
         )
         sys.exit(0)
 
@@ -48,8 +58,8 @@ def handle_fetch(args) -> None:
             split=args.split,
             concurrent=args.concurrent,
             keep_nar=args.keep_nar,
-            verbose=getattr(args, "verbose", False),
-            dry_run=getattr(args, "dry_run", False),
+            verbose=verbose,
+            dry_run=dry_run,
         )
         sys.exit(0)
 
@@ -71,4 +81,7 @@ def handle_fetch(args) -> None:
         split=args.split,
         concurrent=args.concurrent,
         keep_nar=args.keep_nar,
+        explicit_input=explicit_input,
+        verbose=verbose,
+        dry_run=dry_run,
     )
