@@ -122,4 +122,11 @@
   "media.rdd-ffmpeg.enabled" = lock-true;
   "media.navigator.mediadatadecoder_vpx_enabled" = lock-true;
   "media.hardware-video-decoding.force-enabled" = lock-true;
+
+  # ==========================================
+  # 11. Pencegahan Idle / Screensaver Saat Video
+  # ==========================================
+  "media.inhibit-screensaver" = lock-true;
+  "media.videocontrols.lock-video" = lock-true;
+  "media.wake_lock_during_fullscreen_videoplayback" = lock-true;
 }
