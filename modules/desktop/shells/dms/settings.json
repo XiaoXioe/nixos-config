@@ -54,6 +54,11 @@
       "enabled": true,
       "id": "builtin_vpn",
       "width": 50
+    },
+    {
+      "enabled": true,
+      "id": "idleInhibitor",
+      "width": 50
     }
   ],
   "groupWorkspaceApps": false,

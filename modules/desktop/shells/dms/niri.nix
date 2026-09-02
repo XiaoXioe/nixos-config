@@ -25,6 +25,7 @@ in
           Mod+M { spawn "dms" "ipc" "call" "processlist" "focusOrToggle"; }
           Mod+N { spawn "dms" "ipc" "call" "notifications" "toggle"; }
           Mod+Shift+N { spawn "dms" "ipc" "call" "notepad" "toggle"; }
+          Mod+Shift+I { spawn "dms" "ipc" "call" "session" "toggleIdleInhibit"; }
           Mod+Shift+W { spawn "dms" "ipc" "call" "window-rules" "toggle"; }
           Mod+V { spawn "dms" "ipc" "call" "clipboard" "toggle"; }
           Mod+Y { spawn "dms" "ipc" "call" "dankdash" "wallpaper"; }
