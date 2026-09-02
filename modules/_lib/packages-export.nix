@@ -25,6 +25,9 @@ in
 
   # DankMaterialShell package (agar di-cache oleh CI)
   dms = inputs.dms.packages.${system}.default;
+
+  # Sops-nix activation binary (sops-install-secrets helper)
+  sops-install-secrets = config.sops.package;
 }
 # Caelestia hanya diekspor bila modulnya benar-benar aktif (butuh input
 # caelestia-shell yang saat ini tidak ada di flake.nix).
