@@ -27,26 +27,29 @@ selfLib.mkModule {
 
   # Kebijakan sistem browser (berlaku universal, tidak bergantung pada source package)
   nixosConfig = {
-    environment.etc."chromium/policies/managed/policies.json".text = builtins.toJSON {
-      ExtensionInstallForcelist = map (ext: ext.id) (
-        [
-          { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
-        ]
-        ++ commonChromiumExtensions
-      );
+    programs.chromium = {
+      enable = true;
+      extraOpts = {
+        ExtensionInstallForcelist = map (ext: ext.id) (
+          [
+            { id = "ddkjiahejlhfcafbddmgiahcphecmpfh"; } # uBlock Origin Lite
+          ]
+          ++ commonChromiumExtensions
+        );
 
-      PasswordManagerEnabled = false;
-      BrowserSignin = 0;
-      RestoreOnStartup = 1;
+        PasswordManagerEnabled = false;
+        BrowserSignin = 0;
+        RestoreOnStartup = 1;
 
-      # --- Privasi & Telemetri ---
-      MetricsReportingEnabled = false;
-      SearchSuggestEnabled = false;
-      SafeBrowsingProtectionLevel = 0;
-      NetworkPredictionOptions = 2;
-      DefaultSearchProviderEnabled = true;
-      DefaultSearchProviderName = "DuckDuckGo";
-      DefaultSearchProviderSearchURL = "https://duckduckgo.com/?q={searchTerms}";
+        # --- Privasi & Telemetri ---
+        MetricsReportingEnabled = false;
+        SearchSuggestEnabled = false;
+        SafeBrowsingProtectionLevel = 0;
+        NetworkPredictionOptions = 2;
+        DefaultSearchProviderEnabled = true;
+        DefaultSearchProviderName = "DuckDuckGo";
+        DefaultSearchProviderSearchURL = "https://duckduckgo.com/?q={searchTerms}";
+      };
     };
   };
 }
