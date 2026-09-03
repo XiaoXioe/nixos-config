@@ -300,12 +300,12 @@
     system = "x86_64-linux";
   };
 
-  # Generated: 2026-08-26 | Source: nixpkgs
-  # Download Kotor (Full): 583.91 MiB | Download Bersih: 186.12 MiB
-  # Library Lokal: 377/379 (99.5%) | Missing: 2 paket (186.12 MiB)
+  # Generated: 2026-09-03 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.62 GiB (Uncompressed) | Download Kotor: 589.25 MiB
+  # Download Bersih: 191.42 MiB | Library Lokal: 378/379 (99.7%) | Missing: 1 paket (191.42 MiB)
   brave = {
-    storePath = "/nix/store/g2mvyrw3pzi0dfw7f281rj7g10vhmzcn-brave-1.93.138";
-    version = "1.93.138";
+    storePath = "/nix/store/ki7gwr5dp0kaqgzl43yz0rzamhqhw5jn-brave-1.94.117";
+    version = "1.94.117";
     mainProgram = "brave";
     channel = "nixpkgs";
     system = "x86_64-linux";
@@ -324,12 +324,13 @@
 
   # ── Desktop Shells ────────────────────────────────────────────────────────
 
-  # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
-  # Download Kotor (Full): 305.98 MiB | Download Bersih: 39.94 MiB
-  # Library Lokal: 259/260 (99.6%) | Missing: 1 paket (21.90 MiB)
+  # Generated: 2026-09-03 | Source: git+https://github.com/NixOS/nixpkgs?shallow=1&ref=nixos-unstable
+  # Ukuran Closure Disk: 838.79 MiB (Uncompressed) | Download Kotor: 281.09 MiB
+  # Download Bersih: 266.65 MiB | Library Lokal: 8/242 (3.3%) | Missing: 234 paket (266.65 MiB)
   noctalia = {
-    storePath = "/nix/store/j59q1n988kakwf32lsrim2dp40625d8b-noctalia-5.0.0-beta.9";
-    version = "5.0.0-beta.9";
+    storePath = "/nix/store/6xyarln9ly77jam0kqxi46cfks9flcfc-noctalia-5.0.0-beta.10";
+    version = "5.0.0-beta.10";
+    mainProgram = "noctalia";
     channel = "unstable";
     system = "x86_64-linux";
   };
