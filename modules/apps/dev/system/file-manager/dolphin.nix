@@ -16,12 +16,6 @@ selfLib.mkModule {
     in
     {
       xdg = {
-        portal = {
-          enable = true;
-          extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-          config.common.default = "*";
-        };
-
         configFile = {
           "baloofilerc".text = ''
             [Basic Settings]
@@ -62,7 +56,6 @@ selfLib.mkModule {
         '';
         sessionVariables = {
           XDG_DATA_DIRS = "/run/current-system/sw/share:/etc/profiles/per-user/${userName}/share:$XDG_DATA_DIRS";
-          XCURSOR_THEME = "breeze_cursors";
         };
 
         packages = with pkgs; [

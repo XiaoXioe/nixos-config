@@ -19,10 +19,6 @@ selfLib.mkModule {
   };
 
   hmConfig = {
-    home.sessionPath = [
-      "$HOME/.local/bin"
-    ];
-
     home.packages = selfLib.fetchCachePinned [
       "python3"
       "uv"
