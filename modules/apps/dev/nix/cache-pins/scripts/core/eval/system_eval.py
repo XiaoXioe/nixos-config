@@ -185,15 +185,81 @@ def evaluate_system_missing_paths(
     if verbose:
         print(f"🔧 Menjalankan: {' '.join(cmd)} (di {root_dir})", file=sys.stderr)
 
-    res = subprocess.run(
+    # Jalankan subprocess secara streaming agar terminal tidak freeze/stuck
+    proc = subprocess.Popen(
         cmd,
         cwd=str(root_dir),
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
+        bufsize=1,
+        universal_newlines=True,
         env=env,
     )
 
-    output = (res.stderr or "") + "\n" + (res.stdout or "")
+    output_lines: List[str] = []
+    last_status_len = 0
+
+    def update_status(text: str):
+        nonlocal last_status_len
+        clean_text = text.strip().replace("\n", " ")
+        if len(clean_text) > 75:
+            clean_text = clean_text[:72] + "..."
+        msg = f"\r   ⏳ {clean_text}"
+        pad = max(0, last_status_len - len(msg))
+        sys.stderr.write(msg + (" " * pad))
+        sys.stderr.flush()
+        last_status_len = len(msg)
+
+    def clear_status():
+        nonlocal last_status_len
+        if last_status_len > 0:
+            sys.stderr.write(f"\r{' ' * last_status_len}\r")
+            sys.stderr.flush()
+            last_status_len = 0
+
+    try:
+        if proc.stdout:
+            for line in iter(proc.stdout.readline, ""):
+                output_lines.append(line)
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                if verbose:
+                    print(f"   {stripped}", file=sys.stderr)
+                else:
+                    if (
+                        stripped.startswith("evaluating")
+                        or stripped.startswith("copying")
+                        or stripped.startswith("downloading")
+                        or stripped.startswith("fetching")
+                    ):
+                        update_status(stripped)
+                    elif (
+                        "warning:" in stripped.lower()
+                        or "error:" in stripped.lower()
+                    ):
+                        clear_status()
+                        print(f"   ⚠️  {stripped}", file=sys.stderr)
+        proc.wait()
+    except KeyboardInterrupt:
+        clear_status()
+        proc.terminate()
+        raise
+    finally:
+        clear_status()
+
+    if proc.returncode != 0:
+        clear_status()
+        print(
+            f"❌ ERROR: Evaluasi sistem Nix gagal (exit code {proc.returncode}):",
+            file=sys.stderr,
+        )
+        for err_l in output_lines[-20:]:
+            print(f"   {err_l.strip()}", file=sys.stderr)
+        sys.exit(proc.returncode or 1)
+
+    output = "".join(output_lines)
 
     missing_paths: List[str] = []
     candidate_drvs: List[str] = []
