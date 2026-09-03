@@ -101,10 +101,23 @@ selfLib.mkModule {
     hmOpts:
     let
       photoPath = hmOpts.osConfig.sops.secrets."foto-profile".path;
+      dataPath = hmOpts.osConfig.my.dataPath;
     in
     {
+      xdg.userDirs = {
+        enable = true;
+        setSessionVariables = true;
+        createDirectories = false;
+        desktop = "${hmOpts.config.home.homeDirectory}/Desktop";
+        documents = "${dataPath}/Documents";
+        download = "${dataPath}/Downloads";
+        music = "${dataPath}/Music";
+        pictures = "${dataPath}/Pictures";
+        videos = "${dataPath}/Videos";
+      };
+
       home.file = selfLib.mkHmSymlinks hmOpts.config (
-        (lib.genAttrs userSymlinkDirs (dir: "${hmOpts.osConfig.my.dataPath}/${dir}"))
+        (lib.genAttrs userSymlinkDirs (dir: "${dataPath}/${dir}"))
         // {
           ".face.icon" = photoPath;
           ".face" = photoPath;
