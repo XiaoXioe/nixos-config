@@ -14,10 +14,6 @@ selfLib.mkModule {
       "net.ipv4.conf.all.rp_filter" = 1;
       "net.ipv4.conf.default.rp_filter" = 1;
 
-      # Nonaktifkan coredump di level kernel: alirkan ke /bin/false dan cegah dump suid
-      "kernel.core_pattern" = "|/run/current-system/sw/bin/false";
-      "fs.suid_dumpable" = 0;
-
       # Batasi ptrace ke parent/child saja (scope 1).
       # Scope 0 dihapus — terlalu permissive (semua proses bisa ptrace semua proses).
       # Untuk game wrapper (Sober, dll), gunakan firejail profile atau capabilities spesifik.
@@ -40,8 +36,9 @@ selfLib.mkModule {
       }
     ];
 
-    # Nonaktifkan core limit di level systemd manager (system & user services)
+    # Nonaktifkan core limit & coredump di level systemd manager
     systemd = {
+      coredump.enable = false;
       settings.Manager = {
         DefaultLimitCORE = "0";
       };

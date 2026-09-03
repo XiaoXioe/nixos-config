@@ -23,7 +23,7 @@ selfLib.mkModule {
       sopsFile = ./secrets/rclone.enc.conf;
       format = "binary";
       owner = config.my.user.name;
-      mode = "0444";
+      mode = "0600";
     };
 
     programs.fuse.userAllowOther = true;
