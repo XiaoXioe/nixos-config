@@ -58,6 +58,9 @@ selfLib.mkModule {
       };
       profiles.${userName} = {
         isDefault = true;
+        userChrome = ''
+          .tab-close-button { display: none !important; }
+        '';
         bookmarks = {
           force = true;
           settings = [
@@ -92,8 +95,5 @@ selfLib.mkModule {
         "signon.rememberSignons" = false;
       };
     };
-    home.file.".librewolf/${userName}/chrome/userChrome.css".text = ''
-      .tab-close-button { display: none !important; }
-    '';
   };
 }
