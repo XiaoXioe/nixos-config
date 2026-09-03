@@ -28,6 +28,7 @@ selfLib.mkModule {
           "nofail"
           "discard=async"
           "space_cache=v2"
+          "x-systemd.before=local-fs.target"
         ];
       };
     };

@@ -45,6 +45,9 @@ selfLib.mkModule {
     fileSystems =
       let
         userName = config.my.user.name;
+        dataPathMount = "${
+          lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
+        }.mount";
       in
       lib.mkMerge [
         {
@@ -60,6 +63,9 @@ selfLib.mkModule {
               "chown-ignore"
               "chgrp-ignore"
               "allow_other"
+              "x-systemd.requires=${dataPathMount}"
+              "x-systemd.after=${dataPathMount}"
+              "x-systemd.before=local-fs.target"
             ];
           };
         }
@@ -70,6 +76,9 @@ selfLib.mkModule {
             options = [
               "bind"
               "nofail"
+              "x-systemd.requires=${dataPathMount}"
+              "x-systemd.after=${dataPathMount}"
+              "x-systemd.before=local-fs.target"
             ];
           };
         }

@@ -60,6 +60,7 @@ selfLib.mkModule {
         "x-systemd.after=${
           lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
         }.mount"
+        "x-systemd.before=local-fs.target"
       ];
     };
 
