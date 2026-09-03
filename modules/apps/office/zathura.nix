@@ -8,6 +8,12 @@ selfLib.mkModule {
   description = "Zathura lightweight PDF and document reader with pure upstream binary";
 
   hmConfig = {
-    home.packages = [ (selfLib.fetchCachePinned "zathura") ];
+    programs.zathura = {
+      enable = true;
+      package = selfLib.fetchCachePinned "zathura";
+      options = {
+        selection-clipboard = "clipboard";
+      };
+    };
   };
 }
