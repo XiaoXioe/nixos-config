@@ -30,6 +30,17 @@ selfLib.mkModule {
   name = "services.flatpak";
   description = "Core Flatpak daemon, persistent BTRFS storage, and Flathub initialization";
 
+  preservation = {
+    persist = true;
+    directories = [
+      "/var/lib/flatpak"
+    ];
+    userDirectories = [
+      ".var/app"
+      ".local/share/flatpak"
+    ];
+  };
+
   options = {
     autoUpdate = lib.mkOption {
       type = lib.types.bool;
@@ -44,38 +55,11 @@ selfLib.mkModule {
 
     # Optimasi NoCoW Btrfs untuk direktori data flatpak pengguna
     my.services.storage.btrfs-nocow-migration.nocowDirectories = [
-      "${config.my.dataPath}/flatpak-userdata"
+      ".var/app"
     ];
 
-    # Bind-mount direktori sistem Flatpak ke penyimpanan persisten /mnt/data_btrfs
-    fileSystems."/var/lib/flatpak" = {
-      device = "${config.my.dataPath}/flatpak-system";
-      fsType = "none";
-      options = [
-        "bind"
-        "nofail"
-        "x-systemd.requires=${
-          lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
-        }.mount"
-        "x-systemd.after=${
-          lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
-        }.mount"
-        "x-systemd.before=local-fs.target"
-      ];
-    };
-
-    # Aturan pembuatan direktori, symlink persisten, dan services via systemd
+    # Services via systemd
     systemd = {
-      tmpfiles.rules = [
-        "d ${config.my.dataPath}/flatpak-system 0755 root root - -"
-        "d ${config.my.dataPath}/flatpak-userdata 0755 ${config.my.user.name} users - -"
-        "d ${config.my.dataPath}/flatpak-local 0755 ${config.my.user.name} users - -"
-        "d /home/${config.my.user.name}/.var 0755 ${config.my.user.name} users - -"
-        "d /home/${config.my.user.name}/.local 0755 ${config.my.user.name} users - -"
-        "d /home/${config.my.user.name}/.local/share 0755 ${config.my.user.name} users - -"
-        "L+ /home/${config.my.user.name}/.var/app - - - - ${config.my.dataPath}/flatpak-userdata"
-        "L+ /home/${config.my.user.name}/.local/share/flatpak - - - - ${config.my.dataPath}/flatpak-local"
-      ];
 
       services = {
         # Layanan oneshot untuk inisialisasi remote Flathub dan global overrides
