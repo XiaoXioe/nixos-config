@@ -1,24 +1,11 @@
 {
-  pkgs,
   selfLib,
   ...
 }:
 
-let
-  tdlInfo = selfLib.appVersions.tdl;
-
-  tdlNative = (selfLib.mkNativeApp pkgs) {
-    name = "tdl";
-    inherit (tdlInfo) version;
-    src = selfLib.fetchApp pkgs "tdl";
-    execPath = "tdl";
-    binName = "tdl";
-    isDesktop = false;
-  };
-in
 selfLib.mkModule {
   name = "apps.media.downloader";
-  description = "Aria2 multi-protocol high-speed CLI downloader manager and tools with pure upstream binary";
+  description = "Aria2 multi-protocol high-speed CLI downloader manager and tools with Nix binary cache pins";
 
   preservation = {
     userDirectories = [ ".tdl" ];
@@ -26,7 +13,7 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages = [
-      tdlNative
+      (selfLib.fetchCachePinned "tdl")
     ];
 
     programs.aria2 = {

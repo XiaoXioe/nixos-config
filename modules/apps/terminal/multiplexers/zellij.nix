@@ -1,29 +1,16 @@
 {
-  pkgs,
   selfLib,
   ...
 }:
 
-let
-  appInfo = selfLib.appVersions.zellij;
-
-  zellijNative = (selfLib.mkNativeApp pkgs) {
-    name = "zellij";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "zellij";
-    execPath = "zellij";
-    binName = "zellij";
-    isDesktop = false;
-  };
-in
 selfLib.mkModule {
   name = "apps.terminal.multiplexers.zellij";
-  description = "Zellij multiplexer configuration with pure upstream MUSL binary";
+  description = "Zellij multiplexer configuration with Nix binary cache pin";
 
   hmConfig = {
     programs.zellij = {
       enable = true;
-      package = zellijNative; # pin ke 0.43.1 upstream musl binary
+      package = selfLib.fetchCachePinned "zellij"; # pin ke 0.43.1 via cache-pins
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;

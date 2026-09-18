@@ -41,13 +41,11 @@ rec {
     let
       # Alias jika nama modul sedikit berbeda dengan nama key di apps-versions.nix
       aliases = {
-        zed = "zeditor";
         betterbird = "thunderbird";
         ppsspp = "emulators";
         pcsx2 = "emulators";
         retroarch = "emulators";
         retroarch-cores = "emulators";
-        tdl = "downloader";
       };
 
       # Cek apakah modul dengan nama tertentu aktif di config.my tree.

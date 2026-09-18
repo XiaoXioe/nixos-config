@@ -4,17 +4,6 @@
   ...
 }:
 
-let
-  appInfo = selfLib.appVersions.zed;
-
-  zedNative = (selfLib.mkNativeApp pkgs) {
-    name = "zed";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "zed";
-    execPath = "zed.app/bin/zed";
-    binName = "zed";
-  };
-in
 selfLib.mkModule {
   name = "apps.editors.zeditor";
   description = "Zed-editor configuration";
@@ -38,7 +27,7 @@ selfLib.mkModule {
 
     programs.zed-editor = {
       enable = true;
-      package = zedNative;
+      package = selfLib.fetchCachePinned "zed_editor";
 
       # Kunci file agar menjadi symlink Nix murni (Read-Only)
       mutableUserSettings = false;

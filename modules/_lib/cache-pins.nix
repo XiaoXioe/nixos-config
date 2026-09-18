@@ -28,6 +28,28 @@
 {
   # ── CLI & Services ────────────────────────────────────────────────────────
 
+  # Generated: 2026-09-08 | Source: github:NixOS/nixpkgs/09061f748ee21f68a089cd5d91ec1859cd93d0be
+  # Ukuran Closure Disk: 110.43 MiB (Uncompressed) | Download Kotor: 24.71 MiB
+  # Download Bersih: 24.71 MiB | Library Lokal: 0/20 (0.0%) | Missing: 20 paket (24.71 MiB)
+  zellij = {
+    storePath = "/nix/store/8bx6ypyv91i5vp68awg283lkq0z1mpqa-zellij-0.43.1";
+    version = "0.43.1";
+    mainProgram = "zellij";
+    channel = "github:NixOS/nixpkgs/09061f748ee21f68a089cd5d91ec1859cd93d0be";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-09-08 | Source: nixpkgs
+  # Ukuran Closure Disk: 86.54 MiB (Uncompressed) | Download Kotor: 24.33 MiB
+  # Download Bersih: 23.34 MiB | Library Lokal: 3/8 (37.5%) | Missing: 5 paket (23.34 MiB)
+  tdl = {
+    storePath = "/nix/store/n96cg5ry8ldwpi1rrwqkynz5hh98z5sf-tdl-0.20.2";
+    version = "0.20.2";
+    mainProgram = "tdl";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
   # Generated: 2026-08-24 | Source: github:NixOS/nixpkgs/nixos-unstable
   # Download Kotor (Full): 25.99 MiB | Download Bersih: 1.89 MiB
   # Library Lokal: 20/23 (87.0%) | Missing: 3 paket (1.89 MiB)
@@ -243,6 +265,17 @@
     system = "x86_64-linux";
   };
 
+  # Generated: 2026-09-08 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.53 GiB (Uncompressed) | Download Kotor: 469.64 MiB
+  # Download Bersih: 466.85 MiB | Library Lokal: 4/290 (1.4%) | Missing: 286 paket (466.85 MiB)
+  zed_editor = {
+    storePath = "/nix/store/mpn8prkmd3bj87fqm62lwasa3z62wgyi-zed-editor-1.3.6";
+    version = "1.3.6";
+    mainProgram = "zeditor";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
   # Generated: 2026-08-27 | Source: nixpkgs
   # Ukuran Closure Disk: 1.44 GiB (Uncompressed) | Download Kotor: 511.09 MiB
   # Download Bersih: 42.04 MiB | Library Lokal: 301/302 (99.7%) | Missing: 1 paket (42.04 MiB)
@@ -318,6 +351,17 @@
     storePath = "/nix/store/53p8msmqxpi829zdrw6qkvaamidxy9cj-chromium-151.0.7922.173";
     version = "151.0.7922.173";
     mainProgram = "chromium";
+    channel = "nixpkgs";
+    system = "x86_64-linux";
+  };
+
+  # Generated: 2026-09-08 | Source: nixpkgs
+  # Ukuran Closure Disk: 1.35 GiB (Uncompressed) | Download Kotor: 438.12 MiB
+  # Download Bersih: 437.13 MiB | Library Lokal: 3/320 (0.9%) | Missing: 317 paket (437.13 MiB)
+  librewolf = {
+    storePath = "/nix/store/idbp1g9g328mwp4mrcj45sczv622yg7b-librewolf-155.0-1";
+    version = "155.0-1";
+    mainProgram = "librewolf";
     channel = "nixpkgs";
     system = "x86_64-linux";
   };
