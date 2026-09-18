@@ -151,6 +151,9 @@ def evaluate_batch(
         cands = generate_candidate_names(clean_key, pname)
         target_candidates_map[clean_key] = cands
         clean_to_orig_key[clean_key] = orig_key
+        # Map both raw and sanitized keys so hyphenated packages (e.g. zed-editor, tor-browser) match Nix JSON keys
+        sanitized_key = re.sub(r"[^a-zA-Z0-9_]", "_", clean_key)
+        clean_to_orig_key[sanitized_key] = orig_key
 
     expr = build_nix_batch_eval_expression(target_candidates_map, flake_target_expr, system=effective_system)
     cmd = ["nix", "eval", "--json", "--impure", "--expr", expr]

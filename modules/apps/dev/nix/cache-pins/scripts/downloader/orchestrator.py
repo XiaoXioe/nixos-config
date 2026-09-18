@@ -1,5 +1,4 @@
-"""Orchestration workflows for single-target and multi-target batch pre-fetching."""
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 from pathlib import Path
@@ -23,6 +22,7 @@ from downloader.aria2 import (
     run_aria2_download,
 )
 from downloader.ingest import ingest_fod_items, ingest_store_paths
+from downloader.pipeline import StreamingIngestPipeline
 from downloader.ram_cache import (
     cleanup_ram_cache,
     get_default_ram_cache_dir,
@@ -128,49 +128,38 @@ def download_single_target(
     for h, info in narinfos.items():
         (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
 
-    # 5. Generate Aria2 Batch
-    aria2_input_file = local_cache_dir / "aria2_batch.txt"
-    generate_aria2_batch_file(items_to_download, aria2_input_file, nar_dir)
-
-    # 6. Download ke RAM
+    # 5. Streaming Download ke RAM & Reactive Ingestion ke /nix/store
     if total_items > 0:
         print("", file=sys.stderr)
         print(
-            f"🚀 [2/3] Mengunduh {total_items} paket langsung ke RAM via aria2c ({split} koneksi per file):",
+            f"🚀 [2/3] Streaming download & instant ingestion ({total_items} paket) via aria2c + nix copy ({split} koneksi):",
             file=sys.stderr,
         )
         print(
             "--------------------------------------------------------------------------------",
             file=sys.stderr,
         )
-        rc = run_aria2_download(
-            aria2_input_file, nar_dir, concurrent=concurrent, split=split
+        pipeline = StreamingIngestPipeline(
+            cache_client=cache_client,
+            local_cache_dir=local_cache_dir,
+            concurrent=concurrent,
+            split=split,
+            keep_nar=keep_nar,
+            verbose=verbose,
         )
-        if rc != 0:
-            print("❌ ERROR: Unduhan aria2c gagal atau dibatalkan.", file=sys.stderr)
-            sys.exit(rc)
-        print(
-            "\n✅ Seluruh unduhan paket & library selesai 100% di RAM!", file=sys.stderr
-        )
+        ok = pipeline.run(download_items=items_to_download, narinfos=narinfos)
+        if not ok:
+            print(
+                f"❌ ERROR: Unduhan atau ingest streaming untuk {store_path} gagal.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
-    # 7. Ingest ke /nix/store
-    print(
-        "📥 [3/3] Meng-ingest biner + seluruh library dari cache RAM ke /nix/store...",
-        file=sys.stderr,
-    )
-    ok = ingest_store_paths(store_path, local_cache_dir, cache_client.cache_urls)
-    if not ok:
-        print(
-            f"❌ ERROR: Gagal meng-ingest path {store_path} ke /nix/store",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    # 8. Cleanup
+    # 6. Cleanup sisa cache jika keep_nar=False
     if not keep_nar:
         cleanup_ram_cache(nar_dir)
         print(
-            "🧹 RAM Cache (.nar archives) otomatis dibersihkan (0 Byte sisa di RAM).",
+            "🧹 RAM Cache (.nar archives) otomatis dibersihkan (Zero SSD Wear).",
             file=sys.stderr,
         )
 
@@ -314,29 +303,29 @@ def download_batch_targets(
         (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
 
     if all_download_items:
-        aria2_input_file = local_cache_dir / "aria2_batch.txt"
-        generate_aria2_batch_file(all_download_items, aria2_input_file, nar_dir)
-
         print(
-            f"\n🚀 Mengunduh ke RAM tmpfs ({local_cache_dir}) via aria2c ({split} koneksi per file)...",
+            f"\n🚀 Streaming download & instant ingestion ({len(all_download_items)} paket) ke RAM tmpfs ({local_cache_dir}) via aria2c + nix copy ({split} koneksi)...",
             file=sys.stderr,
         )
-        rc = run_aria2_download(
-            aria2_input_file, nar_dir, concurrent=concurrent, split=split
+        pipeline = StreamingIngestPipeline(
+            cache_client=cache_client,
+            local_cache_dir=local_cache_dir,
+            concurrent=concurrent,
+            split=split,
+            keep_nar=keep_nar,
+            verbose=verbose,
         )
-        if rc != 0:
-            print("❌ ERROR: Unduhan batch aria2c gagal.", file=sys.stderr)
-            sys.exit(rc)
-
-    print(
-        "\n📥 Meng-ingest seluruh biner dari cache RAM ke /nix/store...",
-        file=sys.stderr,
-    )
-    missing_store_paths = [sp for _, sp in missing_targets]
-    ingest_store_paths(missing_store_paths, local_cache_dir, cache_client.cache_urls)
+        ok = pipeline.run(download_items=all_download_items, narinfos=all_narinfos)
+        if not ok:
+            print("❌ ERROR: Unduhan batch streaming via aria2c gagal.", file=sys.stderr)
+            sys.exit(1)
 
     if not keep_nar:
         cleanup_ram_cache(nar_dir)
+        print(
+            "🧹 RAM Cache (.nar archives) otomatis dibersihkan (Zero SSD Wear).",
+            file=sys.stderr,
+        )
 
     print(
         "================================================================================",
@@ -480,28 +469,104 @@ def download_system_targets(
             f"\n🌐 Mengambil metadata narinfo dari binary cache untuk {len(missing_paths)} biner...",
             file=sys.stderr,
         )
-        auditor = ClosureAuditor(cache_client)
+        hash_to_sp = {}
+        for sp in missing_paths:
+            h = os.path.basename(sp).split("-")[0]
+            hash_to_sp[h] = sp
+
         all_narinfos = {}
         all_download_items_map = {}
 
-        for sp in missing_paths:
-            sname = os.path.basename(sp)
-            narinfos, items = auditor.traverse_closure_for_download(sname)
-            all_narinfos.update(narinfos)
-            for item in items:
-                all_download_items_map[item.hash] = item
+        max_workers = min(32, max(8, len(hash_to_sp)))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_hash = {
+                executor.submit(cache_client.fetch_narinfo, h): (h, sp)
+                for h, sp in hash_to_sp.items()
+            }
+            done_count = 0
+            total_count = len(future_to_hash)
+            for future in as_completed(future_to_hash):
+                h, sp = future_to_hash[future]
+                done_count += 1
+                if done_count % 25 == 0 or done_count == total_count:
+                    pct = int(done_count / total_count * 100)
+                    sys.stderr.write(
+                        f"\r   ⏳ Mengambil metadata narinfo: [{done_count}/{total_count}] ({pct}%)"
+                    )
+                    sys.stderr.flush()
 
-        for h, info in all_narinfos.items():
-            (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
+                info = future.result()
+                if info:
+                    all_narinfos[h] = info
+                    (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
+                    if info.url:
+                        dl_url = (
+                            f"{info.source_cache_url}/{info.url}"
+                            if not info.url.startswith("http")
+                            else info.url
+                        )
+                        fn = os.path.basename(info.url)
+                        if fn not in all_download_items_map:
+                            all_download_items_map[fn] = DownloadItem(
+                                hash=h,
+                                url=dl_url,
+                                filename=fn,
+                                file_size=info.file_size,
+                                source_cache_url=info.source_cache_url,
+                            )
+
+        # Quick pass: check if any references are not in all_narinfos and not yet in /nix/store
+        extra_hashes = set()
+        for info in list(all_narinfos.values()):
+            for ref in info.references:
+                ref_h = ref.split("-")[0]
+                if ref_h not in all_narinfos:
+                    ref_sp = f"/nix/store/{ref}" if not ref.startswith("/nix/store/") else ref
+                    if not is_path_in_nix_store(ref_sp):
+                        extra_hashes.add(ref_h)
+
+        if extra_hashes:
+            with ThreadPoolExecutor(max_workers=min(16, len(extra_hashes))) as executor:
+                extra_futures = {executor.submit(cache_client.fetch_narinfo, h): h for h in extra_hashes}
+                for f in as_completed(extra_futures):
+                    h = extra_futures[f]
+                    info = f.result()
+                    if info:
+                        all_narinfos[h] = info
+                        (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
+                        if info.url:
+                            fn = os.path.basename(info.url)
+                            if fn not in all_download_items_map:
+                                dl_url = (
+                                    f"{info.source_cache_url}/{info.url}"
+                                    if not info.url.startswith("http")
+                                    else info.url
+                                )
+                                all_download_items_map[fn] = DownloadItem(
+                                    hash=h,
+                                    url=dl_url,
+                                    filename=fn,
+                                    file_size=info.file_size,
+                                    source_cache_url=info.source_cache_url,
+                                )
+
+        sys.stderr.write(
+            f"\r\033[K   ✔ Metadata narinfo berhasil diperoleh ({len(all_narinfos)} paket)\n"
+        )
+        sys.stderr.flush()
 
         all_download_items.extend(list(all_download_items_map.values()))
 
     if missing_fods:
+        seen_fod_paths = set()
         for f in missing_fods:
-            fn = f.filename
+            if f.out_path in seen_fod_paths:
+                continue
+            seen_fod_paths.add(f.out_path)
+            fn = getattr(f, "download_filename", None) or f.filename
             all_download_items.append(
                 DownloadItem(
-                    hash=fn,
+                    hash=f.out_path,
                     url=f.url,
                     filename=fn,
                     file_size=f.file_size,
@@ -516,39 +581,26 @@ def download_system_targets(
     )
 
     if all_download_items:
-        aria2_input_file = local_cache_dir / "aria2_batch.txt"
-        generate_aria2_batch_file(all_download_items, aria2_input_file, nar_dir)
-
         print(
-            f"\n🚀 [2/3] Mengunduh biner sistem & FOD ke RAM via aria2c ({split} koneksi per file)...",
+            f"\n🚀 [2/3] Streaming download & instant ingestion ({len(all_download_items)} item) ke RAM via aria2c + nix copy ({split} koneksi)...",
             file=sys.stderr,
         )
-        rc = run_aria2_download(
-            aria2_input_file, nar_dir, concurrent=concurrent, split=split
+        pipeline = StreamingIngestPipeline(
+            cache_client=cache_client,
+            local_cache_dir=local_cache_dir,
+            concurrent=concurrent,
+            split=split,
+            keep_nar=keep_nar,
+            verbose=verbose,
         )
-        if rc != 0:
-            print("❌ ERROR: Unduhan batch sistem via aria2c gagal.", file=sys.stderr)
-            sys.exit(rc)
-        print("\n✅ Unduhan seluruh biner sistem & FOD selesai 100% di RAM!", file=sys.stderr)
-
-    print(
-        "\n📥 [3/3] Meng-ingest seluruh biner dari cache RAM ke /nix/store...",
-        file=sys.stderr,
-    )
-    if missing_paths:
-        ok = ingest_store_paths(missing_paths, local_cache_dir, cache_client.cache_urls)
+        ok = pipeline.run(
+            download_items=all_download_items,
+            narinfos=all_narinfos if missing_paths else {},
+            fod_items=missing_fods if missing_fods else None,
+        )
         if not ok:
             print(
-                "❌ ERROR: Sebagian biner substituter gagal di-ingest ke /nix/store.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-
-    if missing_fods:
-        ok_fod = ingest_fod_items(missing_fods, nar_dir)
-        if not ok_fod:
-            print(
-                "❌ ERROR: Sebagian berkas FOD gagal di-ingest ke /nix/store.",
+                "❌ ERROR: Unduhan atau ingest streaming sistem via aria2c gagal.",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -616,27 +668,30 @@ def download_fod_target(
     local_cache_dir = Path(cache_dir or get_default_ram_cache_dir()).resolve()
     local_cache_dir, nar_dir = setup_ram_cache_dir(local_cache_dir)
 
-    fn = fod.filename
+    fn = getattr(fod, "download_filename", None) or fod.filename
     dl_item = DownloadItem(
-        hash=fn,
+        hash=fod.out_path,
         url=fod.url,
         filename=fn,
         file_size=fod.file_size,
         source_cache_url="upstream",
     )
-    aria2_input_file = local_cache_dir / "aria2_batch.txt"
-    generate_aria2_batch_file([dl_item], aria2_input_file, nar_dir)
-
-    print(f"\n🚀 Mengunduh berkas FOD ke RAM via aria2c ({split} koneksi)...", file=sys.stderr)
-    rc = run_aria2_download(aria2_input_file, nar_dir, concurrent=concurrent, split=split)
-    if rc != 0:
-        print("❌ ERROR: Unduhan aria2c gagal.", file=sys.stderr)
-        sys.exit(rc)
-
-    print("\n📥 Meng-ingest berkas FOD ke /nix/store...", file=sys.stderr)
-    ok = ingest_fod_items([fod], nar_dir)
+    print(f"\n🚀 Streaming download & instant ingestion FOD ke RAM via aria2c + nix-store --add-fixed ({split} koneksi)...", file=sys.stderr)
+    pipeline = StreamingIngestPipeline(
+        cache_client=NixCacheClient(),
+        local_cache_dir=local_cache_dir,
+        concurrent=concurrent,
+        split=split,
+        keep_nar=keep_nar,
+        verbose=verbose,
+    )
+    ok = pipeline.run(
+        download_items=[dl_item],
+        narinfos={},
+        fod_items=[fod],
+    )
     if not ok:
-        print("❌ ERROR: Ingest FOD gagal.", file=sys.stderr)
+        print("❌ ERROR: Unduhan atau ingest FOD gagal.", file=sys.stderr)
         sys.exit(1)
 
     if not keep_nar:

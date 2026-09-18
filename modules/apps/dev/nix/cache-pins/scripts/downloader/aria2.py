@@ -2,7 +2,7 @@
 from pathlib import Path
 import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 from core.models import DownloadItem
 
@@ -31,13 +31,16 @@ def generate_aria2_batch_file(
             f.write(f"  out={item.filename}\n")
 
 
-def run_aria2_download(
+def build_aria2_cmd(
     batch_file_path: Path,
     nar_dir: Path,
     concurrent: int = 4,
     split: int = 8,
-) -> int:
-    """Execute aria2c with multi-connection acceleration."""
+    on_download_complete: Optional[str] = None,
+    on_download_error: Optional[str] = None,
+    quiet: bool = False,
+) -> List[str]:
+    """Construct command-line arguments for aria2c execution."""
     aria2_cmd = [
         "aria2c",
         f"--input-file={batch_file_path}",
@@ -52,7 +55,58 @@ def run_aria2_download(
         "--timeout=60",
         "--auto-file-renaming=false",
         "--allow-overwrite=true",
+        "--console-log-level=warn",
+        "--download-result=hide",
+        "--summary-interval=0",
         f"--dir={nar_dir}",
     ]
-    res = subprocess.run(aria2_cmd)
+    if on_download_complete:
+        aria2_cmd.append(f"--on-download-complete={on_download_complete}")
+    if on_download_error:
+        aria2_cmd.append(f"--on-download-error={on_download_error}")
+    if quiet:
+        aria2_cmd.append("--quiet=true")
+    return aria2_cmd
+
+
+def launch_aria2_process(
+    batch_file_path: Path,
+    nar_dir: Path,
+    concurrent: int = 4,
+    split: int = 8,
+    on_download_complete: Optional[str] = None,
+    on_download_error: Optional[str] = None,
+    quiet: bool = False,
+) -> subprocess.Popen:
+    """Launch aria2c as an asynchronous subprocess."""
+    cmd = build_aria2_cmd(
+        batch_file_path=batch_file_path,
+        nar_dir=nar_dir,
+        concurrent=concurrent,
+        split=split,
+        on_download_complete=on_download_complete,
+        on_download_error=on_download_error,
+        quiet=quiet,
+    )
+    return subprocess.Popen(cmd)
+
+
+def run_aria2_download(
+    batch_file_path: Path,
+    nar_dir: Path,
+    concurrent: int = 4,
+    split: int = 8,
+    on_download_complete: Optional[str] = None,
+    on_download_error: Optional[str] = None,
+) -> int:
+    """Execute aria2c with multi-connection acceleration."""
+    cmd = build_aria2_cmd(
+        batch_file_path=batch_file_path,
+        nar_dir=nar_dir,
+        concurrent=concurrent,
+        split=split,
+        on_download_complete=on_download_complete,
+        on_download_error=on_download_error,
+    )
+    res = subprocess.run(cmd)
     return res.returncode

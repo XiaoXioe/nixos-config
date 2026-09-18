@@ -2,9 +2,12 @@
 
 import os
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from core.platform import get_current_system
+
+
+_VALID_PATHS_CACHE: Set[str] = set()
 
 
 def extract_version_from_store_path(store_path: str) -> str:
@@ -23,13 +26,20 @@ def extract_version_from_store_path(store_path: str) -> str:
     return "pinned"
 
 
-def is_path_in_nix_store(store_path: str, verify_validity: bool = True) -> bool:
-    """Check if a store path physically exists and is registered valid in Nix SQLite db."""
+def is_path_in_nix_store(store_path: str, verify_validity: bool = False) -> bool:
+    """Check if a store path physically exists and is registered valid in Nix SQLite db.
+
+    Defaults to fast os.path.exists with in-memory set caching. Subprocess validity
+    check is only performed when verify_validity=True is explicitly requested.
+    """
     if not store_path or not store_path.startswith("/nix/store/"):
         return False
+    if store_path in _VALID_PATHS_CACHE:
+        return True
     if not os.path.exists(store_path):
         return False
     if not verify_validity:
+        _VALID_PATHS_CACHE.add(store_path)
         return True
     import subprocess
 
@@ -38,7 +48,10 @@ def is_path_in_nix_store(store_path: str, verify_validity: bool = True) -> bool:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    return res.returncode == 0
+    if res.returncode == 0:
+        _VALID_PATHS_CACHE.add(store_path)
+        return True
+    return False
 
 
 def compare_versions(v1: str, v2: str) -> int:

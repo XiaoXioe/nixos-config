@@ -7,7 +7,7 @@ import re
 import socket
 import subprocess
 import sys
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from core.eval.channels import find_flake_dir, get_nix_env
 from core.eval.resolver import is_path_in_nix_store
@@ -90,6 +90,7 @@ def extract_missing_fods(
 
     drvs = data.get("derivations", data)
     missing_fods: List[FodDownloadItem] = []
+    seen_out_paths: Set[str] = set()
 
     for drv_path, drv in drvs.items():
         if not isinstance(drv, dict):
@@ -120,17 +121,24 @@ def extract_missing_fods(
         if not out_path:
             continue
 
+        if out_path in seen_out_paths:
+            continue
+        seen_out_paths.add(out_path)
+
         if is_path_in_nix_store(out_path):
             continue
 
         filename = os.path.basename(out_path)
         parts = filename.split("-", 1)
+        out_hash = parts[0] if len(parts) == 2 and len(parts[0]) == 32 else ""
         pure_filename = parts[1] if len(parts) == 2 and len(parts[0]) == 32 else filename
 
         url = urls[0]
         url_path = url.split("?")[0].split("#")[0]
         url_file = os.path.basename(url_path)
-        download_filename = url_file if url_file else pure_filename
+        # Hindari tabrakan nama file di aria2 jika beberapa FOD memiliki nama sama (misal 'source' atau tarball generik)
+        base_dl_name = url_file if url_file else pure_filename
+        download_filename = f"fod_{out_hash[:10]}_{base_dl_name}" if out_hash else base_dl_name
 
         post_fetch = attrs.get("postFetch") or env_map.get("postFetch")
         strip_root_val = attrs.get("stripRoot") if "stripRoot" in attrs else env_map.get("stripRoot")
