@@ -60,6 +60,19 @@ widget_order = [ "lockscreen-login-box@HDMI-A-1" ]
         show_unlock_hint = true
         show_weather = true
 
+[notification]
+filter_order = [ "filter" ]
+
+    [notification.filter.filter]
+    allow_permanent = false
+    allowed_urgencies = [ "critical" ]
+    bypass_dnd = false
+    enabled = true
+    match = "materialgram"
+    play_sound = false
+    save_history = false
+    show_toast = false
+
 [shell.launcher]
 pinned = [ "org.kde.dolphin" ]
 
