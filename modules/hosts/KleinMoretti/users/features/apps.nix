@@ -33,7 +33,6 @@
         nix = {
           nh = true;
           nix-tools = true;
-          apps-updater = true;
           cache-pins = true;
         };
         vcs = {

@@ -12,42 +12,23 @@
 #   network/          → warpProxyEnv, mkWarpWaitScript (WARP helpers)
 #   browser-addons/   → browserAddonsFor (Firefox/Zen/Tor policy builders)
 #   mk-module/        → mkModule (unified NixOS + HM module builder)
-#   native-app/       → mkNativeApp, fetchApp, fetchUnpackedApp, allAppSources, activeAppSources
-#   cache/            → fetchFromNixCache, fetchCachePinned (Nix cache ingestion)
 #   builders/         → mkNixosConfiguration (used directly by flake.nix)
 { lib, ... }:
 let
   mkModuleLib = import ./mk-module { inherit lib; };
-  nativeAppLib = import ./native-app { inherit lib; };
   shellLib = import ./shell { inherit lib; };
   networkLib = import ./network { };
-  nixCacheLib = import ./cache { inherit lib; };
 
   fsLib = import ./fs.nix { inherit lib; };
   audioLib = import ./audio.nix { inherit lib; };
   hmLib = import ./hm.nix { inherit lib; };
   shellCheckLib = import ./shell-check.nix { inherit lib; };
   webAppLib = pkgs: import ./webapp.nix { inherit lib pkgs; };
-
-  # Single import of version registries — avoids redundant AST parsing
-  appVersionsData = import ./apps-versions.nix;
-  cachePinsData = import ./cache-pins.nix;
 in
 {
   # ── Module builder ───────────────────────────────────────────────────────────
   # Primary API: wraps NixOS + Home Manager config under options.my.<name>.enable
   mkModule = mkModuleLib;
-
-  # ── Native App builder & Version Pinning ──────────────────────────────────────
-  # Builder universal untuk membungkus biner/arsip (.deb, .tar.*, .pkg.tar.zst, .snap, .AppImage)
-  # dengan runtime library host nix-ld, PATH wrapper, dan integrasi desktop.
-  mkNativeApp = pkgs: (nativeAppLib pkgs).mkNativeApp;
-  fetchUnpacked = pkgs: (nativeAppLib pkgs).fetchUnpacked;
-  appVersions = appVersionsData;
-  fetchApp = pkgs: (nativeAppLib pkgs).fetchApp;
-  fetchUnpackedApp = pkgs: (nativeAppLib pkgs).fetchUnpackedApp;
-  allAppSources = pkgs: (nativeAppLib pkgs).allAppSources;
-  activeAppSources = { pkgs, config }: (nativeAppLib pkgs).activeAppSources config;
 
   # ── Feature toggles ──────────────────────────────────────────────────────────
   # Transforms userFeatures: { feat = true; } → { feat = { enable = true; }; }
@@ -84,9 +65,4 @@ in
   # ── WebApp PWA Builder ──────────────────────────────────────────────────────
   # Generates desktop launcher + Chromium wrapper for PWAs
   mkWebApp = pkgs: (webAppLib pkgs).mkWebApp;
-
-  # ── Nix Binary Cache Direct Ingestion ────────────────────────────────────
-  inherit (nixCacheLib) fetchFromNixCache;
-  cachePins = cachePinsData;
-  fetchCachePinned = nixCacheLib.fetchCachePinned cachePinsData;
 }
