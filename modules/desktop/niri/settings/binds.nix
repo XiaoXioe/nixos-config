@@ -180,5 +180,8 @@ _: {
 
     # Shell Switch (hot-swap DMS ↔ Noctalia without logout)
     "Ctrl+Alt+S".action.spawn = [ "niri-shell-switch" ];
+
+    # Gaming Resolution Toggle (1680x1050 ↔ 1280x720)
+    "Mod+Shift+G".action.spawn = [ "niri-game-res" ];
   };
 }

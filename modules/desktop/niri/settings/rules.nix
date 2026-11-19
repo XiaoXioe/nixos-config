@@ -121,6 +121,27 @@ _: {
         ];
         open-floating = true;
       }
+      # Gaming Windows: Bypass rounded-corner shader clipping & shadow for Direct Scanout
+      {
+        matches = [
+          { app-id = "^org\\.vinegarhq\\.Sober$"; }
+          { app-id = "^steam_app_"; }
+          { app-id = "^retroarch$"; }
+          { app-id = "^dolphin-emu$"; }
+          { app-id = "^PCSX2$"; }
+          { app-id = "^PPSSPP"; }
+        ];
+        geometry-corner-radius = {
+          top-left = 0.0;
+          top-right = 0.0;
+          bottom-right = 0.0;
+          bottom-left = 0.0;
+        };
+        clip-to-geometry = false;
+        shadow = {
+          enable = false;
+        };
+      }
     ];
   };
 }
