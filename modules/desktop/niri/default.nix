@@ -33,6 +33,7 @@ selfLib.mkModule {
       # Memaksa Firefox/Zen Browser menggunakan protokol Wayland native zwp_idle_inhibit_manager_v1 di Niri
       xdg.portal = {
         enable = true;
+        extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
         config = {
           common = {
             default = [ "gtk" ];
@@ -42,6 +43,7 @@ selfLib.mkModule {
               "gnome"
               "gtk"
             ];
+            "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
             "org.freedesktop.impl.portal.Inhibit" = [ "none" ];
           };
         };
