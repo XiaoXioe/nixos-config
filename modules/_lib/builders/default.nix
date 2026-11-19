@@ -16,6 +16,12 @@ let
     overlays = [ ];
   };
 
+  pkgs-unstable = import (inputs.nixpkgs-unstable or inputs.nixpkgs) {
+    inherit system;
+    config.allowUnfree = true;
+    overlays = [ ];
+  };
+
   # NixOS configurations builder
   mkNixosConfiguration =
     hostName:
@@ -31,6 +37,7 @@ let
           hostName
           flakePath
           userData
+          pkgs-unstable
           ;
         userName = adminUser;
         inherit (userData) fullName;
