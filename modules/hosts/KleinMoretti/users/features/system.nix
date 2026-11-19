@@ -35,8 +35,8 @@
       graphics = true;
       bootloader = true;
       kernel = {
-        stock = false;
-        cachyos = true;
+        stock = true;
+        cachyos = false;
         settings = true;
       };
       memory = true;

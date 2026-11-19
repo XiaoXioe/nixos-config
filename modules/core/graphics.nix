@@ -9,6 +9,7 @@ selfLib.mkModule {
 
     environment.sessionVariables = {
       MESA_LOADER_DRIVER_OVERRIDE = "crocus";
+      mesa_glthread = "true";
       LIBVA_DRIVER_NAME = "i965";
       VAAPI_MPEG4_ENABLED = "true";
     };
@@ -23,8 +24,6 @@ selfLib.mkModule {
 
         vulkan-loader
         vulkan-tools
-
-        intel-media-driver # backup + fitur tambahan
       ];
     };
 

@@ -29,6 +29,9 @@ selfLib.mkModule {
         "transparent_hugepage=madvise"
         "psi=1"
         "usbcore.autosuspend=-1"
+        "i915.enable_fbc=0"
+        "i915.enable_psr=0"
+        "i915.fastboot=1"
       ];
 
       kernel = {
