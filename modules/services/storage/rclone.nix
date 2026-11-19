@@ -85,7 +85,7 @@ selfLib.mkModule {
                 --no-modtime
             ''
             [
-              (selfLib.fetchCachePinned "rclone")
+              pkgs.rclone
               pkgs.fuse3
               pkgs.coreutils
             ]

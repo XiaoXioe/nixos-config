@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -9,7 +10,7 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages = [
-      (selfLib.fetchCachePinned "ffmpeg")
+      pkgs.ffmpeg
     ];
   };
 }

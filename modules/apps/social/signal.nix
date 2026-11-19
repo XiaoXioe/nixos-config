@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -8,6 +9,6 @@ selfLib.mkModule {
   description = "Signal Messenger desktop application";
 
   hmConfig = {
-    home.packages = [ (selfLib.fetchCachePinned "signal") ];
+    home.packages = [ pkgs.signal-desktop ];
   };
 }

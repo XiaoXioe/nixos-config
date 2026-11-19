@@ -128,7 +128,7 @@ selfLib.mkModule {
 
     programs.firefox = {
       enable = true;
-      package = selfLib.fetchCachePinned pkgs "firefox";
+      package = pkgs.firefox;
       configPath = ".mozilla/firefox";
       profiles = {
         default = {

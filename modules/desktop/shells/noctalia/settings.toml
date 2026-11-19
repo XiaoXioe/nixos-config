@@ -19,7 +19,7 @@ pinned = [
     "discord",
     "io.ente.auth",
     "bitwarden",
-    "eu.betterbird.Betterbird"
+    "thunderbird"
 ]
 show_dots = true
 

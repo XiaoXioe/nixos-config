@@ -1,26 +1,18 @@
 {
+  pkgs-unstable,
   selfLib,
-  pkgs,
   ...
 }:
 
 let
-  appInfo = selfLib.appVersions.materialgram;
-
-  materialgramNative = (selfLib.mkNativeApp pkgs) {
-    name = "materialgram";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "materialgram";
-    execPath = "usr/bin/materialgram";
-    binName = "materialgram";
-  };
+  materialgramPkg = pkgs-unstable.materialgram;
 in
 selfLib.mkModule {
   name = "apps.social.materialgram";
   description = "Materialgram Desktop Messaging application";
 
   hmConfig = {
-    home.packages = [ materialgramNative ];
+    home.packages = [ materialgramPkg ];
   };
 
   nixosConfig =
@@ -30,7 +22,7 @@ selfLib.mkModule {
         ".local/share/materialgram/tdata"
       ];
       my.services.vmtouch.paths = [
-        materialgramNative
+        materialgramPkg
         "/home/${config.my.user.name}/.local/share/materialgram"
       ];
     };

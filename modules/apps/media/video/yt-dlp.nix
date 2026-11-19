@@ -1,5 +1,6 @@
 {
   config,
+  pkgs-unstable,
   selfLib,
   ...
 }:
@@ -10,12 +11,12 @@ let
 in
 selfLib.mkModule {
   name = "apps.media.video.yt-dlp";
-  description = "yt-dlp CLI video downloader configuration via Nix binary cache";
+  description = "yt-dlp CLI video downloader configuration";
 
   hmConfig = {
     programs.yt-dlp = {
       enable = true;
-      package = selfLib.fetchCachePinned "yt_dlp";
+      package = pkgs-unstable.yt-dlp;
       settings = {
         format = "'bv+ba/b'";
         merge-output-format = "mkv";

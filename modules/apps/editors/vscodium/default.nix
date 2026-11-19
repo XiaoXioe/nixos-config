@@ -7,7 +7,7 @@
 let
   marketplaceExts = import ./_extensions { inherit pkgs; };
   userSettings = import ./_settings { inherit pkgs; };
-  vscodiumPkg = selfLib.fetchCachePinned pkgs "vscodium";
+  vscodiumPkg = pkgs.vscodium;
 in
 selfLib.mkModule {
   name = "apps.editors.vscodium";
@@ -24,20 +24,17 @@ selfLib.mkModule {
     };
 
   hmConfig = {
-    home.packages =
-      (selfLib.fetchCachePinned [
-        "black"
-        "nixd"
-        "sqlfluff"
-      ])
-      ++ (with pkgs; [
-        shfmt
-        nixfmt
-        shellcheck
-        nil
-        sqlite
-        php
-      ]);
+    home.packages = with pkgs; [
+      black
+      nixd
+      sqlfluff
+      shfmt
+      nixfmt
+      shellcheck
+      nil
+      sqlite
+      php
+    ];
     programs.vscodium = {
       enable = true;
       package = vscodiumPkg;

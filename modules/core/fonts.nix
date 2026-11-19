@@ -8,10 +8,8 @@ selfLib.mkModule {
   nixosConfig = {
     fonts = {
       fontDir.enable = true;
-      packages = [
-        (selfLib.fetchCachePinned "nerd_fonts_jetbrains_mono")
-      ]
-      ++ (with pkgs; [
+      packages = with pkgs; [
+        nerd-fonts.jetbrains-mono
         adwaita-fonts
         noto-fonts
         noto-fonts-cjk-sans
@@ -21,7 +19,7 @@ selfLib.mkModule {
         symbola
         nerd-fonts.fira-code
         material-symbols
-      ]);
+      ];
       fontconfig = {
         enable = true;
         defaultFonts = {

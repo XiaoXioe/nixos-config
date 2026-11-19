@@ -166,8 +166,7 @@ selfLib.mkModule {
             lib.take 1 activeBrowsersList;
         terminal = [ terminalDesktop ];
         archive = [ "org.kde.ark.desktop" ];
-        discord = lib.optional (osConfig.my.apps.social.discord.enable or false
-        ) "com.discordapp.Discord.desktop";
+        discord = lib.optional (osConfig.my.apps.social.discord.enable or false) "discord.desktop";
         link = browserOrder;
       };
 

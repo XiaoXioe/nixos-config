@@ -1,11 +1,12 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.media.downloader";
-  description = "Aria2 multi-protocol high-speed CLI downloader manager and tools with Nix binary cache pins";
+  description = "Aria2 multi-protocol high-speed CLI downloader manager and tools";
 
   preservation = {
     userDirectories = [ ".tdl" ];
@@ -13,12 +14,12 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages = [
-      (selfLib.fetchCachePinned "tdl")
+      pkgs.tdl
     ];
 
     programs.aria2 = {
       enable = true;
-      package = selfLib.fetchCachePinned "aria2";
+      package = pkgs.aria2;
       settings = {
         max-connection-per-server = 4;
         split = 4;

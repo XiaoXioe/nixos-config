@@ -9,8 +9,8 @@
 let
   resticRepo = "rclone:union-raid1-4acc-crypt:NixOS-Backup";
   mountPoint = "/home/${config.my.user.name}/ResticBackup";
-  resticPkg = selfLib.fetchCachePinned "restic";
-  rclonePkg = selfLib.fetchCachePinned "rclone";
+  resticPkg = pkgs.restic;
+  rclonePkg = pkgs.rclone;
 
   resticFlockWrapper =
     selfLib.mkApp pkgs "restic"

@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
@@ -8,6 +9,6 @@ selfLib.mkModule {
   description = "OnlyOffice Desktop Editors office suite";
 
   hmConfig = {
-    home.packages = [ (selfLib.fetchCachePinned "onlyoffice") ];
+    home.packages = [ pkgs.onlyoffice-desktopeditors ];
   };
 }

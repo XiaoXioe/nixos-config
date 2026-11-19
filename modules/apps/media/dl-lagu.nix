@@ -11,7 +11,7 @@ selfLib.mkModule {
     { config, pkgs, ... }:
     let
       ytdlpPkg = config.programs.yt-dlp.package;
-      ffmpegPkg = selfLib.fetchCachePinned "ffmpeg";
+      ffmpegPkg = pkgs.ffmpeg;
       dlLaguApp =
         selfLib.mkApp pkgs "dl-lagu"
           ''

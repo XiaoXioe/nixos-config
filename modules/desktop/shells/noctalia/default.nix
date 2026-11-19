@@ -2,6 +2,7 @@
   selfLib,
   lib,
   pkgs,
+  pkgs-unstable,
   flakePath,
   ...
 }:
@@ -45,7 +46,7 @@ selfLib.mkModule {
       ];
 
       home.packages = [
-        (selfLib.fetchCachePinned "noctalia")
+        pkgs-unstable.noctalia
       ];
 
       home.file.".local/state/noctalia/settings.toml".source =

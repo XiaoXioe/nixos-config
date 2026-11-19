@@ -1,4 +1,6 @@
 {
+  pkgs,
+  pkgs-unstable,
   selfLib,
   ...
 }:
@@ -19,10 +21,10 @@ selfLib.mkModule {
   };
 
   hmConfig = {
-    home.packages = selfLib.fetchCachePinned [
-      "python3"
-      "uv"
-      "ruff"
+    home.packages = [
+      pkgs.python3
+      pkgs.uv
+      pkgs-unstable.ruff
     ];
   };
 }

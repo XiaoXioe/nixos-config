@@ -11,14 +11,11 @@ selfLib.mkModule {
   nixosConfig = {
     specialisation."retro-mode".configuration = {
       system.nixos.tags = [ "retro-gaming-ps" ];
-      environment.systemPackages =
-        (selfLib.fetchCachePinned [
-          "retroarch"
-          "antimicrox"
-        ])
-        ++ [
-          pkgs.libretro.swanstation
-        ];
+      environment.systemPackages = with pkgs; [
+        retroarch
+        antimicrox
+        libretro.swanstation
+      ];
 
       hardware.uinput.enable = true;
       services.udev.packages = [ pkgs.game-devices-udev-rules ];

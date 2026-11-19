@@ -9,25 +9,22 @@ selfLib.mkModule {
   description = "Zed-editor configuration";
 
   hmConfig = {
-    home.packages =
-      (selfLib.fetchCachePinned [
-        "black"
-        "nixd"
-        "sqlfluff"
-      ])
-      ++ (with pkgs; [
-        shfmt
-        nixfmt
-        shellcheck
-        nil
-        sqlite
-        php
-        fish
-      ]);
+    home.packages = with pkgs; [
+      black
+      nixd
+      sqlfluff
+      shfmt
+      nixfmt
+      shellcheck
+      nil
+      sqlite
+      php
+      fish
+    ];
 
     programs.zed-editor = {
       enable = true;
-      package = selfLib.fetchCachePinned "zed_editor";
+      package = pkgs.zed-editor;
 
       # Kunci file agar menjadi symlink Nix murni (Read-Only)
       mutableUserSettings = false;
@@ -240,7 +237,7 @@ selfLib.mkModule {
         lsp = {
           nixd = {
             binary = {
-              path = "${selfLib.fetchCachePinned "nixd"}/bin/nixd";
+              path = "${pkgs.nixd}/bin/nixd";
             };
           };
           nil = {

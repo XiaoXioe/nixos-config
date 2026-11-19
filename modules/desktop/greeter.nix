@@ -34,7 +34,7 @@ selfLib.mkModule {
     in
     {
       environment.systemPackages = [
-        (selfLib.fetchCachePinned "seahorse")
+        pkgs.seahorse
         pkgs.polkit_gnome
       ]
       ++ lib.optional (cfg.backend == "sddm" || cfg.backend == "gdm") pkgs.vimix-cursors

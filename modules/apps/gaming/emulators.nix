@@ -5,11 +5,6 @@
   ...
 }:
 
-let
-  retroarchPkg = (selfLib.fetchCachePinned pkgs "retroarch_bare") // {
-    wrapper = pkgs.retroarch-bare.wrapper;
-  };
-in
 selfLib.mkModule {
   name = "apps.gaming.emulators";
   description = "Console emulators and gaming clients (RetroArch, Dolphin, PPSSPP, PCSX2)";
@@ -20,15 +15,15 @@ selfLib.mkModule {
       dataPath = hmOpts.osConfig.my.dataPath;
     in
     {
-      home.packages = selfLib.fetchCachePinned [
-        "pcsx2"
-        "ppsspp"
-        "dolphin_emu"
+      home.packages = with pkgs; [
+        pcsx2
+        ppsspp
+        dolphin-emu
       ];
 
       programs.retroarch = {
         enable = true;
-        package = retroarchPkg;
+        package = pkgs.retroarch-bare;
         cores = {
           # PlayStation 1 (psx/)
           swanstation.enable = true;

@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  pkgs-unstable,
   inputs,
   selfLib,
   ...
@@ -45,7 +46,7 @@ selfLib.mkModule {
       packages = [
         antigravity-cli
         # antigravity-ide
-        (selfLib.fetchCachePinned "opencode")
+        pkgs-unstable.opencode
       ];
 
       sessionVariables = {

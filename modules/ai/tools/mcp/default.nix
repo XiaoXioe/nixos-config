@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  pkgs-unstable,
   lib,
   inputs,
   selfLib,
@@ -21,6 +22,7 @@ let
       inherit
         config
         pkgs
+        pkgs-unstable
         lib
         inputs
         selfLib

@@ -52,7 +52,7 @@ selfLib.mkModule {
     # 1. Background Service Systemd (Local Engine)
     services.stirling-pdf = {
       enable = true;
-      package = selfLib.fetchCachePinned "stirling_pdf";
+      package = pkgs.stirling-pdf;
       environment = {
         SERVER_PORT = toString cfg.port;
         SECURITY_ENABLELOGIN = "false"; # Akses instan bebas auth untuk localhost
@@ -83,7 +83,7 @@ selfLib.mkModule {
 
     # 2. Desktop GUI App
     environment.systemPackages = lib.optionals cfg.enableDesktop [
-      (selfLib.fetchCachePinned "stirling_pdf_desktop")
+      pkgs.stirling-pdf-desktop
     ];
   };
 }

@@ -265,7 +265,7 @@ selfLib.mkModule {
     # Expose Calf and LSP LV2 plugins to PipeWire's systemd service.
     services.pipewire.extraLv2Packages = [
       pkgs.calf
-      (selfLib.fetchCachePinned "lsp_plugins")
+      pkgs.lsp-plugins
     ];
 
     services.pipewire.configPackages = [

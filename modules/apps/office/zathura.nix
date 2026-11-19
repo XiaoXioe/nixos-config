@@ -1,16 +1,17 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.office.zathura";
-  description = "Zathura lightweight PDF and document reader with pure upstream binary";
+  description = "Zathura lightweight PDF and document reader";
 
   hmConfig = {
     programs.zathura = {
       enable = true;
-      package = selfLib.fetchCachePinned "zathura";
+      package = pkgs.zathura;
       options = {
         selection-clipboard = "clipboard";
       };

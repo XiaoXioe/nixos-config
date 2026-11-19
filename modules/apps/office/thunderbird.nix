@@ -22,78 +22,10 @@ let
     lib.mapAttrs' (name: value: lib.nameValuePair "mail.server.${serverId}.${name}" value) (
       commonServerSettings // extraSettings
     );
-
-  appInfo = selfLib.appVersions.betterbird;
-
-  betterbirdDesktopItem = pkgs.makeDesktopItem {
-    name = "eu.betterbird.Betterbird";
-    desktopName = "Betterbird";
-    genericName = "Email Client";
-    comment = "Send and receive mail with Betterbird";
-    exec = "betterbird %u";
-    icon = "eu.betterbird.Betterbird";
-    terminal = false;
-    type = "Application";
-    categories = [
-      "Network"
-      "Email"
-      "News"
-      "GTK"
-    ];
-    mimeTypes = [
-      "message/rfc822"
-      "x-scheme-handler/mailto"
-      "text/calendar"
-      "text/x-vcard"
-    ];
-    keywords = [
-      "mail"
-      "email"
-      "betterbird"
-      "thunderbird"
-    ];
-    startupWMClass = "eu.betterbird.Betterbird";
-    startupNotify = true;
-  };
-
-  betterbirdNative = (selfLib.mkNativeApp pkgs) {
-    name = "betterbird";
-    inherit (appInfo) version;
-    src = selfLib.fetchApp pkgs "betterbird";
-    execPath = "betterbird/betterbird";
-    binName = "betterbird";
-    desktopItem = betterbirdDesktopItem;
-    extraEnv = {
-      MOZ_LEGACY_PROFILES = "1";
-      MOZ_ENABLE_WAYLAND = "1";
-    };
-    extraUnwrappedInstall = ''
-      icon_src="$out/opt/betterbird/betterbird/chrome/icons/default"
-      for size in 16 22 24 32 48 64 128 256; do
-        if [ -f "$icon_src/default''${size}.png" ]; then
-          mkdir -p "$out/share/icons/hicolor/''${size}x''${size}/apps"
-          cp "$icon_src/default''${size}.png" "$out/share/icons/hicolor/''${size}x''${size}/apps/betterbird.png"
-          cp "$icon_src/default''${size}.png" "$out/share/icons/hicolor/''${size}x''${size}/apps/eu.betterbird.Betterbird.png"
-          cp "$icon_src/default''${size}.png" "$out/share/icons/hicolor/''${size}x''${size}/apps/thunderbird.png"
-        fi
-      done
-
-      mkdir -p "$out/share/pixmaps"
-      if [ -f "$icon_src/default256.png" ]; then
-        cp "$icon_src/default256.png" "$out/share/pixmaps/betterbird.png"
-        cp "$icon_src/default256.png" "$out/share/pixmaps/eu.betterbird.Betterbird.png"
-        cp "$icon_src/default256.png" "$out/share/pixmaps/thunderbird.png"
-      fi
-    '';
-    extraPostInstall = ''
-      # Alias / symlink agar binary dapat dipanggil sebagai thunderbird maupun betterbird di terminal
-      ln -sf "$out/bin/betterbird" "$out/bin/thunderbird"
-    '';
-  };
 in
 selfLib.mkModule {
   name = "apps.office.thunderbird";
-  description = "Betterbird / Thunderbird email client with optimized native profiles";
+  description = "Thunderbird email client with optimized native profiles";
 
   preservation = {
     userDirectories = [
@@ -105,7 +37,7 @@ selfLib.mkModule {
     { config, ... }:
     {
       my.services.vmtouch.paths = [
-        betterbirdNative
+        pkgs.thunderbird
         "/home/${config.my.user.name}/.thunderbird"
       ];
     };
@@ -113,7 +45,7 @@ selfLib.mkModule {
   hmConfig = {
     programs.thunderbird = {
       enable = true;
-      package = betterbirdNative;
+      package = pkgs.thunderbird;
       profiles = {
         default = {
           isDefault = true;

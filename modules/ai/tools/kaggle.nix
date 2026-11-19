@@ -1,5 +1,6 @@
 {
   config,
+  pkgs-unstable,
   selfLib,
   ...
 }:
@@ -26,7 +27,7 @@ selfLib.mkModule {
 
   hmConfig = {
     home.packages = [
-      (selfLib.fetchCachePinned "kaggle")
+      pkgs-unstable.kaggle
     ];
   };
 }

@@ -9,12 +9,12 @@ let
 in
 selfLib.mkModule {
   name = "apps.browsers.chromium";
-  description = "Chromium browser via Nix binary cache — builtins.fetchClosure with Home Manager configuration";
+  description = "Chromium browser with Home Manager configuration";
 
   hmConfig = {
     programs.chromium = {
       enable = true;
-      package = selfLib.fetchCachePinned pkgs "chromium";
+      package = pkgs.chromium;
       commandLineArgs = [
         "--password-store=gnome-libsecret"
       ];

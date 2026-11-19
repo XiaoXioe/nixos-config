@@ -1,4 +1,5 @@
 {
+  pkgs,
   selfLib,
   userName,
   ...
@@ -16,7 +17,7 @@ let
 in
 selfLib.mkModule {
   name = "apps.browsers.librewolf";
-  description = "LibreWolf browser configuration via Nix binary cache pin";
+  description = "LibreWolf browser configuration";
 
   hmConfig = {
     home.sessionVariables = {
@@ -25,7 +26,7 @@ selfLib.mkModule {
 
     programs.librewolf = {
       enable = true;
-      package = selfLib.fetchCachePinned "librewolf";
+      package = pkgs.librewolf;
       policies = {
         ExtensionSettings = {
           "*" = {

@@ -5,7 +5,7 @@
   ...
 }:
 let
-  torBrowserPkg = selfLib.fetchCachePinned "tor_browser";
+  torBrowserPkg = pkgs.tor-browser;
 
   torBrowserCustom =
     pkgs.runCommand "tor-browser-${torBrowserPkg.version or "custom"}"

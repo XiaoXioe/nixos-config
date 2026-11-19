@@ -9,12 +9,12 @@ let
 in
 selfLib.mkModule {
   name = "apps.browsers.brave";
-  description = "Brave browser via Nix binary cache — builtins.fetchClosure with Home Manager configuration";
+  description = "Brave browser with Home Manager configuration";
 
   hmConfig = {
     programs.brave = {
       enable = true;
-      package = selfLib.fetchCachePinned pkgs "brave";
+      package = pkgs.brave;
       commandLineArgs = [
         "--password-store=gnome-libsecret"
         "--enable-features=WebUIDarkMode,Containers"

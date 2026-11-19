@@ -7,10 +7,7 @@ selfLib.mkModule {
   description = "Binary compatibility layer (nix-ld, envfs, AppImage, ELF patching, and dynamic shared libraries)";
 
   nixosConfig =
-    { config, pkgs, ... }:
-    let
-      activeSources = selfLib.activeAppSources { inherit pkgs config; };
-    in
+    { pkgs, ... }:
     {
       # Automatic /bin/bash & /usr/bin/env compatibility symlinks for scripts
       services.envfs.enable = true;
@@ -133,13 +130,6 @@ selfLib.mkModule {
         file
         steam-run
         xkeyboard_config
-        activeSources
-      ];
-
-      # Kunci seluruh file sumber (.deb, .tar.xz, .AppImage) aplikasi aktif sebagai GC Root sistem
-      # agar kebal terhadap garbage collection (nh clean / nix-collect-garbage)
-      system.extraDependencies = [
-        activeSources
       ];
 
       environment.sessionVariables = {

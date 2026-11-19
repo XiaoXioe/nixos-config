@@ -5,11 +5,11 @@
   ...
 }:
 let
-  magickPkg = selfLib.fetchCachePinned "imagemagick";
-  tesseractPkg = selfLib.fetchCachePinned "tesseract";
-  zbarPkg = selfLib.fetchCachePinned "zbar";
-  wlClipboardPkg = selfLib.fetchCachePinned "wl_clipboard";
-  sattyPkg = selfLib.fetchCachePinned "satty";
+  magickPkg = pkgs.imagemagick;
+  tesseractPkg = pkgs.tesseract;
+  zbarPkg = pkgs.zbar;
+  wlClipboardPkg = pkgs.wl-clipboard;
+  sattyPkg = pkgs.satty;
 
   # 1. Skrip Pemindai Teks (OCR) Presisi Tinggi (ImageMagick Pre-processing + Tesseract --psm 6)
   scanOcrText =
@@ -103,23 +103,20 @@ selfLib.mkModule {
   };
 
   nixosConfig = {
-    environment.systemPackages =
-      (selfLib.fetchCachePinned [
-        "satty"
-        "wl_clipboard"
-        "zbar"
-        "tesseract"
-        "imagemagick"
-      ])
-      ++ [
-        scanOcrText
-        scanQrCode
-        scanAnnotate
-      ]
-      ++ (with pkgs; [
-        grim
-        slurp
-        libnotify
-      ]);
+    environment.systemPackages = [
+      scanOcrText
+      scanQrCode
+      scanAnnotate
+    ]
+    ++ (with pkgs; [
+      satty
+      wl-clipboard
+      zbar
+      tesseract
+      imagemagick
+      grim
+      slurp
+      libnotify
+    ]);
   };
 }

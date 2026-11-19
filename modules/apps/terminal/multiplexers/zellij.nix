@@ -1,16 +1,17 @@
 {
+  pkgs,
   selfLib,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.terminal.multiplexers.zellij";
-  description = "Zellij multiplexer configuration with Nix binary cache pin";
+  description = "Zellij multiplexer configuration";
 
   hmConfig = {
     programs.zellij = {
       enable = true;
-      package = selfLib.fetchCachePinned "zellij"; # pin ke 0.43.1 via cache-pins
+      package = pkgs.zellij;
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;

@@ -6,12 +6,12 @@
 
 selfLib.mkModule {
   name = "apps.terminal.utilities.yazi";
-  description = "Yazi modern terminal file manager configuration via Nix binary cache";
+  description = "Yazi modern terminal file manager configuration";
 
   hmConfig = {
     programs.yazi = {
       enable = true;
-      package = selfLib.fetchCachePinned "yazi";
+      package = pkgs.yazi;
       enableFishIntegration = true;
       enableBashIntegration = true;
       enableZshIntegration = true;

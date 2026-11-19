@@ -1,17 +1,18 @@
 {
   config,
+  pkgs-unstable,
   selfLib,
   ...
 }:
 
 selfLib.mkModule {
   name = "apps.media.video.gallery-dl";
-  description = "gallery-dl image and video batch downloader configuration via Nix binary cache";
+  description = "gallery-dl image and video batch downloader configuration";
 
   hmConfig = {
     programs.gallery-dl = {
       enable = true;
-      package = selfLib.fetchCachePinned "gallery_dl";
+      package = pkgs-unstable.gallery-dl;
       settings = {
         "extractor" = {
           "base-directory" = "~/CloudStorage/gdrive-akbar-68-decrypted/Gallery/";

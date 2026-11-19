@@ -56,7 +56,7 @@ selfLib.mkModule {
       timeoutMinutes = toString cfg.timeoutMinutes;
       showNotification = if cfg.showNotification then "1" else "0";
 
-      zenityPkg = selfLib.fetchCachePinned "zenity";
+      zenityPkg = pkgs.zenity;
 
       # Private helper executable (kept in Nix Store, not exposed to user PATH)
       authAgentHelper =
