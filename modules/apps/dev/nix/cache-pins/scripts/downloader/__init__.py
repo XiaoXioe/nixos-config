@@ -9,7 +9,6 @@ from downloader.aria2 import (
 )
 from downloader.ingest import ingest_fod_items, ingest_single_fod, ingest_store_paths
 from downloader.orchestrator import (
-    download_batch_targets,
     download_fod_target,
     download_single_target,
     download_system_targets,
@@ -23,7 +22,6 @@ from downloader.ram_cache import (
 
 __all__ = [
     "cleanup_ram_cache",
-    "download_batch_targets",
     "download_fod_target",
     "download_single_target",
     "download_system_targets",

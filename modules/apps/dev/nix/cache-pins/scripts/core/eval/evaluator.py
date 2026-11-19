@@ -301,10 +301,7 @@ def evaluate_upstream_package(
 def resolve_target_to_store_path(
     target: str,
     nixpkgs_input: str = "nixpkgs",
-    pins_file: Optional[Path] = None,
     system: Optional[str] = None,
-    prefer_pin: bool = False,
-    explicit_input: bool = False,
 ) -> Tuple[str, str, Optional[str]]:
     """Resolve a target name, attr, or store path into a validated (store_path, version, main_program) tuple."""
     # 1. Direct Store Path
@@ -314,58 +311,18 @@ def resolve_target_to_store_path(
         return store_path, version, None
 
     clean_target = target.replace("pkgs.", "").strip()
-    var_dash = clean_target.replace("_", "-")
-    var_under = clean_target.replace("-", "_")
+    effective_input = resolve_channel_input(nixpkgs_input)
 
-    cached_pname = None
-    cached_entry = None
-    cached_channel = None
-
-    if pins_file and pins_file.is_file():
-        try:
-            from registry.store import load_cache_pins
-            pins_data = load_cache_pins(pins_file)
-            for key_candidate in [clean_target, var_dash, var_under]:
-                if key_candidate in pins_data:
-                    cached_entry = pins_data[key_candidate]
-                    if isinstance(cached_entry, dict):
-                        cached_pname = cached_entry.get("pname")
-                        cached_channel = cached_entry.get("channel")
-                    break
-        except Exception:
-            pass
-
-    # 2. Prioritaskan pin lokal jika prefer_pin=True dan tidak ada override channel eksplisit
-    if prefer_pin and not explicit_input and cached_entry and isinstance(cached_entry, dict) and "storePath" in cached_entry:
-        sp = cached_entry["storePath"]
-        ver = cached_entry.get("version") or extract_version_from_store_path(sp)
-        main_prog = cached_entry.get("mainProgram")
-        return sp, ver, main_prog
-
-    # 3. Tentukan effective input channel
-    if not explicit_input and cached_channel:
-        effective_input = resolve_channel_input(cached_channel)
-    else:
-        effective_input = nixpkgs_input
-
-    # 4. Evaluate from requested channel/input
+    # 2. Evaluate from requested channel/input
     sp, ver, main_prog = evaluate_single_package(
         target_key=clean_target,
         nixpkgs_input=effective_input,
-        pname=cached_pname,
         system=system,
     )
     if sp and sp.startswith("/nix/store/"):
         return sp, ver, main_prog
 
-    # 5. Fallback: use local pin entry if upstream evaluation is unresolvable
-    if cached_entry and isinstance(cached_entry, dict) and "storePath" in cached_entry:
-        sp = cached_entry["storePath"]
-        ver = cached_entry.get("version") or extract_version_from_store_path(sp)
-        main_prog = cached_entry.get("mainProgram")
-        return sp, ver, main_prog
-
     raise RuntimeError(
         f"Tidak dapat menemukan store path untuk '{target}' pada channel/input '{effective_input}'. "
-        "Pastikan nama atribut valid atau terdaftar di modules/_lib/cache-pins.nix."
+        "Pastikan nama atribut paket valid di Nixpkgs."
     )

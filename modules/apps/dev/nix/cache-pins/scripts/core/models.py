@@ -1,21 +1,8 @@
-"""Data models for Nix Binary Cache NarInfo, Closure Audits, Downloads, and Pin Entries."""
+"""Data models for Nix Binary Cache NarInfo, Closure Audits, and Downloads."""
 from dataclasses import asdict, dataclass, field
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 from core.platform import get_current_system
-
-
-class UpdateType(str, Enum):
-    """Classification of package update states."""
-
-    UP_TO_DATE = "up_to_date"
-    VERSION_BUMP = "version_bump"
-    REBUILD_UPDATE = "rebuild_update"
-    DOWNGRADE_BLOCKED = "downgrade_blocked"
-    CACHE_MISS = "cache_miss"
-    EVAL_FAILED = "eval_failed"
 
 
 @dataclass
@@ -133,33 +120,3 @@ class FodDownloadItem:
     download_filename: Optional[str] = None
     strip_root: bool = True
     post_fetch: Optional[str] = None
-
-
-
-@dataclass
-class PinEntry:
-    """Represents an entry in modules/_lib/cache-pins.nix."""
-
-    name: str
-    store_path: str
-    version: str = ""
-    system: str = field(default_factory=get_current_system)
-    channel: Optional[str] = None
-    main_program: Optional[str] = None
-    pname: Optional[str] = None
-    from_store: Optional[str] = None
-    raw_snippet: str = ""
-
-
-@dataclass
-class UpdateResult:
-    """Result of checking a single pin against upstream."""
-
-    key: str
-    current_store_path: str
-    current_version: str
-    new_store_path: Optional[str] = None
-    new_version: str = "unknown"
-    main_program: Optional[str] = None
-    update_type: UpdateType = UpdateType.UP_TO_DATE
-    effective_input: str = "nixpkgs"

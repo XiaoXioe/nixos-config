@@ -1,11 +1,9 @@
 from core.eval.channels import (
-    find_cache_pins_file,
     find_flake_dir,
     get_nix_env,
     normalize_channel_name,
     resolve_channel_input,
 )
-from core.platform import get_current_system
 from core.eval.evaluator import (
     eval_nix_raw,
     evaluate_batch,
@@ -26,10 +24,10 @@ from core.eval.system_eval import (
     get_system_hostname,
     get_system_toplevel_attr,
 )
+from core.platform import get_current_system
 
 __all__ = [
     "find_flake_dir",
-    "find_cache_pins_file",
     "get_current_system",
     "get_nix_env",
     "resolve_channel_input",

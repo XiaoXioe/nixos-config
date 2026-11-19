@@ -25,48 +25,6 @@ def find_flake_dir() -> Optional[Path]:
     return None
 
 
-def find_cache_pins_file(custom_path: Optional[str] = None) -> Optional[Path]:
-    """Dynamically discover modules/_lib/cache-pins.nix."""
-    if custom_path:
-        p = Path(custom_path)
-        if p.is_file():
-            return p.resolve()
-        return None
-
-    # Check environment variable (NCP_PINS_FILE or PINS_FILE)
-    for env_var in ["NCP_PINS_FILE", "PINS_FILE"]:
-        env_path = os.environ.get(env_var)
-        if env_path and Path(env_path).is_file():
-            return Path(env_path).resolve()
-
-    # Search upwards from current working directory
-    cwd = Path.cwd()
-    for parent in [cwd] + list(cwd.parents):
-        candidate = parent / "modules" / "_lib" / "cache-pins.nix"
-        if candidate.is_file():
-            return candidate.resolve()
-
-    # Check via flake_dir
-    flake_dir = find_flake_dir()
-    if flake_dir:
-        candidate = flake_dir / "modules" / "_lib" / "cache-pins.nix"
-        if candidate.is_file():
-            return candidate.resolve()
-
-    # Search standard configuration paths
-    home = Path.home()
-    candidates = [
-        home / "nixos-config" / "modules" / "_lib" / "cache-pins.nix",
-        home / ".config" / "nixos" / "modules" / "_lib" / "cache-pins.nix",
-        Path("/etc/nixos/modules/_lib/cache-pins.nix"),
-    ]
-    for c in candidates:
-        if c.is_file():
-            return c.resolve()
-
-    return None
-
-
 def get_nix_env() -> Dict[str, str]:
     """Return environment dictionary with unfree and insecure evaluation enabled."""
     env = os.environ.copy()
@@ -90,6 +48,27 @@ def resolve_channel_input(channel_or_input: Optional[str]) -> str:
     # Direct flake URLs or references with : or /
     if ":" in val or "/" in val:
         return val
+
+    # Check flake.lock for matching input name via root inputs mapping first
+    flake_dir = find_flake_dir()
+    root_inputs = {}
+    nodes = {}
+    if flake_dir:
+        flake_lock = flake_dir / "flake.lock"
+        if flake_lock.is_file():
+            try:
+                data = json.loads(flake_lock.read_text(encoding="utf-8"))
+                nodes = data.get("nodes", {})
+                root_node = nodes.get(data.get("root", "root"), {})
+                root_inputs = root_node.get("inputs", {})
+            except Exception:
+                pass
+
+    if val in root_inputs:
+        return val
+
+    if val.lower() in ("unstable", "nixos-unstable", "nixpkgs-unstable", "pkgs-unstable") and "nixpkgs-unstable" in root_inputs:
+        return "nixpkgs-unstable"
 
     mapping = {
         "nixpkgs": "nixpkgs",

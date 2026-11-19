@@ -3,7 +3,6 @@
 from core.cache.disk_store import LocalDiskCache, get_cache_root_dir
 from core.cache.tracker import get_channel_revision_info
 from core.eval.channels import (
-    find_cache_pins_file,
     find_flake_dir,
     get_current_system,
     get_nix_env,
@@ -33,7 +32,6 @@ from core.eval.system_eval import (
 
 __all__ = [
     "find_flake_dir",
-    "find_cache_pins_file",
     "get_current_system",
     "get_nix_env",
     "resolve_channel_input",

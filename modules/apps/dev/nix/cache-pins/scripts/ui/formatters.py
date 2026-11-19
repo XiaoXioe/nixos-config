@@ -1,10 +1,7 @@
-"""Formatting functions for byte sizes, audit reports, and Nix snippet generation."""
-import datetime
-import os
+"""Formatting functions for byte sizes and binary cache closure audit reports."""
 import re
-from typing import Optional, Union
+from typing import Union
 
-from core.platform import get_current_system
 from core.models import ClosureAudit
 
 
@@ -98,38 +95,3 @@ def normalize_channel_name(source_input: str) -> str:
     if re.match(r"^\d{2}\.\d{2}$", s):
         return s
     return s
-
-
-def render_nix_snippet(
-    audit: ClosureAudit,
-    source_input: str,
-    system: Optional[str] = None,
-) -> str:
-    """Generate Nix attrset snippet suitable for cache-pins.nix."""
-    attr_key = audit.target_name.replace("pkgs.", "").strip()
-    attr_key_clean = re.sub(r"[^a-zA-Z0-9_]", "_", attr_key)
-
-    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
-    missing_bytes = sum(i["file_size"] for i in audit.missing_items)
-    cache_info = f" | Cache: {audit.cache_url}" if audit.cache_url and "cache.nixos.org" not in audit.cache_url else ""
-    channel_name = normalize_channel_name(source_input)
-    target_system = system or getattr(audit, "system", None) or get_current_system()
-
-    lines = []
-    lines.append("")
-    lines.append(f"  # Generated: {today} | Source: {source_input}{cache_info}")
-    lines.append(f"  # Ukuran Closure Disk: {format_bytes(audit.gross_disk)} (Uncompressed) | Download Kotor: {format_bytes(audit.gross_download)}")
-    lines.append(f"  # Download Bersih: {format_bytes(audit.net_download)} | Library Lokal: {audit.local_count}/{audit.total_refs} ({audit.local_percent:.1f}%) | Missing: {audit.missing_count} paket ({format_bytes(missing_bytes)})")
-    lines.append(f"  {attr_key_clean} = {{")
-    lines.append(f'    storePath = "{audit.store_path}";')
-    if audit.version:
-        lines.append(f'    version = "{audit.version}";')
-    if audit.main_program:
-        lines.append(f'    mainProgram = "{audit.main_program}";')
-    lines.append(f'    channel = "{channel_name}";')
-    if audit.cache_url and "cache.nixos.org" not in audit.cache_url:
-        lines.append(f'    fromStore = "{audit.cache_url}";')
-    lines.append(f'    system = "{target_system}";')
-    lines.append("  };")
-
-    return "\n".join(lines)

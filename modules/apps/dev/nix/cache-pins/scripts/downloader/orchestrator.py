@@ -1,35 +1,27 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-import sys
 from pathlib import Path
+import sys
 from typing import List, Optional
 
 from core.cache_client import NixCacheClient
 from core.closure import ClosureAuditor
-from core.models import DownloadItem, FodDownloadItem
 from core.eval.system_eval import extract_missing_fods
+from core.models import DownloadItem, FodDownloadItem
 from core.nix_eval import (
     evaluate_system_missing_paths,
-    find_cache_pins_file,
     find_flake_dir,
     get_system_hostname,
     is_path_in_nix_store,
     resolve_target_to_store_path,
 )
-from downloader.aria2 import (
-    ensure_aria2_installed,
-    generate_aria2_batch_file,
-    run_aria2_download,
-)
-from downloader.ingest import ingest_fod_items, ingest_store_paths
+from downloader.aria2 import ensure_aria2_installed
 from downloader.pipeline import StreamingIngestPipeline
 from downloader.ram_cache import (
     cleanup_ram_cache,
     get_default_ram_cache_dir,
     setup_ram_cache_dir,
 )
-from registry.audit import find_unused_pins
-from registry.store import load_cache_pins
 from ui.formatters import format_bytes
 
 
@@ -37,19 +29,16 @@ def download_single_target(
     target_input: str,
     cache_client: NixCacheClient,
     nixpkgs_input: str = "nixpkgs",
-    pins_file_path: Optional[str] = None,
     cache_dir: Optional[str] = None,
     split: int = 8,
     concurrent: int = 4,
     keep_nar: bool = False,
-    explicit_input: bool = False,
     verbose: bool = False,
     dry_run: bool = False,
 ):
     """Download and ingest a single package and its complete closure into /nix/store."""
     ensure_aria2_installed()
 
-    pins_file = find_cache_pins_file(pins_file_path)
     local_cache_dir = Path(cache_dir or get_default_ram_cache_dir()).resolve()
 
     # 1. Resolusi Target
@@ -57,9 +46,6 @@ def download_single_target(
         store_path, _, _ = resolve_target_to_store_path(
             target=target_input,
             nixpkgs_input=nixpkgs_input,
-            pins_file=pins_file,
-            prefer_pin=True,
-            explicit_input=explicit_input,
         )
     except Exception as e:
         print(f"❌ ERROR: {e}", file=sys.stderr)
@@ -180,163 +166,6 @@ def download_single_target(
         "================================================================================",
         file=sys.stderr,
     )
-
-
-def download_batch_targets(
-    all_pins: bool,
-    cache_client: NixCacheClient,
-    pins_file_path: Optional[str] = None,
-    cache_dir: Optional[str] = None,
-    split: int = 8,
-    concurrent: int = 4,
-    keep_nar: bool = False,
-    verbose: bool = False,
-    dry_run: bool = False,
-):
-    """Batch prefetch and ingest missing closures for active pins (or all pins)."""
-    pins_file = find_cache_pins_file(pins_file_path)
-    if not pins_file:
-        print(
-            "❌ ERROR: Tidak dapat menemukan berkas modules/_lib/cache-pins.nix",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    pins_data = load_cache_pins(pins_file)
-    if not pins_data:
-        print("❌ ERROR: Tidak ada entri pin yang ditemukan.", file=sys.stderr)
-        sys.exit(1)
-
-    if all_pins:
-        target_keys = list(pins_data.keys())
-        scope_title = "Seluruh Pin Terdaftar"
-    else:
-        used, _ = find_unused_pins(pins_file)
-        target_keys = list(used.keys())
-        scope_title = "Pin Aktif (Digunakan di Modul)"
-
-    print(
-        "================================================================================",
-        file=sys.stderr,
-    )
-    print(
-        f"📦 Pre-fetch Massal Cache Pins ({scope_title}: {len(target_keys)} paket)",
-        file=sys.stderr,
-    )
-    print(f"🌐 Binary Cache         : {cache_client.summary_display}", file=sys.stderr)
-    print(
-        "================================================================================",
-        file=sys.stderr,
-    )
-
-    missing_targets = []
-    already_local = 0
-
-    for k in sorted(target_keys):
-        info = pins_data.get(k, {})
-        sp = info.get("storePath", "")
-        if not sp:
-            continue
-        if is_path_in_nix_store(sp):
-            already_local += 1
-        else:
-            missing_targets.append((k, sp))
-
-    print(
-        f"  • Sudah Tersimpan di /nix/store : {already_local} paket (0 B overhead)",
-        file=sys.stderr,
-    )
-    print(
-        f"  • Perlu Diunduh dari Cache      : {len(missing_targets)} paket",
-        file=sys.stderr,
-    )
-
-    if not missing_targets:
-        print(
-            "\n✨ Sempurna! Seluruh biner dan pustaka target sudah ada 100% di /nix/store lokal.",
-            file=sys.stderr,
-        )
-        print(
-            "   Rebuild sistem ('nh os switch') akan berjalan instan (0 ms download delay).",
-            file=sys.stderr,
-        )
-        sys.exit(0)
-
-    if dry_run:
-        print("\n[DRY RUN] Paket yang perlu diunduh:", file=sys.stderr)
-        for name, sp in missing_targets:
-            print(f"   - [{name}] {sp}", file=sys.stderr)
-        print(
-            "\n(Mode dry-run: Tidak ada biner yang diunduh atau di-ingest)",
-            file=sys.stderr,
-        )
-        sys.exit(0)
-
-    ensure_aria2_installed()
-    local_cache_dir = Path(cache_dir or get_default_ram_cache_dir()).resolve()
-    local_cache_dir, nar_dir = setup_ram_cache_dir(local_cache_dir)
-
-    print(
-        "\n🔍 Memeriksa dan menggabungkan seluruh closure dependencies...",
-        file=sys.stderr,
-    )
-    auditor = ClosureAuditor(cache_client)
-    all_narinfos = {}
-    all_download_items_map = {}
-
-    for name, sp in missing_targets:
-        sname = os.path.basename(sp)
-        narinfos, items = auditor.traverse_closure_for_download(sname)
-        all_narinfos.update(narinfos)
-        for item in items:
-            all_download_items_map[item.hash] = item
-
-    all_download_items = list(all_download_items_map.values())
-    total_bytes = sum(i.file_size for i in all_download_items)
-
-    print(
-        f"📋 Total {len(all_download_items)} file arsip NAR yang perlu diunduh ({format_bytes(total_bytes)}).",
-        file=sys.stderr,
-    )
-
-    for h, info in all_narinfos.items():
-        (local_cache_dir / f"{h}.narinfo").write_text(info.raw_text)
-
-    if all_download_items:
-        print(
-            f"\n🚀 Streaming download & instant ingestion ({len(all_download_items)} paket) ke RAM tmpfs ({local_cache_dir}) via aria2c + nix copy ({split} koneksi)...",
-            file=sys.stderr,
-        )
-        pipeline = StreamingIngestPipeline(
-            cache_client=cache_client,
-            local_cache_dir=local_cache_dir,
-            concurrent=concurrent,
-            split=split,
-            keep_nar=keep_nar,
-            verbose=verbose,
-        )
-        ok = pipeline.run(download_items=all_download_items, narinfos=all_narinfos)
-        if not ok:
-            print("❌ ERROR: Unduhan batch streaming via aria2c gagal.", file=sys.stderr)
-            sys.exit(1)
-
-    if not keep_nar:
-        cleanup_ram_cache(nar_dir)
-        print(
-            "🧹 RAM Cache (.nar archives) otomatis dibersihkan (Zero SSD Wear).",
-            file=sys.stderr,
-        )
-
-    print(
-        "================================================================================",
-        file=sys.stderr,
-    )
-    print("🎉 SUKSES! Seluruh paket target telah siap di /nix/store.", file=sys.stderr)
-    print(
-        "================================================================================",
-        file=sys.stderr,
-    )
-    sys.exit(0)
 
 
 def download_system_targets(

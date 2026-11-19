@@ -1,4 +1,5 @@
 """ncp search — Search package versions via FZF (NixHub, Git tags, Flake inputs)."""
+
 import sys
 
 
@@ -7,10 +8,9 @@ def handle_search(args) -> None:
     from core.cache_client import NixCacheClient
     from core.closure import ClosureAuditor
     from core.nix_eval import evaluate_upstream_package
-    from ui.formatters import render_audit_report, render_nix_snippet
+    from ui.formatters import render_audit_report
     from ui.version_picker import interactive_version_picker
 
-    # search adalah eksplorasi multi-sumber via FZF — flag -c tidak relevan
     if getattr(args, "channel", None):
         print(
             "⚠️  Flag '-c/--channel' diabaikan untuk subcommand 'search'. "
@@ -73,8 +73,5 @@ def handle_search(args) -> None:
         print(f"❌ ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
-    report_text = render_audit_report(audit, verbose=False)
+    report_text = render_audit_report(audit, verbose=getattr(args, "verbose", False))
     print(report_text, file=sys.stderr)
-
-    nix_snippet = render_nix_snippet(audit, source_input=flake_input)
-    print(nix_snippet)

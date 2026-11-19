@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""nix-cache-pin (ncp) — High-Performance CLI for Nix binary cache pin management (v3.2.0)."""
+"""ncp — High-Performance Nix Binary Cache Downloader & Reactive Ingest Engine (v4.0.0)."""
 import argparse
 import os
-import sys
 from pathlib import Path
+import sys
 
 _scripts_dir = str(Path(__file__).resolve().parent.parent)
 if _scripts_dir not in sys.path:
@@ -14,18 +14,18 @@ os.environ["NIXPKGS_ALLOW_UNFREE"] = "1"
 os.environ["NIXPKGS_ALLOW_INSECURE"] = "1"
 os.environ["NIXPKGS_ALLOW_BROKEN"] = "1"
 
-__version__ = "3.2.0"
+__version__ = "4.0.0"
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """Build the unified CLI argument parser with subcommands and performance flags."""
+    """Build the unified CLI argument parser for Nix binary cache download & reactive ingestion."""
     common_parser = argparse.ArgumentParser(add_help=False)
     global_group = common_parser.add_argument_group("global options")
     global_group.add_argument(
         "-c",
         "--channel",
         default=argparse.SUPPRESS,
-        help="Shorthand channel Nixpkgs (contoh: unstable, 26.05, 25.11, 25.05, 24.11, master)",
+        help="Shorthand channel Nixpkgs (contoh: unstable, nixpkgs-unstable, 26.05, 25.11, master)",
     )
     global_group.add_argument(
         "--cache-url",
@@ -36,11 +36,6 @@ def create_parser() -> argparse.ArgumentParser:
         "--input",
         default=argparse.SUPPRESS,
         help="Flake input target (default: nixpkgs)",
-    )
-    global_group.add_argument(
-        "--pins-file",
-        default=argparse.SUPPRESS,
-        help="Path eksplisit ke berkas cache-pins.nix",
     )
     global_group.add_argument(
         "--refresh",
@@ -68,7 +63,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="ncp",
-        description="nix-cache-pin (ncp) — High-Performance CLI untuk manajemen pin Nix binary cache.",
+        description="ncp — High-Performance CLI untuk unduhan multi-koneksi aria2c & reactive ingest Nix binary cache.",
         parents=[common_parser],
     )
     parser.add_argument(
@@ -81,43 +76,18 @@ def create_parser() -> argparse.ArgumentParser:
         description="Gunakan 'ncp <subcommand> --help' untuk detail lebih lanjut.",
     )
 
-    # === ncp query ===
-    p_query = sub.add_parser(
-        "query",
-        aliases=["q"],
-        parents=[common_parser],
-        help="Cek status cache, closure size, narinfo, dan generate Nix snippet",
-        description="Evaluasi paket target, audit pohon dependensi closure, dan generate template cache-pins.nix.",
-    )
-    p_query.add_argument(
-        "target",
-        nargs="?",
-        help="Nama paket (pkgs.<attr> atau <attr>), store path (/nix/store/...), atau key cache-pins",
-    )
-    p_query.add_argument(
-        "-w",
-        "--write",
-        action="store_true",
-        help="Otomatis tulis/perbarui entri di cache-pins.nix",
-    )
-    p_query.add_argument(
-        "--all",
-        action="store_true",
-        help="Verifikasi ketersediaan seluruh entri di cache-pins.nix",
-    )
-
     # === ncp fetch ===
     p_fetch = sub.add_parser(
         "fetch",
         aliases=["f"],
         parents=[common_parser],
-        help="Download NAR closure via aria2c ke RAM tmpfs dan ingest ke /nix/store",
-        description="Unduh paket dan seluruh closure ke RAM (tmpfs) menggunakan aria2c multi-connection, lalu ingest ke /nix/store.",
+        help="Download NAR/FOD closure via aria2c ke RAM tmpfs dan reactive ingest ke /nix/store",
+        description="Unduh closure sistem NixOS (atau paket spesifik) ke RAM (tmpfs) menggunakan aria2c multi-connection, lalu ingest secara reaktif ke /nix/store.",
     )
     p_fetch.add_argument(
         "target",
         nargs="?",
-        help="Nama paket di cache-pins.nix, store-path, pkgs.<attr>, atau 'system'",
+        help="Target unduhan: 'system' (default), pkgs.<attr>, store-path (/nix/store/...), atau FOD (.drv)",
     )
     p_fetch.add_argument(
         "--system",
@@ -133,14 +103,6 @@ def create_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Hanya tampilkan biner yang perlu diunduh tanpa mendownload",
-    )
-    p_fetch.add_argument(
-        "--all-active",
-        action="store_true",
-        help="Unduh massal seluruh pin aktif di modul",
-    )
-    p_fetch.add_argument(
-        "--all-pins", action="store_true", help="Unduh massal seluruh pin terdaftar"
     )
     p_fetch.add_argument(
         "--keep-nar",
@@ -167,13 +129,13 @@ def create_parser() -> argparse.ArgumentParser:
         "update",
         aliases=["u"],
         parents=[common_parser],
-        help="Periksa dan perbarui pin upstream atau flake.lock sistem",
-        description="Periksa pembaruan upstream untuk pin, atau perbarui flake.lock dan unduh closure sistem via aria2c.",
+        help="Perbarui flake.lock (atau input spesifik) lalu unduh & ingest closure sistem via aria2c",
+        description="Perbarui flake.lock menggunakan 'nix flake update' lalu unduh closure sistem baru secara paralel via aria2c + reactive ingest.",
     )
     p_update.add_argument(
         "target",
         nargs="?",
-        help="Key paket spesifik yang akan di-update, atau 'system' untuk update flake.lock & closure",
+        help="Flake input spesifik yang akan di-update (contoh: nixpkgs-unstable, nixpkgs, atau 'system' untuk semua)",
     )
     p_update.add_argument(
         "--system",
@@ -185,7 +147,7 @@ def create_parser() -> argparse.ArgumentParser:
         "--flake-input",
         dest="flake_input",
         default=None,
-        help="Flake input spesifik yang akan di-update (contoh: nixpkgs, nix-cachyos-kernel)",
+        help="Flake input spesifik yang akan di-update (contoh: nixpkgs-unstable, nixpkgs, nix-cachyos-kernel)",
     )
     p_update.add_argument(
         "--host",
@@ -219,91 +181,19 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Hanya evaluasi pembaruan tanpa mengunduh",
     )
-    p_update.add_argument(
-        "--all",
-        action="store_true",
-        help="Perbarui seluruh entri cache-pins.nix dari upstream",
-    )
-    p_update.add_argument(
-        "-w",
-        "--write",
-        action="store_true",
-        help="Simpan perubahan ke cache-pins.nix (default: dry-run)",
-    )
-    p_update.add_argument(
-        "-f", "--force", action="store_true", help="Izinkan downgrade versi"
-    )
-    p_update.add_argument(
-        "--version-only",
-        "--bump-only",
-        action="store_true",
-        dest="version_only",
-        help="Hanya perbarui jika versi rilis naik (abaikan rebuild berversi sama)",
-    )
 
-    # === ncp audit ===
-    p_audit = sub.add_parser(
-        "audit",
-        aliases=["a"],
+    # === ncp query ===
+    p_query = sub.add_parser(
+        "query",
+        aliases=["q"],
         parents=[common_parser],
-        help="Audit penggunaan pin di codebase (deteksi dangling/orphan pins)",
-        description="Scan seluruh modul NixOS untuk mendeteksi pin aktif vs pin yatim yang tidak lagi terpakai.",
+        help="Cek status binary cache, ukuran closure, dan analisis dependensi paket",
+        description="Evaluasi paket target dari Nixpkgs dan audit pohon dependensi closure di binary cache.",
     )
-    p_audit.add_argument(
-        "--clean",
-        action="store_true",
-        help="Hapus seluruh pin yatim dari cache-pins.nix",
-    )
-    p_audit.add_argument(
-        "-f",
-        "--force",
-        action="store_true",
-        help="Lewati konfirmasi interaktif saat membersihkan",
-    )
-
-    # === ncp adopt ===
-    p_adopt = sub.add_parser(
-        "adopt",
-        parents=[common_parser],
-        help="Adopsi paket dari pkgs ke cache-pin dan refactor modul target",
-        description="Evaluasi paket, tulis pin ke cache-pins.nix, dan refactor pkgs.<name> menjadi selfLib.fetchCachePinned.",
-    )
-    p_adopt.add_argument("target", help="Nama paket (pkgs.<attr> atau <attr>)")
-    p_adopt.add_argument(
-        "module_path",
+    p_query.add_argument(
+        "target",
         nargs="?",
-        help="Path file modul .nix target (opsional, auto-detect)",
-    )
-
-    # === ncp tui ===
-    sub.add_parser(
-        "tui",
-        aliases=["dashboard"],
-        parents=[common_parser],
-        help="Buka FZF Dashboard interaktif untuk menjelajahi dan mengunduh cache pins",
-    )
-
-    # === ncp stats ===
-    sub.add_parser(
-        "stats",
-        aliases=["summary"],
-        parents=[common_parser],
-        help="Tampilkan dashboard statistik, kesehatan pin, dan kesiapan /nix/store",
-    )
-
-    # === ncp diff ===
-    p_diff = sub.add_parser(
-        "diff",
-        aliases=["d"],
-        parents=[common_parser],
-        help="Bandingkan closure dependensi antara pin lokal vs versi upstream",
-        description="Bandingkan library closure dan versi biner antara pin lokal di cache-pins.nix vs rilis upstream channel.",
-    )
-    p_diff.add_argument("target", help="Nama paket yang ingin dibandingkan")
-    p_diff.add_argument(
-        "--deep",
-        action="store_true",
-        help="Gunakan nix-diff untuk analisis semantik AST derivation mendalam",
+        help="Nama paket (pkgs.<attr> atau <attr>) atau store path (/nix/store/...)",
     )
 
     # === ncp tree ===
@@ -316,21 +206,12 @@ def create_parser() -> argparse.ArgumentParser:
     )
     p_tree.add_argument("target", help="Nama paket atau store path (/nix/store/...)")
 
-    # === ncp delete ===
-    p_delete = sub.add_parser(
-        "delete",
-        aliases=["rm", "del"],
-        parents=[common_parser],
-        help="Hapus entri pin dari cache-pins.nix",
-    )
-    p_delete.add_argument("target", help="Key pin yang akan dihapus")
-
     # === ncp search ===
     p_search = sub.add_parser(
         "search",
         aliases=["s"],
         parents=[common_parser],
-        help="Cari versi lain dari paket via FZF (NixHub, Git tags, Flake inputs)",
+        help="Cari versi paket lintas channel via FZF (NixHub, Git tags, Flake inputs)",
     )
     p_search.add_argument(
         "target", nargs="?", help="Nama paket yang ingin dicari versinya"
@@ -340,7 +221,7 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None):
-    """Main entry point for nix-cache-pin unified CLI."""
+    """Main entry point for ncp binary cache ingest CLI."""
     parser = create_parser()
     args = parser.parse_args(argv)
 
@@ -348,37 +229,27 @@ def main(argv=None):
         parser.print_help(file=sys.stderr)
         sys.exit(1)
 
-    # Fill default values for global options if not set
     if not hasattr(args, "input"):
         args.input = os.environ.get("NIXPKGS_INPUT", "nixpkgs")
     if not hasattr(args, "channel"):
         args.channel = None
     if not hasattr(args, "cache_url"):
         args.cache_url = None
-    if not hasattr(args, "pins_file"):
-        args.pins_file = None
     if not hasattr(args, "refresh"):
         args.refresh = False
     if not hasattr(args, "concurrency"):
         args.concurrency = 16
 
-    # Set global verbose mode environment
     if getattr(args, "verbose", False):
         os.environ["NCP_VERBOSE"] = "1"
 
-    # Resolve channel shorthand
     if hasattr(args, "channel") and args.channel:
         from core.eval.channels import resolve_channel_input
 
         args.input = resolve_channel_input(args.channel)
 
-    # Dispatch to subcommand handler
     cmd = args.subcommand
-    if cmd in ("query", "q"):
-        from cli.commands.query import handle_query
-
-        handle_query(args)
-    elif cmd in ("fetch", "f"):
+    if cmd in ("fetch", "f"):
         from cli.commands.fetch import handle_fetch
 
         handle_fetch(args)
@@ -386,34 +257,14 @@ def main(argv=None):
         from cli.commands.update import handle_update
 
         handle_update(args)
-    elif cmd in ("audit", "a"):
-        from cli.commands.audit import handle_audit
+    elif cmd in ("query", "q"):
+        from cli.commands.query import handle_query
 
-        handle_audit(args)
-    elif cmd == "adopt":
-        from cli.commands.adopt import handle_adopt
-
-        handle_adopt(args)
-    elif cmd in ("diff", "d"):
-        from cli.commands.diff import handle_diff
-
-        handle_diff(args)
+        handle_query(args)
     elif cmd in ("tree", "t"):
         from cli.commands.tree import handle_tree
 
         handle_tree(args)
-    elif cmd in ("tui", "dashboard"):
-        from cli.commands.tui import handle_tui
-
-        handle_tui(args)
-    elif cmd in ("stats", "summary"):
-        from cli.commands.stats import handle_stats
-
-        handle_stats(args)
-    elif cmd in ("delete", "rm", "del"):
-        from cli.commands.delete import handle_delete
-
-        handle_delete(args)
     elif cmd in ("search", "s"):
         from cli.commands.search import handle_search
 

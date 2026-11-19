@@ -1,9 +1,8 @@
-"""nix-cache-pin (ncp) — Unified CLI suite for Nix binary cache pin management.
+"""ncp — High-Performance CLI suite for Nix binary cache downloading and reactive ingestion.
 
 Sub-packages:
     cli: Unified CLI entry point, subcommand routing, and argument parsing.
     core: Data models, Nix evaluation, HTTP client, and DAG closure traversal.
-    registry: CRUD operations for cache-pins.nix, codebase pin auditing, and module adoption.
-    downloader: RAM tmpfs lifecycle, aria2c execution, and nix-store realisation.
-    ui: CLI formatters, statistics dashboard, FZF TUI, and version picker.
+    downloader: RAM tmpfs lifecycle, aria2c execution, and reactive nix-store ingestion.
+    ui: CLI formatters and version picker.
 """
