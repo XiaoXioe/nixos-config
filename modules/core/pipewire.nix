@@ -36,9 +36,5 @@ selfLib.mkModule {
         ];
       };
     };
-
-    environment.sessionVariables = {
-      PIPEWIRE_DEBUG = "1";
-    };
   };
 }
