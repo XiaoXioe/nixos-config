@@ -18,19 +18,10 @@ selfLib.mkModule {
       "${config.my.dataPath}/waydroid_data"
     ];
 
-    virtualisation.waydroid.package =
-      let
-        userName = config.my.user.name;
-      in
-      pkgs.symlinkJoin {
-        name = "waydroid-wrapped";
-        paths = [ pkgs.waydroid-nftables ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/waydroid \
-            --set XDG_DATA_HOME "${config.my.dataPath}/waydroid_data/${userName}/xdg_data"
-        '';
-      };
+    virtualisation.waydroid.package = pkgs.symlinkJoin {
+      name = "waydroid-wrapped";
+      paths = [ pkgs.waydroid-nftables ];
+    };
 
     environment.systemPackages = with pkgs; [
       bindfs
@@ -44,34 +35,14 @@ selfLib.mkModule {
 
     fileSystems =
       let
-        userName = config.my.user.name;
         dataPathMount = "${
           lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" config.my.dataPath)
         }.mount";
       in
       lib.mkMerge [
         {
-          "/home/${userName}/WaydroidShare" = {
-            device = "${config.my.dataPath}/waydroid_data/${userName}/xdg_data/waydroid/data/media/0/Download";
-            fsType = "fuse.bindfs";
-            options = [
-              "nofail"
-              "force-user=${userName}"
-              "force-group=users"
-              "create-for-user=1023"
-              "create-for-group=1023"
-              "chown-ignore"
-              "chgrp-ignore"
-              "allow_other"
-              "x-systemd.requires=${dataPathMount}"
-              "x-systemd.after=${dataPathMount}"
-              "x-systemd.before=local-fs.target"
-            ];
-          };
-        }
-        {
           "/etc/waydroid-extra/images" = {
-            device = "${config.my.dataPath}/waydroid_images/halcyon-os";
+            device = "${config.my.dataPath}/waydroid_images/images11";
             fsType = "none";
             options = [
               "bind"
