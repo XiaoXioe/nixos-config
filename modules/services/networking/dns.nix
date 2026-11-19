@@ -32,7 +32,7 @@ selfLib.mkModule {
       group = "keys";
       mode = "0440";
       content = ''
-        server_names = ['${config.sops.placeholder.nextdns_name}', 'rethinkdns', 'quad9-dnscrypt-ip4-filter-pri']
+        server_names = ['${config.sops.placeholder.nextdns_name}', 'quad9-dnscrypt-ip4-filter-pri']
         lb_strategy = 'first'
         listen_addresses = ['127.0.0.1:53']
         require_dnssec = true
